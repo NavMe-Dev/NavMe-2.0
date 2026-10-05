@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "navme-poi-translator"
+version = "0.1.0"
+description = "Translate NavMe POI names into multiple languages and insert them into the navme_pois Supabase table."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "NavMe" }]
+dependencies = [
+    "requests>=2.31",
+    "deep-translator>=1.11.4",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+deepl = ["deepl>=1.16.0"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+navme-poi = "navme_poi_translator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["navme_poi_translator*"]

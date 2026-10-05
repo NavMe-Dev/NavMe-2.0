@@ -1,0 +1,29 @@
+# Automatic HTTPS (Let's Encrypt) for {$DOMAIN}. For local testing set DOMAIN=localhost.
+{$DOMAIN} {
+	encode gzip zstd
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:8000
+	}
+	handle /locales* {
+		root * /srv/locales
+		file_server
+	}
+	handle_path /admin* {
+		root * /srv/admin
+		file_server
+	}
+	handle {
+		root * /srv/viewer
+		try_files {path} /index.html
+		file_server
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	request_body {
+		max_size 2GB
+	}
+}

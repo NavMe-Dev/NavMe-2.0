@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MatterPak Scene — geo-aligned</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: #0b1220; color: #e2e8f0;
+        font: 13px/1.5 'IBM Plex Sans', system-ui, sans-serif; overflow: hidden; }
+      #view { position: fixed; inset: 0; }
+      .panel {
+        position: fixed; z-index: 10; padding: 13px 15px; border-radius: 12px;
+        background: rgba(15, 23, 42, 0.86);
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+      }
+      #left  { top: 14px; left: 14px; width: 320px; max-height: calc(100vh - 28px); overflow-y: auto; }
+      #right { top: 14px; right: 14px; width: 310px; }
+      #me    { bottom: 14px; right: 14px; width: 310px; }
+      #nav   { bottom: 14px; left: 14px; width: 320px; }
+      .hidden { display: none; }
+      h1 { margin: 0 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+      h2 { margin: 14px 0 7px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+           color: #7c8da8; border-top: 1px solid rgba(148,163,184,.18); padding-top: 11px; }
+      h2:first-of-type { border-top: 0; padding-top: 0; }
+      label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+              color: #7c8da8; margin-bottom: 4px; }
+      select, input[type=number] {
+        width: 100%; padding: 7px 9px; border-radius: 8px; font-size: 12px;
+        font-family: 'IBM Plex Mono', monospace; color: #e2e8f0;
+        background: rgba(30, 41, 59, .9); border: 1px solid rgba(148, 163, 184, .3);
+      }
+      input[type=range] { width: 100%; margin: 2px 0; accent-color: #6366f1; }
+      .row { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; font-size: 12px; }
+      .row span:first-child { color: #8496ae; }
+      .row span:last-child { font-family: 'IBM Plex Mono', monospace; text-align: right; word-break: break-all; }
+      .pick { display: flex; gap: 6px; margin-top: 8px; }
+      .pick button, .btn {
+        flex: 1; padding: 7px 8px; font-size: 11px; font-weight: 600; cursor: pointer;
+        border-radius: 8px; color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, .3); background: rgba(30, 41, 59, .9);
+      }
+      .pick button.active { color: #fff; border-color: #6366f1; background: rgba(99,102,241,.32); }
+      .pick button:disabled { opacity: .4; cursor: not-allowed; }
+      .btn:hover, .pick button:hover:not(:disabled) { border-color: #6366f1; color: #fff; }
+      .ax { font-weight: 700; }
+      .ax.x { color: #f87171; } .ax.y { color: #4ade80; } .ax.z { color: #60a5fa; }
+      #status { margin-top: 10px; padding-top: 9px; font-size: 11px;
+        border-top: 1px solid rgba(148,163,184,.18); color: #8496ae; }
+      #status.err { color: #fca5a5; } #status.ok { color: #86efac; }
+      .bar { height: 3px; margin-top: 6px; border-radius: 2px; background: rgba(148,163,184,.2); overflow: hidden; }
+      .bar i { display: block; height: 100%; width: 0; background: #6366f1; transition: width .15s; }
+      .hint { font-size: 10px; color: #64748b; margin-top: 5px; line-height: 1.45; }
+      .warn { font-size: 10px; color: #fbbf24; margin-top: 6px; line-height: 1.45; }
+      #right.idle .live { opacity: .35; }
+      a.maplink { display: block; margin-top: 8px; text-align: center; padding: 7px;
+        border-radius: 8px; font-size: 11px; font-weight: 600; text-decoration: none;
+        color: #cbd5e1; border: 1px solid rgba(148,163,184,.3); background: rgba(30,41,59,.9); }
+      a.maplink:hover { border-color: #6366f1; color: #fff; }
+      .crumb { position: fixed; bottom: 14px; left: 14px; z-index: 10; font-size: 10px; color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <div id="view"></div>
+
+    <div class="panel" id="left">
+      <h1>MatterPak Scene</h1>
+
+      <label for="model">Model — MatterPak unlocked only</label>
+      <select id="model"><option>loading…</option></select>
+      <div class="hint" id="m-addr">&nbsp;</div>
+
+      <h2>Geometry</h2>
+      <div class="pick" id="pick"></div>
+      <div class="row"><span>Triangles</span><span id="m-tris">—</span></div>
+      <div class="row"><span>Downloaded</span><span id="m-size">—</span></div>
+      <div class="row"><span>Link expires</span><span id="m-expiry">—</span></div>
+
+      <h2>Georeference</h2>
+      <div class="row"><span>Origin lat</span><span id="g-lat">—</span></div>
+      <div class="row"><span>Origin lon</span><span id="g-lon">—</span></div>
+      <label for="heading" style="margin-top:8px">Heading — model +Y vs true north <b id="h-val">0°</b></label>
+      <input type="range" id="heading" min="0" max="359" step="1" value="0" />
+      <label for="basealt" style="margin-top:8px">Ground altitude (m above sea level)</label>
+      <input type="number" id="basealt" value="0" step="1" />
+      <div class="warn" id="geowarn"></div>
+
+      <div id="status">Loading…</div>
+      <div class="bar"><i id="bar"></i></div>
+    </div>
+
+    <div class="panel" id="me">
+      <h1>Where am I</h1>
+      <button class="btn" id="findme" style="width:100%">Find me</button>
+      <div class="hint" id="me-hint" style="margin-top:6px">
+        Reads your device GPS, then converts it into the model’s own coordinates.
+      </div>
+      <div id="me-out" class="hidden">
+        <div class="row"><span>GPS lat</span><span id="me-lat">—</span></div>
+        <div class="row"><span>GPS lon</span><span id="me-lon">—</span></div>
+        <div class="row"><span>Accuracy</span><span id="me-acc">—</span></div>
+        <h2>In model space (OBJ, Z-up)</h2>
+        <div class="row"><span class="ax x">X</span><span id="me-x">—</span></div>
+        <div class="row"><span class="ax y">Y</span><span id="me-y">—</span></div>
+        <div class="row"><span class="ax z">Z</span><span id="me-z">—</span></div>
+        <div class="warn" id="me-warn"></div>
+      </div>
+    </div>
+
+    <div class="panel idle" id="right">
+      <h1>Clicked point</h1>
+      <div class="hint" style="margin:-4px 0 9px">Click anywhere on the mesh.</div>
+
+      <h2>Matterport OBJ — Z-up (native)</h2>
+      <div class="row live"><span class="ax x">X</span><span id="o-x">—</span></div>
+      <div class="row live"><span class="ax y">Y</span><span id="o-y">—</span></div>
+      <div class="row live"><span class="ax z">Z <small>(height)</small></span><span id="o-z">—</span></div>
+
+      <h2>Showcase SDK — Y-up (your POI space)</h2>
+      <div class="row live"><span class="ax x">X</span><span id="s-x">—</span></div>
+      <div class="row live"><span class="ax y">Y <small>(height)</small></span><span id="s-y">—</span></div>
+      <div class="row live"><span class="ax z">Z</span><span id="s-z">—</span></div>
+
+      <h2>WGS84</h2>
+      <div class="row live"><span>Latitude</span><span id="p-lat">—</span></div>
+      <div class="row live"><span>Longitude</span><span id="p-lon">—</span></div>
+      <div class="row live"><span>Altitude</span><span id="p-alt">—</span></div>
+      <div class="row live"><span>East / North</span><span id="p-en">—</span></div>
+      <a class="maplink" id="gmap" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
+      <button class="btn" id="copy" style="width:100%;margin-top:6px">Copy all coordinates</button>
+    </div>
+
+    <div class="panel" id="nav">
+      <h1>Navigate</h1>
+      <div class="row"><span>Project</span><span id="nv-type">—</span></div>
+      <div class="row"><span>POIs</span><span id="nv-count">—</span></div>
+      <div class="row"><span>Navmesh</span><span id="nv-mesh">—</span></div>
+
+      <label for="nv-from" style="margin-top:9px">From</label>
+      <select id="nv-from"><option value="">—</option></select>
+      <label for="nv-to">To</label>
+      <select id="nv-to"><option value="">—</option></select>
+
+      <div class="btns" style="display:flex;gap:6px;margin-top:9px">
+        <button class="btn" id="nv-go">Find route</button>
+        <button class="btn" id="nv-clear">Clear</button>
+      </div>
+      <div class="btns" style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn" id="nv-mesh-toggle">View navmesh</button>
+        <button class="btn" id="nv-poi-toggle">Hide POIs</button>
+      </div>
+
+      <div id="nv-out" class="hidden">
+        <div class="row"><span>Distance</span><span id="nv-dist">—</span></div>
+        <div class="row"><span>Waypoints</span><span id="nv-pts">—</span></div>
+        <div class="row"><span>Straight line</span><span id="nv-direct">—</span></div>
+      </div>
+      <div class="warn" id="nv-warn"></div>
+    </div>
+
+    <div class="crumb">Drag orbit · scroll zoom · click to sample</div>
+    <script type="module" src="/src/matterpak-scene.js"></script>
+  </body>
+</html>

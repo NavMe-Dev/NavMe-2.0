@@ -1,0 +1,1857 @@
+/* ═══════════════════════════════════════════════════
+   NavMe — Glassmorphic Design System
+   Dual light / dark glass — Awwwards-inspired frosted UI
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --chrome-gap: 6px;
+  --hud-header-h: 40px;
+  --hud-scene-gap: 4px;
+  --stats-dock-h: 28px;
+
+  --glass-blur: blur(14px);
+  --glass-blur-heavy: blur(22px);
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --drawer-w: 260px;
+  --hud-drawer-w: 260px;
+  --nav-float-width: 48px;
+  --float-radius: 12px;
+  --radius: 10px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --radius-pill: 999px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 450ms;
+  --route-violet: #6366f1;
+  --beacon-green: #16a34a;
+  --waypoint-amber: #d97706;
+  --violet: #6366f1;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #d97706;
+}
+
+/* ── Light glass (default) ── */
+html[data-theme='light'],
+html:not([data-theme]) {
+  color-scheme: light;
+
+  --bg-mesh: #eef4fb;
+  --bg-mesh-deep: #e5edf8;
+  --bg-app-gradient: #eef4fb;
+  --bg-deep: #eef4fb;
+  --bg-base: rgba(255, 255, 255, 0.72);
+  --bg-surface: rgba(255, 255, 255, 0.82);
+  --bg-elevated: rgba(255, 255, 255, 0.9);
+  --bg-hover: rgba(255, 255, 255, 0.95);
+  --bg-inverse: #0f172a;
+  --bg-sidebar: transparent;
+
+  --ink: #0f172a;
+  --ink-muted: #475569;
+  --ink-faint: #64748b;
+
+  --chrome-panel: rgba(255, 255, 255, 0.78);
+  --chrome-panel-strong: rgba(255, 255, 255, 0.88);
+  --glass-white: rgba(255, 255, 255, 0.82);
+  --glass-white-strong: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-border-ink: rgba(148, 163, 184, 0.35);
+
+  --glass-panel-bg: rgba(255, 255, 255, 0.78);
+  --glass-panel-border: rgba(255, 255, 255, 0.92);
+  --glass-stat-bg: rgba(255, 255, 255, 0.55);
+  --glass-stat-border: rgba(148, 163, 184, 0.22);
+  --glass-control-bg: rgba(255, 255, 255, 0.65);
+  --glass-control-border: rgba(148, 163, 184, 0.25);
+  --glass-control-bg-hover: rgba(255, 255, 255, 0.92);
+  --glass-item-bg: rgba(255, 255, 255, 0.72);
+  --glass-item-border: rgba(148, 163, 184, 0.22);
+  --glass-item-bg-hover: rgba(255, 255, 255, 0.92);
+  --glass-item-bg-active: rgba(255, 255, 255, 0.96);
+  --glass-input-bg: rgba(255, 255, 255, 0.82);
+  --glass-input-border: rgba(148, 163, 184, 0.28);
+  --glass-grid-line: rgba(15, 23, 42, 0.04);
+  --scene-chrome-border: rgba(255, 255, 255, 0.65);
+  --glass-modal-bg: rgba(255, 255, 255, 0.92);
+  --glass-modal-border: rgba(148, 163, 184, 0.28);
+  --glass-backdrop: rgba(238, 244, 251, 0.72);
+  --glass-inset-highlight: rgba(255, 255, 255, 0.85);
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --cyan: #2563eb;
+
+  --border-dim: rgba(148, 163, 184, 0.2);
+  --border-base: rgba(148, 163, 184, 0.28);
+  --border-bright: rgba(100, 116, 139, 0.4);
+
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #64748b;
+  --text-inverse: #ffffff;
+  --text-on-ink: #0f172a;
+
+  --glow-cyan: 0 4px 24px rgba(37, 99, 235, 0.18);
+  --glow-amber: 0 4px 20px rgba(217, 119, 6, 0.15);
+  --glow-violet: 0 4px 20px rgba(99, 102, 241, 0.15);
+
+  --shadow-float:
+    0 12px 40px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  --shadow-float-sm:
+    0 6px 24px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  --shadow-float-ink: 0 16px 48px rgba(15, 23, 42, 0.12);
+
+  --brand-navy: #0f172a;
+  --brand-blue: #2563eb;
+  --brand-blue-mid: #3b82f6;
+  --brand-cyan: #2563eb;
+  --brand-ice: rgba(255, 255, 255, 0.85);
+  --brand-snow: rgba(255, 255, 255, 0.92);
+  --brand-amber: #fcd34d;
+
+  --clay-raised-sm: var(--shadow-float-sm);
+  --clay-raised: var(--shadow-float);
+  --clay-pressed: inset 0 0 0 1px rgba(148, 163, 184, 0.25);
+  --clay-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* ── Dark glass ── */
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-mesh: #0f1219;
+  --bg-mesh-deep: #0a0d14;
+  --bg-app-gradient: #0f1219;
+  --bg-deep: #0f1219;
+  --bg-base: rgba(22, 28, 42, 0.72);
+  --bg-surface: rgba(28, 36, 52, 0.82);
+  --bg-elevated: rgba(34, 42, 58, 0.88);
+  --bg-hover: rgba(42, 52, 72, 0.92);
+  --bg-inverse: #f8fafc;
+  --bg-sidebar: transparent;
+
+  --ink: #f1f5f9;
+  --ink-muted: #94a3b8;
+  --ink-faint: #64748b;
+
+  --chrome-panel: rgba(22, 28, 42, 0.72);
+  --chrome-panel-strong: rgba(28, 36, 52, 0.85);
+  --glass-white: rgba(30, 41, 59, 0.5);
+  --glass-white-strong: rgba(51, 65, 85, 0.55);
+  --glass-border: rgba(51, 65, 85, 0.45);
+  --glass-border-ink: rgba(71, 85, 105, 0.5);
+
+  --glass-panel-bg: rgba(22, 28, 42, 0.72);
+  --glass-panel-border: rgba(51, 65, 85, 0.55);
+  --glass-stat-bg: rgba(15, 23, 42, 0.65);
+  --glass-stat-border: rgba(51, 65, 85, 0.45);
+  --glass-control-bg: rgba(15, 23, 42, 0.55);
+  --glass-control-border: rgba(51, 65, 85, 0.4);
+  --glass-control-bg-hover: rgba(30, 41, 59, 0.75);
+  --glass-item-bg: rgba(15, 23, 42, 0.5);
+  --glass-item-border: rgba(51, 65, 85, 0.4);
+  --glass-item-bg-hover: rgba(30, 41, 59, 0.7);
+  --glass-item-bg-active: rgba(37, 99, 235, 0.18);
+  --glass-input-bg: rgba(12, 16, 24, 0.65);
+  --glass-input-border: rgba(51, 65, 85, 0.45);
+  --glass-grid-line: rgba(71, 85, 105, 0.08);
+  --scene-chrome-border: rgba(51, 65, 85, 0.5);
+  --glass-modal-bg: rgba(22, 28, 42, 0.96);
+  --glass-modal-border: rgba(51, 65, 85, 0.55);
+  --glass-backdrop: rgba(4, 7, 13, 0.78);
+  --glass-inset-highlight: transparent;
+
+  --accent: #2b6fed;
+  --accent-hover: #4d8af5;
+  --accent-soft: rgba(43, 111, 237, 0.28);
+  --cyan: #7eb8ff;
+
+  --border-dim: rgba(30, 41, 59, 0.55);
+  --border-base: rgba(126, 184, 255, 0.34);
+  --border-bright: rgba(126, 184, 255, 0.52);
+
+  --text-1: #ffffff;
+  --text-2: #c8d6ea;
+  --text-3: #9eb0c7;
+  --text-inverse: #ffffff;
+  --text-on-ink: #ffffff;
+
+  --glow-cyan: 0 4px 28px rgba(96, 165, 250, 0.22);
+  --glow-amber: 0 4px 20px rgba(251, 191, 36, 0.12);
+  --glow-violet: 0 4px 20px rgba(129, 140, 248, 0.15);
+
+  --shadow-float:
+    0 16px 48px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(51, 65, 85, 0.35) inset;
+  --shadow-float-sm:
+    0 8px 28px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(51, 65, 85, 0.3) inset;
+  --shadow-float-ink: 0 20px 56px rgba(0, 0, 0, 0.65);
+
+  --brand-navy: #0f1219;
+  --brand-blue: #60a5fa;
+  --brand-blue-mid: #93c5fd;
+  --brand-cyan: #60a5fa;
+  --brand-ice: rgba(30, 41, 59, 0.5);
+  --brand-snow: rgba(51, 65, 85, 0.45);
+  --brand-amber: #fcd34d;
+
+  --clay-raised-sm: var(--shadow-float-sm);
+  --clay-raised: var(--shadow-float);
+  --clay-pressed: inset 0 0 0 1px rgba(51, 65, 85, 0.4);
+  --clay-inset: none;
+}
+
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.4s var(--ease-out-expo),
+    color 0.3s ease,
+    border-color 0.35s ease,
+    box-shadow 0.4s var(--ease-out-expo),
+    fill 0.3s ease,
+    stroke 0.3s ease !important;
+}
+
+/* ── Base canvas ── */
+html,
+body,
+#app {
+  background: var(--bg-app-gradient) !important;
+  background-color: var(--bg-deep) !important;
+  color: var(--text-1);
+}
+
+.glass-shell.dashboard,
+.glass-shell.immersive-shell {
+  background: var(--bg-deep) !important;
+  background-color: var(--bg-deep) !important;
+  color: var(--text-1);
+}
+
+.glass-shell:not(.dashboard):not(.immersive-shell) {
+  background: var(--bg-app-gradient) !important;
+  background-color: var(--bg-deep) !important;
+  color: var(--text-1);
+}
+
+.glass-shell {
+  position: relative;
+}
+
+.glass-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(var(--glass-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--glass-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, black 20%, transparent 75%);
+}
+
+/* ── Glass chrome panels ── */
+.glass-shell .poi-add-dialog-card,
+.glass-shell .map-stats-bar,
+.glass-shell .clay-pill {
+  background: var(--glass-panel-bg) !important;
+  border: 1px solid var(--glass-panel-border) !important;
+  box-shadow: none !important;
+  color: var(--text-1) !important;
+}
+
+.glass-shell .topbar,
+.glass-shell .sidebar-nav-block,
+.glass-shell .right-panel,
+.glass-shell .bottombar,
+.glass-shell .float-drawer,
+.glass-shell .scene-toolbar-inner {
+  background: var(--bg-surface) !important;
+  box-shadow: none !important;
+  color: var(--text-1) !important;
+}
+
+.glass-shell .scene-float-panel,
+.glass-shell .float-glass {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.glass-shell .topbar {
+  padding: 0 16px !important;
+  gap: var(--space-2);
+  border-radius: 0 !important;
+}
+
+.glass-shell .topbar-stat {
+  background: var(--glass-stat-bg) !important;
+  border: 1px solid var(--glass-stat-border) !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.glass-shell .topbar-logo-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--text-1) !important;
+  text-shadow: none;
+  display: block;
+  line-height: 1.2;
+}
+
+.topbar-brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+}
+
+.glass-shell .topbar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.glass-shell .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Shared topbar pill buttons — theme + logout same size */
+.topbar-action-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: var(--glass-control-bg) !important;
+  border: 1px solid var(--glass-control-border) !important;
+  color: var(--text-1) !important;
+  cursor: pointer;
+  box-shadow: var(--shadow-float-sm) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  flex-shrink: 0;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.2s var(--ease-spring),
+    box-shadow var(--duration-normal);
+}
+
+.topbar-action-btn:hover {
+  background: var(--glass-control-bg-hover) !important;
+  border-color: var(--border-bright) !important;
+  box-shadow: var(--shadow-float) !important;
+}
+
+.topbar-action-btn:active {
+  transform: scale(0.97);
+}
+
+/* Theme toggle — icon-only pill, same height as logout */
+.theme-toggle.topbar-action-btn {
+  width: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.theme-toggle-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.35s var(--ease-out-expo),
+    transform 0.4s var(--ease-out-expo);
+}
+
+html[data-theme='light'] .theme-toggle-icon--sun,
+html:not([data-theme]) .theme-toggle-icon--sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+html[data-theme='light'] .theme-toggle-icon--moon,
+html:not([data-theme]) .theme-toggle-icon--moon {
+  opacity: 0;
+  transform: rotate(-40deg) scale(0.5);
+}
+
+html[data-theme='dark'] .theme-toggle-icon--sun {
+  opacity: 0;
+  transform: rotate(40deg) scale(0.5);
+}
+
+html[data-theme='dark'] .theme-toggle-icon--moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.theme-toggle--floating {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 2;
+}
+
+.glass-shell .topbar-subtitle {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-3) !important;
+}
+
+.glass-shell .topbar-divider {
+  height: 22px;
+  width: 1px;
+  background: var(--border-dim);
+}
+
+.glass-shell .topbar-owner-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  color: var(--accent) !important;
+  background: var(--bg-base) !important;
+  border: none !important;
+  box-shadow: var(--clay-inset);
+}
+
+.glass-shell .topbar-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3) !important;
+}
+
+.glass-shell .topbar-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-1) !important;
+  letter-spacing: 0.04em;
+  text-shadow: none;
+}
+
+.glass-shell .topbar-logout {
+  padding: 0 12px !important;
+  color: var(--red) !important;
+}
+
+/* Live status chip */
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  background: var(--bg-base);
+  border: none;
+  box-shadow: var(--clay-inset);
+  margin-right: var(--space-2);
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--beacon-green);
+  box-shadow: 0 0 0 2px rgba(61, 168, 138, 0.25);
+  animation: clay-beacon-pulse 2.4s ease-in-out infinite;
+}
+
+.live-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--beacon-green);
+}
+
+/* ── Sidebar nav ── */
+.glass-shell .sidebar-nav-block {
+  padding: 8px 6px !important;
+  gap: 4px !important;
+  border-radius: 0 !important;
+}
+
+.glass-shell .sidebar-btn {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 48px !important;
+  color: var(--text-2) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  transition:
+    color var(--duration-normal),
+    background var(--duration-normal),
+    box-shadow var(--duration-normal),
+    border-color var(--duration-normal),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.glass-shell .sidebar-btn svg {
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.glass-shell .sidebar-btn:hover {
+  color: var(--text-1) !important;
+  background: var(--bg-hover) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  transform: none;
+}
+
+.glass-shell .sidebar-btn:hover svg {
+  transform: scale(1.06);
+}
+
+.glass-shell .sidebar-btn.active {
+  color: var(--text-inverse) !important;
+  background: var(--accent) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .sidebar-btn.active svg {
+  filter: none;
+}
+
+/* ── Viewport / 3D scene ── */
+.glass-shell .viewport,
+.glass-shell .scene-stage,
+.glass-shell .viewport-body,
+.glass-shell .viewport-3d,
+.glass-shell .viewport-2d {
+  background: var(--bg-mesh) !important;
+}
+
+.glass-shell .viewport-body::before {
+  display: none !important;
+}
+
+.glass-shell .viewport,
+.glass-shell .scene-stage {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.glass-shell .viewport-tabs {
+  padding: var(--space-2) var(--space-3) !important;
+  min-height: 36px;
+  background: color-mix(in srgb, var(--glass-panel-bg) 88%, transparent) !important;
+  border-bottom: 1px solid var(--glass-panel-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: var(--glass-blur) saturate(140%);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(140%);
+}
+
+.glass-shell .viewport-map-style label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-3) !important;
+}
+
+.glass-shell .viewport-blocks-toggle {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2) !important;
+}
+
+.glass-shell .viewport-blocks-toggle input {
+  accent-color: var(--accent);
+}
+
+/* ── Compact topbar stat ── */
+.glass-shell .topbar-stat-value {
+  color: var(--stat-accent, var(--accent)) !important;
+}
+
+/* ── Zone restriction panel ── */
+.glass-shell .zone-panel-header.poi-panel-header {
+  padding: var(--space-2) var(--space-3) var(--space-1) !important;
+}
+
+.glass-shell .block-panel-hint {
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-2) !important;
+}
+
+.glass-shell .zone-list.block-list {
+  padding: var(--space-1) var(--space-3) var(--space-3) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.glass-shell .zone-list.block-list .poi-item {
+  text-align: left;
+}
+
+.glass-shell .zone-list.block-list .zone-loading {
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+.glass-shell .scene-tool-btn.active {
+  color: var(--accent) !important;
+  background: var(--glass-item-bg-active) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .viewport-accessibility-btn {
+  border-color: rgba(91, 33, 182, 0.45) !important;
+  background: rgba(124, 58, 237, 0.1) !important;
+  color: #5b21b6 !important;
+}
+
+.glass-shell .viewport-accessibility-btn:hover {
+  background: rgba(124, 58, 237, 0.18) !important;
+  border-color: rgba(91, 33, 182, 0.65) !important;
+  color: #4c1d95 !important;
+}
+
+.glass-shell .viewport-accessibility-btn.active {
+  background: rgba(124, 58, 237, 0.24) !important;
+  border-color: #7c3aed !important;
+  color: #4c1d95 !important;
+}
+
+html[data-theme='dark'] .glass-shell .viewport-accessibility-btn {
+  border-color: rgba(124, 58, 237, 0.45) !important;
+  background: rgba(124, 58, 237, 0.14) !important;
+  color: #ddd6fe !important;
+}
+
+html[data-theme='dark'] .glass-shell .viewport-accessibility-btn:hover {
+  background: rgba(124, 58, 237, 0.24) !important;
+  color: #f5f3ff !important;
+}
+
+html[data-theme='dark'] .glass-shell .viewport-accessibility-btn.active {
+  background: rgba(124, 58, 237, 0.32) !important;
+  border-color: #a78bfa !important;
+  color: #fff !important;
+}
+
+.glass-shell .stairs-add-btn {
+  margin: var(--space-2) var(--space-3) 0;
+  width: calc(100% - var(--space-3) * 2);
+}
+
+.glass-shell .zone-state-btn--fixed {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.92;
+}
+
+.glass-shell .block-stairs-edit-note {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.glass-shell .block-detail-fields {
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.glass-shell .zone-detail-title,
+.glass-shell .block-detail .zone-detail-title {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.glass-shell .drawer-panel-edge {
+  margin: 0 var(--space-3) var(--space-2);
+}
+
+/* ── Right drawer ── */
+.glass-shell .float-drawer.drawer-frost {
+  background: var(--bg-surface) !important;
+  border: none !important;
+  border-left: 1px solid var(--border-base) !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .panel-slot {
+  padding: 2px 0 4px !important;
+}
+
+.glass-shell .poi-panel-header,
+.glass-shell .media-panel-header,
+.glass-shell .user-panel-header,
+.glass-shell .map2d-header {
+  padding: 6px 8px 4px !important;
+}
+
+.glass-shell .poi-panel-header-row,
+.glass-shell .user-panel-header .poi-panel-header-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--space-2) !important;
+  width: 100%;
+}
+
+.glass-shell .poi-panel-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.glass-shell .poi-panel-header-row .admin-refresh-btn {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.glass-shell .poi-panel-title,
+.glass-shell .media-panel-title,
+.glass-shell .admin-title,
+.glass-shell .nav-title {
+  font-family: var(--font-display) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  color: var(--accent) !important;
+  text-shadow: none !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.drawer-panel-edge {
+  height: 3px;
+  margin: 0 var(--space-4) var(--space-3);
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(74, 143, 212, 0.35) 35%,
+    rgba(123, 107, 207, 0.35) 65%,
+    transparent
+  );
+  opacity: 0.9;
+  animation: none;
+}
+
+.glass-shell .panel-slot .poi-list,
+.glass-shell .panel-slot .media-list {
+  padding: 4px 8px 8px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── List items ── */
+.glass-shell .poi-item,
+.glass-shell .user-item,
+.glass-shell .media-list .poi-item,
+.glass-shell .zone-list.block-list .poi-item {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-dim) !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--space-2);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 36px;
+  padding: 8px 4px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--text-2) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  transition:
+    color var(--duration-fast),
+    background var(--duration-fast),
+    box-shadow var(--duration-fast),
+    border-color var(--duration-fast),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.glass-shell .user-item .user-dot {
+  flex-shrink: 0;
+}
+
+.glass-shell .user-item .user-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.glass-shell .user-item .user-role {
+  flex-shrink: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+.glass-shell .media-list .poi-item .media-item-badge {
+  flex-shrink: 0;
+}
+
+.glass-shell .media-list .poi-item .media-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.glass-shell .media-list .poi-item .media-item-download {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  margin-left: auto;
+  color: var(--text-2);
+  background: var(--glass-control-bg);
+  border: 1px solid var(--glass-control-border);
+}
+
+.glass-shell .media-list .poi-item .media-item-download:hover {
+  color: var(--text-1);
+  background: var(--glass-item-bg-hover);
+}
+
+.glass-shell .poi-item:hover,
+.glass-shell .user-item:hover {
+  color: var(--text-1) !important;
+  background: var(--bg-hover) !important;
+  border-color: var(--border-dim) !important;
+  transform: none;
+  box-shadow: none !important;
+}
+
+.glass-shell .poi-item.active,
+.glass-shell .user-item.active {
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+  border-color: var(--border-dim) !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+/* ── Form controls ── */
+.glass-shell input,
+.glass-shell select,
+.glass-shell textarea {
+  background: var(--glass-input-bg) !important;
+  border: 1px solid var(--glass-input-border) !important;
+  color: var(--text-1) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: var(--space-2) var(--space-4) !important;
+  font-family: var(--font-body);
+  font-size: 12px;
+  box-shadow: none !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition:
+    box-shadow var(--duration-fast),
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.glass-shell input:focus,
+.glass-shell select:focus,
+.glass-shell textarea:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-soft) !important;
+}
+
+.glass-shell .map-display-select {
+  min-width: 120px;
+  padding: var(--space-2) var(--space-3) !important;
+  cursor: pointer;
+}
+
+.glass-shell .coord-inputs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 8px 6px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.glass-shell .coord-inputs > .coord-group {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 3px !important;
+  min-width: 0;
+}
+
+.glass-shell .coord-inputs > .coord-group .field-label {
+  flex-shrink: 0;
+  min-width: auto;
+  margin: 0 !important;
+  padding: 0;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em;
+  text-align: left;
+  line-height: 1;
+}
+
+.glass-shell .coord-inputs > .coord-group input[type='number'],
+.glass-shell .coord-inputs > .coord-group input[type='text'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100% !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 4px 6px !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+  border-radius: var(--radius-sm) !important;
+  box-sizing: border-box !important;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.glass-shell .coord-group input[type='number']::-webkit-outer-spin-button,
+.glass-shell .coord-group input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.glass-shell .coord-group--stacked,
+.glass-shell .poi-add-field.coord-group,
+.glass-shell .block-detail-fields > .coord-group.coord-group--stacked {
+  flex: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0 8px 4px;
+}
+
+.glass-shell .coord-group--stacked .field-label,
+.glass-shell .poi-add-field .field-label {
+  width: 100%;
+}
+
+.glass-shell .coord-group--stacked input[type='text'],
+.glass-shell .coord-group--stacked input[type='number'],
+.glass-shell .coord-group--stacked textarea,
+.glass-shell .block-detail-fields input[type='text'],
+.glass-shell .block-detail-fields input[type='number'],
+.glass-shell .poi-coords input[type='text'],
+.glass-shell .poi-coords input[type='number'],
+.glass-shell .poi-coords textarea,
+.glass-shell .scene-float-panel--edit input[type='text'],
+.glass-shell .scene-float-panel--edit input[type='number'],
+.glass-shell .scene-float-panel--edit textarea {
+  width: 100% !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 4px 8px !important;
+  box-sizing: border-box !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
+
+.glass-shell .coord-group--stacked textarea,
+.glass-shell .poi-coords textarea,
+.glass-shell .scene-float-panel--edit textarea,
+.glass-shell .poi-add-field textarea {
+  min-height: 56px !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+  resize: vertical;
+}
+
+.glass-shell .coord-inputs > .coord-group .field-label {
+  align-self: center;
+}
+
+.glass-shell .block-detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.glass-shell .block-detail-fields .block-gizmo-modes {
+  padding: 0 var(--space-4);
+}
+
+.glass-shell .zone-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.glass-shell .zone-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glass-shell .zone-state-btn {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--glass-control-border, rgba(255, 255, 255, 0.12));
+  background: var(--glass-item-bg, rgba(255, 255, 255, 0.04));
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.glass-shell .zone-state-btn:hover {
+  color: var(--text-1);
+  background: var(--glass-item-bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.glass-shell .zone-state-btn.is-blocked {
+  color: #fca5a5;
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.glass-shell .zone-state-btn.is-open {
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.glass-shell .gizmo-mode-btn {
+  border-radius: var(--radius-sm, 8px) !important;
+  border: 1px solid var(--glass-control-border, rgba(255, 255, 255, 0.12)) !important;
+  background: var(--glass-item-bg, rgba(255, 255, 255, 0.04)) !important;
+  color: var(--text-2) !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .gizmo-mode-btn:hover {
+  color: var(--text-1) !important;
+  background: var(--glass-item-bg-hover, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.glass-shell .gizmo-mode-btn.active {
+  color: var(--text-1) !important;
+  background: var(--glass-item-bg-active, rgba(255, 255, 255, 0.12)) !important;
+  border-color: var(--border-bright, rgba(255, 255, 255, 0.2)) !important;
+}
+
+.glass-shell .scene-float-panel--edit .poi-coords,
+.glass-shell .scene-float-panel--edit .media-coords,
+.glass-shell .block-detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+  padding: var(--space-1, 4px) 0 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.glass-shell .scene-float-panel--edit .poi-actions-row {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 4px 8px 6px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: inherit;
+}
+
+.glass-shell .scene-float-panel--actions .poi-actions-row {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 6px 8px;
+  position: static;
+  background: transparent;
+}
+
+.glass-shell .scene-float-panel--edit .media-panel-save-row,
+.glass-shell .scene-float-panel--actions .media-panel-save-row {
+  position: static;
+  margin-top: 0;
+}
+
+.glass-shell .scene-float-panel--edit .media-panel-details {
+  flex-shrink: 0;
+  padding: 10px 16px 4px;
+}
+
+.glass-shell .scene-float-panel--edit .media-edit-details-btn {
+  width: 100%;
+}
+
+.glass-shell .scene-float-panel--edit .poi-subpanel-title {
+  padding: 6px 10px 2px;
+}
+
+.glass-shell .scene-float-panel--edit {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.glass-shell .scene-float-panel--edit .poi-edit-empty {
+  display: none !important;
+}
+
+.glass-shell .block-detail-fields .zone-detail-title,
+.glass-shell .block-detail .zone-detail-title {
+  padding: 6px 10px 4px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.glass-shell .poi-subpanel-title {
+  padding: 6px 10px 4px !important;
+  font-size: 11px !important;
+}
+
+.glass-shell .coord-group label,
+.glass-shell .field-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--text-3) !important;
+}
+
+.glass-shell .coord-inputs > .coord-group .field-label--x {
+  color: #ef4444 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.glass-shell .coord-inputs > .coord-group .field-label--y {
+  color: #22c55e !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.glass-shell .coord-inputs > .coord-group .field-label--z {
+  color: #3b82f6 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.glass-shell .transform-axis-row {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 0 12px 8px;
+}
+
+.glass-shell .transform-axis-row.hidden,
+.glass-shell .coord-inputs.hidden {
+  display: none !important;
+}
+
+.glass-shell .transform-axis-row-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2, #94a3b8);
+  white-space: nowrap;
+}
+
+.glass-shell .coord-group--axis {
+  position: relative;
+  display: block;
+  margin: 0 !important;
+}
+
+.glass-shell .coord-group--axis input[type='number'] {
+  width: 100%;
+  padding-right: 22px !important;
+  text-align: left;
+}
+
+.glass-shell .axis-suffix {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.glass-shell .axis-suffix--x { color: #f87171; }
+.glass-shell .axis-suffix--y { color: #4ade80; }
+.glass-shell .axis-suffix--z { color: #60a5fa; }
+
+.glass-shell .poi-actions-row {
+  padding: 0 8px 8px !important;
+  gap: 6px !important;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.glass-shell .poi-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.glass-shell .poi-item-nav-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+.glass-shell .poi-actions-row .poi-btn-navigate {
+  flex: 0 0 36px;
+  width: 36px;
+  min-width: 36px;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+/* ── Buttons — frosted glass pills ── */
+.glass-shell .btn-save,
+.glass-shell .btn-nav,
+.glass-shell .btn-secondary,
+.glass-shell .reviews-export,
+.glass-shell .review-download-btn {
+  background: var(--glass-control-bg) !important;
+  color: var(--text-1) !important;
+  border: 1px solid var(--glass-control-border) !important;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-pill, 999px) !important;
+  box-shadow: var(--shadow-float-sm) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-normal),
+    background var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+.glass-shell .btn-save:hover,
+.glass-shell .btn-nav:hover,
+.glass-shell .btn-secondary:hover {
+  background: var(--glass-control-bg-hover) !important;
+  border-color: var(--border-bright) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-float) !important;
+}
+
+.glass-shell .btn-save:active,
+.glass-shell .btn-nav:active,
+.glass-shell .btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: var(--clay-pressed) !important;
+}
+
+.glass-shell .btn-delete,
+.glass-shell .btn-delete-poi {
+  color: var(--text-2) !important;
+  border-color: var(--glass-control-border, rgba(255, 255, 255, 0.12)) !important;
+}
+
+.glass-shell .btn-delete:hover,
+.glass-shell .btn-delete-poi:hover {
+  color: var(--text-1) !important;
+  background: var(--glass-item-bg-hover, rgba(255, 255, 255, 0.08)) !important;
+  border-color: var(--border-bright, rgba(255, 255, 255, 0.2)) !important;
+}
+
+/* ── Scene toolbar — circular glass controls ── */
+.glass-shell .scene-tool-btn {
+  color: var(--text-2) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .scene-tool-btn:hover {
+  color: var(--text-1) !important;
+  background: var(--glass-item-bg-hover) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .scene-tool-btn.active {
+  color: var(--accent) !important;
+  background: var(--glass-item-bg-active) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.glass-shell .scene-tool-hint {
+  display: none !important;
+}
+
+/* ── Cards / admin ── */
+.glass-shell .reviews-stat-card,
+.glass-shell .review-card,
+.glass-shell .admin-panel,
+.glass-shell .analytics-panel,
+.glass-shell .admin-item {
+  background: var(--bg-base) !important;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--clay-raised-sm) !important;
+}
+
+.glass-shell .reviews-stat-value,
+.glass-shell .analytics-card-value {
+  color: var(--accent) !important;
+  text-shadow: none !important;
+}
+
+/* ── Login form (layout in spatial-decor.css) ── */
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-overlay--glass .form-card {
+  padding: var(--space-5) var(--space-4) var(--space-4) !important;
+  background: var(--glass-panel-bg) !important;
+  border: 1px solid var(--glass-panel-border) !important;
+  border-radius: var(--float-radius) !important;
+  box-shadow: var(--shadow-float) !important;
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+}
+
+.form-card h1 {
+  font-family: var(--font-display) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  color: var(--text-1) !important;
+  text-shadow: none !important;
+}
+
+.form-card .subtitle {
+  font-family: var(--font-body) !important;
+  font-size: 12px !important;
+  letter-spacing: 0;
+  color: var(--text-2) !important;
+  margin-bottom: var(--space-3) !important;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: var(--space-3) !important;
+}
+
+.form-group label {
+  font-family: var(--font-body) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  color: var(--text-3) !important;
+  margin-bottom: var(--space-1) !important;
+}
+
+.form-group input {
+  padding: var(--space-2) var(--space-3) !important;
+  min-height: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  background: var(--glass-input-bg) !important;
+  border: 1px solid var(--glass-input-border) !important;
+  color: var(--text-1) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+}
+
+.form-overlay .password-field {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.form-overlay .password-field input {
+  width: 100%;
+  padding-right: 44px !important;
+  box-sizing: border-box;
+}
+
+.form-overlay .password-toggle {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.form-overlay .password-toggle:hover,
+.form-overlay .password-toggle:focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.form-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.btn-start {
+  margin-top: var(--space-3) !important;
+  padding: var(--space-3) !important;
+  font-family: var(--font-display) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  background: var(--bg-base) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--glass-input-border, var(--border-base)) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--clay-raised-sm) !important;
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-normal),
+    background var(--duration-normal);
+}
+
+.btn-start:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--accent) !important;
+  box-shadow: var(--clay-raised) !important;
+}
+
+.btn-start:active:not(:disabled) {
+  box-shadow: var(--clay-pressed) !important;
+}
+
+.btn-start:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.brand-logo--login {
+  filter: drop-shadow(4px 4px 8px rgba(163, 177, 198, 0.4));
+}
+
+/* ── Scrollbar ── */
+.glass-shell ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.glass-shell ::-webkit-scrollbar-thumb {
+  background: rgba(163, 177, 198, 0.55);
+  border-radius: 999px;
+}
+
+.glass-shell ::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 158, 182, 0.75);
+}
+
+/* ── Status bar (topbar pill) ── */
+.glass-shell .status-bar,
+.immersive-shell .topbar-status-slot > .status-bar {
+  background: color-mix(in srgb, var(--bg-surface, #fff) 92%, transparent) !important;
+  color: var(--text-1) !important;
+  border: 1px solid var(--glass-panel-border, rgba(148, 163, 184, 0.28)) !important;
+  font-family: var(--font-mono);
+  box-shadow: none !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ── Panel overrides ── */
+.glass-shell .right-panel,
+.glass-shell .panel-slot {
+  background: transparent !important;
+  border-left: none !important;
+}
+
+.glass-shell .btn-nav:hover {
+  box-shadow: var(--clay-pressed) !important;
+}
+
+.glass-shell .nav-divider {
+  margin: var(--space-3) var(--space-4);
+  background: var(--border-dim);
+  height: 1px;
+}
+
+.glass-shell .user-tabs {
+  margin: var(--space-2) var(--space-4) var(--space-3) !important;
+  padding: var(--space-1) !important;
+  background: var(--bg-base) !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: var(--clay-inset) !important;
+}
+
+.glass-shell .user-tab.active {
+  background: var(--bg-surface) !important;
+  color: var(--accent) !important;
+  box-shadow: var(--clay-raised-sm) !important;
+}
+
+/* Kill legacy decorative noise */
+.scanlines,
+.dashboard::before,
+.topbar::after,
+.sidebar::after,
+.right-panel::before,
+.right-panel::after,
+.viewport::before,
+.viewport::after {
+  display: none !important;
+  content: none !important;
+}
+
+@keyframes clay-beacon-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none !important;
+  }
+}
+
+/* Dark theme — slate glass only, no white frost */
+html[data-theme='dark'] .glass-shell .topbar-stat {
+  box-shadow: var(--shadow-float-sm) !important;
+}
+
+html[data-theme='dark'] .glass-shell .viewport-tabs {
+  box-shadow: inset 0 -1px 0 var(--border-dim) !important;
+}
+
+html[data-theme='dark'] .scene-hud-corner {
+  border-color: rgba(51, 65, 85, 0.55);
+  opacity: 0.6;
+}
+
+/* ── SVG icons — inherit theme color correctly ── */
+.ui-icon,
+.sidebar-icon,
+.sidebar-btn svg,
+.scene-tool-icon svg,
+.theme-toggle-icon svg,
+.admin-refresh-btn svg,
+.btn-save .icon svg,
+.poi-btn-save .icon svg,
+.poi-btn-delete svg,
+.scene-tool-cancel svg {
+  display: block;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  color: inherit;
+}
+
+.sidebar-btn > svg,
+.sidebar-btn > .ui-icon,
+.sidebar-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-btn .sidebar-lock svg {
+  width: 9px !important;
+  height: 9px !important;
+}
+
+.sidebar-btn[data-panel='media'] svg,
+.sidebar-btn[data-panel='media'] .ui-icon-media {
+  width: 24px;
+  height: 24px;
+  display: block;
+  margin: 0 auto;
+}
+
+.sidebar-btn[data-panel='facilities'] > svg,
+.sidebar-btn[data-panel='facilities'] > .ui-icon-facility {
+  width: 22px !important;
+  height: 22px !important;
+  display: block;
+  margin: 0 auto;
+}
+
+.sidebar-btn {
+  color: var(--text-2) !important;
+}
+
+.sidebar-btn svg {
+  color: currentColor;
+  opacity: 0.85;
+}
+
+.sidebar-btn:hover svg,
+.sidebar-btn.active svg {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.scene-tool-btn .scene-tool-icon {
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scene-tool-btn:hover .scene-tool-icon,
+.scene-tool-btn.active .scene-tool-icon {
+  color: var(--accent);
+}
+
+.scene-tool-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-save .icon,
+.poi-btn-save .icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  color: inherit;
+}
+
+.poi-btn-delete svg,
+.btn-delete svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  stroke: currentColor;
+}
+
+.admin-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--glass-control-border);
+  background: var(--glass-control-bg);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.admin-refresh-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+  background: var(--glass-control-bg-hover);
+}
+
+.scene-tool-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-icon-add-media,
+.ui-icon-place-media,
+.ui-icon-media,
+.ui-icon-zone-block,
+.ui-icon-place-block {
+  stroke-width: 1.75;
+}
+
+.ui-icon-add-media .ui-icon-plus-mark {
+  stroke-width: 2.25;
+}
+
+.media-panel-sub {
+  margin: 0;
+  padding: 0 10px 6px;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* ── Compact actions — keep Save + Delete fully visible ── */
+.glass-shell .scene-float-panel--actions {
+  min-height: 40px !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+}
+
+.glass-shell .poi-actions-row,
+.glass-shell .scene-float-panel--actions .poi-actions-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 6px 6px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+.glass-shell .poi-actions-row .poi-btn-save,
+.glass-shell .poi-actions-row .btn-save:not(.poi-btn-delete) {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 36px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--save, #2563eb) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--save, #2563eb) !important;
+}
+
+.glass-shell .poi-actions-row .poi-btn-delete,
+.glass-shell .poi-actions-row .btn-delete-poi {
+  flex: 0 0 36px !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.glass-shell .poi-actions-row .poi-btn-delete svg,
+.glass-shell .poi-btn-delete svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ui-icon-category,
+.ui-icon-facility {
+  stroke-width: 1.75;
+}

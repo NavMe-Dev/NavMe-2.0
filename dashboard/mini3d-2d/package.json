@@ -1,0 +1,26 @@
+{
+  "name": "navme-mini3d-gta",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "vite build --config vite.config.ts",
+    "preview": "vite preview --config vite.config.ts"
+  },
+  "dependencies": {
+    "@mappedin/mappedin-js": "^6.20.0",
+    "@recast-navigation/core": "^0.31.0",
+    "@recast-navigation/generators": "^0.31.0",
+    "@supabase/supabase-js": "^2.108.0",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^4.10.38",
+    "recast-navigation": "^0.31.0",
+    "three": "^0.150.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.150.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11"
+  }
+}

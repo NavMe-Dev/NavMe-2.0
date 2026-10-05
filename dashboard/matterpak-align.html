@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MatterPak → Map alignment</title>
+    <!-- CDN, not package.json: this is a dev-only tool and must not reach the app bundle. -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1220; color: #e2e8f0;
+        font: 13px/1.5 'IBM Plex Sans', system-ui, sans-serif; }
+      #map { position: fixed; inset: 0; }
+      .panel {
+        position: fixed; z-index: 10; padding: 13px 15px; border-radius: 12px;
+        background: rgba(15, 23, 42, .9); border: 1px solid rgba(148,163,184,.28);
+        backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+        box-shadow: 0 10px 34px rgba(0,0,0,.55);
+      }
+      #left  { top: 12px; left: 12px; width: 318px; max-height: calc(100vh - 24px); overflow-y: auto; }
+      #right { top: 12px; right: 12px; width: 296px; }
+      h1 { margin: 0 0 9px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+      h2 { margin: 13px 0 6px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+           color: #7c8da8; border-top: 1px solid rgba(148,163,184,.18); padding-top: 10px; }
+      h2:first-of-type { border-top: 0; padding-top: 0; }
+      label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+              color: #7c8da8; margin: 8px 0 3px; }
+      select, input[type=number], textarea {
+        width: 100%; padding: 6px 9px; border-radius: 8px; font-size: 12px;
+        font-family: 'IBM Plex Mono', monospace; color: #e2e8f0;
+        background: rgba(30,41,59,.92); border: 1px solid rgba(148,163,184,.3);
+      }
+      textarea { height: 104px; resize: vertical; font-size: 10.5px; line-height: 1.45; }
+      input[type=range] { width: 100%; accent-color: #6366f1; margin: 3px 0 0; }
+      .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; font-size: 12px; }
+      .row span:first-child { color: #8496ae; }
+      .row span:last-child { font-family: 'IBM Plex Mono', monospace; text-align: right; }
+      .btns { display: flex; gap: 6px; margin-top: 10px; }
+      button {
+        flex: 1; padding: 8px; font-size: 11px; font-weight: 600; cursor: pointer;
+        border-radius: 8px; color: #cbd5e1; border: 1px solid rgba(148,163,184,.3);
+        background: rgba(30,41,59,.92);
+      }
+      button:hover { border-color: #6366f1; color: #fff; }
+      button.primary { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+      button.primary:hover { background: #6366f1; }
+      .seg { display: flex; gap: 5px; margin-top: 5px; }
+      .seg button.active { background: rgba(99,102,241,.32); border-color: #6366f1; color: #fff; }
+      .hint { font-size: 10px; color: #64748b; line-height: 1.45; margin-top: 5px; }
+      .warn { font-size: 10px; color: #fbbf24; line-height: 1.45; margin-top: 6px; }
+      #status { margin-top: 9px; padding-top: 9px; font-size: 11px;
+        border-top: 1px solid rgba(148,163,184,.18); color: #8496ae; }
+      #status.ok { color: #86efac; } #status.err { color: #fca5a5; }
+      .maplibregl-ctrl-attrib { font-size: 10px; }
+      .anchor-pin {
+        width: 20px; height: 20px; border-radius: 50%; cursor: grab;
+        background: #fbbf24; border: 3px solid #0b1220;
+        box-shadow: 0 0 0 2px #fbbf24, 0 3px 10px rgba(0,0,0,.6);
+      }
+      .anchor-pin:active { cursor: grabbing; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <div class="panel" id="left">
+      <h1>MatterPak → Map alignment</h1>
+
+      <label for="model">Model</label>
+      <select id="model"><option>loading…</option></select>
+      <div class="hint" id="addr">&nbsp;</div>
+
+      <label>Geometry</label>
+      <div class="seg" id="pick"></div>
+
+      <h2>Basemap</h2>
+      <div class="seg" id="base">
+        <button data-b="sat" class="active">Satellite</button>
+        <button data-b="street">Street</button>
+        <button data-b="light">Light</button>
+      </div>
+
+      <h2>Placement</h2>
+      <div class="hint" style="margin-top:0">
+        Drag the <b style="color:#fbbf24">amber pin</b> to move the mesh. Arrow keys nudge
+        1&nbsp;m, hold Shift for 10&nbsp;m.
+      </div>
+      <label for="heading">Rotation — model +Y vs true north <b id="h-val">0°</b></label>
+      <input type="range" id="heading" min="0" max="359.5" step="0.5" value="0" />
+      <label for="alt">Altitude offset (m)</label>
+      <input type="number" id="alt" value="0" step="0.5" />
+      <label for="scale">Scale (1 = true metres)</label>
+      <input type="number" id="scale" value="1" step="0.001" />
+      <label for="opacity">Mesh opacity <b id="o-val">0.75</b></label>
+      <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.75" />
+
+      <div class="btns">
+        <button id="save" class="primary">Save alignment</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div id="status">Loading…</div>
+    </div>
+
+    <div class="panel" id="right">
+      <h1>Saved transform</h1>
+      <div class="row"><span>Anchor lat</span><span id="a-lat">—</span></div>
+      <div class="row"><span>Anchor lon</span><span id="a-lon">—</span></div>
+      <div class="row"><span>Heading</span><span id="a-head">—</span></div>
+      <div class="row"><span>Altitude</span><span id="a-alt">—</span></div>
+      <div class="row"><span>Scale</span><span id="a-scale">—</span></div>
+
+      <h2>Stored JSON</h2>
+      <textarea id="json" spellcheck="false"></textarea>
+      <div class="btns">
+        <button id="copy">Copy</button>
+        <button id="open">Open sampler →</button>
+      </div>
+      <div class="warn" id="warn"></div>
+    </div>
+
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script type="module" src="/src/matterpak-align.js"></script>
+  </body>
+</html>

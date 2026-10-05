@@ -1,0 +1,37 @@
+# Local-only overrides (optional — copy from .env.example)
+.env
+.env.local
+.env.*.local
+
+# .env.production is committed so Render/CI builds embed VITE_* vars (Supabase anon key is client-safe).
+
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.log
+dev-server.log
+
+# Editor metadata
+.cursor/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Local UI reference clone (not part of the app)
+_spacecheck_ref/
+
+# Portable git tooling (local only)
+.tools/
+
+# Supabase CLI link state — pooler-url holds a Postgres connection string
+supabase/.temp/

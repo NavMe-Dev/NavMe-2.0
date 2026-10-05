@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "navme-dashboard-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:dashboard", "--prefix", "/Users/mediauser/Documents/GitHub/Navme_Dashboard/Navme_Dashboard_Dev"],
+      "port": 5173
+    }
+  ]
+}

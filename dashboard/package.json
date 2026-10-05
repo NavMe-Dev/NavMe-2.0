@@ -1,0 +1,36 @@
+{
+  "name": "navme-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n dashboard,2d,3d -c blue,magenta,cyan \"vite\" \"npm run dev:2d\" \"npm run dev:3dview\"",
+    "dev:dashboard": "vite",
+    "dev:2d": "npm run dev --prefix mini3d-2d",
+    "dev:3dview": "npm run dev --prefix Tacoma_4926_3D_wayfinder",
+    "dev:matterpak": "vite --config matterpak-twin/vite.config.js",
+    "ensure:subdeps": "npm ci --prefix mini3d-2d && npm ci --prefix Tacoma_4926_3D_wayfinder",
+    "build": "npm run ensure:subdeps && vite build && npm run build:2d && npm run build:3dview",
+    "build:2d": "npm run build --prefix mini3d-2d",
+    "build:3dview": "npm run build --prefix Tacoma_4926_3D_wayfinder",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mkkellogg/gaussian-splats-3d": "^0.4.7",
+    "@recast-navigation/three": "^0.43.0",
+    "@supabase/supabase-js": "^2.110.8",
+    "fflate": "^0.8.3",
+    "lucide": "^1.20.0",
+    "qrcode": "^1.5.4",
+    "recast-navigation": "^0.43.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6",
+    "concurrently": "^10.0.5",
+    "vite": "^6.2.0"
+  }
+}

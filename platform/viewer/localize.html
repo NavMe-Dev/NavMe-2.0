@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NavMe · Image</title>
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+
+<style>
+body{font-family:system-ui,sans-serif;margin:0;padding:10px;background:#f4f5f7;color:#222}
+h1{font-size:18px;margin:4px 0 8px}
+.card{background:#fff;border-radius:10px;padding:10px;margin-bottom:10px;box-shadow:0 1px 3px #0002}
+label{display:block;font-size:13px;margin:6px 0 2px;color:#555}
+input,select,button,textarea{font-size:16px;width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #ccc}
+button{background:#1a66d2;color:#fff;border:0;margin-top:8px;font-weight:600}
+button.sec{background:#666}
+.row{display:flex;gap:8px}.row>*{flex:1}
+#map{width:100%;touch-action:manipulation;border-radius:8px;background:#ddd}
+pre{font-size:12px;white-space:pre-wrap;word-break:break-all;margin:0}
+.big{font-size:17px;font-weight:600}
+.small{font-size:12px;color:#666}
+.err{color:#b00020}
+</style></head><body>
+<h1>📍 Image field test</h1>
+<div class="card">
+  <label>Image server URL</label><input id="url" placeholder="same origin (tunnel-safe)">
+  <label>Building (Matterport model)</label>
+  <select id="model"><option value="">Loading…</option></select>
+  <div class="row">
+    <div><label>Horizontal FOV (°) – blank = estimate</label><input id="hfov" inputmode="decimal" placeholder="e.g. 69 (phone 1x)"></div>
+    <div><label>Spot / note</label><input id="note" placeholder="e.g. P3 lobby, facing N"></div>
+  </div>
+  <label>Photo (hold phone level, landscape, 1× lens)</label>
+  <input id="file" type="file" accept="image/*" capture="environment">
+  <button id="go">Localize</button>
+  <div id="status" class="small" style="margin-top:6px"></div>
+</div>
+<div class="card">
+  <div id="summary" class="big">No result yet</div>
+  <button id="useInViewer" class="sec" hidden style="margin-top:8px">Use this location in directions</button>
+  <div class="row" style="margin-top:6px">
+    <select id="floorSel"><option value="F1">Floor 1</option><option value="F2">Floor 2</option></select>
+    <button class="sec" id="markTrue" style="margin-top:0">Tap map = true spot</button>
+  </div>
+  <canvas id="map"></canvas>
+  <div class="small" id="mapHint">Red = Image estimate + heading. Green = true position you tapped (optional). Floor plan overlay is Greenland only for now.</div>
+</div>
+<div class="card">
+  <div class="small" style="margin-bottom:6px">Each localize auto-syncs JSON to the box (<code>field_logs/</code>). Download is backup only.</div>
+  <div class="row"><button id="dl">Download log (JSON)</button><button class="sec" id="clr">Clear log</button></div>
+  <div id="logc" class="small"></div>
+  <pre id="raw"></pre>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+if(new URLSearchParams(location.search).get('embed')==='1'){document.title='Find me – image';const h=document.querySelector('h1');if(h)h.textContent='📷 Find me (image)';}
+const MODEL_NAMES={Hn36TwktGgz:'Greenland (church)',pAFsSSgF5kj:'4926 Tacoma',jdjvM17BPEh:'GCU OMR + Libra'};
+const FLOORS={F1:{img:'data/floor1.webp',x0:-15.053,x1:24.463,y0:-24.224,y1:27.564},
+              F2:{img:'data/floor2.webp',x0:-47.858,x1:11.704,y0:-35.331,y1:24.496}};
+const imgs={};for(const k in FLOORS){imgs[k]=new Image();imgs[k].src=FLOORS[k].img;imgs[k].onload=draw;}
+let log=JSON.parse(localStorage.getItem('vpsLog')||'[]');let cur=null;let marking=false;
+$('url').value=localStorage.getItem('vpsUrl')||location.origin;  // same-origin proxy (tunnel-safe)
+$('url').onchange=()=>{localStorage.setItem('vpsUrl',$('url').value);loadModels();};
+$('hfov').value=localStorage.getItem('vpsHfov')||'';$('hfov').onchange=()=>localStorage.setItem('vpsHfov',$('hfov').value);
+$('model').onchange=()=>localStorage.setItem('vpsModelId',$('model').value);
+function baseUrl(){return $('url').value.replace(/\/$/,'');}
+function localizeEndpoint(){
+  const b=baseUrl();
+  if(/\/localize$/.test(b)||/\/vps\/localize$/.test(b)) return b;
+  return b+'/localize';
+}
+function healthEndpoint(){
+  const b=baseUrl();
+  if(/\/api\/v1\/public\/vps\/localize$/.test(b)) return b.replace(/\/localize$/,'/health');
+  if(/\/localize$/.test(b)) return b.replace(/\/localize$/,'/health');
+  return b+'/health';
+}
+async function loadModels(){
+  const sel=$('model'); sel.innerHTML='<option value="">Loading…</option>';
+  try{
+    const r=await fetch(healthEndpoint());
+    const j=await r.json();
+    const models=(j.models||[]).slice().sort((a,b)=>(b.ready?1:0)-(a.ready?1:0));
+    sel.innerHTML='';
+    if(!models.length){sel.innerHTML='<option value="">No models listed</option>';return;}
+    for(const m of models){
+      const o=document.createElement('option');
+      o.value=m.id;
+      o.disabled=!m.ready;
+      const name=MODEL_NAMES[m.id]||m.id;
+      o.textContent=name+(m.ready?` · ready (${m.ref_images||'?'} refs)`:' · not ready');
+      sel.appendChild(o);
+    }
+    const q0=new URLSearchParams(location.search);
+    const SLUG_MODEL={'4926-tacoma':'pAFsSSgF5kj','greenland':'Hn36TwktGgz','gcu-omr-libra':'jdjvM17BPEh'};
+    const pref=q0.get('model')||SLUG_MODEL[q0.get('b')||'']||localStorage.getItem('vpsModelId')||j.default_model||'';
+    if(pref && [...sel.options].some(o=>o.value===pref&&!o.disabled)) sel.value=pref;
+    else{const first=[...sel.options].find(o=>!o.disabled); if(first) sel.value=first.value;}
+    localStorage.setItem('vpsModelId',sel.value);
+    $('status').textContent='';
+  }catch(e){
+    sel.innerHTML='<option value="Hn36TwktGgz">Greenland (fallback)</option>';
+    $('status').innerHTML='<span class="err">Could not load /health – check Image server URL</span>';
+  }
+}
+loadModels();
+function m2p(f,x,y,W,H){const F=FLOORS[f];return[(x-F.x0)/(F.x1-F.x0)*W,(F.y1-y)/(F.y1-F.y0)*H];}
+function p2m(f,u,v,W,H){const F=FLOORS[f];return[F.x0+u/W*(F.x1-F.x0),F.y1-v/H*(F.y1-F.y0)];}
+function draw(){
+  const f=$('floorSel').value,im=imgs[f];if(!im.complete||!im.naturalWidth)return;
+  const c=$('map'),W=im.naturalWidth,H=im.naturalHeight;c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(im,0,0);
+  const s=W/600;
+  if(cur&&cur.result&&cur.result.success&&cur.floorKey===f){
+    const r=cur.result,[u,v]=m2p(f,r.x,r.y,W,H),a=r.yaw_model*Math.PI/180;
+    g.strokeStyle='red';g.fillStyle='rgba(255,0,0,.8)';g.lineWidth=4*s;
+    g.beginPath();g.arc(u,v,10*s,0,7);g.fill();
+    g.beginPath();g.moveTo(u,v);g.lineTo(u+45*s*Math.cos(a),v-45*s*Math.sin(a));g.stroke();
+  }
+  if(cur&&cur.truth&&cur.truth.floor===f){const[u,v]=m2p(f,cur.truth.x,cur.truth.y,W,H);
+    g.strokeStyle='#0a0';g.lineWidth=4*s;g.beginPath();g.arc(u,v,12*s,0,7);g.stroke();}
+}
+$('floorSel').onchange=draw;
+$('markTrue').onclick=()=>{marking=true;$('status').textContent='Tap your true position on the map…';};
+$('map').onclick=e=>{if(!marking||!cur)return;marking=false;const c=$('map'),b=c.getBoundingClientRect(),f=$('floorSel').value;
+  const[x,y]=p2m(f,(e.clientX-b.left)/b.width*c.width,(e.clientY-b.top)/b.height*c.height,c.width,c.height);
+  cur.truth={floor:f,x:+x.toFixed(2),y:+y.toFixed(2)};
+  if(cur.result&&cur.result.success&&cur.floorKey===f)cur.err_m=+Math.hypot(cur.result.x-x,cur.result.y-y).toFixed(2);
+  save();$('status').textContent='True spot saved'+(cur.err_m!=null?` – error ${cur.err_m} m`:'');draw();};
+function save(){localStorage.setItem('vpsLog',JSON.stringify(log));$('logc').textContent=`${log.length} attempts (browser + auto-sync to box)`;}
+async function syncServer(entry){
+  try{
+    const r=await fetch(baseUrl()+'/field_log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    $('logc').textContent=`${log.length} attempts · last synced to box`;
+  }catch(e){
+    $('logc').textContent=`${log.length} attempts · server sync failed (${e}) – use Download JSON as backup`;
+  }
+}
+save();
+async function shrink(file,maxSide=1600){
+  const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});const s=Math.min(1,maxSide/Math.max(bmp.width,bmp.height));
+  const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+  return {blob:await new Promise(r=>c.toBlob(r,'image/jpeg',0.9)),w:c.width,h:c.height};}
+$('go').onclick=async()=>{
+  const file=$('file').files[0];if(!file){$('status').textContent='Pick/take a photo first';return;}
+  const modelId=$('model').value;if(!modelId){$('status').textContent='Pick a ready building first';return;}
+  $('status').textContent='Uploading + localizing (~3-10 s)…';const t0=performance.now();
+  const att={time:new Date().toISOString(),note:$('note').value,file:file.name,file_bytes:file.size,hfov_given:$('hfov').value||null,model_id:modelId,ua:navigator.userAgent,endpoint:localizeEndpoint()};
+  try{
+    const {blob,w,h}=await shrink(file);att.upload_px=[w,h];
+    const fd=new FormData();fd.append('image',blob,'photo.jpg');fd.append('model_id',modelId);
+    if($('hfov').value)fd.append('hfov',$('hfov').value);
+    if($('note').value)fd.append('note',$('note').value);
+    const resp=await fetch(localizeEndpoint(),{method:'POST',body:fd});
+    let r; const text=await resp.text();
+    try{r=JSON.parse(text);}catch(e){throw new Error(`HTTP ${resp.status}: ${text.slice(0,200)||resp.statusText}`);}
+    att.result=r;att.http_status=resp.status;att.roundtrip_s=+((performance.now()-t0)/1000).toFixed(1);
+    if(r.success){att.floorKey=r.floor==='Floor 2'?'F2':'F1';$('floorSel').value=att.floorKey;
+      $('summary').textContent=`${MODEL_NAMES[modelId]||modelId} · ${r.floor} · x ${r.x.toFixed(2)} y ${r.y.toFixed(2)} · heading ${r.heading.toFixed(0)}° · conf ${r.confidence} (${r.inliers} inliers)`;
+      try{ if(window.opener) window.opener.postMessage({type:'wf-vps-fix',result:r},'*');
+           if(window.parent && window.parent!==window) window.parent.postMessage({type:'wf-vps-fix',result:r},'*'); }catch(e){}
+      const ret=new URLSearchParams(location.search).get('return');
+      if(ret==='viewer'){ const b=$('useInViewer'); if(b){ b.hidden=false; b.onclick=()=>{ try{ if(window.opener){ window.opener.postMessage({type:'wf-vps-fix',result:r},'*'); window.close(); } else history.back(); }catch(e){ history.back(); } }; } }
+    }
+    else{
+      const detail=r.detail||r.error||r.message||(`${r.n_matches||0} matches`);
+      $('summary').textContent='Localization failed ('+ (typeof detail==='string'?detail:JSON.stringify(detail)) +')';
+    }
+    $('status').textContent=`Done in ${att.roundtrip_s}s (HTTP ${resp.status})`;
+  }catch(e){att.error=String(e);$('status').innerHTML='<span class="err">Error: '+e+'</span>';$('summary').textContent='Request failed';}
+  cur=att;log.push(att);save();syncServer(att);$('raw').textContent=JSON.stringify(att.result||att.error,null,1);draw();
+};
+$('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(log,null,1)],{type:'application/json'}));
+  a.download='vps_field_log_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';a.click();};
+$('clr').onclick=()=>{if(confirm('Clear the local log?')){log=[];save();}};
+</script><script src="wf_debug.js?v=20260930debug1"></script>
+<script>
+(function(){
+  try {
+    if (window.WFDebug) {
+      var m = document.getElementById("model");
+      var slug = null;
+      function sync() {
+        var v = m && m.value;
+        // model select may be matterport id; building slug from option data or URL
+        var q = new URLSearchParams(location.search);
+        slug = q.get("b") || (m && m.selectedOptions && m.selectedOptions[0] && m.selectedOptions[0].dataset.slug) || null;
+        WFDebug.init({ building: slug, client: "localize" });
+      }
+      sync();
+      if (m) m.addEventListener("change", sync);
+    }
+  } catch(e) {}
+})();
+</script>
+</body></html>

@@ -1,0 +1,38 @@
+# Render Blueprint — Static Site for this Vite SPA
+# Dashboard: New → Blueprint → connect NERDS-GEEKS/unisys_wayfinder_fp
+#
+# IMPORTANT: Vite inlines VITE_* at BUILD time. After changing env, use
+# "Clear build cache & deploy" on Render (runtime-only env will NOT work).
+
+services:
+  - type: web
+    name: unisys-wayfinder-fp
+    runtime: static
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_SUPABASE_URL
+        value: https://znfwcohrpkiccibqcfpn.supabase.co
+      - key: VITE_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZndjb2hycGtpY2NpYnFjZnBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDUzNDMsImV4cCI6MjA4Njg4MTM0M30.owUVIY-uz7Cr4p83ZQ88QbsgrUfuZqKRiC7HZFIfoec
+      - key: VITE_NAVME_POI_TYPE
+        value: room
+      - key: VITE_DEFAULT_MAP_CODE
+        value: MAP_D43LZMMLU6BJ
+      - key: VITE_NAVME_STANDALONE
+        value: "true"
+      - key: VITE_MULTISET_PROXY_URL
+        value: https://vfpgtifzqznfdtecmpsc.supabase.co/functions/v1/multiset-proxy
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

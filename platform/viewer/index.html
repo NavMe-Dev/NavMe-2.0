@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1a73e8">
+<title>NavMe</title>
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
+<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
+<link rel="stylesheet" href="dev.css">
+<link rel="stylesheet" href="ui.css?v=20260930access2">
+<!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
+<script src="vendor/ngraph.graph.min.js"></script>
+<script src="vendor/ngraph.path.min.js"></script>
+<script src="vendor/turf.min.js"></script>
+<script src="vendor/fuse.min.js"></script>
+<script src="vendor/recast-navigation.js"></script>
+<script src="wf_navmesh_route.js?v=20261005fix1"></script>
+<script src="wf_navmesh_bridge.js?v=20260930turn2"></script>
+<script src="navmesh_route.js?v=20260930access2"></script>
+<script src="routing.js?v=20260930access2"></script>
+<script src="tour_modes_config.js?v=20260930access2"></script>
+<script src="access_config.js?v=20260930access2"></script>
+<script src="bundle_preview.js?v=20260930access2"></script>
+<script src="https://js.arcgis.com/4.34/"></script>
+</head>
+<body class="booting">
+<div id="viewDiv" role="application" aria-label="Map" data-i18n-aria-label="viewer.map"></div>
+
+<div id="ui" class="ui">
+  <header id="top" class="top">
+    <div id="searchBox" class="searchbox" role="search" data-ux="buildings">
+      <button id="btnMenu" class="ib" aria-label="Open menu" data-i18n-aria-label="viewer.menu"><span class="ms">menu</span></button>
+      <button type="button" id="btnBrand" class="brand-mark" aria-label="NavMe"><img src="img/navme-logo.png" alt="" width="32" height="32"></button>
+      <button type="button" id="bldgChip" class="bldg-chip" aria-haspopup="listbox" aria-expanded="false" hidden>
+        <span class="ms fill chip-ic" aria-hidden="true">apartment</span>
+        <span class="chip-txt"><span class="chip-name" id="bldgChipName">Building</span><span class="chip-sub" id="bldgChipSub"></span></span>
+        <span class="ms chip-chev" aria-hidden="true">expand_more</span>
+      </button>
+      <input id="q" type="search" placeholder="Choose a building" data-i18n-placeholder="viewer.chooseBuilding" aria-label="Choose a building" data-i18n-aria-label="viewer.chooseBuilding"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="acList" autocomplete="off" spellcheck="false">
+      <button id="btnClearQ" class="ib" aria-label="Clear search" data-i18n-aria-label="viewer.clearSearch" hidden><span class="ms">close</span></button>
+      <span class="sep" aria-hidden="true"></span>
+      <button id="btnDirQuick" class="ib blue" aria-label="Directions" data-i18n-aria-label="viewer.directions" hidden><span class="ms fill">directions</span></button>
+    </div>
+    <div id="dirBox" class="dirbox" hidden>
+      <div class="dirrow">
+        <button id="btnDirBack" class="ib" aria-label="Close directions" data-i18n-aria-label="viewer.closeDirections"><span class="ms">arrow_back</span></button>
+        <div class="dirfields">
+          <label class="dfield from-field"><span class="ms dot-o" aria-hidden="true">trip_origin</span>
+            <input id="fromQ" placeholder="Choose starting point" data-i18n-placeholder="viewer.startPoint" aria-label="Starting point" data-i18n-aria-label="viewer.startPointAria" role="combobox" aria-autocomplete="list" aria-controls="acList" autocomplete="off">
+            <button type="button" id="btnLocateMe" class="locate-me" aria-label="Locate me" data-i18n-aria-label="viewer.locateMe"><span class="ms">my_location</span><span class="locate-lbl" data-i18n="viewer.locateMe">Locate me</span></button></label>
+          <div id="fromMeta" class="from-meta" hidden>
+            <span id="fromAcc" class="acc-chip"></span>
+            <button type="button" id="fromNotRight" class="linkish" data-i18n="viewer.notRight">Not right?</button>
+          </div>
+          <label class="dfield"><span class="ms pin-d fill" aria-hidden="true">location_on</span>
+            <input id="toQ" placeholder="Choose destination" data-i18n-placeholder="viewer.destination" aria-label="Destination" data-i18n-aria-label="viewer.destinationAria" role="combobox" aria-autocomplete="list" aria-controls="acList" autocomplete="off"></label>
+        </div>
+        <button id="btnSwap" class="ib" aria-label="Swap start and destination" data-i18n-aria-label="viewer.swap"><span class="ms">swap_vert</span></button>
+      </div>
+      <div class="modes" role="radiogroup" aria-label="Travel mode" data-i18n-aria-label="viewer.travelMode">
+        <button class="mode on" data-mode="walk" role="radio" aria-checked="true"><span class="ms">directions_walk</span><span data-i18n="viewer.walking">Walking</span></button>
+        <button class="mode" data-mode="stepfree" role="radio" aria-checked="false"><span class="ms">accessible</span><span data-i18n="viewer.stepFree">Step-free</span></button>
+      </div>
+    </div>
+    <ul id="acList" class="ac" role="listbox" aria-label="Suggestions" data-i18n-aria-label="viewer.suggestions" hidden></ul>
+    <div id="chips" class="chips" role="toolbar" aria-label="Filter places by category" data-i18n-aria-label="viewer.filterByCategory"></div>
+  </header>
+
+  <section id="sheet" class="sheet" aria-label="Details" data-i18n-aria-label="viewer.details" data-state="peek">
+    <div id="sheetHandle" class="handle" role="button" tabindex="0" aria-label="Expand or collapse panel" data-i18n-aria-label="viewer.expandCollapse"><span></span></div>
+    <div id="sheetBody" class="sheetbody"></div>
+  </section>
+
+  <div id="navBanner" class="navbanner" hidden role="status" aria-live="assertive">
+    <span id="navIcon" class="ms big" aria-hidden="true">straight</span>
+    <div class="navtxt"><div id="navDist" class="navdist"></div><div id="navText" class="navtext"></div></div>
+    <img id="navThumb" class="navthumb" alt="" hidden>
+  </div>
+  <div id="navBar" class="navbar" hidden>
+    <div class="eta"><div id="navEta" class="etabig"></div><div id="navRem" class="etasub"></div></div>
+    <button id="navPrev" class="ib round" aria-label="Previous step" data-i18n-aria-label="viewer.prevStep"><span class="ms">chevron_left</span></button>
+    <button id="navNext" class="ib round blue-bg" aria-label="Next step" data-i18n-aria-label="viewer.nextStep"><span class="ms">chevron_right</span></button>
+    <button id="navExit" class="pill red" aria-label="Exit navigation" data-i18n-aria-label="viewer.exit" data-i18n="viewer.exit">Exit</button>
+  </div>
+
+  <div id="ctrlsTop" class="ctrls ctop">
+    <button id="btnLayers" class="fab" aria-label="Map layers" data-i18n-aria-label="viewer.mapLayers" aria-haspopup="dialog"><span class="ms">layers</span></button>
+    <button id="btn3D" class="fab txt" aria-label="Switch to 3D view" data-i18n-aria-label="viewer.switch3d">3D</button>
+    <button id="btnLabels" class="fab" aria-pressed="false" aria-label="Show place labels" data-i18n-aria-label="viewer.toggleLabels" title="Labels"><span class="ms">label</span></button>
+  </div>
+  <div id="ctrls" class="ctrls cbot">
+    <div id="floorPicker" class="floorpicker" role="radiogroup" aria-label="Floor" data-i18n-aria-label="viewer.floor" hidden>
+    </div>
+    <button id="btnMe" class="fab me" aria-label="Your location" data-i18n-aria-label="viewer.yourLocation"><span class="ms">my_location</span></button>
+    <div class="fabgroup zoomg">
+      <button id="btnZoomIn" class="fab flat" aria-label="Zoom in" data-i18n-aria-label="viewer.zoomIn"><span class="ms">add</span></button>
+      <button id="btnZoomOut" class="fab flat" aria-label="Zoom out" data-i18n-aria-label="viewer.zoomOut"><span class="ms">remove</span></button>
+    </div>
+  </div>
+
+  <div id="layersPop" class="pop" role="dialog" aria-label="Map type and details" data-i18n-aria-label="viewer.mapType" hidden>
+    <div class="pophead"><span data-i18n="viewer.mapType">Map type</span><button id="btnLayersClose" class="ib sm" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button></div>
+    <div class="styles">
+      <button class="sty" data-style="map"><img src="img/style_map.jpg" alt=""><span data-i18n="viewer.map">Map</span></button>
+      <button class="sty" data-style="satellite"><img src="img/style_satellite.jpg" alt=""><span data-i18n="viewer.satellite">Satellite</span></button>
+      <button class="sty" data-style="light"><img src="img/style_light.jpg" alt=""><span data-i18n="viewer.light">Light</span></button>
+      <button class="sty" data-style="dark"><img src="img/style_dark.jpg" alt=""><span data-i18n="viewer.dark">Dark</span></button>
+    </div>
+    <div class="pophead sm" data-i18n="viewer.mapDetails">Map details</div>
+    <label class="tog"><span class="ms">image</span><span data-i18n="viewer.photoFloorPlan">Photo floor plan</span><input type="checkbox" id="togPhoto"><i></i></label>
+    <label class="tog"><span class="ms">hub</span><span data-i18n="viewer.debugGraph">Debug: sweep graph</span><input type="checkbox" id="togGraph"><i></i></label>
+  </div>
+
+  <nav id="drawer" class="drawer" aria-label="Menu" hidden>
+    <div class="drawhead"><img src="img/navme-logo.png" alt="NavMe" width="40" height="40" style="border-radius:50%;object-fit:cover"><div><b data-bname>NavMe</b><div class="muted" data-i18n="viewer.indoorMapsBeta">NavMe</div></div></div>
+    <button class="ditem" data-act="building"><span class="ms">apartment</span><span data-i18n="viewer.buildingInfo">Building info</span></button>
+    <button class="ditem" data-act="recent"><span class="ms">history</span><span data-i18n="viewer.recentSearches">Recent searches</span></button>
+    <label class="ditem tog"><span class="ms">text_increase</span><span data-i18n="viewer.largeText">Large text</span><input type="checkbox" id="togLarge"><i></i></label>
+    <label class="ditem tog"><span class="ms">contrast</span><span data-i18n="viewer.highContrast">High contrast</span><input type="checkbox" id="togHC"><i></i></label>
+    <button class="ditem" data-act="share"><span class="ms">share</span><span data-i18n="viewer.shareView">Share this view</span></button>
+    <div class="ditem lang-row" id="langSwitcher" hidden></div>
+    <hr>
+    <button class="ditem" data-act="dev"><span class="ms">code</span><span data-i18n="viewer.developer">Developer</span></button>
+    <button class="ditem" data-act="about"><span class="ms">info</span><span data-i18n="viewer.aboutLicences">About &amp; licences</span></button>
+  </nav>
+  <div id="scrim" class="scrim" hidden></div>
+
+  <div id="me" class="me-dot" hidden aria-hidden="true"><div class="cone"></div><div class="pulse"></div><div class="core"></div></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</div>
+
+<div id="devWrap" hidden>
+<div id="panel" class="card">
+  <div class="title"><span data-bname></span> <span class="sub">developer panel</span></div>
+  <div class="row">
+    <button id="btnZoom">Zoom to building</button>
+    <button id="btnDim" data-mode="2D">Switch to 3D</button>
+  </div>
+  <div class="row" id="styleBar" role="group" aria-label="Map style">
+    <span class="lbl">Map</span>
+    <button class="bstyle active" data-style="satellite">Satellite</button>
+    <button class="bstyle" data-style="map">Map</button>
+    <button class="bstyle" data-style="light">Light</button>
+    <button class="bstyle" data-style="dark">Dark</button>
+  </div>
+  <div class="row" id="photoRow" style="display:none"><label class="chk"><input type="checkbox" id="photoPlan"> Photo floor plan (colorplan / 3D mesh)</label></div>
+  <div class="row" id="floorBar" role="group" aria-label="Floor">
+    <span class="lbl">Floor</span>
+    <span id="devFloors"></span>
+    <button class="floor" data-floor="none">Off</button>
+  </div>
+  <div class="row">
+    <button id="btnLocalize">Localize</button>
+    <span id="hint" class="hint"></span>
+  </div>
+  <pre id="out" class="out" aria-live="polite">Tap “Localize”, then tap the map to set “I’m here”.</pre>
+  <div class="sec">Directions</div>
+  <div class="row"><span class="lbl w">From</span><select id="fromSel"></select></div>
+  <div class="row"><span class="lbl w">To</span><input id="toInput" list="poiList" placeholder="Search destination…" autocomplete="off"><datalist id="poiList"></datalist></div>
+  <div class="row"><label class="chk"><input type="checkbox" id="stepFree"> Step-free (avoid stairs/steps)</label></div>
+  <div class="row"><button id="btnRoute" class="primary">Route</button><button id="btnClear">Clear</button><button id="btnExport" title="Ordered sweep ids + XYZ (Matterport SDK-ready)">Export JSON</button></div>
+  <div class="row"><label class="chk"><input type="checkbox" id="showGraph"> Show sweep graph (debug)</label></div>
+  <div class="row"><label class="chk"><input type="checkbox" id="showNavmesh"> Show navmesh (debug) — blue=low floor, red=high floor</label></div>
+  <div id="routeSummary" class="summary"></div>
+  <ol id="steps" class="steps"></ol>
+</div>
+<div id="status" class="status"></div>
+
+</div>
+
+
+
+
+  <div id="shareSheet" class="loc-modal" hidden role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="loc-panel share-panel">
+      <header class="loc-head">
+        <h2 id="shTitle" data-i18n="viewer.shareTitle">Share</h2>
+        <button type="button" id="shClose" class="ib sm" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button>
+      </header>
+      <p class="muted loc-chooser-hint" data-i18n="viewer.shareHint">Choose what the link opens — map view, a place, or a from→to direction.</p>
+      <div class="share-kinds" role="radiogroup" aria-label="What to share">
+        <label class="share-kind" id="shKindViewLab">
+          <input type="radio" name="shareKind" value="view" id="shKindView">
+          <span class="share-kind-ic"><span class="ms">map</span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindView">This map view</strong><span class="muted" data-i18n="viewer.shareKindViewHint">Floor, style, and camera only</span></span>
+        </label>
+        <label class="share-kind" id="shKindPlaceLab" hidden>
+          <input type="radio" name="shareKind" value="place" id="shKindPlace">
+          <span class="share-kind-ic"><span class="ms">place</span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindPlace">This place</strong><span class="muted" id="shPlaceName"></span></span>
+        </label>
+        <label class="share-kind" id="shKindDirLab">
+          <input type="radio" name="shareKind" value="dir" id="shKindDir">
+          <span class="share-kind-ic dir"><span class="ms">directions</span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindDir">Directions</strong><span class="muted" data-i18n="viewer.shareKindDirHint">From → to route the recipient can follow</span></span>
+        </label>
+      </div>
+      <div id="shareDirFields" class="share-dir" hidden>
+        <label class="share-field"><span data-i18n="viewer.shareFrom">From</span>
+          <select id="shFrom" aria-label="From"></select></label>
+        <label class="share-field"><span data-i18n="viewer.shareTo">To</span>
+          <select id="shTo" aria-label="To"></select></label>
+        <label class="share-sf"><input type="checkbox" id="shStepFree"> <span data-i18n="viewer.stepFreeShort">Step-free</span></label>
+      </div>
+      <p class="share-preview muted" id="shPreview" aria-live="polite"></p>
+      <div class="loc-actions">
+        <button type="button" class="pill primary" id="shCopy"><span class="ms">content_copy</span><span data-i18n="viewer.copyLink">Copy link</span></button>
+        <button type="button" class="pill" id="shNative" hidden><span class="ms">share</span><span data-i18n="viewer.shareNative">Share…</span></button>
+        <button type="button" class="pill" id="shCancel" data-i18n="common.cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="locateChooser" class="loc-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lcTitle">
+    <div class="loc-panel loc-chooser">
+      <header class="loc-head">
+        <h2 id="lcTitle" data-i18n="viewer.locateChooserTitle">How should we find you?</h2>
+        <button type="button" id="lcClose" class="ib sm" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button>
+      </header>
+      <p class="muted loc-chooser-hint" data-i18n="viewer.locateChooserHint">Choose one — we only ask for permission after you pick.</p>
+      <button type="button" class="loc-choice" id="lcGps">
+        <span class="ms loc-choice-ic" aria-hidden="true">my_location</span>
+        <span class="loc-choice-txt">
+          <strong data-i18n="viewer.useMyLocation">Use my location</strong>
+          <span class="muted" data-i18n="viewer.useMyLocationHint">Best outdoors · uses GPS on your phone</span>
+        </span>
+        <span class="ms loc-choice-chev" aria-hidden="true">chevron_right</span>
+      </button>
+      <button type="button" class="loc-choice" id="lcCam">
+        <span class="ms loc-choice-ic" aria-hidden="true">photo_camera</span>
+        <span class="loc-choice-txt">
+          <strong data-i18n="viewer.useCamera">Use image</strong>
+          <span class="muted" data-i18n="viewer.useCameraChooserHint">Best indoors · take a photo for visual positioning</span>
+        </span>
+        <span class="ms loc-choice-chev" aria-hidden="true">chevron_right</span>
+      </button>
+      <div class="loc-actions loc-chooser-alt">
+        <button type="button" class="pill" id="lcPickMap"><span class="ms">touch_app</span><span data-i18n="viewer.pickOnMap">Pick on map</span></button>
+        <button type="button" class="pill" id="lcCancel"><span data-i18n="common.cancel">Cancel</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="locateModal" class="loc-modal" hidden role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
+    <div class="loc-panel">
+      <header class="loc-head">
+        <h2 id="locModalTitle" data-i18n="viewer.useCameraTitle">Use image to find me</h2>
+        <button type="button" id="locModalClose" class="ib sm" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button>
+      </header>
+      <p class="muted" id="locModalHint" data-i18n="viewer.useCameraHint">Hold the phone level, face a distinctive wall or doorway, then take a photo. Works best indoors over HTTPS/tunnel.</p>
+      <div class="loc-actions">
+        <label class="pill primary loc-file"><span class="ms fill">photo_camera</span><span data-i18n="viewer.takePhoto">Take photo</span>
+          <input id="locFile" type="file" accept="image/*" capture="environment" hidden></label>
+        <button type="button" class="pill" id="locOpenFull"><span class="ms">open_in_new</span><span data-i18n="viewer.openLocalizePage">Full localize page</span></button>
+        <button type="button" class="pill" id="locPickMap"><span class="ms">touch_app</span><span data-i18n="viewer.pickOnMap">Pick on map</span></button>
+      </div>
+      <div id="locModalStatus" class="muted" style="margin-top:10px" role="status"></div>
+    </div>
+  </div>
+
+  <!-- Matterport Tour interior overlay -->
+  <div id="mpOverlay" class="mp-overlay" hidden role="dialog" aria-modal="true" aria-label="Tour interior">
+    <div class="mp-panel">
+      <header class="mp-bar">
+        <div class="mp-title"><span class="ms">view_in_ar</span><span>Tour interior</span></div>
+        <div class="mp-step" id="mpStep">—</div>
+        <div class="mp-actions">
+          <button type="button" class="mp-btn" id="mpPlay" aria-label="Play"><span class="ms">play_arrow</span></button>
+          <button type="button" class="mp-btn" id="mpPause" aria-label="Pause"><span class="ms">pause</span></button>
+          <button type="button" class="mp-btn" id="mpStop" aria-label="Stop"><span class="ms">stop</span></button>
+          <a class="mp-btn" id="mpOpenTab" href="#" target="_blank" rel="noopener" aria-label="Open in new tab"><span class="ms">open_in_new</span></a>
+          <button type="button" class="mp-btn mp-close" id="mpClose" aria-label="Close"><span class="ms">close</span></button>
+        </div>
+      </header>
+      <div class="mp-status" id="mpStatus" hidden></div>
+      <div class="mp-frame-wrap">
+        <iframe id="mpFrame" title="Matterport digital twin" allow="xr-spatial-tracking;gyroscope;accelerometer;autoplay;fullscreen" allowfullscreen></iframe>
+        <div id="mpDirArrow" class="mp-dir-arrow" hidden aria-hidden="true"><div class="mp-dir-arr" aria-hidden="true">➤</div></div>
+        <div id="mpDistHud" class="mp-dist-hud" hidden aria-hidden="true"><span class="mp-dist-val" id="mpDistRem">—</span><span class="mp-dist-leg" id="mpDistLegRow" hidden><span class="mp-dist-sep" aria-hidden="true">·</span><span class="mp-dist-leg-val" id="mpDistLeg">—</span></span></div>
+      </div>
+    </div>
+  </div>
+
+<script src="/locales/i18n.js"></script>
+<script src="wf-config.js"></script>
+<script src="wf_debug.js?v=20260930access2"></script>
+<script src="wf-boot.js"></script>
+<script src="app.js?v=20260930turn5"></script>
+<script src="mp_preview.js?v=20261005t3"></script>
+<script src="threed_nav.js?v=20261005hybrid17"></script>
+<script src="/ar_webxr/launch.js"></script>
+<script src="wf_chat.js?v=20260930access2"></script>
+<script src="ui.js?v=20261005walk1"></script>
+</body>
+</html>

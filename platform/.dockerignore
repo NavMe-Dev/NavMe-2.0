@@ -1,0 +1,11 @@
+.venv
+var
+dist
+backups
+matterpaks
+**/__pycache__
+**/*.egg-info
+.env
+.git
+tests
+docs/img

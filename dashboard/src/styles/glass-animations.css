@@ -1,0 +1,291 @@
+/* ═══════════════════════════════════════════════════
+   NavMe — Indoor Navigation Animations
+   Motion-driven HUD · micro-interactions · entrance
+   ═══════════════════════════════════════════════════ */
+
+/* ── Dashboard entrance ── */
+.dashboard-enter .topbar {
+  animation: chrome-slide-down 0.55s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.dashboard-enter .sidebar-nav-block {
+  animation: chrome-slide-left 0.6s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.08s both;
+}
+
+.dashboard-enter .scene-stage {
+  animation: scene-scale-in 0.65s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.05s both;
+}
+
+.dashboard-enter .float-drawer {
+  animation: drawer-slide-in 0.55s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.12s both;
+}
+
+.dashboard-enter .topbar-stat {
+  animation: stats-fade-up 0.5s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.15s both;
+}
+
+/* ── Panel switch ── */
+.panel-slot.active {
+  animation: panel-fade-in 0.35s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.panel-slot.active .poi-item,
+.panel-slot.active .user-item,
+.panel-slot.active .media-list .poi-item {
+  animation: list-item-rise 0.4s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+.panel-slot.active .poi-item:nth-child(1),
+.panel-slot.active .user-item:nth-child(1) { animation-delay: 0.04s; }
+.panel-slot.active .poi-item:nth-child(2),
+.panel-slot.active .user-item:nth-child(2) { animation-delay: 0.08s; }
+.panel-slot.active .poi-item:nth-child(3),
+.panel-slot.active .user-item:nth-child(3) { animation-delay: 0.12s; }
+.panel-slot.active .poi-item:nth-child(4),
+.panel-slot.active .user-item:nth-child(4) { animation-delay: 0.16s; }
+.panel-slot.active .poi-item:nth-child(5),
+.panel-slot.active .user-item:nth-child(5) { animation-delay: 0.2s; }
+
+/* ── Button ripple ── */
+.btn-ripple-host {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.35);
+  animation: btn-ripple-expand 0.55s ease-out forwards;
+}
+
+/* ── Interactive press feedback ── */
+.glass-shell button,
+.form-overlay button,
+.scene-tool-btn {
+  position: relative;
+}
+
+.glass-shell .sidebar-btn:active,
+.glass-shell .btn-save:active,
+.glass-shell .btn-nav:active,
+.glass-shell .topbar-logout:active,
+.scene-tool-btn:active,
+.btn-start:active:not(:disabled) {
+  transform: scale(0.96) !important;
+}
+
+/* ── Form card entrance ── */
+.form-overlay:not(.hidden) .form-card {
+  animation: form-card-enter 0.7s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+/* ── Loading button state ── */
+.btn-start.is-loading {
+  pointer-events: none;
+  position: relative;
+  color: transparent !important;
+}
+
+.btn-start.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin-loader 0.7s linear infinite;
+}
+
+/* ── Toast animation enhancement ── */
+.toast--visible {
+  animation: toast-slide-in 0.35s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+/* ── Scene toolbar entrance ── */
+.dashboard-enter .scene-toolbar {
+  animation: toolbar-rise 0.5s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.3s both;
+}
+
+/* ── Keyframes ── */
+@keyframes chrome-slide-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chrome-slide-left {
+  from { opacity: 0; transform: translateY(-50%) translateX(-16px); }
+  to { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+@keyframes scene-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes drawer-slide-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stats-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-fade-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes list-item-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes btn-ripple-expand {
+  to { transform: scale(4); opacity: 0; }
+}
+
+@keyframes form-card-enter {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes spin-loader {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes toast-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toolbar-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-enter *,
+  .panel-slot.active,
+  .panel-slot.active .poi-item,
+  .form-overlay .form-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Modals (rendered on body, outside .glass-shell) ── */
+.poi-add-dialog-card,
+.media-modal-card {
+  background: var(--glass-modal-bg) !important;
+  border: 1px solid var(--glass-modal-border) !important;
+  border-radius: var(--radius, 12px) !important;
+  box-shadow: var(--shadow-float, 0 16px 48px rgba(0, 0, 0, 0.55)) !important;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  color: var(--text-1) !important;
+}
+
+.poi-add-dialog-backdrop,
+.media-modal-overlay {
+  background: var(--glass-backdrop) !important;
+  backdrop-filter: blur(8px);
+}
+
+.poi-add-dialog-title,
+.media-modal-title,
+.media-modal-header h2 {
+  font-family: var(--font-display, 'DM Sans', sans-serif) !important;
+  color: var(--text-1, #0f172a) !important;
+  letter-spacing: 0.08em;
+}
+
+.poi-add-dialog .btn-save,
+.media-modal-overlay .btn-save {
+  background: var(--accent, #0a0a0a) !important;
+  border: 1px solid var(--accent, #0a0a0a) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.poi-add-dialog [id^='btn-save'],
+.media-modal-overlay #media-save {
+  background: var(--save, #2563eb) !important;
+  border: 1px solid var(--save, #2563eb) !important;
+  color: #ffffff !important;
+}
+
+.poi-add-dialog .btn-secondary,
+.media-modal-footer .btn-secondary {
+  background: var(--glass-control-bg) !important;
+  border: 1px solid var(--glass-control-border) !important;
+  color: var(--text-1) !important;
+}
+
+html[data-theme='dark'] .poi-add-dialog .btn-secondary,
+html[data-theme='dark'] .media-modal-footer .btn-secondary {
+  background: var(--bg-elevated, #1c3554) !important;
+  border-color: var(--border-bright, rgba(126, 184, 255, 0.52)) !important;
+  color: #ffffff !important;
+}
+
+.poi-add-dialog input,
+.media-modal-overlay input,
+.media-modal-overlay select,
+.media-modal-overlay textarea {
+  background: var(--glass-input-bg) !important;
+  border: 1px solid var(--glass-input-border) !important;
+  color: var(--text-1) !important;
+}
+
+/* Beat global.css legacy overrides */
+html,
+body,
+#app {
+  font-family: var(--font-body, 'DM Sans', system-ui, sans-serif) !important;
+  background: var(--bg-app-gradient) !important;
+  background-color: var(--bg-deep, #070b14) !important;
+  color: var(--text-1, #e8f4ff) !important;
+}
+
+.right-panel,
+.panel-slot,
+.reviews-stat-card,
+.review-card,
+.admin-panel,
+.analytics-panel {
+  background: transparent !important;
+}
+
+.review-card,
+.reviews-stat-card,
+.admin-panel,
+.analytics-panel,
+.admin-item {
+  background: var(--bg-elevated, rgba(18, 28, 48, 0.92)) !important;
+  border: 1px solid var(--border-base, rgba(255, 255, 255, 0.22)) !important;
+  box-shadow: var(--shadow-float-sm) !important;
+}
+
+.reviews-filter-select,
+.reviews-export,
+.review-download-btn {
+  background: rgba(6, 10, 18, 0.75) !important;
+  color: var(--text-1, #e8f4ff) !important;
+  border: 1px solid var(--border-base, rgba(255, 255, 255, 0.22)) !important;
+}
+
+.immersive-shell .review-meta {
+  color: var(--text-3, #6b84a8) !important;
+}
+
+.immersive-shell .review-video,
+.immersive-shell .review-snapshot {
+  background: rgba(6, 10, 18, 0.6) !important;
+}

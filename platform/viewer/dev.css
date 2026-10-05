@@ -1,0 +1,21 @@
+#devWrap .card{position:absolute;top:12px;left:60px;max-height:calc(100% - 40px);overflow:auto;box-sizing:border-box;background:rgba(255,255,255,.95);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.3);padding:10px 12px;max-width:360px;z-index:10}
+#devWrap .title{font-weight:700;font-size:15px;margin-bottom:6px}#devWrap .sub{font-weight:400;color:#666;font-size:12px}
+#devWrap .row{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+#devWrap button{border:1px solid #0079c1;background:#fff;color:#0079c1;border-radius:6px;padding:6px 10px;font-size:13px;cursor:pointer}
+#devWrap button:hover{background:#e8f3fb}#devWrap button.active,#devWrap button.on{background:#0079c1;color:#fff}
+#devWrap .lbl{font-size:12px;color:#444;margin-right:2px}#devWrap .hint{font-size:12px;color:#b35900}
+#devWrap .out{font-size:11.5px;background:#f4f6f8;border-radius:6px;padding:6px 8px;margin:6px 0 0;white-space:pre-wrap;max-height:260px;overflow:auto}
+#devWrap .status{position:absolute;bottom:22px;right:10px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 6px;border-radius:4px;z-index:10}
+#devWrap .sec{font-weight:700;font-size:13px;margin-top:10px;border-top:1px solid #ddd;padding-top:8px}
+#devWrap .lbl.w{width:34px}#devWrap select,#devWrap #toInput{flex:1;min-width:0;padding:5px;border:1px solid #bbb;border-radius:6px;font-size:13px}
+#devWrap .chk{font-size:12.5px;color:#333}#devWrap button.primary{background:#0079c1;color:#fff}
+#devWrap .summary{font-size:13px;font-weight:600;margin-top:4px}#devWrap .summary .warn{color:#b35900;font-weight:500}
+#devWrap .steps{font-size:12.5px;margin:4px 0 0 0;padding-left:20px;max-height:220px;overflow:auto}#devWrap .steps li{margin:2px 0}
+#devWrap .steps li.stairs,#devWrap .steps li.level{color:#b35900;font-weight:600}#devWrap .steps li.door{color:#1a7f37}
+#devWrap button.bstyle.active{background:#0079c1;color:#fff;border-color:#0079c1}
+body.dark #devWrap .card{background:rgba(32,33,36,.94);color:#e8eaed}body.dark #devWrap .card button{background:#3c4043;color:#e8eaed;border-color:#5f6368}
+body.dark #devWrap .card button.active,body.dark #devWrap button.primary{background:#8ab4f8;color:#202124}body.dark #devWrap .out{background:#2a2b2e;color:#e8eaed}
+body.dark #devWrap .chk{color:#e8eaed}body.dark #devWrap select,body.dark #devWrap #toInput{background:#3c4043;color:#e8eaed;border-color:#5f6368}
+body.dark #devWrap .lbl,body.dark #devWrap .sub{color:#bdc1c6}body.dark #devWrap .steps li.door{color:#81c995}body.dark #devWrap .steps li.stairs{color:#fdd663}
+
+#devWrap .card{top:auto;bottom:12px;left:12px;z-index:60}

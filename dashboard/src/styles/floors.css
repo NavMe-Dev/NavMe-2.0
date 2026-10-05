@@ -1,0 +1,907 @@
+/* Floors panel — light slice plane + destination-search-style assign UI */
+
+.floor-panel,
+.floor-details {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.floor-panel-header,
+.floor-details-header {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.1);
+}
+
+.floor-panel-header-row,
+.floor-details-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.floor-panel-title-wrap,
+.floor-details-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.floor-panel-kicker {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--uw-brand-teal, #1e56cf);
+  opacity: 0.85;
+}
+
+.floor-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgba(15, 23, 42, 0.94);
+}
+
+html[data-theme='dark'] .floor-panel-title {
+  color: rgba(248, 250, 252, 0.96);
+}
+
+.floor-panel-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(60, 60, 67, 0.72);
+}
+
+html[data-theme='dark'] .floor-panel-hint {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.floor-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1e56cf, #0ea5e9);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(30, 86, 207, 0.28);
+  touch-action: manipulation;
+}
+
+.floor-add-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.floor-add-btn:active {
+  transform: scale(0.97);
+}
+
+.floor-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.floor-empty {
+  margin: 18px 8px;
+  padding: 22px 16px;
+  text-align: center;
+  border: 1px dashed rgba(30, 86, 207, 0.28);
+  border-radius: 16px;
+  background: rgba(30, 86, 207, 0.04);
+}
+
+.floor-empty-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(30, 86, 207, 0.1);
+  color: #1e56cf;
+}
+
+.floor-empty strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.floor-empty p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(60, 60, 67, 0.7);
+}
+
+.floor-card {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.floor-card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(60, 60, 67, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.floor-card-main:hover {
+  border-color: rgba(30, 86, 207, 0.35);
+}
+
+.floor-card-main:active {
+  transform: scale(0.99);
+}
+
+html[data-theme='dark'] .floor-card-main {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.floor-card-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: rgba(30, 86, 207, 0.1);
+  color: #1e56cf;
+}
+
+.floor-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.floor-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(60, 60, 67, 0.68);
+}
+
+.floor-card-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(30, 86, 207, 0.1);
+  color: #1e56cf;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.floor-card-delete {
+  flex: 0 0 40px;
+  width: 40px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 12px;
+  background: rgba(254, 242, 242, 0.9);
+  color: #dc2626;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floor-card-delete:hover {
+  background: #fee2e2;
+}
+
+.floor-details-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.floor-back-btn {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(60, 60, 67, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.floor-y-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(30, 86, 207, 0.1), rgba(14, 165, 233, 0.08));
+  border: 1px solid rgba(30, 86, 207, 0.16);
+}
+
+.floor-y-chip-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(30, 86, 207, 0.85);
+}
+
+.floor-y-chip-value {
+  flex: 1;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+html[data-theme='dark'] .floor-y-chip-value {
+  color: #f8fafc;
+}
+
+.floor-y-chip-btn,
+.floor-text-btn {
+  border: none;
+  background: transparent;
+  color: #1e56cf;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.floor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.floor-field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+html[data-theme='dark'] .floor-field-label {
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.floor-field-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  background: rgba(255, 255, 255, 0.95);
+  font: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.floor-field-input:focus {
+  border-color: rgba(30, 86, 207, 0.45);
+  box-shadow: 0 0 0 3px rgba(30, 86, 207, 0.12);
+}
+
+html[data-theme='dark'] .floor-field-input {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #f8fafc;
+}
+
+.floor-assign-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1;
+}
+
+.floor-assign-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Search + category pills — mirrors experience destination search */
+.floor-dest-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  color: rgba(0, 0, 0, 0.92);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  box-sizing: border-box;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.floor-dest-search-input::placeholder {
+  color: rgba(60, 60, 67, 0.45);
+  font-weight: 400;
+}
+
+.floor-dest-search-input:focus {
+  border-color: rgba(30, 86, 207, 0.45);
+  box-shadow: 0 0 0 3px rgba(30, 86, 207, 0.12);
+}
+
+.floor-dest-categories-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.floor-dest-categories {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.floor-dest-categories::-webkit-scrollbar {
+  display: none;
+}
+
+.floor-dest-category-more-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.floor-dest-category-more {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.97);
+  color: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.floor-dest-category-more.is-open,
+.floor-dest-category-more:active {
+  color: #1e56cf;
+  border-color: rgba(30, 86, 207, 0.35);
+  background: rgba(30, 86, 207, 0.08);
+}
+
+.floor-dest-category-more svg {
+  display: block;
+  transition: transform 160ms ease;
+}
+
+.floor-dest-category-more.is-open svg {
+  transform: rotate(180deg);
+}
+
+.floor-dest-category-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 180px;
+  max-width: min(78vw, 240px);
+  max-height: min(36vh, 280px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px;
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.floor-dest-category-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.9);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.floor-dest-category-dropdown-item-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.floor-dest-category-dropdown-item-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.floor-dest-category-dropdown-item-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-dest-category-dropdown-item.is-active,
+.floor-dest-category-dropdown-item:active {
+  background: rgba(30, 86, 207, 0.1);
+  color: #1e56cf;
+}
+
+.floor-dest-category-dropdown-item.is-active .floor-dest-category-dropdown-item-icon {
+  color: #1e56cf;
+}
+
+.floor-dest-category-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.97);
+  color: rgba(0, 0, 0, 0.88);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.floor-dest-category-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #1e56cf;
+  pointer-events: none;
+}
+
+.floor-dest-category-pill-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.floor-dest-category-pill--active {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(60, 60, 67, 0.12);
+  color: #1e56cf;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.floor-dest-category-pill--active .floor-dest-category-pill-icon {
+  color: #1e56cf;
+}
+
+.floor-dest-category-pill:active {
+  transform: scale(0.98);
+}
+
+/* POI rows — destination-search list + checkbox */
+.floor-dest-poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin: 0 -4px;
+  padding: 2px 4px 6px;
+  contain: content;
+  content-visibility: auto;
+}
+
+.floor-dest-poi-empty {
+  padding: 16px 8px;
+  text-align: center;
+  color: rgba(60, 60, 67, 0.55);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.floor-dest-poi-empty[hidden] {
+  display: none !important;
+}
+
+.floor-dest-poi-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.92);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 52px;
+}
+
+.floor-dest-poi-item[hidden] {
+  display: none !important;
+}
+
+.floor-dest-poi-item:hover {
+  background: rgba(30, 86, 207, 0.06);
+}
+
+.floor-dest-poi-item.is-selected {
+  background: rgba(30, 86, 207, 0.1);
+}
+
+.floor-dest-poi-item:active {
+  background: rgba(30, 86, 207, 0.12);
+}
+
+.floor-dest-poi-check {
+  flex: 0 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.floor-dest-poi-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1e56cf;
+}
+
+.floor-dest-poi-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(30, 86, 207, 0.1);
+  color: #1e56cf;
+  pointer-events: none;
+}
+
+.floor-dest-poi-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.floor-dest-poi-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+html[data-theme='dark'] .floor-dest-search-input,
+html[data-theme='dark'] .floor-dest-category-pill,
+html[data-theme='dark'] .floor-dest-category-more,
+html[data-theme='dark'] .floor-dest-category-dropdown {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: rgba(248, 250, 252, 0.94);
+}
+
+html[data-theme='dark'] .floor-dest-poi-item {
+  color: rgba(248, 250, 252, 0.94);
+}
+
+html[data-theme='dark'] .floor-dest-poi-empty {
+  color: rgba(226, 232, 240, 0.55);
+}
+
+html[data-theme='dark'] .floor-dest-category-dropdown-item {
+  color: rgba(248, 250, 252, 0.94);
+}
+
+.floor-details-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(60, 60, 67, 0.1);
+}
+
+.floor-details-actions .btn-secondary,
+.floor-details-actions .btn-save {
+  flex: 1;
+}
+
+.floor-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+@media (max-width: 720px) {
+  .floor-add-btn span {
+    display: none;
+  }
+}
+
+/* Guided Tours roadmap — vertical chain inside the floors-style editor */
+.guided-tour-panel .roadmap-chain--vertical,
+.guided-tour-details .roadmap-chain--vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+/* The stop chain used to grow without limit, so each added stop pushed the
+   "Add stop" list further down the scrolling body until it left the viewport.
+   Cap it and let it scroll on its own instead. */
+.guided-tour-details .roadmap-chain--vertical {
+  max-height: min(38vh, 300px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+/* While the picker is open the list matters more than the chain, so the chain
+   yields height to it. */
+.guided-tour-details.is-picking .roadmap-chain--vertical {
+  max-height: min(22vh, 168px);
+}
+
+/* Pin the picker to the bottom of the scrolling body: however many stops are
+   added, the next destination is always on screen and one tap away. */
+.guided-tour-details #tour-stop-picker:not(.hidden) {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: 2px;
+  padding: 10px 0 2px;
+  background: var(--bg-surface, #ffffff);
+  box-shadow: 0 -10px 14px -10px rgba(15, 23, 42, 0.28);
+}
+
+.guided-tour-details.is-picking .floor-dest-poi-list {
+  max-height: min(32vh, 250px);
+}
+
+.guided-tour-details .roadmap-connector {
+  text-align: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.guided-tour-details .roadmap-node--poi,
+.guided-tour-details .roadmap-node--start,
+.guided-tour-details .roadmap-node--add {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.guided-tour-details .roadmap-node--poi {
+  justify-content: flex-start;
+}
+
+.guided-tour-details .roadmap-node-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.guided-tour-details .roadmap-node-remove {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.guided-tour-details .roadmap-node-remove:hover {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.guided-tour-details #tour-poi-picker-list {
+  max-height: 220px;
+  overflow: auto;
+}
+
+/* A destination already on the tour — shown, not hidden, so a POI that exists
+   never looks missing. Not clickable; stops are removed from the roadmap. */
+.floor-dest-poi-item.is-added {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.floor-dest-poi-item.is-added:hover,
+.floor-dest-poi-item.is-added:active {
+  background: transparent;
+}
+
+.floor-dest-poi-added {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(30, 86, 207, 0.9);
+  background: rgba(30, 86, 207, 0.1);
+}
+
+/* ── Guided tour editor: density + the Active toggle fix ──────────────────
+   The Active row carries .facility-active-toggle AND .poi-add-field. In
+   global.css .poi-add-field is declared later, so its `flex-direction: column`
+   and `input { width: 100% }` won — which is why the checkbox rendered huge and
+   centered above its label, with 20px of side padding. Re-assert the row
+   layout here (floors.css loads last) and drop the stray padding. */
+.guided-tour-details .facility-active-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.guided-tour-details .facility-active-toggle input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  flex: 0 0 16px;
+  margin: 0;
+  accent-color: var(--violet, #1e56cf);
+}
+
+.guided-tour-details .facility-active-toggle .field-label {
+  margin: 0;
+  line-height: 1;
+}
+
+/* Tighter rhythm overall — the editor is a narrow drawer, not a page. */
+.guided-tour-details .floor-details-body {
+  gap: 10px;
+}
+
+.guided-tour-details .floor-y-chip {
+  padding: 7px 10px;
+  border-radius: 10px;
+}
+
+.guided-tour-details .roadmap-inner {
+  padding: 0;
+}
+
+.guided-tour-details .roadmap-hint {
+  margin: 6px 0 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* While picking, every spare pixel goes to the destination list. */
+.guided-tour-details.is-picking .floor-details-body {
+  gap: 7px;
+}
+
+.guided-tour-details.is-picking .roadmap-chain--vertical {
+  max-height: min(17vh, 128px);
+}
+
+.guided-tour-details.is-picking .roadmap-hint {
+  display: none;
+}
+
+.guided-tour-details.is-picking .floor-y-chip {
+  padding: 5px 10px;
+}
+
+.guided-tour-details.is-picking .floor-dest-poi-list {
+  max-height: min(46vh, 360px);
+}
+
+/* Slightly tighter rows (~33px instead of ~37px) — denser without dropping
+   below a comfortable click target. */
+.guided-tour-details .floor-dest-poi-item {
+  padding: 8px 8px;
+  border-radius: 10px;
+}

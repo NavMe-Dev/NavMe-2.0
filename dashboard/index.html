@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="NavMe Spatial Studio — indoor navigation and spatial media management" />
+  <title>NavMe Spatial Studio</title>
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' blob: data: https:; media-src 'self' blob: data: https:;" />
+  <link rel="icon" type="image/png" href="/NavMe_wb.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <script>
+    (function () {
+      var key = 'navme-theme';
+      var theme;
+      try {
+        theme = localStorage.getItem(key);
+      } catch (e) {
+        theme = null;
+      }
+      if (theme !== 'dark' && theme !== 'light') {
+        theme =
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

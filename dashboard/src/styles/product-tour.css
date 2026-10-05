@@ -1,0 +1,124 @@
+/* First-time product tour coachmarks */
+.product-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+}
+.product-tour.hidden {
+  display: none !important;
+}
+.product-tour-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  pointer-events: auto;
+}
+.product-tour-spotlight {
+  position: fixed;
+  z-index: 10001;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 9999px rgba(15, 23, 42, 0.48),
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 12px 36px rgba(15, 23, 42, 0.28);
+  pointer-events: none;
+  transition:
+    left 0.2s ease,
+    top 0.2s ease,
+    width 0.2s ease,
+    height 0.2s ease,
+    opacity 0.15s ease;
+}
+.product-tour-card {
+  position: fixed;
+  z-index: 10002;
+  width: min(340px, calc(100vw - 24px));
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border-base, rgba(148, 163, 184, 0.35));
+  background: color-mix(in srgb, var(--bg-elevated, #fff) 94%, transparent);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.product-tour-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.product-tour-progress {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: var(--text-3, #64748b);
+}
+.product-tour-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-3, #64748b);
+  cursor: pointer;
+}
+.product-tour-close:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-1, #0f172a);
+}
+.product-tour-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-1, #0f172a);
+}
+.product-tour-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2, #475569);
+}
+.product-tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.product-tour-actions-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.product-tour-skip {
+  min-width: auto;
+  opacity: 0.9;
+}
+.product-tour-btn {
+  min-width: 72px;
+}
+.product-tour-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.product-tour-target {
+  position: relative;
+  z-index: 10003 !important;
+}
+
+html[data-theme='dark'] .product-tour-card {
+  background: color-mix(in srgb, var(--bg-elevated, #1e293b) 94%, transparent);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+html[data-theme='dark'] .product-tour-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}

@@ -1,0 +1,5 @@
+requests>=2.31
+deep-translator>=1.11.4
+python-dotenv>=1.0.0
+# Optional: only needed if TRANSLATOR_BACKEND=deepl
+# deepl>=1.16.0

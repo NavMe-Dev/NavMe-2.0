@@ -1,0 +1,23 @@
+{
+  "name": "navme-mini3d-gta-standalone",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port ${PORT:-4173}",
+    "start": "vite preview --host 0.0.0.0 --port ${PORT:-4173}"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "three": "^0.150.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.150.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11"
+  }
+}

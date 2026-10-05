@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>NavMe · Matter twin lab</title>
+  <meta name="description" content="Standalone Matterpak + Matterport lab. Not wired into the dashboard." />
+  <link rel="icon" type="image/png" href="/NavMe_wb.png" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: rgba(22, 28, 36, 0.94);
+      --text: #e8eef5;
+      --muted: #8b9aab;
+      --accent: #3a86ff;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --border: rgba(148, 163, 184, 0.22);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+    #topnav {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+    #topnav .brand {
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    #topnav .nav-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    #topnav .nav-btn.active {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      background: rgba(58, 134, 255, 0.18);
+    }
+    #topnav .spacer { flex: 1; }
+    #topnav .hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    #stage { flex: 1; position: relative; min-height: 0; }
+    /* Keep both panels in layout (visibility) so Matterport WebGL can init;
+       display:none often leaves Showcase stuck on “Connecting”. */
+    .mode-panel {
+      position: absolute;
+      inset: 0;
+      visibility: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .mode-panel.active {
+      visibility: visible;
+      pointer-events: auto;
+      z-index: 1;
+    }
+    #viewport, #mp-frame-wrap { position: absolute; inset: 0; }
+    #mp-frame-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+    }
+    #hud, #mp-hud {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 5;
+      width: min(400px, calc(100vw - 28px));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    #hud h1, #mp-hud h1 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .sub {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    #drop {
+      border: 1.5px dashed var(--border);
+      border-radius: 12px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255,255,255,0.02);
+    }
+    #drop:hover, #drop.is-drag {
+      border-color: var(--accent);
+      background: rgba(58, 134, 255, 0.08);
+    }
+    #drop strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    #drop span { font-size: 11px; color: var(--muted); }
+    #file-input { display: none; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .url-row {
+      display: flex;
+      gap: 8px;
+    }
+    .url-row input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.25);
+      color: var(--text);
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 12px;
+    }
+    .url-row button, #mp-load-btn {
+      appearance: none;
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+      background: rgba(58, 134, 255, 0.2);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #status, #mp-status {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 1.2em;
+      white-space: pre-wrap;
+    }
+    #status.is-ok, #mp-status.is-ok { color: var(--ok); }
+    #status.is-warn, #mp-status.is-warn { color: var(--warn); }
+    #status.is-err, #mp-status.is-err { color: #f87171; }
+    #xyz-readout {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.28);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      display: none;
+    }
+    #xyz-readout.show { display: block; }
+    #xyz-readout .xyz-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    #bar-wrap {
+      margin-top: 8px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      display: none;
+    }
+    #bar-wrap.show { display: block; }
+    #bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
+      transition: width 0.12s linear;
+    }
+    #tools {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: min(96vw, 720px);
+      padding: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    #tools.show { display: flex; }
+    #tools button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #tools button.active, #tools button:hover {
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      background: rgba(58, 134, 255, 0.18);
+    }
+    #tools button#btn-get-xyz {
+      border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+      background: rgba(52, 211, 153, 0.14);
+    }
+    #tools button#btn-get-xyz.active {
+      background: rgba(52, 211, 153, 0.28);
+    }
+
+    /* Get XYZ — side-by-side comparison (only when active) */
+    #stage.compare-mode {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    #stage.compare-mode .mode-panel {
+      position: relative;
+      inset: auto;
+      visibility: visible;
+      pointer-events: auto;
+      z-index: 1;
+      min-height: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+    #stage.compare-mode .mode-panel:last-of-type {
+      border-right: 0;
+    }
+    #stage.compare-mode #hud,
+    #stage.compare-mode #mp-hud {
+      display: none;
+    }
+    #stage.compare-mode #tools {
+      left: 25%;
+      max-width: min(46vw, 520px);
+    }
+    #cmp-bar {
+      display: none;
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      z-index: 30;
+      width: min(920px, calc(100vw - 24px));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+    #stage.compare-mode #cmp-bar { display: block; }
+    #cmp-bar .cmp-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    #cmp-bar h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    #cmp-bar .cmp-actions {
+      display: flex;
+      gap: 8px;
+    }
+    #cmp-bar .cmp-actions button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #cmp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .cmp-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.22);
+      min-width: 0;
+    }
+    .cmp-card .lbl {
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .cmp-card .vals {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-all;
+    }
+    .cmp-card .hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    #cmp-status {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    #cmp-status.is-ok { color: var(--ok); }
+    #cmp-status.is-warn { color: var(--warn); }
+    #cmp-status.is-err { color: #f87171; }
+    #cmp-manual {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    #cmp-manual.show { display: block; }
+    #cmp-manual .field-label { margin-bottom: 8px; }
+    #cmp-manual .url-row input {
+      width: 5.5rem;
+      flex: 0 0 auto;
+    }
+    @media (max-width: 820px) {
+      #stage.compare-mode {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      #cmp-grid { grid-template-columns: 1fr; }
+      #stage.compare-mode #tools { left: 50%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="topnav">
+      <span class="brand">NavMe twin lab</span>
+      <button type="button" class="nav-btn active" data-mode="matterpak">Matterpak</button>
+      <button type="button" class="nav-btn" data-mode="matterport">Matterport</button>
+      <span class="spacer"></span>
+      <span class="hint">No login · :3010 · dashboard untouched</span>
+    </header>
+
+    <div id="stage">
+      <!-- Matterpak mode -->
+      <section class="mode-panel active" id="panel-matterpak" data-mode="matterpak">
+        <div id="viewport"></div>
+        <aside id="hud">
+          <h1>Matterpak → Digital Twin</h1>
+          <p class="sub">
+            Upload <code>mp_matterpak_*.zip</code>. Hidden navmesh · Go to nearest walkable point ·
+            Drag rotate · ⌘+drag move · <b>Get XYZ</b> opens Matterpak + Matterport comparison.
+          </p>
+          <label id="drop" for="file-input">
+            <strong>Drop Matterpak ZIP here</strong>
+            <span>or click to choose</span>
+          </label>
+          <input id="file-input" type="file" accept=".zip,application/zip" />
+          <div id="bar-wrap"><div id="bar"></div></div>
+          <div id="xyz-readout" aria-live="polite">
+            <div class="xyz-label">XYZ (nav point)</div>
+            <div id="xyz-values">—</div>
+          </div>
+          <div id="status">Waiting for upload…</div>
+        </aside>
+        <div id="tools">
+          <button type="button" id="btn-goto" class="active" title="Click mesh → nearest nav point">Go to</button>
+          <button type="button" id="btn-get-xyz" title="Compare same POI XYZ in Matterpak + Matterport">Get XYZ</button>
+          <button type="button" id="btn-reset" title="Reset camera">Reset view</button>
+          <button type="button" id="btn-wire">Wireframe</button>
+          <button type="button" id="btn-xray">X-ray</button>
+          <button type="button" id="btn-fit">Fit</button>
+        </div>
+      </section>
+
+      <!-- Matterport mode -->
+      <section class="mode-panel" id="panel-matterport" data-mode="matterport">
+        <div id="mp-frame-wrap">
+          <iframe
+            id="mp-iframe"
+            title="Matterport Showcase"
+            allow="xr-spatial-tracking; fullscreen; autoplay; clipboard-write"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+        <aside id="mp-hud">
+          <h1>Matterport Showcase</h1>
+          <p class="sub">
+            Opens in this panel when you select <b>Matterport</b> in the nav.
+            Paste a show link or model SID, then Load to change spaces.
+            Use <b>Get XYZ</b> on Matterpak to compare coordinates side-by-side.
+          </p>
+          <span class="field-label">Showcase URL or model ID</span>
+          <div class="url-row">
+            <input
+              id="mp-url"
+              type="url"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="https://my.matterport.com/show/?m=…"
+              value="https://my.matterport.com/show/?m=XSdZ2zvLrPd"
+            />
+            <button type="button" id="mp-load-btn">Load</button>
+          </div>
+          <label class="mp-check" style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="mp-use-sdk" />
+            Attach SDK applicationKey (optional — can hang on localhost)
+          </label>
+          <div id="mp-status">Switch to Matterport in the nav to load here</div>
+        </aside>
+      </section>
+
+      <!-- Shown only in Get XYZ compare mode -->
+      <div id="cmp-bar" aria-live="polite">
+        <div class="cmp-head">
+          <h2>POI XYZ comparison · Matterpak vs Matterport</h2>
+          <div class="cmp-actions">
+            <button type="button" id="cmp-go-mp" title="Fly Matterport to Matterpak XYZ + blue dot">Go → Matterport</button>
+            <button type="button" id="cmp-go-pack" title="Fly Matterpak to Matterport XYZ + green dot">Go → Matterpak</button>
+            <button type="button" id="cmp-lock-mp" title="Freeze Matterport point + place dots">Lock Matterport</button>
+            <button type="button" id="cmp-close">Close compare</button>
+          </div>
+        </div>
+        <div id="cmp-grid">
+          <div class="cmp-card">
+            <div class="lbl">Matterpak (nav click · blue)</div>
+            <div class="vals" id="cmp-pack-xyz">—</div>
+            <div class="hint">Click left mesh → blue dot both sides</div>
+          </div>
+          <div class="cmp-card">
+            <div class="lbl">Matterport (pointer · green)</div>
+            <div class="vals" id="cmp-mp-xyz">—</div>
+            <div class="hint">Lock / Go → Matterpak → green dot</div>
+          </div>
+          <div class="cmp-card">
+            <div class="lbl">Delta (pack − mp)</div>
+            <div class="vals" id="cmp-delta-xyz">—</div>
+            <div class="hint">Same physical POI → smaller Δ</div>
+          </div>
+        </div>
+        <div id="cmp-status">Click Get XYZ to open this panel</div>
+        <div id="cmp-manual">
+          <span class="field-label">Manual Matterport XYZ (when SDK key domain isn’t whitelisted)</span>
+          <div class="url-row">
+            <input id="cmp-mx" type="number" step="any" placeholder="X" />
+            <input id="cmp-my" type="number" step="any" placeholder="Y" />
+            <input id="cmp-mz" type="number" step="any" placeholder="Z" />
+            <button type="button" id="cmp-apply-manual">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

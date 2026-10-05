@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "useDefineForClassFields": true,
+    "paths": {
+      "@zcomponent/core": ["./src/mocks/zcomponent-core.ts"],
+      "@zcomponent/three/lib/components/Group": ["./src/mocks/zcomponent-group.ts"],
+      "@zcomponent/three/lib/components/Point": ["./src/mocks/zcomponent-point.ts"],
+      "@zcomponent/three-navigation/lib/components/NavigationRoute": [
+        "./src/mocks/zcomponent-navigation-route.ts"
+      ]
+    }
+  },
+  "include": ["src"]
+}

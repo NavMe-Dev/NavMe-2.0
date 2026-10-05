@@ -1,0 +1,13 @@
+[project]
+name = "wfpipe"
+version = "0.1.0"
+description = "MatterPak -> indoor wayfinding onboarding pipeline"
+requires-python = ">=3.10"
+dependencies = ["numpy", "opencv-python-headless", "shapely>=2", "networkx", "trimesh", "fast-simplification", "pillow", "requests"]
+[project.scripts]
+wfpipe = "wfpipe.cli:main"
+[tool.setuptools.packages.find]
+include = ["wfpipe*"]
+
+[project.optional-dependencies]
+e57 = ["pye57", "open3d"]

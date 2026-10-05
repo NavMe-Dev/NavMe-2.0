@@ -1,0 +1,286 @@
+/* Meniscus dock on the scene toolbar (Go to / Add POI / …).
+   Adapted from https://github.com/hasib41/meniscus-liquid-nav for NavMe minimal. */
+
+.scene-overlay-ui,
+.scene-overlay-ui.chrome-layer {
+  overflow: visible !important;
+}
+
+.meniscus-dock .scene-tool-btn[hidden] {
+  display: none !important;
+}
+
+.scene-overlay-ui .scene-toolbar,
+.immersive-shell .scene-overlay-ui .scene-toolbar,
+.scene-toolbar.chrome-layer {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 6px;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 14px !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: calc(100% - 24px) !important;
+  height: auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  z-index: 8 !important;
+}
+
+.scene-toolbar-inner.meniscus-dock,
+.glass-shell .scene-toolbar-inner.meniscus-dock,
+.scene-toolbar-inner.meniscus-dock.float-glass {
+  --mn-bar: var(--bg-surface);
+  --mn-bead: var(--accent);
+  --mn-icon-off: var(--text-3);
+  --mn-icon-on: var(--text-inverse);
+  --mn-rim: color-mix(in srgb, var(--text-1) 14%, transparent);
+  --dock-r: 12px;
+  --bead-d: 32px;
+  --bead-cy: 0px;
+  --rise: 22px;
+  position: relative !important;
+  display: block !important;
+  pointer-events: auto;
+  width: min(320px, calc(100vw - 48px)) !important;
+  height: var(--nav-dock-h, 48px) !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  background: var(--mn-bar) !important;
+  border: none !important;
+  border-radius: var(--dock-r) !important;
+  box-shadow: none !important;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.meniscus-dock.is-ready {
+  background: transparent !important;
+}
+
+.meniscus-dock.is-dragging {
+  cursor: grabbing;
+}
+
+.meniscus-skin {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.12));
+}
+
+html[data-theme='dark'] .meniscus-skin {
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+}
+
+.meniscus-fill {
+  fill: var(--mn-bar);
+  stroke: var(--mn-rim);
+  stroke-width: 1;
+}
+
+.meniscus-bead {
+  position: absolute;
+  top: var(--bead-cy);
+  left: 0;
+  width: var(--bead-d);
+  height: var(--bead-d);
+  margin: calc(var(--bead-d) / -2) 0 0 calc(var(--bead-d) / -2);
+  border-radius: 50%;
+  background: var(--mn-bead);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mn-bead) 40%, transparent),
+    0 6px 14px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  pointer-events: none;
+  will-change: transform;
+  z-index: 2;
+  opacity: 0;
+}
+
+html[data-theme='dark'] .scene-toolbar-inner.meniscus-dock,
+html[data-theme='dark'] .glass-shell .scene-toolbar-inner.meniscus-dock {
+  --mn-icon-off: var(--text-2);
+  --mn-icon-on: #ffffff;
+  --mn-rim: color-mix(in srgb, var(--text-1) 22%, transparent);
+}
+
+html[data-theme='dark'] .meniscus-bead {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--mn-bead) 50%, transparent),
+    0 8px 18px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+html[data-theme='dark'] .meniscus-dock .scene-tool-label {
+  color: #ffffff;
+}
+
+.meniscus-tabs {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0 clamp(12px, 5%, 20px);
+  gap: 0;
+}
+
+.meniscus-dock .scene-tool-btn,
+.glass-shell .meniscus-dock .scene-tool-btn,
+.scene-toolbar-inner.meniscus-dock .scene-tool-btn,
+html[data-theme='dark'] .meniscus-dock .scene-tool-btn,
+html[data-theme='dark'] .glass-shell .meniscus-dock .scene-tool-btn {
+  position: relative;
+  flex: 1 1 0;
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--mn-icon-off) !important;
+  cursor: pointer;
+  overflow: visible !important;
+  --t: 0;
+}
+
+/* Locked feature tools stay visible (muted) — do not hide via display. */
+.meniscus-dock .scene-tool-btn[hidden],
+.glass-shell .meniscus-dock .scene-tool-btn[hidden],
+.scene-toolbar-inner.meniscus-dock .scene-tool-btn[hidden],
+html[data-theme='dark'] .meniscus-dock .scene-tool-btn[hidden],
+html[data-theme='dark'] .glass-shell .meniscus-dock .scene-tool-btn[hidden],
+.scene-tool-btn[hidden],
+.glass-shell .scene-tool-btn[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+}
+
+.meniscus-dock .scene-tool-btn:hover,
+.meniscus-dock .scene-tool-btn:active,
+.glass-shell .meniscus-dock .scene-tool-btn:hover,
+.glass-shell .meniscus-dock .scene-tool-btn:active {
+  background: transparent !important;
+  transform: none !important;
+}
+
+.meniscus-dock .scene-tool-btn.active,
+.glass-shell .meniscus-dock .scene-tool-btn.active {
+  background: transparent !important;
+  color: var(--mn-icon-on) !important;
+  box-shadow: none !important;
+}
+
+.meniscus-dock .scene-tool-icon,
+.meniscus-dock .scene-tool-btn .scene-tool-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 20px !important;
+  height: 20px !important;
+  color: color-mix(in srgb, var(--mn-icon-off) calc((1 - var(--t)) * 100%), var(--mn-icon-on));
+  transform: translate(-50%, -50%) translateY(calc(var(--t) * var(--rise) * -1));
+  will-change: transform;
+  transition: none;
+}
+
+.meniscus-dock .scene-tool-icon svg,
+.meniscus-dock .scene-tool-btn .scene-tool-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  color: inherit;
+  filter: none !important;
+}
+
+.meniscus-dock .scene-tool-btn.active .scene-tool-icon,
+.glass-shell .meniscus-dock .scene-tool-btn.active .scene-tool-icon {
+  color: var(--mn-icon-on) !important;
+}
+
+.meniscus-dock .scene-tool-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10%;
+  z-index: 1;
+  display: block !important;
+  font-size: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1 !important;
+  text-align: center;
+  text-transform: none !important;
+  color: var(--text-1);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translateY(calc((1 - var(--t)) * 7px));
+}
+
+.meniscus-dock .scene-tool-btn[aria-selected='true'] .scene-tool-label,
+.meniscus-dock .scene-tool-btn.active .scene-tool-label,
+.meniscus-dock.is-dragging .scene-tool-label {
+  opacity: var(--t);
+}
+
+.meniscus-dock .scene-tool-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.scene-toolbar .scene-tool-cancel {
+  pointer-events: auto;
+  width: 28px !important;
+  height: 28px !important;
+  margin: 0 0 10px !important;
+  border-radius: 50% !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-base) !important;
+  color: var(--danger, #dc2626) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meniscus-dock .scene-tool-icon,
+  .meniscus-dock .scene-tool-label {
+    transform: none !important;
+  }
+}

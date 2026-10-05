@@ -1,0 +1,135 @@
+{
+ "osm": {
+  "enabled": true,
+  "footways_file": "fixtures/osm_footways_raw.json",
+  "buildings_file": "fixtures/osm_buildings_raw.json"
+ },
+ "stairs": [
+  {
+   "id": "stair_north",
+   "name": "North stair tower",
+   "bbox_model": [
+    -4.3,
+    18.4,
+    -0.6,
+    24.6
+   ],
+   "floors": [
+    "F1",
+    "F2"
+   ]
+  },
+  {
+   "id": "stair_porch",
+   "name": "Porch steps (main entrance)",
+   "bbox_model": [
+    -10.8,
+    -2.2,
+    -6.2,
+    1.4
+   ],
+   "floors": [
+    "F2"
+   ]
+  }
+ ],
+ "branding": {
+  "icon": "church"
+ },
+ "pois_seed": [
+  {
+   "id": "poi_h26t7ky77e",
+   "name": "North corridor (lower hall)",
+   "category": "corridor"
+  },
+  {
+   "id": "poi_tt6gm2a046",
+   "name": "Middle building (link)",
+   "category": "room"
+  },
+  {
+   "id": "poi_cdz3fkt38k",
+   "name": "West Wing \u2013 lower level",
+   "category": "hall"
+  },
+  {
+   "id": "poi_xy2x8mpaaq",
+   "name": "Lower Hall (beneath sanctuary)",
+   "category": "hall"
+  },
+  {
+   "id": "poi_n2yqr30509",
+   "name": "Stair tower / north corridor (upper)",
+   "category": "corridor"
+  },
+  {
+   "id": "poi_peina19mpq",
+   "name": "Upper Hall (west wing)",
+   "category": "hall"
+  },
+  {
+   "id": "poi_main_entrance",
+   "name": "Main entrance (porch \u2192 Upper Hall)",
+   "category": "entrance",
+   "note": "Porch is reached by steps from the walkway (not step-free)",
+   "node": "door_cwh4i4dbp91bdk3m4kt94yh3c"
+  },
+  {
+   "id": "poi_porch",
+   "name": "Covered porch",
+   "category": "outdoor",
+   "note": "",
+   "node": "0at8mid35k93bzr3ew4bim04a"
+  },
+  {
+   "id": "poi_courtyard_entrance",
+   "name": "Courtyard entrance (middle building)",
+   "category": "entrance",
+   "note": "Opening inferred from mesh; not marked in Matterport floor plan",
+   "node": "door_inf_msnf9b66hhspp114grir9qhgd_0"
+  },
+  {
+   "id": "poi_parking",
+   "name": "Parking lot",
+   "category": "parking",
+   "note": "",
+   "node": "9mhd13i1dntrihpzq3tw30xmd"
+  },
+  {
+   "id": "poi_street",
+   "name": "Street sidewalk (Greenland Ave side)",
+   "category": "outdoor",
+   "note": "",
+   "node": "9q7wequp6y6u39xdi8meaynzc"
+  },
+  {
+   "id": "poi_walkway",
+   "name": "Front walkway (below porch steps)",
+   "category": "outdoor",
+   "note": "",
+   "node": "dtxsxu9ni9e6u8bdh5ugbm0ia"
+  },
+  {
+   "id": "poi_courtyard",
+   "name": "Courtyard",
+   "category": "outdoor",
+   "note": "",
+   "node": "a018u5rx4zu81e7zx4tq364zd"
+  },
+  {
+   "id": "poi_stage",
+   "name": "Raised platform (Upper Hall)",
+   "category": "room",
+   "note": "~0.4 m above hall floor",
+   "node": "x18ds7ga5ht5uwfe59e7gmi0c"
+  },
+  {
+   "id": "poi_sanctuary",
+   "name": "Sanctuary (lower level, main floor not scanned)",
+   "category": "hall",
+   "note": "The scan covers the hall beneath the sanctuary; the worship level itself is not in this model",
+   "node": "bhyf216u0h2c92y4dtd3df0ta"
+  }
+ ],
+ "arrival_poi": "poi_parking"
+}

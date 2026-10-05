@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.env
+data/
+var/
+*.zip
+.pytest_cache/
+backups/
+dist/
+matterpaks/
+*.egg-info/
+# Runtime config overlay (Config Option 2)
+var/runtime_secrets.env
+var/runtime_settings.json

@@ -1,0 +1,3032 @@
+/**
+ * Standalone `/access` dashboard — tenant-style project cards + per-project feature toggles.
+ */
+
+import {
+  fetchProjectLogins,
+  fetchAllProjectFeatures,
+  fetchTenantLanguages,
+  initTenantLanguagesAdmin,
+  upsertTenantLanguageAdmin,
+  insertProjectLogin,
+  updateProjectLogin,
+  deleteProjectLogin,
+  upsertProjectFeaturesAdmin,
+  upsertProjectExperienceUrlsAdmin,
+  deleteProjectFeaturesAdmin,
+  fetchAllMedia,
+  insertMediaRow,
+  updateMediaRow,
+  deleteMediaRow,
+  adminAssignProjectAdmin,
+  adminListProjectMembers,
+  projectAdminUpsertSubAdmin,
+} from '../services/supabase.js';
+import { uploadProjectMedia, deleteProjectMediaFile } from '../services/media-storage.js';
+import { classifyMediaFile, storagePathFromPublicUrl, NAVMESH_MIME } from '../utils/media-files.js';
+import {
+  isSuperadminCredentials,
+  setSuperadminSession,
+  getSuperadminSession,
+  clearSuperadminSession,
+  SUPERADMIN_EMAIL,
+} from '../config/superadmin.js';
+import { offerBrowserPasswordSave } from '../utils/browser-password.js';
+import '../styles/global.css';
+import '../styles/enterprise-theme.css';
+import '../styles/glass-theme.css';
+import '../styles/glass-animations.css';
+import '../styles/spatial-decor.css';
+import '../styles/media.css';
+import '../styles/access-control.css';
+import { initTheme, bindThemeToggle } from '../config/theme.js';
+import { BRAND_NAME } from '../config/brand.js';
+import {
+  iconSun,
+  iconMoon,
+  iconArrowLeft,
+  iconEditor3d,
+  iconFloorPlan,
+  iconChevronRight,
+  iconSearch,
+  iconUsers,
+  iconActivity,
+  iconLogout,
+  iconAdd,
+  iconClose,
+  iconSave,
+  iconEdit,
+  iconDelete,
+  iconMapPin,
+  iconCopy,
+  iconDownload,
+  iconQrCode,
+  iconZoneBlock,
+  iconGlobe,
+  iconEye,
+  iconEyeOff,
+  iconNavigate,
+  iconBox,
+  iconMedia,
+  iconFacilityColor,
+  iconTreasure,
+} from './icons.js';
+import { getDefaultOrganizationId } from '../config/organization.js';
+import { setPendingProjectLogin } from '../config/project-login-bridge.js';
+import { parseDbBool } from '../utils/parse-db-bool.js';
+import { MULTISET_MAP } from '../config/spacecheck-access.js';
+import { NAVME_LANGUAGES } from '../config/languages.js';
+import { showToast } from './toast.js';
+import { openSplatViewerModal } from './splat-viewer-modal.js';
+import { parseMatterportModelId, isMatterportMediaRow, MATTERPORT_MIME } from '../services/matterport-url.js';
+import { logUserActivity } from '../services/user-logs.js';
+import {
+  generateQrDataUrl,
+  loadImageFromFile,
+  validateLogoFile,
+} from '../utils/qr-with-logo.js';
+import { loadUserLogsFeed } from './user-logs-panel.js';
+import { askConfirm } from './confirm-dialog.js';
+
+const DETAIL_SECTIONS = ['admins', 'features', 'assets', 'logs'];
+
+const ACCESS_UI_FEATURES = [
+  {
+    key: 'people_search',
+    label: 'People search',
+    desc: 'Let users find and track people. Turns on the Users panel in the editor when this or Save Location is on.',
+    icon: iconUsers,
+  },
+  {
+    key: 'save_location',
+    label: 'Save Location',
+    desc: 'Allow saving and recalling personal location pins. Turns on Users when this or People search is on.',
+    icon: iconMapPin,
+  },
+  {
+    key: 'block_enabled',
+    label: 'Blocking Feature',
+    desc: 'Show Zones in the nav menu and zone blocks on the map. Off hides both.',
+    icon: iconZoneBlock,
+  },
+  {
+    key: 'mini3d_gta_embed',
+    label: '2d/3d Map',
+    desc: 'Switch between flat map view and immersive 3D navigation.',
+    icon: iconEditor3d,
+  },
+  {
+    key: 'custom_media',
+    label: 'Media',
+    desc: 'Show Media in the nav menu and media placements on the map. Off hides both.',
+    icon: iconMedia,
+  },
+  {
+    key: 'languages',
+    label: 'Languages',
+    desc: 'Enable multilingual POI names and in-app language switching.',
+    icon: iconGlobe,
+  },
+  {
+    key: 'fps_display',
+    label: 'FPS Display',
+    desc: 'Show the live frames-per-second performance counter in the NavMe app.',
+    icon: iconEye,
+  },
+  {
+    key: 'localization_display',
+    label: 'Localization Display',
+    desc: 'Show live localization status and position details in the NavMe app.',
+    icon: iconNavigate,
+  },
+  {
+    key: 'navme_robo_companion',
+    label: 'NavMe Robo Companion',
+    desc: 'When on, load the AR guide. When off, no companion may load.',
+    icon: iconBox,
+    // Which character walks with the user. Only meaningful while the toggle is
+    // on, so the picker is disabled when it is off.
+    choice: {
+      key: 'companion_model',
+      label: 'Character',
+      options: [
+        { value: 'guidebot', label: 'NavMe Guide Bot' },
+        { value: 'ramanujan', label: 'Ramanujan' },
+      ],
+    },
+  },
+  {
+    key: 'facilities',
+    label: 'Amenities',
+    desc: 'Enable Amenities in the sidebar and map tools. When off, controls stay visible but locked.',
+    icon: iconFacilityColor,
+  },
+  {
+    key: 'treasure',
+    label: 'Treasure Hunt',
+    desc: 'Enable Treasure in the sidebar. When off, the control stays visible but locked.',
+    icon: iconTreasure,
+  },
+  {
+    key: 'guided_tours',
+    label: 'Guided Tours',
+    desc: 'Curated multi-stop tours in the AR experience. Turns on the Guided Tours panel in the editor.',
+    icon: iconNavigate,
+  },
+];
+
+const DEFAULT_FEATURES = {
+  people_search: true,
+  save_location: true,
+  block_enabled: true,
+  mini3d_gta_embed: false,
+  languages: false,
+  custom_media: true,
+  assistant: false,
+  snapshot: false,
+  whatsapp: false,
+  feedback: false,
+  fps_display: false,
+  localization_display: false,
+  navme_robo_companion: false,
+  companion_model: 'guidebot',
+  facilities: false,
+  treasure: false,
+  guided_tours: false,
+};
+
+/** Text settings that must not go through the boolean coercion below. */
+const FEATURE_CHOICE_KEYS = ['companion_model'];
+const FEATURE_FLAG_KEYS = Object.keys(DEFAULT_FEATURES).filter(
+  (k) => !FEATURE_CHOICE_KEYS.includes(k),
+);
+
+function normalizeFeatureRow(row) {
+  const normalized = { ...DEFAULT_FEATURES };
+  if (!row || typeof row !== 'object') return normalized;
+  for (const key of FEATURE_FLAG_KEYS) {
+    normalized[key] = parseDbBool(row[key], DEFAULT_FEATURES[key]);
+  }
+  for (const key of FEATURE_CHOICE_KEYS) {
+    const raw = String(row[key] ?? '').trim().toLowerCase();
+    if (raw) normalized[key] = raw;
+  }
+  return normalized;
+}
+
+function isFeatureEnabled(features, key) {
+  return parseDbBool(features?.[key], DEFAULT_FEATURES[key]);
+}
+
+function experienceUrlsFromRow(row) {
+  return {
+    project_url: String(row?.project_url ?? '').trim(),
+    whitelabeled_url: String(row?.whitelabeled_url ?? '').trim(),
+  };
+}
+
+function languageMeta(code) {
+  return NAVME_LANGUAGES.find((lang) => lang.code === code) ?? {
+    code,
+    label: code.toUpperCase(),
+    nativeLabel: code.toUpperCase(),
+  };
+}
+
+function normalizeLanguageRows(rows) {
+  const byCode = new Map(
+    (Array.isArray(rows) ? rows : []).map((row) => [String(row.lang_code ?? ''), row]),
+  );
+
+  return NAVME_LANGUAGES.map((lang, index) => {
+    const row = byCode.get(lang.code);
+    return {
+      lang_code: lang.code,
+      native_label: String(row?.native_label ?? lang.nativeLabel),
+      is_enabled: parseDbBool(row?.is_enabled, lang.code === 'en'),
+      sort_order: Number(row?.sort_order ?? index + 1),
+      id: row?.id ?? null,
+    };
+  });
+}
+
+function enabledLanguageCount(languages) {
+  return languages.filter((row) => parseDbBool(row.is_enabled, false)).length;
+}
+
+/**
+ * @param {HTMLElement} container
+ */
+export function initAccessControlPage(container) {
+  initTheme();
+  container.innerHTML = '';
+
+  const page = document.createElement('div');
+  page.className = 'glass-shell access-control-page';
+  page.innerHTML = `
+    <div class="access-ambient" aria-hidden="true">
+      <div class="spatial-ambient-bg"></div>
+    </div>
+
+    <header class="access-topbar float-glass">
+      <img src="/NavMe_wb.png" alt="${BRAND_NAME}" class="topbar-logo-img" />
+      <div class="access-topbar-copy">
+        <h1 id="access-page-title">Access Control</h1>
+        <p class="access-subtitle" id="access-page-subtitle">Project tenants · feature permissions</p>
+      </div>
+      <div class="access-topbar-actions">
+        <a href="/" class="topbar-action-btn access-editor-link btn-ripple-host" title="Back to ${BRAND_NAME}">
+          <span class="access-icon-slot" aria-hidden="true">${iconArrowLeft()}${iconEditor3d()}</span>
+          <span>${BRAND_NAME}</span>
+        </a>
+        <button type="button" class="topbar-action-btn theme-toggle btn-ripple-host" id="access-theme-toggle" aria-label="Switch theme">
+          <span class="theme-toggle-icon theme-toggle-icon--sun">${iconSun()}</span>
+          <span class="theme-toggle-icon theme-toggle-icon--moon">${iconMoon()}</span>
+        </button>
+        <button type="button" class="topbar-action-btn topbar-logout access-logout-btn btn-ripple-host" id="access-logout" title="Sign out">
+          <span class="access-icon-slot" aria-hidden="true">${iconLogout()}</span>
+          <span>Log out</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="access-page-scroll" id="access-page-scroll">
+      <div class="access-login-wrap" id="access-login-wrap">
+        <div class="access-login-card float-glass">
+          <div class="access-login-badge">${iconUsers()} Superadmin</div>
+          <h2>Sign in to manage access</h2>
+          <p class="access-login-hint">Use <code>${SUPERADMIN_EMAIL}</code> to configure project feature flags.</p>
+          <p class="form-error hidden" id="access-login-error" role="alert"></p>
+          <form id="access-login-form" autocomplete="on" method="post" action="/access">
+            <div class="form-group">
+              <label for="access-email">Email</label>
+              <input id="access-email" name="email" type="email" autocomplete="username" required />
+            </div>
+            <div class="form-group">
+              <label for="access-password">Password</label>
+              <input id="access-password" name="password" type="password" autocomplete="current-password" required />
+            </div>
+            <button type="submit" class="btn-start" id="access-login-btn">Sign in</button>
+          </form>
+        </div>
+      </div>
+
+      <main class="access-main hidden" id="access-main">
+        <div class="access-shell" id="access-shell">
+          <nav class="access-hud" id="access-hud" aria-label="Access command">
+            <div class="access-hud-rail" aria-hidden="true"></div>
+            <button type="button" class="access-hud-node btn-ripple-host is-active" data-hud="tenants" aria-current="page">
+              <span class="access-hud-orb">${iconUsers()}</span>
+              <span class="access-hud-label">Tenants</span>
+            </button>
+            <button type="button" class="access-hud-node btn-ripple-host" data-hud="logs">
+              <span class="access-hud-orb">${iconActivity()}</span>
+              <span class="access-hud-label">User logs</span>
+            </button>
+          </nav>
+
+          <div class="access-shell-body">
+            <section class="access-view access-view--grid" id="access-grid-view">
+              <div class="access-toolbar float-glass">
+                <label class="access-search-field">
+                  <span class="access-search-icon" aria-hidden="true">${iconSearch()}</span>
+                  <input type="search" id="access-search" placeholder="Search tenants by name, email, or map code…" />
+                </label>
+                <button type="button" class="access-add-tenant-btn btn-ripple-host" id="btn-add-project">
+                  <span class="access-icon-slot" aria-hidden="true">${iconAdd()}</span>
+                  <span>New project tenant</span>
+                </button>
+              </div>
+              <div class="access-card-grid" id="access-card-grid" role="list"></div>
+            </section>
+
+            <section class="access-view access-view--logs hidden" id="access-logs-view">
+              <div class="access-feature-panel float-glass access-user-logs-panel access-user-logs-panel--page">
+                <div class="access-feature-panel-head access-user-logs-head">
+                  <div>
+                    <h2>User logs</h2>
+                    <p>Activity across all projects. Search, filter, and export.</p>
+                  </div>
+                </div>
+                <div class="user-logs-feed" id="access-global-logs"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <section class="access-view access-view--detail hidden" id="access-detail-view">
+          <button type="button" class="access-back-btn btn-ripple-host" id="access-back-btn">
+            <span class="access-icon-slot" aria-hidden="true">${iconArrowLeft()}</span>
+            <span>All project tenants</span>
+          </button>
+          <div class="access-detail-hero float-glass" id="access-detail-hero"></div>
+
+          <div class="access-detail-shell" id="access-detail-shell">
+            <nav class="access-hud access-detail-hud" id="access-detail-hud" aria-label="Tenant sections">
+              <div class="access-hud-rail" aria-hidden="true"></div>
+              <button type="button" class="access-hud-node btn-ripple-host is-active" data-detail="admins" aria-current="page">
+                <span class="access-hud-orb">${iconUsers()}</span>
+                <span class="access-hud-label">Admins</span>
+              </button>
+              <button type="button" class="access-hud-node btn-ripple-host" data-detail="features">
+                <span class="access-hud-orb">${iconGlobe()}</span>
+                <span class="access-hud-label">Features</span>
+              </button>
+              <button type="button" class="access-hud-node btn-ripple-host" data-detail="assets">
+                <span class="access-hud-orb">${iconBox()}</span>
+                <span class="access-hud-label">Map load</span>
+              </button>
+              <button type="button" class="access-hud-node btn-ripple-host" data-detail="logs">
+                <span class="access-hud-orb">${iconActivity()}</span>
+                <span class="access-hud-label">User logs</span>
+              </button>
+            </nav>
+
+            <div class="access-detail-body">
+              <div class="access-detail-pane" data-detail-pane="admins">
+          <div class="access-feature-panel float-glass" id="access-project-admin-panel">
+            <div class="access-feature-panel-head">
+              <h2>Admins &amp; credentials</h2>
+              <p>View and copy tenant, project-admin, and sub-admin login details. Passwords stay hidden until you reveal them.</p>
+            </div>
+            <div class="access-project-admin-body" id="access-project-admin-body">
+              <div class="access-cred-stack" id="access-tenant-cred-card"></div>
+              <p class="access-project-admin-current" id="access-project-admin-current">Loading…</p>
+              <div class="access-cred-stack" id="access-admin-cred-card"></div>
+              <form class="access-team-form" id="access-project-admin-form">
+                <h3 class="access-team-form-title">Assign / replace project admin</h3>
+                <div class="access-team-form-grid">
+                  <div class="form-group">
+                    <label for="access-admin-email">Admin email</label>
+                    <input id="access-admin-email" type="email" required autocomplete="off" placeholder="admin@company.com" />
+                  </div>
+                  <div class="form-group">
+                    <label for="access-admin-password">Password</label>
+                    <input id="access-admin-password" type="password" required autocomplete="new-password" placeholder="Set a password" />
+                  </div>
+                  <div class="form-group">
+                    <label for="access-admin-name">Display name</label>
+                    <input id="access-admin-name" type="text" autocomplete="off" placeholder="Optional name" />
+                  </div>
+                </div>
+                <button type="submit" class="access-save-btn btn-ripple-host" id="access-admin-assign-btn">
+                  <span>Save project admin</span>
+                </button>
+              </form>
+              <form class="access-team-form access-team-form--sub" id="access-subadmin-form">
+                <h3 class="access-team-form-title">Add sub-admin</h3>
+                <p class="access-field-help">Sub-admins can edit this project but only see content they create or are assigned.</p>
+                <div class="access-team-form-grid">
+                  <div class="form-group">
+                    <label for="access-sub-email">Sub-admin email</label>
+                    <input id="access-sub-email" type="email" required autocomplete="off" placeholder="editor@company.com" />
+                  </div>
+                  <div class="form-group">
+                    <label for="access-sub-password">Password</label>
+                    <input id="access-sub-password" type="password" required autocomplete="new-password" placeholder="Set a password" />
+                  </div>
+                  <div class="form-group">
+                    <label for="access-sub-name">Display name</label>
+                    <input id="access-sub-name" type="text" autocomplete="off" placeholder="Optional name" />
+                  </div>
+                </div>
+                <button type="submit" class="access-save-btn btn-ripple-host" id="access-sub-add-btn">
+                  <span class="access-icon-slot" aria-hidden="true">${iconAdd()}</span>
+                  <span>Add sub-admin</span>
+                </button>
+              </form>
+              <div class="access-subadmin-list" id="access-subadmin-list"></div>
+            </div>
+          </div>
+              </div>
+
+              <div class="access-detail-pane hidden" data-detail-pane="features">
+          <div class="access-feature-panel float-glass" id="access-features-panel">
+            <div class="access-feature-panel-head">
+              <h2>Feature access</h2>
+              <p>Toggle what this project can use in the NavMe app. Store the experience URLs so they are easy to copy.</p>
+            </div>
+            <div class="access-experience-urls" id="access-experience-urls">
+              <div class="form-group access-form-group">
+                <label for="access-project-url">Project URL</label>
+                <div class="access-dialog-field-row">
+                  <input id="access-project-url" type="url" spellcheck="false" autocomplete="off" placeholder="https://navme.space/…" />
+                  <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="access-project-url" title="Copy project URL" aria-label="Copy project URL">
+                    ${iconCopy()}
+                  </button>
+                </div>
+              </div>
+              <div class="form-group access-form-group">
+                <label for="access-whitelabeled-url">White-labeled URL</label>
+                <div class="access-dialog-field-row">
+                  <input id="access-whitelabeled-url" type="url" spellcheck="false" autocomplete="off" placeholder="https://wayfinding.example.com/…" />
+                  <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="access-whitelabeled-url" title="Copy white-labeled URL" aria-label="Copy white-labeled URL">
+                    ${iconCopy()}
+                  </button>
+                  <button type="button" class="access-generate-qr-btn btn-ripple-host" id="access-whitelabel-generate-qr" title="Generate QR code" aria-label="Generate QR code for white-labeled URL">
+                    ${iconQrCode()}
+                    <span>Generate QR</span>
+                  </button>
+                </div>
+              </div>
+              <button type="button" class="access-save-btn btn-ripple-host" id="access-experience-urls-save">
+                <span class="access-icon-slot" aria-hidden="true">${iconSave()}</span>
+                <span>Save experience URLs</span>
+              </button>
+            </div>
+            <div class="access-switch-list" id="access-switch-list"></div>
+          </div>
+          <div class="access-feature-panel access-language-panel float-glass hidden" id="access-language-panel">
+            <div class="access-feature-panel-head">
+              <h2>Language options</h2>
+              <p>Choose which languages this project exposes in the NavMe app.</p>
+            </div>
+            <div class="access-switch-list" id="access-language-list"></div>
+          </div>
+              </div>
+
+              <div class="access-detail-pane hidden" data-detail-pane="assets">
+          <div class="access-feature-panel access-splat-panel float-glass" id="access-splat-panel">
+            <div class="access-feature-panel-head access-splat-panel-head">
+              <div class="access-splat-panel-copy">
+                <h2>Splat Load</h2>
+                <p>Upload one or many <code>.ply</code> splat files for this project (<span id="access-splat-poi-label">poi_type</span>). Use the eye to show/hide which splats load in the 3D map. Default rotation X is -90°, Z is 0°.</p>
+              </div>
+              <div class="access-splat-toolbar">
+                <button type="button" class="access-save-btn btn-ripple-host" id="access-splat-upload-btn">
+                  <span class="access-icon-slot" aria-hidden="true">${iconAdd()}</span>
+                  <span>Upload .ply files</span>
+                </button>
+                <input type="file" id="access-splat-file-input" class="hidden" accept=".ply,application/octet-stream" multiple />
+                <span class="access-splat-status" id="access-splat-status" aria-live="polite"></span>
+              </div>
+            </div>
+            <div class="access-splat-list" id="access-splat-list"></div>
+          </div>
+
+          <div class="access-feature-panel access-splat-panel float-glass" id="access-matterport-panel">
+            <div class="access-feature-panel-head access-splat-panel-head">
+              <div class="access-splat-panel-copy">
+                <h2>3D Space Load</h2>
+                <p>
+                  Paste a 3D space show link (or model ID) for
+                  <span id="access-matterport-poi-label">poi_type</span>.
+                  When saved &amp; active, ${BRAND_NAME} loads that space instead of the geometric mesh / splat map —
+                  with Add POI, Add amenity, and Add media on the map.
+                </p>
+              </div>
+            </div>
+            <div class="access-matterport-form">
+              <label class="field-label" for="access-matterport-url">Space URL or model ID</label>
+              <div class="access-splat-toolbar access-matterport-toolbar">
+                <input
+                  id="access-matterport-url"
+                  type="url"
+                  spellcheck="false"
+                  autocomplete="off"
+                  placeholder="Paste show link or model ID…"
+                />
+                <button type="button" class="access-save-btn btn-ripple-host" id="access-matterport-save-btn">
+                  <span>Save link</span>
+                </button>
+                <button type="button" class="access-action-btn btn-ripple-host" id="access-matterport-clear-btn">
+                  <span>Clear</span>
+                </button>
+              </div>
+              <span class="access-splat-status" id="access-matterport-status" aria-live="polite"></span>
+              <div class="access-splat-list" id="access-matterport-list"></div>
+            </div>
+          </div>
+
+          <div class="access-feature-panel access-splat-panel float-glass" id="access-navmesh-panel">
+            <div class="access-feature-panel-head access-splat-panel-head">
+              <div class="access-splat-panel-copy">
+                <h2>Navmesh Load</h2>
+                <p>
+                  Upload a Recast / ZComponent <code>.navmesh</code> file (e.g. <code>generated.navmesh</code>) for
+                  <span id="access-navmesh-poi-label">poi_type</span>.
+                  When active, ${BRAND_NAME} uses this file instead of auto-generating a navigation mesh.
+                </p>
+              </div>
+              <div class="access-splat-toolbar">
+                <button type="button" class="access-save-btn btn-ripple-host" id="access-navmesh-upload-btn">
+                  <span class="access-icon-slot" aria-hidden="true">${iconAdd()}</span>
+                  <span>Upload .navmesh</span>
+                </button>
+                <input type="file" id="access-navmesh-file-input" class="hidden" accept=".navmesh,application/octet-stream" />
+                <span class="access-splat-status" id="access-navmesh-status" aria-live="polite"></span>
+              </div>
+            </div>
+            <div class="access-splat-list" id="access-navmesh-list"></div>
+          </div>
+              </div>
+
+              <div class="access-detail-pane hidden" data-detail-pane="logs">
+          <div class="access-feature-panel float-glass access-user-logs-panel" id="access-project-logs-panel">
+            <div class="access-feature-panel-head access-user-logs-head">
+              <div>
+                <h2>User logs</h2>
+                <p>Activity in this project. Search, filter, and export.</p>
+              </div>
+            </div>
+            <div class="user-logs-feed" id="access-project-logs"></div>
+          </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="access-dialog" id="access-project-dialog">
+      <form method="dialog" class="access-dialog-card float-glass" id="access-project-form">
+        <header class="access-dialog-header">
+          <div class="access-dialog-heading">
+            <span class="access-dialog-icon" aria-hidden="true">${iconUsers()}</span>
+            <div>
+              <h3 id="access-dialog-title">New project tenant</h3>
+              <p id="access-dialog-subtitle">Register login credentials and link them to a project.</p>
+            </div>
+          </div>
+          <button type="button" class="access-dialog-close btn-ripple-host" id="access-dialog-close" aria-label="Close">${iconClose()}</button>
+        </header>
+        <div class="access-dialog-body">
+          <div class="form-group access-form-group">
+            <label for="dialog-poi-type">Project name <span class="access-label-hint">(poi_type)</span></label>
+            <div class="access-dialog-field-row">
+              <input id="dialog-poi-type" type="text" required placeholder="e.g. IIPC, maclab" />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-poi-type" title="Copy project name" aria-label="Copy project name">
+                ${iconCopy()}
+              </button>
+            </div>
+            <p class="access-field-help">Unique project key used across NavMe tables.</p>
+          </div>
+          <div class="form-group access-form-group">
+            <label for="dialog-email">Tenant login email</label>
+            <div class="access-dialog-field-row">
+              <input
+                id="dialog-email"
+                type="email"
+                required
+                placeholder="name@navme.space"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-email" title="Copy email" aria-label="Copy email">
+                ${iconCopy()}
+              </button>
+            </div>
+            <p class="access-field-help">Must be unique across all tenants (e.g. Sparkhouse vs Sparkhouse uptown need different emails).</p>
+          </div>
+          <div class="form-group access-form-group">
+            <label for="dialog-password">Tenant login password</label>
+            <div class="access-dialog-field-row">
+              <input id="dialog-password" name="password" type="password" autocomplete="new-password" required placeholder="Secure password" />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-toggle-secret="dialog-password" title="Show password" aria-label="Show password" aria-pressed="false">
+                ${iconEye()}
+              </button>
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-password" title="Copy password" aria-label="Copy password">
+                ${iconCopy()}
+              </button>
+            </div>
+          </div>
+          <div class="form-group access-form-group">
+            <label for="dialog-map-code">Map code</label>
+            <div class="access-dialog-field-row">
+              <input id="dialog-map-code" type="text" required placeholder="MAP_… or MSET_…" />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-map-code" title="Copy map code" aria-label="Copy map code">
+                ${iconCopy()}
+              </button>
+            </div>
+            <p class="access-field-help">Map identifier used when opening ${BRAND_NAME}.</p>
+          </div>
+          <div class="form-group access-form-group">
+            <label for="dialog-client-id">Map client ID</label>
+            <div class="access-dialog-field-row">
+              <input id="dialog-client-id" type="text" required placeholder="UUID client id" />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-client-id" title="Copy client ID" aria-label="Copy client ID">
+                ${iconCopy()}
+              </button>
+            </div>
+          </div>
+          <div class="form-group access-form-group">
+            <label for="dialog-client-secret">Map client secret</label>
+            <div class="access-dialog-field-row">
+              <input id="dialog-client-secret" type="password" required placeholder="Client secret" autocomplete="off" />
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-toggle-secret="dialog-client-secret" title="Show client secret" aria-label="Show client secret" aria-pressed="false">
+                ${iconEye()}
+              </button>
+              <button type="button" class="access-copy-map-btn btn-ripple-host" data-copy-input="dialog-client-secret" title="Copy client secret" aria-label="Copy client secret">
+                ${iconCopy()}
+              </button>
+            </div>
+            <p class="access-field-help">Used to authenticate with the map service when this tenant signs in.</p>
+          </div>
+        </div>
+        <footer class="access-dialog-actions">
+          <button type="button" class="access-action-btn btn-ripple-host" id="access-dialog-cancel">
+            <span class="access-icon-slot" aria-hidden="true">${iconClose()}</span>
+            <span>Cancel</span>
+          </button>
+          <button type="submit" class="access-save-btn btn-ripple-host" id="access-dialog-save">
+            <span class="access-icon-slot" aria-hidden="true">${iconSave()}</span>
+            <span id="access-dialog-save-label">Create tenant</span>
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="access-dialog access-qr-dialog" id="access-whitelabel-qr-dialog" aria-labelledby="access-qr-dialog-title">
+      <form method="dialog" class="access-dialog-form access-qr-dialog-form" id="access-whitelabel-qr-form">
+        <header class="access-dialog-head">
+          <div>
+            <h2 id="access-qr-dialog-title">White-labeled QR code</h2>
+            <p class="access-qr-dialog-url" id="access-qr-dialog-url"></p>
+          </div>
+          <button type="button" class="access-copy-map-btn btn-ripple-host" id="access-qr-dialog-close" title="Close" aria-label="Close">
+            ${iconClose()}
+          </button>
+        </header>
+        <div class="access-qr-dialog-body">
+          <div class="access-qr-preview" id="access-qr-preview" aria-live="polite">
+            <img id="access-qr-image" alt="QR code for white-labeled URL" hidden />
+            <p class="access-qr-status" id="access-qr-status">Generating…</p>
+          </div>
+          <div class="access-qr-logo-panel">
+            <span class="access-qr-logo-title">Center logo <span class="access-qr-logo-optional">(optional)</span></span>
+            <div class="access-qr-logo-row">
+              <span class="access-qr-logo-thumb" id="access-qr-logo-thumb" aria-hidden="true"></span>
+              <div class="access-qr-logo-actions">
+                <label class="access-action-btn access-qr-logo-btn" for="access-qr-logo-input">
+                  <span>Upload image</span>
+                </label>
+                <input
+                  type="file"
+                  id="access-qr-logo-input"
+                  class="access-qr-logo-input"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                />
+                <button type="button" class="access-action-btn access-qr-logo-remove" id="access-qr-logo-remove" hidden>
+                  <span>Remove</span>
+                </button>
+              </div>
+            </div>
+            <p class="access-qr-logo-hint" id="access-qr-logo-hint">
+              PNG, JPG, WEBP or GIF, under 2&nbsp;MB. The logo is auto-sized and padded so the code stays scannable.
+            </p>
+          </div>
+        </div>
+        <footer class="access-dialog-actions">
+          <button type="button" class="access-action-btn btn-ripple-host" id="access-qr-dialog-cancel">
+            <span class="access-icon-slot" aria-hidden="true">${iconClose()}</span>
+            <span>Close</span>
+          </button>
+          <button type="button" class="access-save-btn btn-ripple-host" id="access-qr-download-btn" disabled>
+            <span class="access-icon-slot" aria-hidden="true">${iconDownload()}</span>
+            <span>Download QR</span>
+          </button>
+        </footer>
+      </form>
+    </dialog>
+  `;
+  container.appendChild(page);
+  const projectDialog = page.querySelector('#access-project-dialog');
+  if (projectDialog) document.body.appendChild(projectDialog);
+  const whitelabelQrDialog = page.querySelector('#access-whitelabel-qr-dialog');
+  if (whitelabelQrDialog) document.body.appendChild(whitelabelQrDialog);
+  bindThemeToggle(page.querySelector('#access-theme-toggle'));
+
+  const loginWrap = page.querySelector('#access-login-wrap');
+  const mainEl = page.querySelector('#access-main');
+  const shellEl = page.querySelector('#access-shell');
+  const hudEl = page.querySelector('#access-hud');
+  const gridView = page.querySelector('#access-grid-view');
+  const logsView = page.querySelector('#access-logs-view');
+  const detailView = page.querySelector('#access-detail-view');
+  const detailHudEl = page.querySelector('#access-detail-hud');
+  const detailPanes = () => detailView?.querySelectorAll('[data-detail-pane]') ?? [];
+  const cardGrid = page.querySelector('#access-card-grid');
+  const switchList = page.querySelector('#access-switch-list');
+  const languagePanel = page.querySelector('#access-language-panel');
+  const languageList = page.querySelector('#access-language-list');
+  const splatPanel = page.querySelector('#access-splat-panel');
+  const splatList = page.querySelector('#access-splat-list');
+  const splatStatus = page.querySelector('#access-splat-status');
+  const splatUploadBtn = page.querySelector('#access-splat-upload-btn');
+  const splatFileInput = page.querySelector('#access-splat-file-input');
+  const splatPoiLabel = page.querySelector('#access-splat-poi-label');
+  const matterportPoiLabel = page.querySelector('#access-matterport-poi-label');
+  const matterportUrlInput = page.querySelector('#access-matterport-url');
+  const matterportStatus = page.querySelector('#access-matterport-status');
+  const matterportList = page.querySelector('#access-matterport-list');
+  const matterportSaveBtn = page.querySelector('#access-matterport-save-btn');
+  const matterportClearBtn = page.querySelector('#access-matterport-clear-btn');
+  const navmeshPoiLabel = page.querySelector('#access-navmesh-poi-label');
+  const navmeshList = page.querySelector('#access-navmesh-list');
+  const navmeshStatus = page.querySelector('#access-navmesh-status');
+  const navmeshUploadBtn = page.querySelector('#access-navmesh-upload-btn');
+  const navmeshFileInput = page.querySelector('#access-navmesh-file-input');
+  const projectUrlInput = page.querySelector('#access-project-url');
+  const whitelabeledUrlInput = page.querySelector('#access-whitelabeled-url');
+  const experienceUrlsSaveBtn = page.querySelector('#access-experience-urls-save');
+  const whitelabelGenerateQrBtn = page.querySelector('#access-whitelabel-generate-qr');
+  const qrDialogUrlEl = whitelabelQrDialog?.querySelector('#access-qr-dialog-url');
+  const qrImageEl = whitelabelQrDialog?.querySelector('#access-qr-image');
+  const qrStatusEl = whitelabelQrDialog?.querySelector('#access-qr-status');
+  const qrDownloadBtn = whitelabelQrDialog?.querySelector('#access-qr-download-btn');
+  const qrLogoInput = whitelabelQrDialog?.querySelector('#access-qr-logo-input');
+  const qrLogoRemoveBtn = whitelabelQrDialog?.querySelector('#access-qr-logo-remove');
+  const qrLogoThumbEl = whitelabelQrDialog?.querySelector('#access-qr-logo-thumb');
+  const qrLogoHintEl = whitelabelQrDialog?.querySelector('#access-qr-logo-hint');
+  /** Decoded logo for the centre of the QR; null renders a plain code. */
+  let qrLogoImg = null;
+  /** @type {string | null} */
+  let qrDataUrl = null;
+  /** @type {string} */
+  let qrSourceUrl = '';
+  const detailHero = page.querySelector('#access-detail-hero');
+  const pageTitle = page.querySelector('#access-page-title');
+  const pageSubtitle = page.querySelector('#access-page-subtitle');
+  const pageScroll = page.querySelector('#access-page-scroll');
+  const dialog = projectDialog;
+  const loginForm = page.querySelector('#access-login-form');
+  const loginErr = page.querySelector('#access-login-error');
+  const searchInput = page.querySelector('#access-search');
+
+  /** @type {Array<Record<string, unknown>>} */
+  let logins = [];
+  /** @type {Map<string, Record<string, unknown>>} */
+  let featuresByPoi = new Map();
+  /** @type {string | null} */
+  let editingLoginId = null;
+  /** Original email when the edit dialog opened — used if autofill swaps in another tenant's email. */
+  let editingOriginalEmail = null;
+  /** @type {Record<string, unknown> | null} */
+  let activeLogin = null;
+  /** @type {Record<string, boolean>} */
+  let activeFeatures = { ...DEFAULT_FEATURES };
+  /** @type {Array<Record<string, unknown>>} */
+  let activeLanguages = [];
+  /** @type {Array<Record<string, unknown>>} */
+  let activeSplats = [];
+  /** @type {Array<Record<string, unknown>>} */
+  let activeMatterports = [];
+  /** @type {Array<Record<string, unknown>>} */
+  let activeNavmeshes = [];
+  /** @type {boolean} */
+  let splatUploading = false;
+  /** @type {boolean} */
+  let matterportSaving = false;
+  /** @type {boolean} */
+  let navmeshUploading = false;
+  /** @type {string | null} */
+  let savingLanguageCode = null;
+
+  function scrollToTop() {
+    pageScroll.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function adminCreds() {
+    const session = getSuperadminSession();
+    if (!session) return null;
+    return { email: session.email, password: session.password };
+  }
+
+  async function copyText(value, label) {
+    const text = String(value ?? '').trim();
+    if (!text) {
+      showToast(`Nothing to copy for ${label}`, 'error');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`${label} copied`, 'success');
+    } catch {
+      showToast(`Could not copy ${label.toLowerCase()}`, 'error');
+    }
+  }
+
+  function maskSecret(value) {
+    const raw = String(value ?? '');
+    if (!raw) return '—';
+    return '•'.repeat(Math.min(12, Math.max(8, raw.length)));
+  }
+
+  function credRowHtml(label, value, { secret = false } = {}) {
+    const raw = String(value ?? '');
+    const shown = secret ? maskSecret(raw) : raw || '—';
+    return `
+      <div class="access-cred-row"${secret ? ` data-secret="${escapeHtml(raw)}"` : ''}>
+        <span class="access-cred-label">${escapeHtml(label)}</span>
+        <code class="access-cred-value">${escapeHtml(shown)}</code>
+        <div class="access-cred-actions">
+          ${
+            secret
+              ? `<button type="button" class="access-copy-map-btn btn-ripple-host" data-action="toggle-secret" title="Show ${escapeHtml(label)}" aria-label="Show ${escapeHtml(label)}" aria-pressed="false">${iconEye()}</button>`
+              : ''
+          }
+          <button type="button" class="access-copy-map-btn btn-ripple-host" data-action="copy-value" data-copy-label="${escapeHtml(label)}" data-copy-value="${escapeHtml(raw)}" title="Copy ${escapeHtml(label)}" aria-label="Copy ${escapeHtml(label)}">${iconCopy()}</button>
+        </div>
+      </div>`;
+  }
+
+  function bindCredCard(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-action="toggle-secret"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('.access-cred-row');
+        const code = row?.querySelector('.access-cred-value');
+        const secret = row?.getAttribute('data-secret') ?? '';
+        if (!row || !code) return;
+        const reveal = btn.getAttribute('aria-pressed') !== 'true';
+        code.textContent = reveal ? secret || '—' : maskSecret(secret);
+        btn.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+        btn.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+        btn.title = reveal ? 'Hide password' : 'Show password';
+        btn.innerHTML = reveal ? iconEyeOff() : iconEye();
+      });
+    });
+    root.querySelectorAll('[data-action="copy-value"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        copyText(btn.getAttribute('data-copy-value'), btn.getAttribute('data-copy-label') || 'Value');
+      });
+    });
+    root.querySelectorAll('[data-action="copy-all"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        copyText(btn.getAttribute('data-copy-all'), btn.getAttribute('data-copy-label') || 'Credentials');
+      });
+    });
+  }
+
+  function credCardHtml({ title, badge, fields, copyAll }) {
+    return `
+      <article class="access-cred-card">
+        <div class="access-cred-card-head">
+          <div>
+            <h3>${escapeHtml(title)}</h3>
+            ${badge ? `<span class="access-cred-badge">${escapeHtml(badge)}</span>` : ''}
+          </div>
+          ${
+            copyAll
+              ? `<button type="button" class="access-action-btn btn-ripple-host" data-action="copy-all" data-copy-all="${escapeHtml(copyAll)}" data-copy-label="${escapeHtml(title)}">
+                  ${iconCopy()}
+                  <span>Copy all</span>
+                </button>`
+              : ''
+          }
+        </div>
+        <div class="access-cred-fields">
+          ${fields}
+        </div>
+      </article>`;
+  }
+
+  function renderTenantCredCard() {
+    const host = page.querySelector('#access-tenant-cred-card');
+    if (!host) return;
+    if (!activeLogin) {
+      host.innerHTML = '';
+      return;
+    }
+    const email = String(activeLogin.email ?? '');
+    const password = String(activeLogin.password ?? '');
+    const mapCode = String(activeLogin.map_code ?? '');
+    const clientId = String(activeLogin.client_id ?? '');
+    const clientSecret = String(activeLogin.client_secret ?? '');
+    const copyAll = [
+      `Email: ${email}`,
+      `Password: ${password}`,
+      `Map code: ${mapCode}`,
+      clientId ? `Client ID: ${clientId}` : '',
+      clientSecret ? `Client secret: ${clientSecret}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    host.innerHTML = credCardHtml({
+      title: 'Tenant login',
+      badge: String(activeLogin.poi_type ?? ''),
+      copyAll,
+      fields:
+        credRowHtml('Email', email) +
+        credRowHtml('Password', password, { secret: true }) +
+        credRowHtml('Map code', mapCode) +
+        (clientId ? credRowHtml('Client ID', clientId) : '') +
+        (clientSecret ? credRowHtml('Client secret', clientSecret, { secret: true }) : ''),
+    });
+    bindCredCard(host);
+  }
+
+  async function loadProjectAdminMembers() {
+    const currentEl = page.querySelector('#access-project-admin-current');
+    const listEl = page.querySelector('#access-subadmin-list');
+    const adminCard = page.querySelector('#access-admin-cred-card');
+    renderTenantCredCard();
+    if (!currentEl || !listEl || !activeLogin) return;
+    const creds = adminCreds();
+    if (!creds) {
+      currentEl.textContent = 'Sign in as superadmin to manage project admins.';
+      listEl.innerHTML = '';
+      if (adminCard) adminCard.innerHTML = '';
+      return;
+    }
+    currentEl.textContent = 'Loading…';
+    listEl.innerHTML = '';
+    if (adminCard) adminCard.innerHTML = '';
+    try {
+      const members = await adminListProjectMembers({
+        email: creds.email,
+        password: creds.password,
+        poiType: String(activeLogin.poi_type ?? ''),
+      });
+      const admin = members.find((m) => String(m.role) === 'project_admin' && m.is_active);
+      const subs = members.filter((m) => String(m.role) === 'sub_admin');
+      currentEl.textContent = admin
+        ? `Current project admin: ${admin.email}${admin.display_name ? ` (${admin.display_name})` : ''}`
+        : 'No active project admin assigned yet.';
+      if (admin && adminCard) {
+        const pwd = String(admin.password ?? '');
+        const copyAll = [
+          `Role: Project admin`,
+          `Name: ${admin.display_name || ''}`,
+          `Email: ${admin.email}`,
+          `Password: ${pwd}`,
+        ].join('\n');
+        adminCard.innerHTML = credCardHtml({
+          title: admin.display_name || admin.email,
+          badge: 'Project admin',
+          copyAll,
+          fields:
+            credRowHtml('Email', admin.email) +
+            credRowHtml('Password', pwd, { secret: true }) +
+            (admin.display_name ? credRowHtml('Display name', admin.display_name) : ''),
+        });
+        bindCredCard(adminCard);
+      }
+      if (!subs.length) {
+        listEl.innerHTML = '<p class="access-field-help">No sub-admins for this project yet.</p>';
+      } else {
+        listEl.innerHTML = `
+          <h3 class="access-subadmin-heading">Sub-admins</h3>
+          <div class="access-cred-stack">
+            ${subs
+              .map((m) => {
+                const pwd = String(m.password ?? '');
+                const copyAll = [
+                  `Role: Sub-admin`,
+                  `Name: ${m.display_name || ''}`,
+                  `Email: ${m.email}`,
+                  `Password: ${pwd}`,
+                ].join('\n');
+                return credCardHtml({
+                  title: m.display_name || m.email,
+                  badge: m.is_active ? 'Sub-admin' : 'Inactive',
+                  copyAll,
+                  fields:
+                    credRowHtml('Email', m.email) +
+                    credRowHtml('Password', pwd, { secret: true }),
+                });
+              })
+              .join('')}
+          </div>`;
+        bindCredCard(listEl);
+      }
+    } catch (err) {
+      currentEl.textContent = String(err?.message ?? err);
+    }
+  }
+
+  function showLogin() {
+    loginWrap.classList.remove('hidden');
+    mainEl.classList.add('hidden');
+  }
+
+  function showDashboard() {
+    loginWrap.classList.add('hidden');
+    mainEl.classList.remove('hidden');
+  }
+
+  function setLoginError(msg) {
+    if (!msg) {
+      loginErr.textContent = '';
+      loginErr.classList.add('hidden');
+      return;
+    }
+    loginErr.textContent = msg;
+    loginErr.classList.remove('hidden');
+  }
+
+  function featuresForLogin(login) {
+    const poi = String(login.poi_type ?? '');
+    const byPoi =
+      featuresByPoi.get(poi.toLowerCase()) ??
+      [...featuresByPoi.values()].find((f) => String(f.login_id) === String(login.id));
+    return normalizeFeatureRow(byPoi);
+  }
+
+  function featureRowForLogin(login) {
+    const poi = String(login?.poi_type ?? '');
+    return (
+      featuresByPoi.get(poi.toLowerCase()) ??
+      [...featuresByPoi.values()].find((f) => String(f.login_id) === String(login?.id)) ??
+      null
+    );
+  }
+
+  function fillExperienceUrlInputs(login) {
+    const urls = experienceUrlsFromRow(featureRowForLogin(login));
+    if (projectUrlInput) projectUrlInput.value = urls.project_url;
+    if (whitelabeledUrlInput) whitelabeledUrlInput.value = urls.whitelabeled_url;
+  }
+
+  function enabledCount(features) {
+    return ACCESS_UI_FEATURES.filter((f) => isFeatureEnabled(features, f.key)).length;
+  }
+
+  function projectAccent(name) {
+    const palette = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#db2777', '#4f46e5'];
+    let hash = 0;
+    const s = String(name ?? '');
+    for (let i = 0; i < s.length; i += 1) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return palette[hash % palette.length];
+  }
+
+  function projectInitial(name) {
+    const clean = String(name ?? '?').trim();
+    return clean.charAt(0).toUpperCase();
+  }
+
+  function launchProjectEditor(login) {
+    const email = String(login.email ?? '').trim();
+    const password = String(login.password ?? '');
+    const poiType = String(login.poi_type ?? '').trim();
+    const mapCode = String(login.map_code ?? '').trim();
+    if (!email || !password) {
+      showToast('Project is missing login email or password', 'error');
+      return;
+    }
+    if (!poiType || !mapCode) {
+      showToast('Project is missing poi_type or map code', 'error');
+      return;
+    }
+    setPendingProjectLogin({
+      email,
+      password,
+      poiType,
+      mapCode,
+      organizationId: getDefaultOrganizationId(),
+    });
+    window.location.href = '/';
+  }
+
+  function launch2dEditor(login) {
+    const poiType = String(login.poi_type ?? '').trim();
+    if (!poiType) {
+      showToast('Project is missing poi_type', 'error');
+      return;
+    }
+    const url = new URL('/2d/', window.location.origin);
+    url.searchParams.set('poi_type', poiType);
+    window.location.href = url.toString();
+  }
+
+  function launch3dWayfinder(login) {
+    const poiType = String(login.poi_type ?? '').trim();
+    if (!poiType) {
+      showToast('Project is missing poi_type', 'error');
+      return;
+    }
+    const url = new URL('/3d-view/', window.location.origin);
+    url.searchParams.set('poi_type', poiType);
+    window.location.href = url.toString();
+  }
+
+  function filteredLogins() {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) return logins;
+    return logins.filter((row) => {
+      const urls = experienceUrlsFromRow(featureRowForLogin(row));
+      const hay = [row.poi_type, row.email, row.map_code, urls.project_url, urls.whitelabeled_url]
+        .map((v) => String(v ?? '').toLowerCase())
+        .join(' ');
+      return hay.includes(q);
+    });
+  }
+
+  function setHudActive(id) {
+    hudEl?.querySelectorAll('.access-hud-node').forEach((node) => {
+      const on = node.dataset.hud === id;
+      node.classList.toggle('is-active', on);
+      if (on) node.setAttribute('aria-current', 'page');
+      else node.removeAttribute('aria-current');
+    });
+  }
+
+  function setDetailSection(section, { updateUrl = true } = {}) {
+    const next = DETAIL_SECTIONS.includes(section) ? section : 'admins';
+    detailHudEl?.querySelectorAll('[data-detail]').forEach((node) => {
+      const on = node.dataset.detail === next;
+      node.classList.toggle('is-active', on);
+      if (on) node.setAttribute('aria-current', 'page');
+      else node.removeAttribute('aria-current');
+    });
+    detailPanes().forEach((pane) => {
+      pane.classList.toggle('hidden', pane.dataset.detailPane !== next);
+    });
+    if (updateUrl && activeLogin) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('project', String(activeLogin.poi_type ?? ''));
+      if (next === 'admins') url.searchParams.delete('section');
+      else url.searchParams.set('section', next);
+      history.replaceState({ view: 'detail', id: activeLogin.id, section: next }, '', url.pathname + url.search);
+    }
+    if (next === 'logs' && activeLogin) {
+      void loadUserLogsFeed(page.querySelector('#access-project-logs'), {
+        poiType: String(activeLogin.poi_type ?? ''),
+        global: false,
+      });
+    }
+    scrollToTop();
+  }
+
+  function hideAllViews() {
+    gridView.classList.add('hidden');
+    logsView.classList.add('hidden');
+    detailView.classList.add('hidden');
+  }
+
+  function showGridView() {
+    activeLogin = null;
+    activeSplats = [];
+    hideAllViews();
+    shellEl?.classList.remove('hidden');
+    detailView.classList.add('hidden');
+    gridView.classList.remove('hidden');
+    setHudActive('tenants');
+    pageTitle.textContent = 'Access Control';
+    pageSubtitle.textContent = 'Project tenants · feature permissions';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('project');
+    url.searchParams.delete('view');
+    history.replaceState({ view: 'grid' }, '', url.pathname + url.search);
+    renderCards();
+    scrollToTop();
+  }
+
+  function showLogsView() {
+    activeLogin = null;
+    activeSplats = [];
+    hideAllViews();
+    shellEl?.classList.remove('hidden');
+    detailView.classList.add('hidden');
+    logsView.classList.remove('hidden');
+    setHudActive('logs');
+    pageTitle.textContent = 'User logs';
+    pageSubtitle.textContent = 'Activity across all projects';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('project');
+    url.searchParams.set('view', 'logs');
+    history.replaceState({ view: 'logs' }, '', url.pathname + url.search);
+    void loadUserLogsFeed(page.querySelector('#access-global-logs'), { global: true });
+    scrollToTop();
+  }
+
+  function showDetailView(login) {
+    activeLogin = login;
+    activeFeatures = featuresForLogin(login);
+    activeLanguages = [];
+    hideAllViews();
+    shellEl?.classList.add('hidden');
+    detailView.classList.remove('hidden');
+    pageTitle.textContent = String(login.poi_type ?? 'Project');
+    pageSubtitle.textContent = 'Configure feature access for this tenant';
+    fillExperienceUrlInputs(login);
+
+    const accent = projectAccent(login.poi_type);
+    const enabled = enabledCount(activeFeatures);
+    const email = String(login.email ?? '');
+    detailHero.innerHTML = `
+      <div class="access-detail-avatar" style="--accent:${accent}">${escapeHtml(projectInitial(login.poi_type))}</div>
+      <div class="access-detail-meta">
+        <h2>${escapeHtml(login.poi_type)}</h2>
+        <p class="access-detail-email">${escapeHtml(email)}</p>
+        <div class="access-detail-chips">
+          <span class="access-chip access-chip--map">
+            <code class="access-map-code">${escapeHtml(login.map_code)}</code>
+            <button type="button" class="access-copy-map-btn btn-ripple-host" id="access-copy-map-code" title="Copy map code" aria-label="Copy map code">
+              ${iconCopy()}
+            </button>
+          </span>
+          <span class="access-chip access-chip--status">${enabled} of ${ACCESS_UI_FEATURES.length} enabled</span>
+          <span class="access-chip access-chip--languages hidden" id="access-language-status-chip"></span>
+        </div>
+      </div>
+      <div class="access-detail-actions">
+        <button type="button" class="access-save-btn btn-ripple-host" id="access-open-editor">
+          <span class="access-icon-slot" aria-hidden="true">${iconEditor3d()}</span>
+          <span>Login to project</span>
+        </button>
+        <button type="button" class="access-action-btn btn-ripple-host" id="access-open-2d-editor">
+          <span class="access-icon-slot" aria-hidden="true">${iconFloorPlan()}</span>
+          <span>Edit in 2D</span>
+        </button>
+        <button type="button" class="access-action-btn btn-ripple-host" id="access-open-3d-wayfinder">
+          <span class="access-icon-slot" aria-hidden="true">${iconEditor3d()}</span>
+          <span>View in 3D</span>
+        </button>
+        <button type="button" class="access-action-btn btn-ripple-host" id="access-edit-project">
+          <span class="access-icon-slot" aria-hidden="true">${iconEdit()}</span>
+          <span>Edit tenant login</span>
+        </button>
+        <button type="button" class="access-action-btn access-action-btn--danger btn-ripple-host" id="access-delete-project">
+          <span class="access-icon-slot" aria-hidden="true">${iconDelete()}</span>
+          <span>Delete tenant</span>
+        </button>
+      </div>
+    `;
+
+    detailHero.querySelector('#access-copy-map-code')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const mapCode = String(login.map_code ?? '').trim();
+      if (!mapCode) return;
+      try {
+        await navigator.clipboard.writeText(mapCode);
+        showToast('Map code copied', 'success');
+      } catch {
+        showToast('Could not copy map code', 'error');
+      }
+    });
+
+    detailHero.querySelector('#access-open-editor')?.addEventListener('click', () => {
+      if (activeLogin) launchProjectEditor(activeLogin);
+    });
+
+    detailHero.querySelector('#access-open-2d-editor')?.addEventListener('click', () => {
+      if (activeLogin) launch2dEditor(activeLogin);
+    });
+
+    detailHero.querySelector('#access-open-3d-wayfinder')?.addEventListener('click', () => {
+      if (activeLogin) launch3dWayfinder(activeLogin);
+    });
+
+    detailHero.querySelector('#access-edit-project')?.addEventListener('click', () => {
+      if (activeLogin) openProjectDialog(activeLogin);
+    });
+
+    detailHero.querySelector('#access-delete-project')?.addEventListener('click', async () => {
+      if (!activeLogin) return;
+      const ok = await askConfirm({
+        title: 'Delete project?',
+        message: `Are you sure you want to delete "${activeLogin.poi_type}" and its access flags? This cannot be undone.`,
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        danger: true,
+      });
+      if (!ok) return;
+      const creds = adminCreds();
+      if (!creds) {
+        showLogin();
+        return;
+      }
+      try {
+        await deleteProjectFeaturesAdmin({
+          email: creds.email,
+          password: creds.password,
+          poiType: activeLogin.poi_type,
+        });
+        await deleteProjectLogin(activeLogin.id);
+        logUserActivity({
+          action: 'deleted',
+          entityType: 'tenant',
+          entityId: activeLogin.id,
+          entityLabel: String(activeLogin.poi_type ?? ''),
+          createdEmail: String(activeLogin.email ?? ''),
+          poiType: String(activeLogin.poi_type ?? ''),
+        });
+        showToast('Project deleted', 'success');
+        await loadData();
+      } catch (err) {
+        showToast(String(err?.message ?? err), 'error');
+      }
+    });
+
+    renderSwitches();
+    syncLanguagePanelVisibility();
+    if (splatPoiLabel) splatPoiLabel.textContent = String(login.poi_type ?? 'poi_type');
+    if (matterportPoiLabel) matterportPoiLabel.textContent = String(login.poi_type ?? 'poi_type');
+    if (navmeshPoiLabel) navmeshPoiLabel.textContent = String(login.poi_type ?? 'poi_type');
+    loadActiveSplats().catch((err) => showToast(String(err?.message ?? err), 'error'));
+    loadActiveMatterport().catch((err) => showToast(String(err?.message ?? err), 'error'));
+    loadActiveNavmeshes().catch((err) => showToast(String(err?.message ?? err), 'error'));
+    loadProjectAdminMembers().catch((err) => showToast(String(err?.message ?? err), 'error'));
+    void loadUserLogsFeed(page.querySelector('#access-project-logs'), {
+      poiType: String(login.poi_type ?? ''),
+      global: false,
+    });
+    if (isFeatureEnabled(activeFeatures, 'languages')) {
+      loadActiveLanguages().catch((err) => showToast(String(err?.message ?? err), 'error'));
+    }
+
+    const sectionParam = new URLSearchParams(window.location.search).get('section');
+    setDetailSection(sectionParam || 'admins', { updateUrl: false });
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('project', String(login.poi_type ?? ''));
+    history.pushState({ view: 'detail', id: login.id, section: sectionParam || 'admins' }, '', url.pathname + url.search);
+    scrollToTop();
+  }
+
+  function renderCards() {
+    const rows = filteredLogins();
+    if (!rows.length) {
+      cardGrid.innerHTML = `
+        <div class="access-empty float-glass">
+          <span class="access-empty-icon" aria-hidden="true">${iconUsers()}</span>
+          <p>No project tenants yet.</p>
+          <button type="button" class="access-add-tenant-btn btn-ripple-host" id="access-empty-add">
+            <span class="access-icon-slot" aria-hidden="true">${iconAdd()}</span>
+            <span>New project tenant</span>
+          </button>
+        </div>`;
+      cardGrid.querySelector('#access-empty-add')?.addEventListener('click', () => openProjectDialog());
+      return;
+    }
+
+    cardGrid.innerHTML = rows
+      .map((login) => {
+        const features = featuresForLogin(login);
+        const accent = projectAccent(login.poi_type);
+        const enabled = enabledCount(features);
+        return `
+        <article class="access-tenant-card float-glass" data-id="${login.id}" style="--accent:${accent}">
+          <button type="button" class="access-tenant-card-main" data-id="${login.id}">
+            <span class="access-tenant-body">
+              <span class="access-tenant-name">${escapeHtml(login.poi_type)}</span>
+              <span class="access-tenant-email">${escapeHtml(login.email)}</span>
+            </span>
+            <span class="access-tenant-footer">
+              <span class="access-tenant-chip">${enabled}/${ACCESS_UI_FEATURES.length} features</span>
+              <span class="access-card-arrow" aria-hidden="true">${iconChevronRight()}</span>
+            </span>
+          </button>
+          <button type="button" class="access-tenant-login-btn btn-ripple-host" data-id="${login.id}" data-action="login" title="Open ${BRAND_NAME} for ${escapeHtml(login.poi_type)}">
+            <span class="access-icon-slot" aria-hidden="true">${iconEditor3d()}</span>
+            <span>Login</span>
+          </button>
+        </article>`;
+      })
+      .join('');
+
+    cardGrid.querySelectorAll('.access-tenant-card-main').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const login = logins.find((row) => String(row.id) === String(btn.dataset.id));
+        if (login) showDetailView(login);
+      });
+    });
+
+    cardGrid.querySelectorAll('.access-tenant-login-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const login = logins.find((row) => String(row.id) === String(btn.dataset.id));
+        if (login) launchProjectEditor(login);
+      });
+    });
+  }
+
+  function applySwitchAppearance(btn, on) {
+    btn.classList.toggle('access-switch--on', on);
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    btn.disabled = false;
+  }
+
+  function updateFeatureStatusChip() {
+    const enabled = enabledCount(activeFeatures);
+    const statusChip = detailHero.querySelector('.access-chip--status');
+    if (statusChip) statusChip.textContent = `${enabled} of ${ACCESS_UI_FEATURES.length} enabled`;
+    updateLanguageStatusChip();
+  }
+
+  function updateLanguageStatusChip() {
+    const chip = detailHero.querySelector('#access-language-status-chip');
+    if (!chip) return;
+    const languagesOn = isFeatureEnabled(activeFeatures, 'languages');
+    if (!languagesOn) {
+      chip.classList.add('hidden');
+      return;
+    }
+    const enabled = enabledLanguageCount(activeLanguages);
+    chip.textContent = `${enabled} of ${NAVME_LANGUAGES.length} languages`;
+    chip.classList.remove('hidden');
+  }
+
+  function syncLanguagePanelVisibility() {
+    const showLanguages = isFeatureEnabled(activeFeatures, 'languages');
+    languagePanel?.classList.toggle('hidden', !showLanguages);
+    updateLanguageStatusChip();
+  }
+
+  async function loadActiveLanguages() {
+    if (!activeLogin) return;
+    const poiType = activeLogin.poi_type;
+    let rows = await fetchTenantLanguages(poiType);
+    if (!rows.length) {
+      const creds = adminCreds();
+      if (!creds) {
+        showLogin();
+        return;
+      }
+      rows = await initTenantLanguagesAdmin({
+        email: creds.email,
+        password: creds.password,
+        poiType,
+      });
+    }
+    activeLanguages = normalizeLanguageRows(rows);
+    renderLanguageSwitches();
+    updateLanguageStatusChip();
+  }
+
+  function renderLanguageSwitches() {
+    if (!languageList) return;
+    languageList.innerHTML = activeLanguages
+      .map((row) => {
+        const meta = languageMeta(row.lang_code);
+        const on = parseDbBool(row.is_enabled, false);
+        return `
+        <div class="access-switch-row access-language-row" data-lang="${escapeHtml(row.lang_code)}">
+          <span class="access-switch-icon access-language-code" aria-hidden="true">${escapeHtml(String(row.lang_code).toUpperCase())}</span>
+          <div class="access-switch-copy">
+            <span class="access-switch-label">${escapeHtml(meta.nativeLabel)}</span>
+            <span class="access-switch-desc">${escapeHtml(meta.label)}</span>
+          </div>
+          <button type="button"
+            class="access-switch ${on ? 'access-switch--on' : ''}"
+            role="switch"
+            aria-checked="${on ? 'true' : 'false'}"
+            aria-label="${escapeHtml(meta.nativeLabel)}">
+            <span class="access-switch-track"><span class="access-switch-thumb"></span></span>
+          </button>
+        </div>`;
+      })
+      .join('');
+
+    languageList.querySelectorAll('.access-switch').forEach((btn) => {
+      btn.addEventListener('click', () => handleLanguageToggle(btn));
+    });
+  }
+
+  async function persistTenantLanguage(langCode, enabled) {
+    if (!activeLogin) return null;
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return null;
+    }
+    const savedRow = await upsertTenantLanguageAdmin({
+      email: creds.email,
+      password: creds.password,
+      poiType: activeLogin.poi_type,
+      langCode,
+      isEnabled: enabled,
+    });
+    if (savedRow && typeof savedRow === 'object') {
+      activeLanguages = normalizeLanguageRows(
+        activeLanguages.map((row) =>
+          row.lang_code === langCode
+            ? { ...row, ...savedRow, is_enabled: parseDbBool(savedRow.is_enabled, enabled) }
+            : row,
+        ),
+      );
+    } else {
+      activeLanguages = normalizeLanguageRows(
+        activeLanguages.map((row) =>
+          row.lang_code === langCode ? { ...row, is_enabled: enabled } : row,
+        ),
+      );
+    }
+    return savedRow;
+  }
+
+  async function handleLanguageToggle(btn) {
+    const row = btn.closest('.access-language-row');
+    const langCode = row?.dataset.lang;
+    if (!langCode || !activeLogin || savingLanguageCode) return;
+    if (btn.disabled) return;
+
+    const current = activeLanguages.find((item) => item.lang_code === langCode);
+    const next = !parseDbBool(current?.is_enabled, false);
+    savingLanguageCode = langCode;
+    btn.disabled = true;
+    applySwitchAppearance(btn, next);
+    activeLanguages = activeLanguages.map((item) =>
+      item.lang_code === langCode ? { ...item, is_enabled: next } : item,
+    );
+    updateLanguageStatusChip();
+
+    try {
+      await persistTenantLanguage(langCode, next);
+    } catch (err) {
+      activeLanguages = activeLanguages.map((item) =>
+        item.lang_code === langCode ? { ...item, is_enabled: !next } : item,
+      );
+      renderLanguageSwitches();
+      updateLanguageStatusChip();
+      showToast(String(err?.message ?? err), 'error');
+      savingLanguageCode = null;
+      return;
+    }
+
+    renderLanguageSwitches();
+    updateLanguageStatusChip();
+    const label = languageMeta(langCode).nativeLabel;
+    showToast(`${label} ${next ? 'enabled' : 'disabled'}`, 'success');
+    savingLanguageCode = null;
+  }
+
+  function setSplatStatus(text) {
+    if (splatStatus) splatStatus.textContent = text || '';
+  }
+
+  async function loadActiveSplats() {
+    if (!activeLogin) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    if (!poiType) {
+      activeSplats = [];
+      renderSplatList();
+      return;
+    }
+    setSplatStatus('Loading splats…');
+    try {
+      const rows = await fetchAllMedia({
+        allTypes: true,
+        poiType,
+        mediaType: 'splat',
+      });
+      activeSplats = Array.isArray(rows) ? rows : [];
+      renderSplatList();
+      const visibleCount = activeSplats.filter((r) => r.is_active !== false).length;
+      setSplatStatus(
+        `${visibleCount} visible · ${activeSplats.length} total splat file${activeSplats.length === 1 ? '' : 's'}`,
+      );
+    } catch (err) {
+      activeSplats = [];
+      renderSplatList();
+      setSplatStatus('');
+      throw err;
+    }
+  }
+
+  function renderSplatList() {
+    if (!splatList) return;
+    if (!activeSplats.length) {
+      splatList.innerHTML = `
+        <div class="access-splat-empty">
+          <span class="access-switch-icon" aria-hidden="true">${iconMedia()}</span>
+          <p>No <code>.ply</code> splats uploaded for this project yet.</p>
+        </div>`;
+      return;
+    }
+
+    splatList.innerHTML = activeSplats
+      .map((row) => {
+        const label = String(row.label || row.file_name || 'Splat');
+        const fileName = String(row.file_name || '—');
+        const visible = row.is_active !== false;
+        return `
+        <div class="access-splat-row${visible ? '' : ' is-hidden-splat'}" data-id="${escapeHtml(row.id)}">
+          <span class="access-switch-icon" aria-hidden="true">${iconMedia()}</span>
+          <div class="access-switch-copy">
+            <span class="access-switch-label">${escapeHtml(label)}</span>
+            <span class="access-switch-desc">${escapeHtml(fileName)}${visible ? '' : ' · hidden from map'}</span>
+          </div>
+          <div class="access-splat-row-actions">
+            <button type="button" class="access-action-btn access-splat-eye-btn btn-ripple-host${visible ? ' is-visible' : ''}" data-action="toggle-splat-eye" title="${visible ? 'Hide from map (will not load)' : 'Show on map (will load)'}" aria-pressed="${visible ? 'true' : 'false'}" aria-label="${visible ? 'Hide splat from map' : 'Show splat on map'}">
+              ${visible ? iconEye() : iconEyeOff()}
+            </button>
+            <button type="button" class="access-action-btn btn-ripple-host" data-action="view-splat" title="Open splat viewer">View</button>
+            <button type="button" class="access-action-btn access-action-btn--danger btn-ripple-host" data-action="delete-splat" title="Delete splat">Delete</button>
+          </div>
+        </div>`;
+      })
+      .join('');
+
+    splatList.querySelectorAll('[data-action="toggle-splat-eye"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeSplats.find((item) => String(item.id) === String(id));
+        if (!row?.id) return;
+        const next = row.is_active === false;
+        btn.disabled = true;
+        try {
+          await updateMediaRow(row.id, { is_active: next });
+          row.is_active = next;
+          renderSplatList();
+          const visibleCount = activeSplats.filter((r) => r.is_active !== false).length;
+          setSplatStatus(
+            `${visibleCount} visible · ${activeSplats.length} total splat file${activeSplats.length === 1 ? '' : 's'}`,
+          );
+          showToast(
+            next
+              ? `"${row.label || row.file_name}" will load on the map`
+              : `"${row.label || row.file_name}" hidden — will not load`,
+            'success',
+          );
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+          btn.disabled = false;
+        }
+      });
+    });
+
+    splatList.querySelectorAll('[data-action="view-splat"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeSplats.find((item) => String(item.id) === String(id));
+        if (!row?.media_url) return;
+        openSplatViewerModal({
+          url: row.media_url,
+          title: row.label || row.file_name || 'Splat Viewer',
+        });
+      });
+    });
+
+    splatList.querySelectorAll('[data-action="delete-splat"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeSplats.find((item) => String(item.id) === String(id));
+        if (!row?.id) return;
+        const ok = await askConfirm({
+          title: 'Delete splat?',
+          message: `Are you sure you want to delete "${row.label || row.file_name}"?`,
+          confirmLabel: 'Delete',
+          cancelLabel: 'Cancel',
+          danger: true,
+        });
+        if (!ok) return;
+        const deleteStorage = await askConfirm({
+          title: 'Delete from storage?',
+          message: 'Also delete the file from storage?',
+          confirmLabel: 'Yes',
+          cancelLabel: 'No',
+          danger: true,
+        });
+        try {
+          await deleteMediaRow(row.id);
+          if (deleteStorage) {
+            const path = storagePathFromPublicUrl(row.media_url);
+            if (path) await deleteProjectMediaFile(path);
+          }
+          showToast('Splat deleted', 'success');
+          await loadActiveSplats();
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+        }
+      });
+    });
+  }
+
+  async function uploadSplatFiles(files) {
+    if (!activeLogin || splatUploading) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    if (!poiType) {
+      showToast('Project is missing poi_type', 'error');
+      return;
+    }
+
+    const plyFiles = Array.from(files || []).filter((file) => {
+      const classified = classifyMediaFile(file);
+      return classified?.mediaType === 'splat';
+    });
+    if (!plyFiles.length) {
+      showToast('Choose one or more .ply files', 'error');
+      return;
+    }
+
+    splatUploading = true;
+    splatUploadBtn.disabled = true;
+    let ok = 0;
+    let failed = 0;
+
+    for (let i = 0; i < plyFiles.length; i += 1) {
+      const file = plyFiles[i];
+      const sizeMb = file.size ? (file.size / (1024 * 1024)).toFixed(1) : '?';
+      setSplatStatus(`Uploading ${i + 1}/${plyFiles.length}: ${file.name} (${sizeMb} MB)`);
+      // Keep UI responsive between large files
+      await new Promise((r) => setTimeout(r, 0));
+      try {
+        const classified = classifyMediaFile(file);
+        if (!classified || classified.mediaType !== 'splat') {
+          failed += 1;
+          continue;
+        }
+        const uploaded = await uploadProjectMedia(file, poiType, 'splat', {
+          onProgress: (pct) => {
+            setSplatStatus(
+              `Uploading ${i + 1}/${plyFiles.length}: ${file.name} — ${pct}%`,
+            );
+          },
+        });
+        await insertMediaRow({
+          poi_type: poiType,
+          media_url: uploaded.publicUrl,
+          media_type: 'splat',
+          mime_type: classified.mimeType,
+          file_name: file.name,
+          label: file.name.replace(/\.[^.]+$/, ''),
+          rot_x: -Math.PI / 2,
+          rot_y: 0,
+          rot_z: 0,
+          scale_x: 1,
+          scale_y: 1,
+          scale_z: 1,
+          pos_x: 0,
+          pos_y: 0,
+          pos_z: 0,
+          width: 1,
+          height: 1,
+          is_active: true,
+        });
+        ok += 1;
+        // Refresh list after each success so the page never feels stuck.
+        await loadActiveSplats();
+        setSplatStatus(
+          `Uploaded ${ok}/${plyFiles.length}…${failed ? ` (${failed} failed)` : ''}`,
+        );
+      } catch (err) {
+        console.error('[access-splat-upload]', err);
+        failed += 1;
+        showToast(`${file.name}: ${String(err?.message ?? err)}`, 'error');
+      }
+    }
+
+    splatUploading = false;
+    splatUploadBtn.disabled = false;
+    await loadActiveSplats();
+    showToast(`Splat upload complete: ${ok} success, ${failed} failed`, failed ? 'error' : 'success');
+  }
+
+  function setMatterportStatus(text) {
+    if (matterportStatus) matterportStatus.textContent = text || '';
+  }
+
+  async function loadActiveMatterport() {
+    if (!activeLogin) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    if (!poiType) {
+      activeMatterports = [];
+      renderMatterportList();
+      return;
+    }
+    setMatterportStatus('Loading space link…');
+    try {
+      const rows = await fetchAllMedia({
+        allTypes: true,
+        poiType,
+      });
+      activeMatterports = (Array.isArray(rows) ? rows : []).filter((r) => isMatterportMediaRow(r));
+      const active = activeMatterports.find((r) => r.is_active !== false) || activeMatterports[0];
+      if (matterportUrlInput) {
+        const sidOnly = active ? parseMatterportModelId(String(active.media_url || '')) : '';
+        matterportUrlInput.value = sidOnly || '';
+      }
+      renderMatterportList();
+      setMatterportStatus(
+        active
+          ? `Space link active — ${BRAND_NAME} will load this space instead of mesh/splat`
+          : 'No space link — geometric mesh or splat will be used',
+      );
+    } catch (err) {
+      activeMatterports = [];
+      renderMatterportList();
+      setMatterportStatus('');
+      throw err;
+    }
+  }
+
+  function renderMatterportList() {
+    if (!matterportList) return;
+    if (!activeMatterports.length) {
+      matterportList.innerHTML = `
+        <div class="access-splat-empty">
+          <span class="access-switch-icon" aria-hidden="true">${iconNavigate()}</span>
+          <p>No 3D space link saved for this project yet.</p>
+        </div>`;
+      return;
+    }
+    matterportList.innerHTML = activeMatterports
+      .map((row) => {
+        const visible = row.is_active !== false;
+        const url = String(row.media_url || '');
+        const sid = parseMatterportModelId(url) || '—';
+        return `
+        <div class="access-splat-row${visible ? '' : ' is-hidden-splat'}" data-id="${escapeHtml(row.id)}">
+          <span class="access-switch-icon" aria-hidden="true">${iconNavigate()}</span>
+          <div class="access-switch-copy">
+            <span class="access-switch-label">3D space · ${escapeHtml(sid)}</span>
+            <span class="access-switch-desc">${visible ? 'Active map' : 'Inactive'}</span>
+          </div>
+          <div class="access-splat-row-actions">
+            <button type="button" class="access-action-btn access-splat-eye-btn btn-ripple-host${visible ? ' is-visible' : ''}" data-action="toggle-mp-eye" title="${visible ? 'Disable space map' : 'Enable space map'}" aria-pressed="${visible ? 'true' : 'false'}">
+              ${visible ? iconEye() : iconEyeOff()}
+            </button>
+            <button type="button" class="access-action-btn access-action-btn--danger btn-ripple-host" data-action="delete-mp" title="Delete link">Delete</button>
+          </div>
+        </div>`;
+      })
+      .join('');
+
+    matterportList.querySelectorAll('[data-action="toggle-mp-eye"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeMatterports.find((r) => String(r.id) === String(id));
+        if (!row) return;
+        const next = row.is_active === false;
+        try {
+          await updateMediaRow(row.id, { is_active: next });
+          row.is_active = next;
+          // Only one active Matterport map at a time.
+          if (next) {
+            await Promise.all(
+              activeMatterports
+                .filter((r) => String(r.id) !== String(id) && r.is_active !== false)
+                .map((r) => updateMediaRow(r.id, { is_active: false }).then(() => { r.is_active = false; })),
+            );
+          }
+          renderMatterportList();
+          const active = activeMatterports.find((r) => r.is_active !== false);
+          if (matterportUrlInput) {
+            matterportUrlInput.value = active
+              ? parseMatterportModelId(String(active.media_url || '')) || ''
+              : '';
+          }
+          setMatterportStatus(
+            active ? 'Space map enabled' : 'Space map disabled — mesh/splat will be used',
+          );
+          showToast(next ? 'Space map enabled' : 'Space map disabled', 'success');
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+        }
+      });
+    });
+
+    matterportList.querySelectorAll('[data-action="delete-mp"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeMatterports.find((r) => String(r.id) === String(id));
+        if (!row) return;
+        const ok = await askConfirm({
+          title: 'Remove space link?',
+          message: 'Are you sure you want to remove this 3D space link from the project?',
+          confirmLabel: 'Remove',
+          cancelLabel: 'Cancel',
+          danger: true,
+        });
+        if (!ok) return;
+        try {
+          await deleteMediaRow(row.id);
+          await loadActiveMatterport();
+          showToast('Space link removed', 'success');
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+        }
+      });
+    });
+  }
+
+  async function saveMatterportLink() {
+    if (!activeLogin || matterportSaving) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    const raw = String(matterportUrlInput?.value || '').trim();
+    const sid = parseMatterportModelId(raw);
+    if (!poiType) {
+      showToast('Project is missing poi_type', 'error');
+      return;
+    }
+    if (!sid) {
+      showToast('Enter a valid show URL or model ID', 'error');
+      return;
+    }
+    const normalized = `https://my.matterport.com/show/?m=${sid}`;
+    matterportSaving = true;
+    matterportSaveBtn.disabled = true;
+    setMatterportStatus('Saving space link…');
+    try {
+      // Deactivate existing space rows, then upsert one active link.
+      await Promise.all(
+        activeMatterports.map((r) =>
+          r.is_active === false ? Promise.resolve() : updateMediaRow(r.id, { is_active: false }),
+        ),
+      );
+      const existing = activeMatterports[0];
+      if (existing?.id) {
+        await updateMediaRow(existing.id, {
+          media_url: normalized,
+          file_name: sid,
+          label: `3D space ${sid}`,
+          is_active: true,
+          // Keep compatible type until DB migration adds `matterport`
+          media_type: 'model',
+          mime_type: MATTERPORT_MIME,
+        });
+      } else {
+        await insertMediaRow({
+          poi_type: poiType,
+          media_url: normalized,
+          media_type: 'model',
+          mime_type: MATTERPORT_MIME,
+          file_name: sid,
+          label: `3D space ${sid}`,
+          pos_x: 0,
+          pos_y: 0,
+          pos_z: 0,
+          is_active: true,
+        });
+      }
+      await loadActiveMatterport();
+      showToast(`Space link saved — open ${BRAND_NAME} to load the map`, 'success');
+    } catch (err) {
+      console.error('[access-space-map]', err);
+      showToast(String(err?.message ?? err), 'error');
+      setMatterportStatus('Save failed');
+    } finally {
+      matterportSaving = false;
+      matterportSaveBtn.disabled = false;
+    }
+  }
+
+  async function clearMatterportLink() {
+    if (!activeLogin || !activeMatterports.length) {
+      if (matterportUrlInput) matterportUrlInput.value = '';
+      setMatterportStatus('No space link');
+      return;
+    }
+    const ok = await askConfirm({
+      title: 'Clear space link?',
+      message: 'Are you sure you want to clear the 3D space link for this project?',
+      confirmLabel: 'Clear',
+      cancelLabel: 'Cancel',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await Promise.all(activeMatterports.map((r) => deleteMediaRow(r.id)));
+      await loadActiveMatterport();
+      showToast('Space link cleared', 'success');
+    } catch (err) {
+      showToast(String(err?.message ?? err), 'error');
+    }
+  }
+
+  function setNavmeshStatus(text) {
+    if (navmeshStatus) navmeshStatus.textContent = text || '';
+  }
+
+  async function loadActiveNavmeshes() {
+    if (!activeLogin) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    if (!poiType) {
+      activeNavmeshes = [];
+      renderNavmeshList();
+      return;
+    }
+    setNavmeshStatus('Loading navmesh…');
+    try {
+      const rows = await fetchAllMedia({
+        allTypes: true,
+        poiType,
+        mediaType: 'navmesh',
+      });
+      activeNavmeshes = Array.isArray(rows) ? rows : [];
+      renderNavmeshList();
+      const activeCount = activeNavmeshes.filter((r) => r.is_active !== false).length;
+      setNavmeshStatus(
+        activeCount
+          ? `${activeCount} active · ${activeNavmeshes.length} total`
+          : activeNavmeshes.length
+            ? `${activeNavmeshes.length} uploaded · none active (editor will auto-generate)`
+            : 'No uploaded navmesh — editor will auto-generate',
+      );
+    } catch (err) {
+      activeNavmeshes = [];
+      renderNavmeshList();
+      setNavmeshStatus('');
+      throw err;
+    }
+  }
+
+  function renderNavmeshList() {
+    if (!navmeshList) return;
+    if (!activeNavmeshes.length) {
+      navmeshList.innerHTML = `
+        <div class="access-splat-empty">
+          <span class="access-switch-icon" aria-hidden="true">${iconNavigate()}</span>
+          <p>No <code>.navmesh</code> file uploaded for this project yet.</p>
+        </div>`;
+      return;
+    }
+
+    navmeshList.innerHTML = activeNavmeshes
+      .map((row) => {
+        const label = String(row.label || row.file_name || 'Navmesh');
+        const fileName = String(row.file_name || '—');
+        const visible = row.is_active !== false;
+        return `
+        <div class="access-splat-row${visible ? '' : ' is-hidden-splat'}" data-id="${escapeHtml(row.id)}">
+          <span class="access-switch-icon" aria-hidden="true">${iconNavigate()}</span>
+          <div class="access-switch-copy">
+            <span class="access-switch-label">${escapeHtml(label)}</span>
+            <span class="access-switch-desc">${escapeHtml(fileName)}${visible ? ' · used in editor' : ' · inactive'}</span>
+          </div>
+          <div class="access-splat-row-actions">
+            <button type="button" class="access-action-btn access-splat-eye-btn btn-ripple-host${visible ? ' is-visible' : ''}" data-action="toggle-navmesh-eye" title="${visible ? 'Deactivate (editor will generate)' : 'Use this navmesh in the editor'}" aria-pressed="${visible ? 'true' : 'false'}" aria-label="${visible ? 'Deactivate navmesh' : 'Activate navmesh'}">
+              ${visible ? iconEye() : iconEyeOff()}
+            </button>
+            <button type="button" class="access-action-btn access-action-btn--danger btn-ripple-host" data-action="delete-navmesh" title="Delete navmesh">Delete</button>
+          </div>
+        </div>`;
+      })
+      .join('');
+
+    navmeshList.querySelectorAll('[data-action="toggle-navmesh-eye"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeNavmeshes.find((item) => String(item.id) === String(id));
+        if (!row?.id) return;
+        const next = row.is_active === false;
+        btn.disabled = true;
+        try {
+          if (next) {
+            // Only one active navmesh per project.
+            await Promise.all(
+              activeNavmeshes
+                .filter((item) => String(item.id) !== String(row.id) && item.is_active !== false)
+                .map((item) => updateMediaRow(item.id, { is_active: false })),
+            );
+          }
+          await updateMediaRow(row.id, { is_active: next });
+          await loadActiveNavmeshes();
+          showToast(
+            next
+              ? `"${row.label || row.file_name}" will be used for navigation`
+              : `"${row.label || row.file_name}" deactivated — editor will auto-generate`,
+            'success',
+          );
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+          btn.disabled = false;
+        }
+      });
+    });
+
+    navmeshList.querySelectorAll('[data-action="delete-navmesh"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.closest('.access-splat-row')?.dataset.id;
+        const row = activeNavmeshes.find((item) => String(item.id) === String(id));
+        if (!row?.id) return;
+        const ok = await askConfirm({
+          title: 'Delete navmesh?',
+          message: `Are you sure you want to delete "${row.label || row.file_name}"?`,
+          confirmLabel: 'Delete',
+          cancelLabel: 'Cancel',
+          danger: true,
+        });
+        if (!ok) return;
+        const deleteStorage = await askConfirm({
+          title: 'Delete from storage?',
+          message: 'Also delete the file from storage?',
+          confirmLabel: 'Yes',
+          cancelLabel: 'No',
+          danger: true,
+        });
+        try {
+          await deleteMediaRow(row.id);
+          if (deleteStorage) {
+            const path = storagePathFromPublicUrl(row.media_url);
+            if (path) await deleteProjectMediaFile(path);
+          }
+          showToast('Navmesh deleted', 'success');
+          await loadActiveNavmeshes();
+        } catch (err) {
+          showToast(String(err?.message ?? err), 'error');
+        }
+      });
+    });
+  }
+
+  async function uploadNavmeshFiles(files) {
+    if (!activeLogin || navmeshUploading) return;
+    const poiType = String(activeLogin.poi_type ?? '').trim();
+    if (!poiType) {
+      showToast('Project is missing poi_type', 'error');
+      return;
+    }
+
+    const navFiles = Array.from(files || []).filter((file) => {
+      const classified = classifyMediaFile(file);
+      if (classified?.mediaType === 'navmesh') return true;
+      return /\.navmesh$/i.test(String(file?.name || ''));
+    });
+    if (!navFiles.length) {
+      showToast('Choose a .navmesh file', 'error');
+      return;
+    }
+
+    navmeshUploading = true;
+    if (navmeshUploadBtn) navmeshUploadBtn.disabled = true;
+    let ok = 0;
+    let failed = 0;
+
+    for (let i = 0; i < navFiles.length; i += 1) {
+      const file = navFiles[i];
+      const sizeMb = file.size ? (file.size / (1024 * 1024)).toFixed(1) : '?';
+      setNavmeshStatus(`Uploading ${i + 1}/${navFiles.length}: ${file.name} (${sizeMb} MB)`);
+      await new Promise((r) => setTimeout(r, 0));
+      try {
+        const classified = classifyMediaFile(file) || {
+          mediaType: 'navmesh',
+          mimeType: NAVMESH_MIME,
+        };
+        // Prefer newest upload as the single active navmesh.
+        await Promise.all(
+          activeNavmeshes
+            .filter((r) => r.is_active !== false)
+            .map((r) => updateMediaRow(r.id, { is_active: false })),
+        );
+        const uploaded = await uploadProjectMedia(file, poiType, 'navmesh', {
+          onProgress: (pct) => {
+            setNavmeshStatus(
+              `Uploading ${i + 1}/${navFiles.length}: ${file.name} — ${pct}%`,
+            );
+          },
+        });
+        await insertMediaRow({
+          poi_type: poiType,
+          media_url: uploaded.publicUrl,
+          media_type: 'navmesh',
+          mime_type: classified.mimeType || NAVMESH_MIME,
+          file_name: file.name,
+          label: file.name.replace(/\.[^.]+$/, ''),
+          pos_x: 0,
+          pos_y: 0,
+          pos_z: 0,
+          is_active: true,
+        });
+        ok += 1;
+        await loadActiveNavmeshes();
+        setNavmeshStatus(
+          `Uploaded ${ok}/${navFiles.length}…${failed ? ` (${failed} failed)` : ''}`,
+        );
+      } catch (err) {
+        console.error('[access-navmesh-upload]', err);
+        failed += 1;
+        showToast(`${file.name}: ${String(err?.message ?? err)}`, 'error');
+      }
+    }
+
+    navmeshUploading = false;
+    if (navmeshUploadBtn) navmeshUploadBtn.disabled = false;
+    await loadActiveNavmeshes();
+    showToast(
+      `Navmesh upload complete: ${ok} success, ${failed} failed`,
+      failed ? 'error' : 'success',
+    );
+  }
+
+  function renderSwitches() {
+    switchList.innerHTML = ACCESS_UI_FEATURES.map((field) => {
+      const on = isFeatureEnabled(activeFeatures, field.key);
+      return `
+        <div class="access-switch-row" data-feature="${field.key}">
+          <span class="access-switch-icon" aria-hidden="true">${field.icon()}</span>
+          <div class="access-switch-copy">
+            <span class="access-switch-label">${escapeHtml(field.label)}</span>
+            <span class="access-switch-desc">${escapeHtml(field.desc)}</span>
+          </div>
+          <button type="button"
+            class="access-switch ${on ? 'access-switch--on' : ''}"
+            role="switch"
+            aria-checked="${on ? 'true' : 'false'}"
+            aria-label="${escapeHtml(field.label)}">
+            <span class="access-switch-track"><span class="access-switch-thumb"></span></span>
+          </button>
+          ${
+            field.choice
+              ? `<label class="access-switch-choice${on ? '' : ' is-disabled'}">
+                   <span>${escapeHtml(field.choice.label)}</span>
+                   <select data-choice="${field.choice.key}" ${on ? '' : 'disabled'}>
+                     ${field.choice.options
+                       .map(
+                         (o) =>
+                           `<option value="${escapeHtml(o.value)}"${
+                             String(activeFeatures[field.choice.key] ?? '') === o.value
+                               ? ' selected'
+                               : ''
+                           }>${escapeHtml(o.label)}</option>`,
+                       )
+                       .join('')}
+                   </select>
+                 </label>`
+              : ''
+          }
+        </div>`;
+    }).join('');
+
+    switchList.querySelectorAll('select[data-choice]').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        activeFeatures = { ...activeFeatures, [sel.dataset.choice]: sel.value };
+        void persistActiveFeatures();
+      });
+    });
+
+    switchList.querySelectorAll('.access-switch').forEach((btn) => {
+      btn.addEventListener('click', () => handleSwitchToggle(btn));
+    });
+  }
+
+  async function persistActiveFeatures() {
+    if (!activeLogin) return null;
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return null;
+    }
+    const savedRow = await upsertProjectFeaturesAdmin({
+      email: creds.email,
+      password: creds.password,
+      poiType: activeLogin.poi_type,
+      loginId: activeLogin.id,
+      features: activeFeatures,
+    });
+    if (savedRow && typeof savedRow === 'object') {
+      const normalized = normalizeFeatureRow(savedRow);
+      activeFeatures = normalized;
+      featuresByPoi.set(String(activeLogin.poi_type).toLowerCase(), {
+        ...savedRow,
+        ...normalized,
+        poi_type: activeLogin.poi_type,
+        login_id: activeLogin.id,
+      });
+    } else {
+      featuresByPoi.set(String(activeLogin.poi_type).toLowerCase(), {
+        ...featuresByPoi.get(String(activeLogin.poi_type).toLowerCase()),
+        ...activeFeatures,
+        poi_type: activeLogin.poi_type,
+        login_id: activeLogin.id,
+      });
+    }
+    return savedRow;
+  }
+
+  async function persistExperienceUrls() {
+    if (!activeLogin) return null;
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return null;
+    }
+    const savedRow = await upsertProjectExperienceUrlsAdmin({
+      email: creds.email,
+      password: creds.password,
+      poiType: activeLogin.poi_type,
+      projectUrl: projectUrlInput?.value ?? '',
+      whitelabeledUrl: whitelabeledUrlInput?.value ?? '',
+    });
+    if (savedRow && typeof savedRow === 'object') {
+      const existing = featuresByPoi.get(String(activeLogin.poi_type).toLowerCase()) || {};
+      featuresByPoi.set(String(activeLogin.poi_type).toLowerCase(), {
+        ...existing,
+        ...savedRow,
+        poi_type: activeLogin.poi_type,
+        login_id: activeLogin.id,
+      });
+      fillExperienceUrlInputs(activeLogin);
+    }
+    renderCards();
+    return savedRow;
+  }
+
+  /** @type {string | null} */
+  let savingFeatureKey = null;
+
+  async function handleSwitchToggle(btn) {
+    const row = btn.closest('.access-switch-row');
+    const key = row?.dataset.feature;
+    if (!key || !activeLogin || savingFeatureKey) return;
+    if (btn.disabled) return;
+
+    const next = !isFeatureEnabled(activeFeatures, key);
+    savingFeatureKey = key;
+    btn.disabled = true;
+    applySwitchAppearance(btn, next);
+    activeFeatures = { ...activeFeatures, [key]: next };
+    updateFeatureStatusChip();
+
+    try {
+      await persistActiveFeatures();
+      if (key === 'languages') {
+        syncLanguagePanelVisibility();
+        if (next) {
+          await loadActiveLanguages();
+        }
+      }
+    } catch (err) {
+      activeFeatures = { ...activeFeatures, [key]: !next };
+      renderSwitches();
+      updateFeatureStatusChip();
+      showToast(String(err?.message ?? err), 'error');
+      savingFeatureKey = null;
+      return;
+    }
+
+    renderSwitches();
+    updateFeatureStatusChip();
+    syncLanguagePanelVisibility();
+    renderCards();
+    showToast(`${ACCESS_UI_FEATURES.find((f) => f.key === key)?.label ?? 'Feature'} ${next ? 'enabled' : 'disabled'}`, 'success');
+    savingFeatureKey = null;
+  }
+
+  async function loadData() {
+    const [loginRows, featureRows] = await Promise.all([fetchProjectLogins(), fetchAllProjectFeatures()]);
+    logins = loginRows;
+    featuresByPoi = new Map(
+      featureRows.map((row) => [String(row.poi_type ?? '').toLowerCase(), row]),
+    );
+
+    const projectParam = new URLSearchParams(window.location.search).get('project');
+    const viewParam = new URLSearchParams(window.location.search).get('view');
+    if (projectParam) {
+      const match = logins.find((row) => String(row.poi_type).toLowerCase() === projectParam.toLowerCase());
+      if (match) {
+        showDetailView(match);
+        return;
+      }
+    }
+    if (viewParam === 'logs') {
+      showLogsView();
+      return;
+    }
+    showGridView();
+  }
+
+  function openProjectDialog(login = null) {
+    editingLoginId = login?.id ?? null;
+    editingOriginalEmail = login?.email ? String(login.email).trim() : null;
+    const isEdit = Boolean(login);
+    dialog.querySelector('#access-dialog-title').textContent = isEdit ? 'Edit project tenant' : 'New project tenant';
+    dialog.querySelector('#access-dialog-subtitle').textContent = isEdit
+      ? 'Update login credentials and map code for this tenant.'
+      : 'Register login credentials and link them to a project.';
+    dialog.querySelector('#access-dialog-save-label').textContent = isEdit ? 'Save changes' : 'Create tenant';
+    const emailInput = dialog.querySelector('#dialog-email');
+    emailInput.value = login?.email ?? '';
+    dialog.querySelector('#dialog-password').value = login?.password ?? '';
+    dialog.querySelector('#dialog-poi-type').value = login?.poi_type ?? '';
+    dialog.querySelector('#dialog-map-code').value = login?.map_code ?? '';
+    dialog.querySelector('#dialog-client-id').value = login?.client_id ?? MULTISET_MAP.clientId;
+    dialog.querySelector('#dialog-client-secret').value = login?.client_secret ?? MULTISET_MAP.clientSecret;
+    dialog.querySelector('#dialog-password').required = !isEdit;
+    dialog.querySelector('#dialog-poi-type').disabled = isEdit;
+
+    // Block password-manager autofill from swapping this tenant's email to another
+    // saved login (that causes UNIQUE email 409 on save).
+    if (isEdit) {
+      emailInput.setAttribute('readonly', 'readonly');
+      const unlockEmail = () => emailInput.removeAttribute('readonly');
+      emailInput.addEventListener('focus', unlockEmail, { once: true });
+      emailInput.addEventListener('pointerdown', unlockEmail, { once: true });
+    } else {
+      emailInput.removeAttribute('readonly');
+    }
+
+    // Reset secret fields to hidden
+    ['dialog-password', 'dialog-client-secret'].forEach((id) => {
+      const input = dialog.querySelector(`#${id}`);
+      const toggle = dialog.querySelector(`[data-toggle-secret="${id}"]`);
+      if (input) input.type = 'password';
+      if (toggle) {
+        toggle.innerHTML = iconEye();
+        toggle.setAttribute('aria-pressed', 'false');
+        toggle.title = id === 'dialog-password' ? 'Show password' : 'Show client secret';
+        toggle.setAttribute(
+          'aria-label',
+          id === 'dialog-password' ? 'Show password' : 'Show client secret',
+        );
+      }
+    });
+
+    dialog.showModal();
+  }
+
+  async function copyDialogField(inputId, label) {
+    const input = dialog.querySelector(`#${inputId}`);
+    const value = String(input?.value ?? '').trim();
+    if (!value) {
+      showToast(`Nothing to copy for ${label}`, 'error');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(`${label} copied`, 'success');
+    } catch {
+      showToast(`Could not copy ${label.toLowerCase()}`, 'error');
+    }
+  }
+
+  dialog.querySelectorAll('[data-copy-input]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const inputId = btn.getAttribute('data-copy-input');
+      const labels = {
+        'dialog-poi-type': 'Project name',
+        'dialog-email': 'Email',
+        'dialog-password': 'Password',
+        'dialog-map-code': 'Map code',
+        'dialog-client-id': 'Client ID',
+        'dialog-client-secret': 'Client secret',
+      };
+      copyDialogField(inputId, labels[inputId] || 'Value');
+    });
+  });
+
+  dialog.querySelectorAll('[data-toggle-secret]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const inputId = btn.getAttribute('data-toggle-secret');
+      const input = dialog.querySelector(`#${inputId}`);
+      if (!input) return;
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.innerHTML = show ? iconEyeOff() : iconEye();
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      const hideLabel = inputId === 'dialog-password' ? 'Hide password' : 'Hide client secret';
+      const showLabel = inputId === 'dialog-password' ? 'Show password' : 'Show client secret';
+      btn.title = show ? hideLabel : showLabel;
+      btn.setAttribute('aria-label', show ? hideLabel : showLabel);
+    });
+  });
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    const email = page.querySelector('#access-email').value.trim();
+    const password = page.querySelector('#access-password').value;
+    if (!isSuperadminCredentials(email, password)) {
+      setLoginError('Invalid superadmin credentials.');
+      return;
+    }
+    setSuperadminSession(email, password);
+    await offerBrowserPasswordSave(email, password);
+    showDashboard();
+    try {
+      await loadData();
+    } catch (err) {
+      showToast(String(err?.message ?? err), 'error');
+    }
+  });
+
+  page.querySelector('#access-logout').addEventListener('click', () => {
+    clearSuperadminSession();
+    window.location.href = '/';
+  });
+
+  page.querySelector('#btn-add-project').addEventListener('click', () => openProjectDialog());
+  page.querySelector('#access-back-btn').addEventListener('click', () => showGridView());
+  hudEl?.querySelectorAll('[data-hud]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const dest = btn.dataset.hud;
+      if (dest === 'logs') showLogsView();
+      else showGridView();
+    });
+  });
+
+  detailHudEl?.querySelectorAll('[data-detail]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const section = btn.dataset.detail;
+      if (!section || !activeLogin) return;
+      setDetailSection(section);
+    });
+  });
+
+  page.querySelector('#access-experience-urls')?.querySelectorAll('[data-copy-input]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const inputId = btn.getAttribute('data-copy-input');
+      const input = page.querySelector(`#${inputId}`);
+      const label = inputId === 'access-whitelabeled-url' ? 'White-labeled URL' : 'Project URL';
+      void copyText(input?.value, label);
+    });
+  });
+
+  function closeWhitelabelQrDialog() {
+    // Drop the logo so reopening the dialog starts from a plain QR.
+    qrLogoImg = null;
+    if (qrLogoInput) qrLogoInput.value = '';
+    syncQrLogoUi();
+    if (!whitelabelQrDialog) return;
+    if (typeof whitelabelQrDialog.close === 'function' && whitelabelQrDialog.open) {
+      whitelabelQrDialog.close();
+    } else {
+      whitelabelQrDialog.removeAttribute('open');
+    }
+  }
+
+  async function openWhitelabelQrDialog() {
+    const raw = String(whitelabeledUrlInput?.value ?? '').trim();
+    if (!raw) {
+      showToast('Enter a white-labeled URL first', 'error');
+      whitelabeledUrlInput?.focus();
+      return;
+    }
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      showToast('Enter a valid URL (include https://)', 'error');
+      whitelabeledUrlInput?.focus();
+      return;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      showToast('URL must start with http:// or https://', 'error');
+      return;
+    }
+
+    qrSourceUrl = parsed.toString();
+    qrDataUrl = null;
+    if (qrDialogUrlEl) qrDialogUrlEl.textContent = qrSourceUrl;
+    if (qrImageEl) {
+      qrImageEl.hidden = true;
+      qrImageEl.removeAttribute('src');
+    }
+    if (qrStatusEl) {
+      qrStatusEl.hidden = false;
+      qrStatusEl.textContent = 'Generating…';
+    }
+    if (qrDownloadBtn) qrDownloadBtn.disabled = true;
+
+    if (whitelabelQrDialog) {
+      if (typeof whitelabelQrDialog.showModal === 'function') whitelabelQrDialog.showModal();
+      else whitelabelQrDialog.setAttribute('open', '');
+    }
+
+    await renderWhitelabelQr();
+  }
+
+  /**
+   * Render (or re-render) the preview from the current URL and logo. Called on
+   * open and again whenever the logo is added or removed, so what you see in
+   * the dialog is exactly the PNG that Download produces.
+   */
+  async function renderWhitelabelQr() {
+    if (!qrSourceUrl) return;
+    if (qrStatusEl) {
+      qrStatusEl.hidden = false;
+      qrStatusEl.textContent = 'Generating…';
+    }
+    if (qrDownloadBtn) qrDownloadBtn.disabled = true;
+
+    try {
+      const dataUrl = await generateQrDataUrl(qrSourceUrl, qrLogoImg);
+      qrDataUrl = dataUrl;
+      if (qrImageEl) {
+        qrImageEl.src = dataUrl;
+        qrImageEl.hidden = false;
+      }
+      if (qrStatusEl) qrStatusEl.hidden = true;
+      if (qrDownloadBtn) qrDownloadBtn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      qrDataUrl = null;
+      if (qrImageEl) qrImageEl.hidden = true;
+      if (qrStatusEl) {
+        qrStatusEl.hidden = false;
+        qrStatusEl.textContent = 'Could not generate QR code';
+      }
+      showToast(String(err?.message ?? err), 'error');
+    }
+  }
+
+  function syncQrLogoUi() {
+    const has = Boolean(qrLogoImg);
+    if (qrLogoRemoveBtn) qrLogoRemoveBtn.hidden = !has;
+    if (qrLogoThumbEl) {
+      qrLogoThumbEl.replaceChildren();
+      qrLogoThumbEl.classList.toggle('is-empty', !has);
+      if (has) {
+        const img = document.createElement('img');
+        img.src = qrLogoImg.src;
+        img.alt = '';
+        qrLogoThumbEl.appendChild(img);
+      }
+    }
+  }
+
+  async function onQrLogoPicked(file) {
+    const reason = validateLogoFile(file);
+    if (reason) {
+      showToast(reason, 'error');
+      if (qrLogoInput) qrLogoInput.value = '';
+      return;
+    }
+    try {
+      qrLogoImg = await loadImageFromFile(file);
+      syncQrLogoUi();
+      if (qrLogoHintEl) {
+        // Level H is what makes the logo safe; say so rather than implying magic.
+        qrLogoHintEl.textContent =
+          'Logo added. Error correction raised to level H so the code stays scannable.';
+      }
+      await renderWhitelabelQr();
+    } catch (err) {
+      console.error(err);
+      qrLogoImg = null;
+      syncQrLogoUi();
+      showToast(String(err?.message ?? err), 'error');
+    } finally {
+      // Clear the input so re-picking the same file still fires a change event.
+      if (qrLogoInput) qrLogoInput.value = '';
+    }
+  }
+
+  async function clearQrLogo() {
+    qrLogoImg = null;
+    if (qrLogoInput) qrLogoInput.value = '';
+    syncQrLogoUi();
+    if (qrLogoHintEl) {
+      qrLogoHintEl.textContent =
+        'PNG, JPG, WEBP or GIF, under 2 MB. The logo is auto-sized and padded so the code stays scannable.';
+    }
+    await renderWhitelabelQr();
+  }
+
+  function downloadWhitelabelQr() {
+    if (!qrDataUrl) {
+      showToast('Generate a QR code first', 'error');
+      return;
+    }
+    const poi = String(activeLogin?.poi_type ?? 'project')
+      .trim()
+      .replace(/[^\w.-]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'project';
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `${poi}-whitelabel-qr${qrLogoImg ? '-logo' : ''}.png`;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('QR code downloaded', 'success');
+  }
+
+  whitelabelGenerateQrBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    void openWhitelabelQrDialog();
+  });
+  whitelabelQrDialog?.querySelector('#access-qr-dialog-close')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeWhitelabelQrDialog();
+  });
+  whitelabelQrDialog?.querySelector('#access-qr-dialog-cancel')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeWhitelabelQrDialog();
+  });
+  qrDownloadBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadWhitelabelQr();
+  });
+  qrLogoInput?.addEventListener('change', (e) => {
+    const file = e.target?.files?.[0];
+    if (file) void onQrLogoPicked(file);
+  });
+  qrLogoRemoveBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    void clearQrLogo();
+  });
+  whitelabelQrDialog?.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeWhitelabelQrDialog();
+  });
+
+  experienceUrlsSaveBtn?.addEventListener('click', async () => {
+    if (!activeLogin || experienceUrlsSaveBtn.disabled) return;
+    experienceUrlsSaveBtn.disabled = true;
+    try {
+      await persistExperienceUrls();
+      showToast('Experience URLs saved', 'success');
+    } catch (err) {
+      showToast(String(err?.message ?? err), 'error');
+    } finally {
+      experienceUrlsSaveBtn.disabled = false;
+    }
+  });
+
+  page.querySelector('#access-project-admin-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeLogin) return;
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return;
+    }
+    const form = e.currentTarget;
+    const adminEmail = form.querySelector('#access-admin-email').value.trim();
+    const adminPassword = form.querySelector('#access-admin-password').value;
+    const displayName = form.querySelector('#access-admin-name').value.trim();
+    const btn = form.querySelector('#access-admin-assign-btn');
+    btn.disabled = true;
+    try {
+      await adminAssignProjectAdmin({
+        email: creds.email,
+        password: creds.password,
+        poiType: String(activeLogin.poi_type ?? ''),
+        adminEmail,
+        adminPassword,
+        displayName: displayName || null,
+      });
+      logUserActivity({
+        action: 'assigned',
+        entityType: 'project_admin',
+        entityLabel: adminEmail,
+        createdEmail: adminEmail,
+        poiType: String(activeLogin.poi_type ?? ''),
+      });
+      showToast('Project admin assigned', 'success');
+      form.reset();
+      await loadProjectAdminMembers();
+    } catch (err) {
+      showToast(String(err?.message ?? err), 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  page.querySelector('#access-subadmin-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeLogin) return;
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return;
+    }
+    const form = e.currentTarget;
+    const subEmail = form.querySelector('#access-sub-email').value.trim();
+    const subPassword = form.querySelector('#access-sub-password').value;
+    const displayName = form.querySelector('#access-sub-name').value.trim();
+    const btn = form.querySelector('#access-sub-add-btn');
+    btn.disabled = true;
+    try {
+      await projectAdminUpsertSubAdmin({
+        email: creds.email,
+        password: creds.password,
+        subEmail,
+        subPassword,
+        displayName: displayName || null,
+        active: true,
+        poiType: String(activeLogin.poi_type ?? ''),
+      });
+      logUserActivity({
+        action: 'created',
+        entityType: 'sub_admin',
+        entityLabel: subEmail,
+        createdEmail: subEmail,
+        poiType: String(activeLogin.poi_type ?? ''),
+      });
+      showToast('Sub-admin created', 'success');
+      form.reset();
+      await loadProjectAdminMembers();
+    } catch (err) {
+      showToast(String(err?.message ?? err), 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  splatUploadBtn?.addEventListener('click', () => {
+    if (!activeLogin) {
+      showToast('Open a project first', 'error');
+      return;
+    }
+    if (splatUploading) return;
+    splatFileInput?.click();
+  });
+
+  splatFileInput?.addEventListener('change', async () => {
+    const files = Array.from(splatFileInput.files || []);
+    splatFileInput.value = '';
+    if (!files.length) return;
+    await uploadSplatFiles(files);
+  });
+
+  matterportSaveBtn?.addEventListener('click', () => {
+    if (!activeLogin) {
+      showToast('Open a project first', 'error');
+      return;
+    }
+    saveMatterportLink();
+  });
+  matterportClearBtn?.addEventListener('click', () => {
+    if (!activeLogin) {
+      showToast('Open a project first', 'error');
+      return;
+    }
+    clearMatterportLink();
+  });
+  matterportUrlInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveMatterportLink();
+    }
+  });
+
+  navmeshUploadBtn?.addEventListener('click', () => {
+    if (!activeLogin) {
+      showToast('Open a project first', 'error');
+      return;
+    }
+    if (navmeshUploading) return;
+    navmeshFileInput?.click();
+  });
+
+  navmeshFileInput?.addEventListener('change', async () => {
+    const files = Array.from(navmeshFileInput.files || []);
+    navmeshFileInput.value = '';
+    if (!files.length) return;
+    await uploadNavmeshFiles(files);
+  });
+
+  dialog.querySelector('#access-dialog-cancel').addEventListener('click', () => dialog.close());
+  dialog.querySelector('#access-dialog-close').addEventListener('click', () => dialog.close());
+
+  dialog.querySelector('#access-project-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const creds = adminCreds();
+    if (!creds) {
+      showLogin();
+      return;
+    }
+
+    const payload = {
+      email: dialog.querySelector('#dialog-email').value.trim(),
+      password: dialog.querySelector('#dialog-password').value,
+      poi_type: dialog.querySelector('#dialog-poi-type').value.trim(),
+      map_code: dialog.querySelector('#dialog-map-code').value.trim(),
+      client_id: dialog.querySelector('#dialog-client-id').value.trim(),
+      client_secret: dialog.querySelector('#dialog-client-secret').value.trim(),
+    };
+
+    // Autofill often swaps Sparkhouse ↔ Sparkhouse uptown emails and triggers UNIQUE 409.
+    // If the typed email belongs to another tenant, keep this row's original email.
+    if (editingLoginId && editingOriginalEmail) {
+      const typed = payload.email.toLowerCase();
+      const original = editingOriginalEmail.toLowerCase();
+      if (typed && typed !== original) {
+        const clash = logins.find(
+          (row) =>
+            String(row.id) !== String(editingLoginId) &&
+            String(row.email ?? '')
+              .trim()
+              .toLowerCase() === typed,
+        );
+        if (clash) {
+          payload.email = editingOriginalEmail;
+          showToast(
+            `Kept ${editingOriginalEmail} — "${dialog.querySelector('#dialog-email').value.trim()}" belongs to ${clash.poi_type}`,
+            'error',
+          );
+          const emailInput = dialog.querySelector('#dialog-email');
+          if (emailInput) emailInput.value = editingOriginalEmail;
+        }
+      } else if (!typed) {
+        payload.email = editingOriginalEmail;
+      }
+    }
+
+    try {
+      if (editingLoginId) {
+        await updateProjectLogin(editingLoginId, payload);
+      } else {
+        const savedLogin = await insertProjectLogin(payload);
+        const loginRow = Array.isArray(savedLogin) ? savedLogin[0] : savedLogin;
+        await upsertProjectFeaturesAdmin({
+          email: creds.email,
+          password: creds.password,
+          poiType: payload.poi_type,
+          loginId: loginRow?.id ?? null,
+          features: { ...DEFAULT_FEATURES },
+        });
+        await initTenantLanguagesAdmin({
+          email: creds.email,
+          password: creds.password,
+          poiType: payload.poi_type,
+        });
+      }
+      logUserActivity({
+        action: editingLoginId ? 'updated' : 'created',
+        entityType: 'tenant',
+        entityId: editingLoginId || null,
+        entityLabel: payload.poi_type,
+        createdEmail: payload.email,
+        poiType: payload.poi_type,
+      });
+      dialog.close();
+      showToast(editingLoginId ? 'Tenant updated' : 'Tenant created', 'success');
+      await loadData();
+      if (activeLogin && editingLoginId && String(activeLogin.id) === String(editingLoginId)) {
+        const refreshed = logins.find((row) => String(row.id) === String(editingLoginId));
+        if (refreshed) showDetailView(refreshed);
+      }
+    } catch (err) {
+      if (err?.name === 'LoginEmailKeptError' && err.saved) {
+        dialog.close();
+        showToast(String(err.message), 'error');
+        await loadData();
+        if (activeLogin && editingLoginId && String(activeLogin.id) === String(editingLoginId)) {
+          const refreshed = logins.find((row) => String(row.id) === String(editingLoginId));
+          if (refreshed) showDetailView(refreshed);
+        }
+        return;
+      }
+      showToast(String(err?.message ?? err), 'error');
+    }
+  });
+
+  searchInput.addEventListener('input', () => renderCards());
+
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    const projectParam = params.get('project');
+    const viewParam = params.get('view');
+    if (viewParam === 'logs') {
+      showLogsView();
+      return;
+    }
+    if (!projectParam) {
+      showGridView();
+      return;
+    }
+    const match = logins.find((row) => String(row.poi_type).toLowerCase() === projectParam.toLowerCase());
+    if (match) showDetailView(match);
+    else showGridView();
+  });
+
+  if (getSuperadminSession()) {
+    showDashboard();
+    loadData().catch((err) => showToast(String(err?.message ?? err), 'error'));
+  } else {
+    showLogin();
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}

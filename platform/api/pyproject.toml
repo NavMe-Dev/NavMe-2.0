@@ -1,0 +1,11 @@
+[project]
+name = "wayfinding-api"
+version = "0.1.0"
+description = "Multi-building indoor wayfinding platform API (FastAPI + PostGIS)"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.110", "uvicorn[standard]", "sqlalchemy>=2", "geoalchemy2", "alembic", "psycopg[binary]",
+                "pyjwt", "bcrypt", "python-multipart", "pydantic-settings", "networkx", "shapely>=2", "httpx", "pillow", "ezdxf", "reportlab", "numpy"]
+[project.scripts]
+wayfinding = "wayfinding_api.cli:main"
+[tool.setuptools.packages.find]
+include = ["wayfinding_api*"]

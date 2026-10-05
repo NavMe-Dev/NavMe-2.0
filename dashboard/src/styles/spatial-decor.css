@@ -1,0 +1,129 @@
+/* Indoor navigation theme — login + dashboard share the same spatial canvas */
+
+:root {
+  --navme-spatial-bg-light: none;
+  --navme-spatial-bg-dark: none;
+}
+
+/* ── Login ── */
+.form-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 14px !important;
+  box-sizing: border-box;
+  overflow: auto;
+  background-color: #eef4fc !important;
+  background-image: var(--navme-spatial-bg-light) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+.form-overlay--glass .form-card {
+  width: min(360px, 92vw) !important;
+  max-width: 360px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.theme-toggle--floating {
+  z-index: 910;
+}
+
+.form-language-select {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 910;
+  max-width: min(42vw, 180px);
+}
+
+html[data-theme='dark'] .form-overlay {
+  background-color: #0b1220 !important;
+  background-image: var(--navme-spatial-bg-dark) !important;
+}
+
+/* ── Dashboard ambient (matches login) ── */
+.spatial-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.spatial-ambient-bg {
+  position: absolute;
+  inset: 0;
+  background-color: #eef4fc;
+  background-image: var(--navme-spatial-bg-light);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+html[data-theme='dark'] .spatial-ambient-bg {
+  background-color: #0b1220;
+  background-image: var(--navme-spatial-bg-dark);
+}
+
+.spatial-ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.spatial-ambient-glow--tl {
+  top: -8%;
+  left: -6%;
+  width: min(420px, 48vw);
+  height: min(420px, 48vw);
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.55) 0%, transparent 70%);
+}
+
+.spatial-ambient-glow--br {
+  bottom: -10%;
+  right: -4%;
+  width: min(380px, 44vw);
+  height: min(380px, 44vw);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 72%);
+}
+
+html[data-theme='dark'] .spatial-ambient-glow {
+  opacity: 0.35;
+}
+
+html[data-theme='dark'] .spatial-ambient-glow--tl {
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.35) 0%, transparent 70%);
+}
+
+html[data-theme='dark'] .spatial-ambient-glow--br {
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.28) 0%, transparent 72%);
+}
+
+.spatial-ambient-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%, transparent 35%, rgba(15, 23, 42, 0.06) 100%);
+  pointer-events: none;
+}
+
+html[data-theme='dark'] .spatial-ambient-vignette {
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+.immersive-shell.glass-shell,
+.dashboard.immersive-shell {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  background-color: transparent !important;
+}

@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MatterPak navmesh</title>
+<style>
+  html,body { margin:0; height:100%; background:#0d1117; color:#e6edf3;
+              font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; overflow:hidden; }
+  #c { position:absolute; inset:0; display:block; }
+  .bar { position:absolute; left:10px; top:10px; z-index:5; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  button { background:#1f6feb; color:#fff; border:0; border-radius:6px; padding:7px 12px;
+           font:inherit; font-weight:600; cursor:pointer; }
+  button.sec { background:#30363d; }
+  button.build3d { background:#238636; }
+  button:disabled { opacity:.5; cursor:default; }
+  .status { position:absolute; left:10px; bottom:10px; z-index:5; background:rgba(13,17,23,.85);
+            padding:6px 10px; border-radius:6px; max-width:70%; }
+  .err { color:#ff7b72; }
+  .ok  { color:#3fb950; }
+  .legend { position:absolute; right:10px; top:10px; z-index:5; background:rgba(13,17,23,.88);
+            padding:8px 12px; border-radius:6px; display:none; }
+  .legend.show { display:block; }
+  .legend h4 { margin:0 0 6px; font-size:11px; opacity:.6; text-transform:uppercase; }
+  .lrow { display:flex; align-items:center; gap:6px; margin:3px 0; font-size:11px; }
+  .lsw { width:12px; height:12px; border-radius:2px; flex-shrink:0; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button id="gen">Generate navmesh</button>
+  <button id="toggle" class="sec" disabled>Hide navmesh</button>
+  <button id="build3d" class="build3d">Build 3D</button>
+  <button id="build3dTexture" class="build3d" style="background:#6f42c1">Use Texture</button>
+  <button id="build3dAdv" class="build3d" style="background:#b08800">Advanced 3D</button>
+  <button id="toggleMesh" class="sec" style="display:none">Hide mesh</button>
+  <button id="fit" class="sec">Fit view</button>
+</div>
+<div class="status" id="status">Loading MatterPak mesh…</div>
+<div class="legend" id="legend">
+  <h4>3D Building</h4>
+  <div class="lrow"><span class="lsw" style="background:rgba(56,139,253,.55)"></span>Room / Space</div>
+  <div class="lrow"><span class="lsw" style="background:rgba(139,148,158,.65)"></span>Wall</div>
+  <div class="lrow"><span class="lsw" style="background:rgba(255,166,77,.45)"></span>Stairs</div>
+  <div class="lrow"><span class="lsw" style="background:rgba(63,185,80,.35)"></span>Walkway</div>
+  <div class="lrow"><span class="lsw" style="background:rgba(210,153,34,.4)"></span>Entrance</div>
+  <div class="lrow"><span class="lsw" style="background:rgba(56,139,253,.15)"></span>Floor slab</div>
+</div>
+
+<script src="vendor/recast-navigation.js"></script>
+<script>
+(function () {
+  "use strict";
+  var THREE = WFThree.THREE, GLTFLoader = WFThree.GLTFLoader, OrbitControls = WFThree.OrbitControls;
+  var Q = new URLSearchParams(location.search);
+  var SLUG = Q.get("slug") || "", TOKEN = Q.get("token") || "";
+  var PUBLIC = "/api/v1/public/buildings/" + encodeURIComponent(SLUG) + "/data/";
+  var D = function (f) { return "/api/v1/admin/buildings/" + encodeURIComponent(SLUG) + "/files/out/" + f + "?token=" + encodeURIComponent(TOKEN); };
+
+  var statusEl = document.getElementById("status");
+  function status(msg, cls) { statusEl.className = "status " + (cls || ""); statusEl.textContent = msg; }
+
+  var renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("c"), antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = false;
+  var scene = new THREE.Scene(); scene.background = new THREE.Color(0x0d1117);
+  var camera = new THREE.PerspectiveCamera(55, 1, 0.1, 2000);
+  var controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xaaccff, 0x334455, 1.6));
+  var dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(30, 80, 50); scene.add(dir);
+  var dir2 = new THREE.DirectionalLight(0x8888ff, 0.4); dir2.position.set(-40, 40, -30); scene.add(dir2);
+
+  var modelRoot = null, navMesh = null, navHelper = null, routeLine = null, markers = new THREE.Group();
+  var building3D = null;
+  scene.add(markers);
+  var pois = [], lastFrom = null, lastTo = null;
+
+  function resize() {
+    var w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  addEventListener("resize", resize); resize();
+  (function loop() { requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera); })();
+
+  function fitView(obj) {
+    var box = new THREE.Box3().setFromObject(obj || scene);
+    if (box.isEmpty()) return;
+    var size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+    var d = Math.max(size.x, size.y, size.z) * 0.9;
+    camera.position.set(c.x + d * 0.6, c.y + d * 0.7, c.z + d * 0.6);
+    controls.target.copy(c); camera.near = d / 500; camera.far = d * 12;
+    camera.updateProjectionMatrix(); controls.update();
+  }
+  document.getElementById("fit").onclick = function () {
+    fitView(building3D || modelRoot);
+  };
+
+  // ---- load the MatterPak mesh ---------------------------------------------
+  var MESH_ROT_Y = Math.PI / 2;
+  new GLTFLoader().load(D("model_full.glb"), function (gltf) {
+    modelRoot = gltf.scene;
+    modelRoot.rotation.set(0, MESH_ROT_Y, 0);
+    modelRoot.updateMatrixWorld(true);
+    scene.add(modelRoot);
+    var n = 0; modelRoot.traverse(function (o) { if (o.isMesh) n++; });
+    fitView(modelRoot);
+    status("MatterPak mesh loaded (" + n + " meshes). Generate navmesh or Build 3D.");
+    post({ type: "mp-mesh-loaded", meshes: n });
+  }, function (p) {
+    if (p.total) status("Loading MatterPak mesh… " + Math.round(p.loaded / p.total * 100) + "%");
+  }, function (e) {
+    status("Mesh load failed: " + (e && e.message ? e.message : e), "err");
+  });
+
+  // ---- generate the navmesh ------------------------------------------------
+  document.getElementById("gen").onclick = async function () {
+    if (!modelRoot) { status("Mesh not loaded yet", "err"); return; }
+    var btn = this; btn.disabled = true;
+    status("Generating navigation mesh from this mesh…");
+    try {
+      await NavMeshRT.init();
+      var meshes = []; modelRoot.traverse(function (o) { if (o.isMesh) meshes.push(o); });
+      var t0 = performance.now();
+      var res = await NavMeshRT.threeToSoloNavMesh(meshes, {
+        ch: 0.05, cs: 0.1,
+        walkableClimb: 0.3 / 0.05, walkableRadius: 0.2 / 0.1,
+        walkableSlopeAngle: 60, walkableHeight: 2 / 0.05, borderSize: 0
+      });
+      if (!res || !res.success) throw new Error("Recast could not build a navmesh from this mesh");
+      navMesh = res.navMesh;
+      var ms = Math.round(performance.now() - t0);
+      if (navHelper) { scene.remove(navHelper); navHelper = null; }
+      navHelper = new NavMeshRT.NavMeshHelper(navMesh);
+      scene.add(navHelper);
+      document.getElementById("toggle").disabled = false;
+      status("Navigation mesh ready in " + ms + " ms.", "ok");
+      post({ type: "mp-navmesh-ready", ms: ms });
+      if (lastFrom && lastTo) drawRoute(lastFrom, lastTo);
+    } catch (e) {
+      status("Generation failed: " + (e.message || e), "err");
+    }
+    btn.disabled = false;
+  };
+
+  document.getElementById("toggle").onclick = function () {
+    if (!navHelper) return;
+    navHelper.visible = !navHelper.visible;
+    this.textContent = navHelper.visible ? "Hide navmesh" : "Show navmesh";
+  };
+
+  document.getElementById("toggleMesh").onclick = function () {
+    if (!modelRoot) return;
+    modelRoot.visible = !modelRoot.visible;
+    this.textContent = modelRoot.visible ? "Hide mesh" : "Show mesh";
+  };
+
+  // ---- Build 3D: apply clean architectural ShaderMaterial to the MatterPak mesh ----
+  // The actual GLB geometry is used as-is (trees, benches, open spaces, everything),
+  // just with photogrammetry textures replaced by a normal+elevation-based shader.
+
+  function hexToVec3(hex) {
+    var n = parseInt((hex || "#3878e8").replace("#", ""), 16);
+    return new THREE.Vector3((n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255);
+  }
+
+  function updateLegend(aiResult, wallVecArg) {
+    var ld = document.getElementById("legend");
+    var bt = (aiResult && aiResult.building_type) ? aiResult.building_type : "building";
+    var html = '<h4>3D Mesh · ' + bt + '</h4>';
+    if (wallVecArg) {
+      var r = Math.round(wallVecArg.x * 255), g = Math.round(wallVecArg.y * 255), b = Math.round(wallVecArg.z * 255);
+      html += '<div class="lrow"><span class="lsw" style="background:rgba(' + r + ',' + g + ',' + b + ',0.75)"></span>Structure (uniform)</div>';
+    }
+    html += '<div class="lrow"><span class="lsw" style="background:rgba(80,80,80,.5)"></span>From real scan geometry</div>';
+    if (aiResult && aiResult.description) {
+      html += '<div style="font-size:10px;opacity:.5;margin-top:6px;max-width:170px">' +
+              aiResult.description.slice(0, 90) + '</div>';
+    }
+    ld.innerHTML = html;
+  }
+
+  // Store original materials so a future rebuild can dispose properly
+  var _origMeshMats = [];
+
+  document.getElementById("build3d").onclick = async function () {
+    var btn = this; btn.disabled = true;
+    if (!modelRoot) { status("Mesh not loaded yet", "err"); btn.disabled = false; return; }
+    status("Analyzing MatterPak mesh…");
+
+    try {
+      // ── 1. Load config for building name context ──────────────────────────────
+      var cfg = {};
+      try { cfg = await fetch(PUBLIC + "config.json").then(function (r) { return r.json(); }); } catch (e) {}
+
+      // ── 2. Capture canvas for AI vision ──────────────────────────────────────
+      var screenshotB64 = "";
+      try { screenshotB64 = renderer.domElement.toDataURL("image/png"); } catch (e) {}
+
+      // ── 3. AI → building type + palette ──────────────────────────────────────
+      var wallVec   = new THREE.Vector3(0.12, 0.40, 0.82);
+      var roofVec   = new THREE.Vector3(0.82, 0.86, 0.92);
+      var groundVec = new THREE.Vector3(0.20, 0.42, 0.18);
+      var buildingType = "building";
+
+      try {
+        var aiResp = await fetch(
+          "/api/v1/admin/buildings/" + encodeURIComponent(SLUG) + "/ai-build3d",
+          { method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+            body: JSON.stringify({
+              screenshot_b64: screenshotB64,
+              slug_hint: cfg.name || SLUG,
+              floor_count: (cfg.floors || []).length,
+              features_summary: []
+            }) }
+        );
+        if (aiResp.ok) {
+          var aiData = await aiResp.json();
+          buildingType = aiData.building_type || buildingType;
+          if (aiData.styles) {
+            var s = aiData.styles;
+            if (s.wall  && s.wall.color)    wallVec   = hexToVec3(s.wall.color);
+            else if (s.room && s.room.color) wallVec   = hexToVec3(s.room.color);
+            if (s.roof  && s.roof.color)    roofVec   = hexToVec3(s.roof.color);
+            if (s.walkway && s.walkway.color) groundVec = hexToVec3(s.walkway.color);
+          }
+          updateLegend(aiData, wallVec);
+          var src = aiData.source === "claude" ? "Claude AI"
+                  : aiData.source === "llm"    ? "LLM"
+                  :                              "Smart analysis";
+          status(src + " → " + buildingType + " — styling mesh…");
+        }
+      } catch (e) { /* use defaults */ }
+
+      if (document.getElementById("legend").innerHTML.indexOf("3D Mesh") < 0) {
+        updateLegend({ building_type: buildingType }, wallVec);
+      }
+
+      // ── 4. Remove any previous GeoJSON building3D overlay ────────────────────
+      if (building3D) {
+        scene.remove(building3D);
+        building3D.traverse(function (o) {
+          if (o.geometry) o.geometry.dispose();
+          if (o.material) (Array.isArray(o.material) ? o.material : [o.material])
+                          .forEach(function (m) { m.dispose(); });
+        });
+        building3D = null;
+      }
+
+      // ── 5. Dispose previously applied shader materials (on rebuild) ───────────
+      _origMeshMats.forEach(function (entry) {
+        if (entry.mesh) {
+          (Array.isArray(entry.mesh.material) ? entry.mesh.material : [entry.mesh.material])
+            .forEach(function (m) { m.dispose(); });
+          entry.mesh.material = entry.orig;
+        }
+      });
+      _origMeshMats = [];
+
+      // ── 6. Bounding box for height normalisation in the shader ────────────────
+      var bbox   = new THREE.Box3().setFromObject(modelRoot);
+      var minY   = bbox.min.y;
+      var rangeY = Math.max(0.1, bbox.max.y - bbox.min.y);
+
+      // ── 7. Single flat colour — same for every face, dynamic per building type ─
+      var nMeshes = 0;
+      modelRoot.traverse(function (o) {
+        if (!o.isMesh) return;
+        nMeshes++;
+        _origMeshMats.push({ mesh: o, orig: o.material });
+        o.material = new THREE.ShaderMaterial({
+          transparent: true,
+          side:        THREE.DoubleSide,
+          depthWrite:  false,
+          uniforms: {
+            stripeWidth:  { value: 0.4 },
+            colorA:       { value: new THREE.Color(0.53, 0.81, 0.92) },
+            colorB:       { value: new THREE.Color(0.22, 0.55, 0.75) },
+            opacityA:     { value: 0.90 },
+            opacityB:     { value: 0.55 }
+          },
+          vertexShader: `
+            varying vec3 vWorldPos;
+            void main() {
+              vec4 wp = modelMatrix * vec4(position, 1.0);
+              vWorldPos = wp.xyz;
+              gl_Position = projectionMatrix * viewMatrix * wp;
+            }
+          `,
+          fragmentShader: `
+            uniform float stripeWidth;
+            uniform vec3  colorA;
+            uniform vec3  colorB;
+            uniform float opacityA;
+            uniform float opacityB;
+            varying vec3  vWorldPos;
+            void main() {
+              float t = mod(vWorldPos.x, stripeWidth * 2.0) / (stripeWidth * 2.0);
+              float edge = smoothstep(0.45, 0.55, t) - smoothstep(0.95, 1.0, t);
+              vec3  col  = mix(colorA, colorB, step(0.5, t));
+              float op   = mix(opacityA, opacityB, step(0.5, t));
+              gl_FragColor = vec4(col, op);
+            }
+          `
+        });
+      });
+
+      // ── 8. Show mesh and update UI ────────────────────────────────────────────
+      modelRoot.visible = true;
+      document.getElementById("toggleMesh").style.display = "";
+      document.getElementById("toggleMesh").textContent = "Hide mesh";
+      document.getElementById("legend").classList.add("show");
+
+      fitView(modelRoot);
+      status("3D ready — " + nMeshes + " mesh(es) · " + buildingType + " · single colour.", "ok");
+      post({ type: "mp-build3d-ready", meshes: nMeshes, source: "mesh-flat" });
+
+    } catch (e) {
+      status("Build 3D failed: " + (e.message || e), "err");
+      console.error(e);
+    }
+    btn.disabled = false;
+  };
+
+  // ---- Use Texture: restore original MatterPak photogrammetry materials -------
+  document.getElementById("build3dTexture").onclick = function () {
+    if (!modelRoot) { status("Mesh not loaded yet", "err"); return; }
+
+    // Dispose any flat/shader materials we applied, restore originals
+    if (_origMeshMats.length) {
+      _origMeshMats.forEach(function (entry) {
+        if (!entry.mesh) return;
+        (Array.isArray(entry.mesh.material) ? entry.mesh.material : [entry.mesh.material])
+          .forEach(function (m) { m.dispose(); });
+        entry.mesh.material = entry.orig;
+      });
+      _origMeshMats = [];
+      document.getElementById("legend").classList.remove("show");
+      modelRoot.visible = true;
+      document.getElementById("toggleMesh").style.display = "";
+      document.getElementById("toggleMesh").textContent = "Hide mesh";
+      fitView(modelRoot);
+      status("Original MatterPak texture restored.", "ok");
+    } else {
+      // Already on original texture — nothing to do
+      modelRoot.visible = true;
+      document.getElementById("toggleMesh").style.display = "";
+      document.getElementById("toggleMesh").textContent = "Hide mesh";
+      fitView(modelRoot);
+      status("Showing original MatterPak texture.", "ok");
+    }
+  };
+
+  // ---- Advanced 3D: voxelize mesh, remove outliers, draw clean box model -----
+  var advGroup = null;
+
+  document.getElementById("build3dAdv").onclick = async function () {
+    var btn = this; btn.disabled = true;
+    if (!modelRoot) { status("Mesh not loaded yet", "err"); btn.disabled = false; return; }
+    status("Advanced 3D: reading mesh…");
+
+    try {
+      // ── 1. AI palette ────────────────────────────────────────────────────────
+      var cfg = {};
+      try { cfg = await fetch(PUBLIC + "config.json").then(function (r) { return r.json(); }); } catch (e) {}
+      var wallVec = new THREE.Vector3(0.12, 0.40, 0.82);
+      var buildingType = "building";
+      try {
+        var aiResp = await fetch(
+          "/api/v1/admin/buildings/" + encodeURIComponent(SLUG) + "/ai-build3d",
+          { method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+            body: JSON.stringify({ slug_hint: cfg.name || SLUG, floor_count: (cfg.floors||[]).length, features_summary:[] }) });
+        if (aiResp.ok) {
+          var aiData = await aiResp.json();
+          buildingType = aiData.building_type || buildingType;
+          if (aiData.styles) {
+            var s = aiData.styles;
+            if (s.wall && s.wall.color) wallVec = hexToVec3(s.wall.color);
+            else if (s.room && s.room.color) wallVec = hexToVec3(s.room.color);
+          }
+        }
+      } catch (e) {}
+
+      status("Advanced 3D: scanning vertices…");
+      await new Promise(function (res) { setTimeout(res, 20); });
+
+      // ── 2. Sample vertex world positions → per-column (X,Z) min/max Y ────────
+      // Column-fill approach: instead of surface voxels (hollow shell), we fill
+      // SOLID from the lowest to highest vertex in each XZ column. This gives
+      // real solid walls with correct height rather than scattered surface dots.
+      var VOXEL = 1.0;   // 1 m columns — unit resolution so heights are in metres
+      var STEP  = 3;     // sample every 3rd vertex
+
+      var colMap = Object.create(null); // "ix,iz" → {minY, maxY, count}
+
+      modelRoot.traverse(function (o) {
+        if (!o.isMesh) return;
+        var pos = o.geometry.attributes.position;
+        if (!pos) return;
+        var me = o.matrixWorld.elements;
+        var a0=me[0],a1=me[1],a2=me[2];
+        var b0=me[4],b1=me[5],b2=me[6];
+        var c0=me[8],c1=me[9],c2=me[10];
+        var tx=me[12],ty=me[13],tz=me[14];
+        for (var i = 0; i < pos.count; i += STEP) {
+          var lx = pos.getX(i), ly = pos.getY(i), lz = pos.getZ(i);
+          var wx = a0*lx + b0*ly + c0*lz + tx;
+          var wy = a1*lx + b1*ly + c1*lz + ty;
+          var wz = a2*lx + b2*ly + c2*lz + tz;
+          var ix = Math.floor(wx / VOXEL);
+          var iz = Math.floor(wz / VOXEL);
+          var iy = Math.floor(wy / VOXEL);
+          var ck = ix + ',' + iz;
+          if (!colMap[ck]) { colMap[ck] = { minY: iy, maxY: iy, count: 1 }; }
+          else {
+            var c = colMap[ck];
+            if (iy < c.minY) c.minY = iy;
+            if (iy > c.maxY) c.maxY = iy;
+            c.count++;
+          }
+        }
+      });
+
+      status("Advanced 3D: column-filling solid structure…");
+      await new Promise(function (res) { setTimeout(res, 20); });
+
+      // ── 3. Remove noise columns — must have at least 2 sampled vertices ──────
+      var colKeys = Object.keys(colMap).filter(function (ck) { return colMap[ck].count >= 2; });
+
+      // ── 4. Remove isolated columns (no XZ neighbour) ─────────────────────────
+      var colSet = Object.create(null);
+      colKeys.forEach(function (ck) { colSet[ck] = true; });
+      var XZ_DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+      colKeys = colKeys.filter(function (ck) {
+        var p = ck.split(','); var ix = +p[0], iz = +p[1];
+        for (var d = 0; d < XZ_DIRS.length; d++) {
+          if (colSet[(ix+XZ_DIRS[d][0]) + ',' + (iz+XZ_DIRS[d][1])]) return true;
+        }
+        return false;
+      });
+
+      // ── 4b. Fill interior holes via exterior flood-fill ──────────────────────────
+      // Flood-fill from outside the bounding box to mark all exterior empty cells.
+      // Everything inside the bbox that is neither exterior nor already filled is an
+      // interior gap — add it so no internal walls appear.
+      var ALL4 = [[1,0],[-1,0],[0,1],[0,-1]];
+      var ixArr = colKeys.map(function(ck){return +ck.split(',')[0];});
+      var izArr = colKeys.map(function(ck){return +ck.split(',')[1];});
+      var minIX = Math.min.apply(null,ixArr)-2, maxIX = Math.max.apply(null,ixArr)+2;
+      var minIZ = Math.min.apply(null,izArr)-2, maxIZ = Math.max.apply(null,izArr)+2;
+      var exterior = Object.create(null);
+      var ffQueue = [minIX+','+minIZ];
+      exterior[ffQueue[0]] = true;
+      for (var qi = 0; qi < ffQueue.length; qi++) {
+        var fk = ffQueue[qi]; var fp2 = fk.split(','); var fix=+fp2[0], fiz=+fp2[1];
+        ALL4.forEach(function(d){
+          var nx2=fix+d[0], nz2=fiz+d[1];
+          if (nx2<minIX||nx2>maxIX||nz2<minIZ||nz2>maxIZ) return;
+          var nk2=nx2+','+nz2;
+          if (!exterior[nk2] && !colSet[nk2]) { exterior[nk2]=true; ffQueue.push(nk2); }
+        });
+      }
+      // Any bbox cell that is NOT exterior and NOT in colSet is an interior hole — fill it.
+      for (var hx = minIX+2; hx <= maxIX-2; hx++) {
+        for (var hz = minIZ+2; hz <= maxIZ-2; hz++) {
+          var hk = hx+','+hz;
+          if (!colSet[hk] && !exterior[hk]) {
+            colSet[hk] = true;
+            colKeys.push(hk);
+            // interpolate heights from nearest real neighbours
+            var sumMin=0,sumMax=0,cnt=0;
+            ALL4.forEach(function(d){ var ek=(hx+d[0])+','+(hz+d[1]); if(colMap[ek]){sumMin+=colMap[ek].minY;sumMax+=colMap[ek].maxY;cnt++;} });
+            colMap[hk] = {minY:cnt?Math.round(sumMin/cnt):0, maxY:cnt?Math.round(sumMax/cnt):0, count:1};
+          }
+        }
+      }
+      console.log('[adv3d] after hole-fill: '+colKeys.length+' columns');
+
+      // ── 5. Clamp at 70th percentile — removes tree tops, keeps rooftops ────────
+      var maxYArr = colKeys.map(function (ck) { return colMap[ck].maxY; }).sort(function(a,b){return a-b;});
+      var p60Y = maxYArr[Math.floor(maxYArr.length * 0.70)] || maxYArr[maxYArr.length-1];
+      colKeys.forEach(function (ck) {
+        if (colMap[ck].maxY > p60Y) colMap[ck].maxY = p60Y;
+      });
+
+      // ── 6. Aggressive smoothing: many median passes then tight gradient limit ──
+      var ALL8 = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+      var curH = Object.create(null);
+      colKeys.forEach(function (ck) { curH[ck] = colMap[ck].maxY; });
+
+      // 10 median passes — each pass propagates the surrounding consensus height
+      for (var pass = 0; pass < 10; pass++) {
+        var nextH = Object.create(null);
+        colKeys.forEach(function (ck) {
+          var p = ck.split(','); var ix = +p[0], iz = +p[1];
+          var hs = [curH[ck]];
+          ALL8.forEach(function (d) {
+            var nk = (ix+d[0]) + ',' + (iz+d[1]);
+            if (curH[nk] !== undefined) hs.push(curH[nk]);
+          });
+          hs.sort(function (a, b) { return a - b; });
+          nextH[ck] = hs[Math.floor(hs.length / 2)];
+        });
+        curH = nextH;
+      }
+
+      // 8× gradient-limit: each pass caps a column to min-neighbour + 1 voxel.
+      // After 8 passes the terrain can only rise 1m per cell — very smooth.
+      var MAX_STEP = 1;
+      for (var gp = 0; gp < 8; gp++) {
+        var nextH2 = Object.create(null);
+        colKeys.forEach(function (ck) {
+          var p = ck.split(','); var ix = +p[0], iz = +p[1];
+          var self = curH[ck];
+          var minN = self;
+          ALL8.forEach(function (d) {
+            var nk = (ix+d[0]) + ',' + (iz+d[1]);
+            if (curH[nk] !== undefined && curH[nk] < minN) minN = curH[nk];
+          });
+          nextH2[ck] = Math.min(self, minN + MAX_STEP);
+        });
+        curH = nextH2;
+      }
+
+      var smoothed = curH;
+
+      // ── 7. Uniform roof snap: all columns → single flat height ───────────────
+      var allSmoothedH = colKeys.map(function(ck){ return smoothed[ck]; }).sort(function(a,b){return a-b;});
+      var roofH = allSmoothedH[Math.floor(allSmoothedH.length * 0.70)];
+      console.log("[adv3d] roofH="+roofH+" p60Y="+p60Y);
+      colKeys.forEach(function (ck) { smoothed[ck] = roofH; });
+      // ── 8. Build face-culled architectural mesh ───────────────────────────────
+      // For each column only emit the faces that are actually visible:
+      //   top face (always), side faces only where a neighbour is shorter/absent.
+      // Adjacent flat areas share a continuous surface → no box-grid lines.
+      status("Advanced 3D: building architectural mesh…");
+      await new Promise(function (res) { setTimeout(res, 20); });
+
+      var pos = [], nor = [], idx = [];
+      var baseMinY = maxYArr[0] * VOXEL;
+      var totalH  = Math.max(1, p60Y * VOXEL - baseMinY);
+
+      function quad(ax,ay,az, bx,by,bz, cx,cy,cz, dx,dy,dz, nx,ny,nz) {
+        var b = pos.length / 3;
+        pos.push(ax,ay,az, bx,by,bz, cx,cy,cz, dx,dy,dz);
+        nor.push(nx,ny,nz, nx,ny,nz, nx,ny,nz, nx,ny,nz);
+        idx.push(b,b+1,b+2, b,b+2,b+3);
+      }
+
+      // Base Y = median of per-column minY — represents the typical floor level.
+      var allMinYArr = colKeys.map(function(ck){ return colMap[ck].minY; }).sort(function(a,b){return a-b;});
+      var globalBotY = allMinYArr[Math.floor(allMinYArr.length * 0.50)] * VOXEL;
+      console.log('[adv3d] globalBotY='+globalBotY+' roofTopY='+(roofH+1));
+
+      colKeys.forEach(function (ck) {
+        var sp = ck.split(','); var ix=+sp[0], iz=+sp[1];
+        var topIY = smoothed[ck];
+        var topY = (topIY + 1) * VOXEL;
+        var botY = globalBotY;   // uniform flat base
+        var x0=ix*VOXEL, x1=(ix+1)*VOXEL;
+        var z0=iz*VOXEL, z1=(iz+1)*VOXEL;
+
+        // Top face — always visible
+        quad(x0,topY,z0, x1,topY,z0, x1,topY,z1, x0,topY,z1, 0,1,0);
+
+        // Helper: neighbour top world-Y (or global base if absent)
+        function nbrTop(nk) { return smoothed[nk]!==undefined ? (smoothed[nk]+1)*VOXEL : globalBotY; }
+
+        // –X wall (faces west)
+        var wTop = nbrTop((ix-1)+','+iz);
+        if (wTop < topY) quad(x0,wTop,z1, x0,wTop,z0, x0,topY,z0, x0,topY,z1, -1,0,0);
+        // +X wall (faces east)
+        var eTop = nbrTop((ix+1)+','+iz);
+        if (eTop < topY) quad(x1,eTop,z0, x1,eTop,z1, x1,topY,z1, x1,topY,z0, 1,0,0);
+        // –Z wall (faces north)
+        var nTop = nbrTop(ix+','+(iz-1));
+        if (nTop < topY) quad(x1,nTop,z0, x0,nTop,z0, x0,topY,z0, x1,topY,z0, 0,0,-1);
+        // +Z wall (faces south)
+        var sTop = nbrTop(ix+','+(iz+1));
+        if (sTop < topY) quad(x0,sTop,z1, x1,sTop,z1, x1,topY,z1, x0,topY,z1, 0,0,1);
+
+        // Bottom face (ground underside — only for border columns)
+        quad(x0,botY,z1, x1,botY,z1, x1,botY,z0, x0,botY,z0, 0,-1,0);
+      });
+
+      var geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('normal',   new THREE.Float32BufferAttribute(nor, 3));
+      geo.setIndex(idx);
+
+      var mat = new THREE.MeshPhongMaterial({
+        color:     new THREE.Color(wallVec.x, wallVec.y, wallVec.z),
+        emissive:  new THREE.Color(wallVec.x*0.04, wallVec.y*0.04, wallVec.z*0.04),
+        shininess: 55,
+        specular:  new THREE.Color(0.20, 0.24, 0.36),
+        side:      THREE.FrontSide
+      });
+
+      if (advGroup) {
+        scene.remove(advGroup);
+        advGroup.traverse(function (o) {
+          if (o.geometry) o.geometry.dispose();
+          if (o.material) (Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.dispose();});
+        });
+        advGroup = null;
+      }
+
+      advGroup = new THREE.Group();
+      advGroup.add(new THREE.Mesh(geo, mat));
+
+      // ── 8. Hide raw mesh, show clean solid model ──────────────────────────────
+      modelRoot.visible = false;
+      document.getElementById("toggleMesh").style.display = "";
+      document.getElementById("toggleMesh").textContent = "Show mesh";
+      scene.add(advGroup);
+
+      var ld = document.getElementById("legend");
+      var r=Math.round(wallVec.x*255), g=Math.round(wallVec.y*255), b=Math.round(wallVec.z*255);
+      ld.innerHTML = '<h4>Advanced 3D · ' + buildingType + '</h4>' +
+        '<div class="lrow"><span class="lsw" style="background:rgba('+r+','+g+','+b+',1)"></span>Solid fill (' + colKeys.length + ' columns)</div>' +
+        '<div style="font-size:10px;opacity:.5;margin-top:4px">Column-filled · outliers removed · 1m grid</div>';
+      ld.classList.add("show");
+
+      fitView(advGroup);
+      status("Advanced 3D ready — " + colKeys.length + " columns · " + buildingType + ".", "ok");
+      post({ type: "mp-build3d-ready", meshes: colKeys.length, source: "face-mesh" });
+
+    } catch (e) {
+      status("Advanced 3D failed: " + (e.message || e), "err");
+      console.error(e);
+    }
+    btn.disabled = false;
+  };
+
+  // ---- route on the generated navmesh --------------------------------------
+  function drawRoute(from, to) {
+    lastFrom = from; lastTo = to;
+    if (!navMesh) { status("Generate the navigation mesh first.", "err"); return; }
+    if (routeLine) { scene.remove(routeLine); routeLine = null; }
+    markers.clear();
+
+    var q = new NavMeshRT.NavMeshQuery(navMesh);
+    q.defaultQueryHalfExtents = { x: 2, y: 2, z: 2 };
+    var a = q.findClosestPoint(from), b = q.findClosestPoint(to);
+    if (!a || !a.point) { status("Start is not on the generated navmesh.", "err"); return; }
+    if (!b || !b.point) { status("Destination is not on the generated navmesh.", "err"); return; }
+    var r = q.computePath(a.point, b.point);
+    var pts = (r && r.path) ? r.path : (Array.isArray(r) ? r : []);
+    if (!pts.length) { status("No path between those points.", "err"); return; }
+
+    var v = pts.map(function (p) { return new THREE.Vector3(p.x, p.y + 0.15, p.z); });
+    var len = 0; for (var i = 1; i < v.length; i++) len += v[i].distanceTo(v[i - 1]);
+
+    routeLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(v),
+      new THREE.LineBasicMaterial({ color: 0x1a73e8, linewidth: 3 }));
+    scene.add(routeLine);
+
+    var curve = new THREE.CatmullRomCurve3(v);
+    var tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, Math.max(16, v.length * 4), 0.6, 8, false),
+      new THREE.MeshBasicMaterial({ color: 0x1a73e8, depthTest: false }));
+    tube.renderOrder = 10; routeLine.add(tube);
+    mark(v[0], 0x2ecc40); mark(v[v.length - 1], 0xff4136);
+
+    status("Route: " + (Math.round(len * 10) / 10) + " m, " + v.length + " waypoints.", "ok");
+    post({ type: "mp-route", length_m: Math.round(len * 10) / 10,
+           path: pts.map(function (p) { return { x: p.x, y: p.y, z: p.z }; }) });
+  }
+  function mark(p, color) {
+    var m = new THREE.Mesh(new THREE.SphereGeometry(1.4, 16, 12),
+                           new THREE.MeshBasicMaterial({ color: color, depthTest: false }));
+    m.position.copy(p); m.renderOrder = 11; markers.add(m);
+  }
+
+  // ---- host messaging ------------------------------------------------------
+  function post(m) { try { parent.postMessage(m, "*"); } catch (e) { } }
+  addEventListener("message", function (ev) {
+    var m = ev.data || {};
+    if (m.type === "mp-pois") pois = m.pois || [];
+    else if (m.type === "mp-route") drawRoute(m.from, m.to);
+    else if (m.type === "mp-generate") document.getElementById("gen").click();
+    else if (m.type === "mp-build3d") document.getElementById("build3d").click();
+    else if (m.type === "mp-clear") {
+      if (routeLine) { scene.remove(routeLine); routeLine = null; }
+      markers.clear();
+    }
+  });
+  post({ type: "mp-ready" });
+})();
+</script>
+</body>
+</html>

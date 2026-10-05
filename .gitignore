@@ -1,0 +1,35 @@
+# Secrets — never commit the live root .env
+/.env
+/.env.local
+# Subdir .env files and local overrides (but NOT the symlinks dashboard/.env and platform/.env)
+dashboard/.env.local
+dashboard/.env.*.local
+platform/.env.local
+platform/.env.*.local
+*.log
+
+# Dashboard
+dashboard/node_modules/
+dashboard/dist/
+dashboard/dist-ssr/
+dashboard/.cursor/
+dashboard/.idea/
+
+# Platform Python
+platform/.venv/
+platform/__pycache__/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+platform/.env.local*
+
+# Platform data (large binary/generated files)
+platform/var/data/
+platform/var/media/
+
+# Platform navmesh dev overrides (committed intentionally if needed)
+platform/viewer/*_navmesh.navmesh
+
+# OS
+.DS_Store
+Thumbs.db

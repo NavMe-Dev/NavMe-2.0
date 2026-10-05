@@ -1,0 +1,48 @@
+# Render blueprint — https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: navme-dashboard
+    runtime: static
+    buildCommand: npm ci && cd mini3d-2d && npm ci && cd ../Tacoma_4926_3D_wayfinder && npm ci && cd .. && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /2d
+        destination: /2d/index.html
+      - type: rewrite
+        source: /3d-view
+        destination: /3d-view/index.html
+      - type: rewrite
+        source: /access
+        destination: /index.html
+      - type: rewrite
+        source: /access/*
+        destination: /index.html
+      - type: rewrite
+        source: /media
+        destination: /index.html
+      - type: rewrite
+        source: /media/*
+        destination: /index.html
+      - type: rewrite
+        source: /c
+        destination: /index.html
+      - type: rewrite
+        source: /c/*
+        destination: /index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: '20'
+      - key: VITE_SUPABASE_URL
+        value: https://znfwcohrpkiccibqcfpn.supabase.co
+      - key: VITE_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZndjb2hycGtpY2NpYnFjZnBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDUzNDMsImV4cCI6MjA4Njg4MTM0M30.owUVIY-uz7Cr4p83ZQ88QbsgrUfuZqKRiC7HZFIfoec
+      - key: VITE_MATTERPORT_SDK_KEY
+        value: 762iznhy6un3iztccf6bpc48a
+      - key: VITE_NAVME_STANDALONE
+        value: 'true'
+      - key: VITE_MULTISET_PROXY_URL
+        value: https://znfwcohrpkiccibqcfpn.supabase.co/functions/v1/multiset-proxy
