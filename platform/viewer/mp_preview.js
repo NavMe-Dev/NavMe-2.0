@@ -19,6 +19,7 @@ function wfDbg(level, source, message, meta) {
   let sweepIds = [];
   let sweepNodes = []; // {id,x,y,z} ordered, kind===sweep
   let routeDest = null; // final look target (last path node)
+  let destName = null;  // destination POI name for display
   let modelId = DEFAULT_MODEL;
   let applicationKey = "";
   let accessToken = "";  // X-WF-Access / ?access= for twin=pin
@@ -33,6 +34,7 @@ function wfDbg(level, source, message, meta) {
   let routeTotalM = null;             // route.total_m when provided (full path, info only)
   let cumDistM = [];                  // cumDistM[i] = meters along sweep path from start to sweep i
   let segDistM = [];                  // segDistM[i] = meters from sweep i → i+1 (last = to dest if any)
+  let tourPaceScale = 1;              // multiplies FLY/dwell timing: >1 slower (small route), <1 faster (big route)
 
   function $(id) { return document.getElementById(id); }
 
@@ -53,6 +55,22 @@ function wfDbg(level, source, message, meta) {
   }
 
   let overlayBound = false;
+  /** Back-fill elements the static index.html overlay may predate. */
+  function patchOverlayParity(ov) {
+    if (!ov) return;
+    if (!$("mpDest")) {
+      const bar = ov.querySelector(".mp-bar");
+      const title = bar && bar.querySelector(".mp-title");
+      if (bar && title) {
+        const d = document.createElement("div");
+        d.className = "mp-dest-label";
+        d.id = "mpDest";
+        d.hidden = true;
+        title.insertAdjacentElement("afterend", d);
+      }
+    }
+  }
+
   function ensureOverlay() {
     let ov = $("mpOverlay");
     if (!ov) {
@@ -67,6 +85,7 @@ function wfDbg(level, source, message, meta) {
       <div class="mp-panel">
         <header class="mp-bar">
           <div class="mp-title"><span class="ms">view_in_ar</span><span>Tour interior</span></div>
+          <div class="mp-dest-label" id="mpDest" hidden></div>
           <div class="mp-step" id="mpStep">—</div>
           <div class="mp-actions">
             <button type="button" class="mp-btn" id="mpPlay" aria-label="Play"><span class="ms">play_arrow</span></button>
@@ -85,6 +104,9 @@ function wfDbg(level, source, message, meta) {
       </div>`;
       document.body.appendChild(ov);
     }
+    // index.html also ships a static #mpOverlay. When that one is present the template
+    // above never runs, so anything added here must be back-filled.
+    patchOverlayParity(ov);
     ensureDirArrowMount();
     ensureDistHudMount();
     ensureGlassHud();
@@ -112,12 +134,33 @@ function wfDbg(level, source, message, meta) {
   function updateStep() {
     const el = $("mpStep");
     if (!el) return;
-    if (!sweepIds.length) { el.textContent = "No indoor sweeps"; return; }
-    el.textContent = `${Math.min(stepI + 1, sweepIds.length)} / ${sweepIds.length}`;
+    if (!sweepIds.length) { el.textContent = ""; return; }
+    if (stepI >= sweepIds.length) { el.textContent = ""; return; }
+    const rem = remainingDistM(stepI);
+    el.textContent = (rem != null && rem > 0.5) ? fmtMeters(rem) : "";
+  }
+
+  function updateDest() {
+    const el = $("mpDest");
+    if (!el) return;
+    if (destName) {
+      el.textContent = "→ " + destName;
+      el.hidden = false;
+    } else {
+      el.hidden = true;
+    }
   }
 
   function showcaseUrl(key, startSweep) {
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=0&hr=0&mls=2`;
+    // dh=1: Dollhouse must be enabled in the embed itself, or Mode.moveTo(DOLLHOUSE) from the
+    // SDK silently no-ops during the tour's cinematic opening shot (matches threed_nav.js's dh=1).
+    // f=0: hides Showcase's own floor-selector control. Without this, Inside mode starts
+    // pinned to Floor 1, and switching to Dollhouse inherits that same floor filter — the
+    // dollhouse opening shot renders only Floor 1, badge and all, instead of the whole
+    // building. The working Mattercraft build (threed_nav.js) carries this same param for
+    // exactly that reason; it never calls Floor.showAll() at all, because f=0 means there is
+    // no floor filter to begin with.
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
     return u;
@@ -624,9 +667,10 @@ function wfDbg(level, source, message, meta) {
     return raw;
   }
 
-  // Sample key turning points from navPath: FROM + up to (maxMid) sharpest turns + TO.
-  // Hard cap prevents dense paths from producing too many stops.
-  function rtSampleKeyPoints(pts, maxMid) {
+  // Sample stops from navPath: FROM + up to (maxTurns) sharpest turns + gap-fillers every
+  // maxGapM along long straight runs (so a long corridor isn't one giant uninterrupted jump)
+  // + TO. maxTotal is a safety cap — thins evenly (keeping FROM/TO) if gap-filling overshoots.
+  function rtSampleKeyPoints(pts, maxTurns, maxGapM, maxTotal) {
     if (pts.length <= 2) return pts.slice();
     // Score every interior point by how sharp the turn is (1 - dot product).
     const scored = [];
@@ -641,11 +685,31 @@ function wfDbg(level, source, message, meta) {
       const sharpness = 1 - dot; // 0 = straight, 2 = U-turn
       if (sharpness > 0.1) scored.push({ pt: pts[i], sharpness, i });
     }
-    // Keep the sharpest turns up to maxMid.
     scored.sort((a, b) => b.sharpness - a.sharpness);
-    const kept = scored.slice(0, maxMid);
-    kept.sort((a, b) => a.i - b.i); // restore path order
-    return [pts[0], ...kept.map(s => s.pt), pts[pts.length - 1]];
+    const keptIdx = new Set(scored.slice(0, maxTurns).map(s => s.i));
+    keptIdx.add(0);
+    keptIdx.add(pts.length - 1);
+
+    // Fill long straight gaps so no single hop spans more than maxGapM metres.
+    if (maxGapM > 0) {
+      let acc = 0;
+      for (let i = 1; i < pts.length - 1; i++) {
+        const a = pts[i - 1], b = pts[i];
+        acc += Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2 + ((b.z || 0) - (a.z || 0)) ** 2);
+        if (keptIdx.has(i)) { acc = 0; continue; }
+        if (acc >= maxGapM) { keptIdx.add(i); acc = 0; }
+      }
+    }
+
+    let orderedIdx = [...keptIdx].sort((a, b) => a - b);
+    // Safety cap — thin evenly (always keeping first/last) if gap-filling overshot.
+    if (maxTotal && orderedIdx.length > maxTotal) {
+      const stride = (orderedIdx.length - 1) / (maxTotal - 1);
+      const thinned = [];
+      for (let k = 0; k < maxTotal; k++) thinned.push(orderedIdx[Math.round(k * stride)]);
+      orderedIdx = [...new Set(thinned)];
+    }
+    return orderedIdx.map(i => pts[i]);
   }
 
   // When route.sweep_ids is empty but route.navPath exists:
@@ -665,8 +729,10 @@ function wfDbg(level, source, message, meta) {
     const byId = {};
     for (const s of rtSweeps) byId[s.sid] = s;
 
-    // Keep FROM + at most 3 sharpest turns + TO = max 5 scan points total.
-    const keyPts = rtSampleKeyPoints(pts, 3);
+    // FROM + up to 22 sharpest turns + a stop at least every 5m of straight corridor + TO,
+    // capped at 40 total stops — many more scan points than before so the tour reads as a
+    // walk through the space rather than a handful of long jumps.
+    const keyPts = rtSampleKeyPoints(pts, 22, 5, 40);
 
     // For each key waypoint, find the nearest scan point in Matterport Y-up space.
     const ids = [];
@@ -684,8 +750,15 @@ function wfDbg(level, source, message, meta) {
       return s ? { id: sid, x: s.position.x, y: -s.position.z, z: s.position.y } : { id: sid };
     });
     stepI = 0;
-    routeDest = sweepNodes[sweepNodes.length - 1] || null;
-    navPathTour = true; // use INSTANT transitions so tour finishes in < 5 s
+    // Point at the destination POI's own xyz when passed (more exact than the navPath's
+    // terminal point, which often stops at a doorway rather than the POI's in-room position).
+    if (route._destXYZ && route._destXYZ.x != null) {
+      routeDest = route._destXYZ;
+    } else {
+      const destPt = pts[pts.length - 1];
+      routeDest = { x: destPt.x, y: destPt.y, z: destPt.z || 0 };
+    }
+    navPathTour = true;
     buildSweepDistances({});
     updateStep();
     console.info("[MpPreview] Tour route from navPath:", ids.length, "key waypoints");
@@ -711,11 +784,15 @@ function wfDbg(level, source, message, meta) {
     sweepNodes = ids.map(id => byId.get(id) || { id });
     sweepIds = ids;
     stepI = 0;
-    // Final look target: last node on the full path (POI or last sweep)
-    routeDest = null;
-    for (let k = allNodes.length - 1; k >= 0; k--) {
-      const n = allNodes[k];
-      if (n && n.x != null && n.y != null) { routeDest = n; break; }
+    // Final look target: the destination POI's own xyz when the caller passed one — more
+    // exact than the path's terminal node, which often stops at a doorway/corridor point
+    // rather than the POI's actual in-room position. Falls back to the path-derived point.
+    routeDest = (route && route._destXYZ && route._destXYZ.x != null) ? route._destXYZ : null;
+    if (!routeDest) {
+      for (let k = allNodes.length - 1; k >= 0; k--) {
+        const n = allNodes[k];
+        if (n && n.x != null && n.y != null) { routeDest = n; break; }
+      }
     }
     if (!routeDest && sweepNodes.length) routeDest = sweepNodes[sweepNodes.length - 1];
     routeTotalM = (route && route.total_m != null && Number.isFinite(+route.total_m)) ? +route.total_m : null;
@@ -772,6 +849,20 @@ function wfDbg(level, source, message, meta) {
     } else {
       segDistM[n - 1] = 0;
     }
+    const totalM = cumDistM[n - 1] + (segDistM[n - 1] || 0);
+    tourPaceScale = computeTourPaceScale(totalM);
+  }
+
+  /** Big routes play faster (less dead time covering lots of ground); small routes play
+   *  slower (more cinematic lingering since there isn't much distance to cover anyway). */
+  function computeTourPaceScale(totalM) {
+    if (!Number.isFinite(totalM) || totalM <= 0) return 1;
+    const SHORT_M = 20, SHORT_SCALE = 1.5;   // short hop between neighbouring rooms
+    const LONG_M = 200, LONG_SCALE = 0.6;    // long cross-building trek
+    if (totalM <= SHORT_M) return SHORT_SCALE;
+    if (totalM >= LONG_M) return LONG_SCALE;
+    const t = (totalM - SHORT_M) / (LONG_M - SHORT_M);
+    return SHORT_SCALE + (LONG_SCALE - SHORT_SCALE) * t;
   }
 
   /** Remaining meters from stop i to end of tour (sweeps + final dest leg). */
@@ -1015,16 +1106,6 @@ function wfDbg(level, source, message, meta) {
     return yawSdk(a, b);
   }
 
-  /** Direction of travel while FLY-arriving onto sweep i (prev → i). */
-  function headingTravel(i) {
-    if (i > 0) {
-      const a = modelToSdk(sweepNodes[i - 1]);
-      const b = modelToSdk(sweepNodes[i]);
-      const y = yawSdk(a, b);
-      if (y != null) return y;
-    }
-    return headingToward(i);
-  }
 
   async function sdkSweepPosition(id) {
     if (!mpSdk || !id) return null;
@@ -1082,6 +1163,14 @@ function wfDbg(level, source, message, meta) {
     if (!from || !to) return;
     const yaw = yawSdk(from, to);
     if (yaw == null) return;
+
+    // moveTo() already set this same look-ahead heading as the in-flight rotation target,
+    // so the camera should already be facing here — skip if close to avoid any perceptible
+    // residual snap on arrival (this call is now just a safety net, not the primary turn).
+    try {
+      const got = await getPoseYaw();
+      if (got != null && Math.abs(normDeltaDeg(yaw - got)) < 6) return;
+    } catch (_) { /* ignore */ }
     const target = { x: to.x, y: from.y, z: to.z }; // level pitch
 
     // Prefer smooth setRotation with Showcase −Z forward yaw; lookAt recovers if pose still reverse.
@@ -1221,6 +1310,7 @@ function wfDbg(level, source, message, meta) {
     }
     try {
       mpSdk = await window.MP_SDK.connect(iframe, applicationKey, "");
+      window.__mpSdk = mpSdk;   // debug handle for console inspection
       return mpSdk;
     } catch (e) {
       connectError = (e && (e.message || String(e))) || "SDK connect failed";
@@ -1267,28 +1357,46 @@ function wfDbg(level, source, message, meta) {
     return sweepIds;
   }
 
-  /** FLY duration from hop length (metres). Short neighbour hops stay snappy; long shortcut jumps slow down. */
+  /** FLY duration from hop length (metres). Longer, sweeping pans feel more like a tracked
+   *  movie shot than a snap-cut; short neighbour hops still stay reasonably brisk. Scaled by
+   *  tourPaceScale so the whole tour speeds up on big routes and slows down on small ones. */
   function flyTransitionMs(hopM) {
-    if (hopM == null || !Number.isFinite(hopM) || hopM <= 0) return 1200;
-    if (hopM < 1.5) return 900;
-    if (hopM < 4) return 1400;
-    if (hopM < 8) return 2200;
-    if (hopM < 15) return 3000;
-    return 3800; // cap — very long LOS shortcuts
+    let base;
+    if (hopM == null || !Number.isFinite(hopM) || hopM <= 0) base = 1400;
+    else if (hopM < 1.5) base = 1100;
+    else if (hopM < 4) base = 1700;
+    else if (hopM < 8) base = 2600;
+    else if (hopM < 15) base = 3600;
+    else base = 4400; // cap — very long LOS shortcuts
+    return Math.round(base * tourPaceScale);
   }
 
   async function moveTo(i) {
     if (!mpSdk || i < 0 || i >= sweepIds.length) return false;
     const id = sweepIds[i];
     const tr = mpSdk.Sweep.Transition;
-    // navPathTour: short FLY so Matterport has time to load panorama textures.
+    // navPathTour: same distance-scaled cinematic FLY as the standard branch — this used
+    // to be a hardcoded fast 600ms regardless of hop length, which read as "teleporting".
     if (navPathTour) {
+      const isLastStop = i === sweepIds.length - 1;
+      const hopM = (i > 0 && segDistM[i - 1] != null) ? +segDistM[i - 1] : 0;
+      let tFly = flyTransitionMs(hopM);
+      if (isLastStop && i > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500);
+      // Rotate toward the NEXT waypoint (look-ahead) DURING the flight itself, so the turn
+      // happens smoothly mid-transit and the camera lands already facing where it's going
+      // next — instead of arriving facing backward and snap-rotating after stopping.
+      const navOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
+      const hNav = headingToward(i);
+      if (hNav != null && Number.isFinite(hNav)) navOpts.rotation = { x: 0, y: hNav };
       try {
-        await mpSdk.Sweep.moveTo(id, { transition: (tr && tr.FLY) || "transition.fly", transitionTime: 600 });
+        await mpSdk.Sweep.moveTo(id, navOpts);
       } catch (e) {
         console.warn("Sweep.moveTo failed", id, e);
         return false;
       }
+      // Safety-net correction only — the in-flight rotation above should already have
+      // landed on this heading, so faceAlongRoute is a no-op unless something drifted.
+      try { await faceAlongRoute(i); } catch (_) { /* ignore */ }
       stepI = i;
       updateStep();
       try { await updateDirArrow(i); } catch (_) { /* ignore */ }
@@ -1297,9 +1405,13 @@ function wfDbg(level, source, message, meta) {
     }
     // Standard FLY transition for routes with server-provided sweep IDs.
     const hopM = (i > 0 && segDistM[i - 1] != null) ? +segDistM[i - 1] : 0;
-    const tFly = i === 0 ? 1000 : flyTransitionMs(hopM);
+    const isLastStop = i === sweepIds.length - 1;
+    let tFly = i === 0 ? Math.round(1000 * tourPaceScale) : flyTransitionMs(hopM);
+    if (isLastStop && i > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500); // slower arrival at destination
     const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
-    const h = headingTravel(i);
+    // Rotate toward the NEXT waypoint (look-ahead) during the flight so the turn happens
+    // mid-transit, landing already facing onward instead of snap-rotating after arrival.
+    const h = headingToward(i);
     if (h != null && Number.isFinite(h)) opts.rotation = { x: 0, y: h };
     try {
       await mpSdk.Sweep.moveTo(id, opts);
@@ -1350,9 +1462,11 @@ function wfDbg(level, source, message, meta) {
       // Stay facing next waypoint only (3A) — no orbit peek / left-right wiggle
       try { await updateDirArrow(i); } catch (_) { /* ignore */ }
       try { updateDistHud(i); } catch (_) { /* ignore */ }
-      // navPathTour: INSTANT jumps with zero dwell — the whole route finishes in < 5 s.
-      // Standard: brief dwell for textures / readability.
-      await new Promise(r => setTimeout(r, navPathTour ? 200 : (i < 2 ? 500 : 300)));
+      // Short dwell only — FLY transitions are long enough to read the space mid-flight,
+      // so a short dwell keeps consecutive hops feeling like one continuous pan. Scaled by
+      // tourPaceScale (clamped) so it stays in step with the FLY speed.
+      const dwellScale = Math.max(0.5, Math.min(1.6, tourPaceScale));
+      await new Promise(r => setTimeout(r, Math.round((i < 2 ? 400 : 220) * dwellScale)));
     }
     if (playing && !stopped) {
       playing = false;
@@ -1403,6 +1517,11 @@ function wfDbg(level, source, message, meta) {
         nodes: (route && route.nodes) || [],
         total_m: (route && route.total_m != null) ? route.total_m : undefined,
         links: (route && route.links) || undefined,
+        navPath: (route && route.navPath) || undefined,
+        smoothed: (route && route.smoothed) || undefined,
+        _destXYZ: (route && route._destXYZ) || undefined,
+        _destName: (route && route._destName) || undefined,
+        _fromName: (route && route._fromName) || undefined,
       },
       returnUrl: location.href,
       cfg: {
@@ -1789,6 +1908,7 @@ function wfDbg(level, source, message, meta) {
       if (handoffToTourPage(route || {})) return;
     }
     const gen = ++openGen;
+    destName = (route && route._destName) || null;
     ensureOverlay();
     const ov = $("mpOverlay");
     ov.hidden = false;
@@ -1799,6 +1919,7 @@ function wfDbg(level, source, message, meta) {
     } catch (_) { document.body.classList.add("mp-mobile"); }
     setStatus("Loading digital twin…");
     updateStep();
+    updateDest();
 
     try {
       await resolveConfig();
@@ -1820,9 +1941,17 @@ function wfDbg(level, source, message, meta) {
       setStatus("No indoor sweeps on this route — outdoor-only segments are skipped. Showcase is open for manual look-around.", true);
     }
 
-    const url = showcaseUrl(applicationKey, ids[0] || null);
+    // No starting sweep on the MAIN iframe load — Matterport's own default with no ss=
+    // param is Dollhouse with no floor selected (confirmed against a bare /show/?m= link),
+    // which is exactly the opening shot we want. Forcing ss=<sweep> here was what caused
+    // the Inside-mode-at-a-floor flash before our JS even got a chance to run: that flash
+    // was the iframe's OWN initial render, which happens before Mode.moveTo/Floor.showAll
+    // can execute, so no amount of reordering those calls could have fixed it.
+    const url = showcaseUrl(applicationKey, null);
     const tab = $("mpOpenTab");
-    if (tab) tab.href = url;
+    // The "open in new tab" link is separate manual exploration — still jump it to the
+    // route's start sweep for convenience there.
+    if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null);
 
     const iframe = $("mpFrame");
     mpSdk = null;
@@ -1859,6 +1988,7 @@ function wfDbg(level, source, message, meta) {
 
     setStatus("Waiting for twin to be ready…");
     const ready = await waitPlaying(sdk, 90000, (phase) => {
+      // User needs to tap the Matterport "Enter" launch screen before anything else can run.
       setStatus(
         "Tap Enter inside the Matterport window to leave the dark launch screen" +
         (phase ? " (" + phase.replace(/^appphase\./, "") + ")" : "") +
@@ -1875,72 +2005,20 @@ function wfDbg(level, source, message, meta) {
       return;
     }
 
-    // ── navPath case: compute route early so we can fly in from dollhouse ────────
-    const willComputeFromNavPath = !sweepIds.length && route &&
-      (route.navPath || route.smoothed || route.nodes);
+    // ── Step 1: View Dollhouse — same as clicking Showcase's own "View Dollhouse" button. ──
+    setStatus("Entering building…");
+    try {
+      const Mode = sdk.Mode;
+      if (Mode && Mode.moveTo && Mode.Mode) {
+        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+      }
+    } catch (e) { console.warn("[Tour] dollhouse moveTo failed", e && (e.message || e)); }
+    if (gen !== openGen) return;
 
-    if (willComputeFromNavPath) {
-      setStatus("Computing interior route…");
+    // ── Compute route while the dollhouse view is up ─────────────
+    if (!sweepIds.length && route && (route.navPath || route.smoothed || route.nodes)) {
       await fillSweepIdsFromNavPath(sdk, route);
-      if (gen !== openGen) return;
-    }
-
-    // ── Enter inside view ─────────────────────────────────────────────────────
-    if (sweepIds.length && willComputeFromNavPath) {
-      // Step 1: Switch to DOLLHOUSE so the user sees the 3D overview briefly.
-      setStatus("Entering building…");
-      try {
-        const Mode = sdk.Mode;
-        if (Mode && Mode.moveTo && Mode.Mode) {
-          const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-          await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined }).catch(() => {});
-        }
-      } catch (_) { /* ignore */ }
-      await new Promise(r => setTimeout(r, 800));
-      if (gen !== openGen) return;
-
-      // Step 2: FLY into INSIDE mode — Matterport animates the zoom-in from dollhouse.
-      try {
-        const Mode = sdk.Mode;
-        if (Mode && Mode.moveTo && Mode.Mode) {
-          const inside = Mode.Mode.INSIDE || Mode.Mode.Inside || "mode.inside";
-          await Mode.moveTo(inside, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined }).catch(() =>
-            Mode.moveTo(inside)
-          );
-        }
-      } catch (e) {
-        console.warn("Mode.moveTo INSIDE failed", e);
-      }
-      // Let WebGL paint the first pano.
-      await new Promise(r => setTimeout(r, 1200));
-      if (gen !== openGen) return;
-
-      // Step 3: FLY to the FROM nearest scan point (sweepIds[0]).
-      try {
-        const tr = sdk.Sweep && sdk.Sweep.Transition;
-        await sdk.Sweep.moveTo(sweepIds[0], {
-          transition: (tr && tr.FLY) || "transition.fly",
-          transitionTime: 1500
-        });
-      } catch (_) { /* ignore — play() starts from stepI=0 anyway */ }
-      await new Promise(r => setTimeout(r, 500));
-      if (gen !== openGen) return;
-    } else {
-      // Standard flow: force pano (Inside) mode for routes with server-provided sweep IDs.
-      try {
-        const Mode = sdk.Mode;
-        if (Mode && Mode.moveTo && Mode.Mode) {
-          setStatus("Switching to inside view…");
-          const inside = Mode.Mode.INSIDE || Mode.Mode.Inside || "mode.inside";
-          await Mode.moveTo(inside, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined }).catch(() =>
-            Mode.moveTo(inside)
-          );
-        }
-      } catch (e) {
-        console.warn("Mode.moveTo INSIDE failed", e);
-      }
-      // Settle so WebGL paints the first pano (esp. iOS)
-      await new Promise(r => setTimeout(r, 1200));
       if (gen !== openGen) return;
     }
 
@@ -1957,6 +2035,34 @@ function wfDbg(level, source, message, meta) {
 
     const tab2 = $("mpOpenTab");
     if (tab2) tab2.href = showcaseUrl(applicationKey, aligned[0] || null);
+
+    // Give the dollhouse view a moment on screen before walking in, same as a person
+    // pausing there after clicking the button.
+    await new Promise(r => setTimeout(r, 1500));
+    if (gen !== openGen) return;
+
+    // ── Step 2: Walkthrough — fly to the first scan point on the route, same as clicking
+    // Showcase's "walk" button at that spot. Sweep.moveTo switches Showcase out of
+    // Dollhouse mode on its own. ──
+    const h0 = headingToward(0);
+    console.info("[Tour] Step 2: walkthrough at first sweep", aligned[0], "heading", h0);
+    try {
+      const tr = sdk.Sweep && sdk.Sweep.Transition;
+      const entryOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: Math.round(3000 * tourPaceScale) };
+      if (h0 != null && Number.isFinite(h0)) entryOpts.rotation = { x: 0, y: h0 };
+      await sdk.Sweep.moveTo(aligned[0], entryOpts);
+    } catch (_) { /* ignore — play() covers it */ }
+    await new Promise(r => setTimeout(r, 700));
+    if (gen !== openGen) return;
+
+    // Step 3: Smooth camera tilt to face along the route toward the next waypoint.
+    console.info("[Tour] Step 3: faceAlongRoute(0)");
+    try { await faceAlongRoute(0); } catch (_) { /* ignore */ }
+    if (gen !== openGen) return;
+
+    // play() starts from sweep index 1 — we already landed at sweep 0 above.
+    stepI = 1;
+    updateStep();
     setStatus("Starting interior tour…" + (document.body.classList.contains("mp-mobile")
       ? " If the view stays black, tap the open-in-new icon for a full Matterport window."
       : ""));

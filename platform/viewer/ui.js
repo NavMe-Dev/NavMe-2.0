@@ -976,6 +976,15 @@ function wfDbg(level, source, message, meta) {
           ? (s.toFloor ? t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) }).replace(/^\s*/, "") || wf.floorLabel(s.toFloor) : t("viewer.catElevator"))
           : `${/\bup\b/.test(s.text) ? t("viewer.up") : t("viewer.down")}${s.toFloor && s.toFloor !== (s.pt && s.pt.floor) ? t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) }) : ""}`;
         extra = `<div class="fcard">${th ? `<img src="${th}" alt="${esc(alt)}">` : `<span class="ms">${ic}</span>`}<div><b>${s.type === "elevator" ? esc(t("viewer.catElevator")) + (s.toFloor ? esc(t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) })) : "") : esc(title)}</b><div class="muted">${esc(s.text.replace(/^Take (the )?/, ""))}</div></div></div>`;
+      } else {
+        // Plain turn/straight/arrive steps: same nearestSweep + thumbFor lookup as
+        // above, just without the stairs/elevator title card — a photo only when one
+        // actually exists for that scan point (most mid-corridor turns won't have one;
+        // thumbnails are only generated at POI and stair sweeps, see steps/thumbs.py).
+        // Routing/navigation logic is untouched — this only adds a display, same as
+        // the stairs/elevator case already did.
+        const sw = s.pt ? nearestSweep(s.pt) : null, th = sw && thumbFor(sw.id);
+        if (th) extra = `<div class="fcard plain"><img src="${th}" alt="${esc(t("viewer.viewAtTurn") || "View at this turn")}"></div>`;
       }
       return `<li class="${s.type}" data-i="${i}" tabindex="0" role="button" aria-label="${esc(t("viewer.stepN", { n: i + 1, text: s.text }))}${s.dist > 0.5 ? esc(t("viewer.afterMetres", { m: Math.round(s.dist) })) : ""}"><span class="si"><span class="ms ${s.type === "arrive" ? "fill" : ""}">${s.icon}</span></span>
         <div style="flex:1;min-width:0"><div class="st1">${esc(s.text)}</div>${s.dist > 0.5 ? `<div class="st2">${fmtDist(s.dist)}</div>` : ""}${extra}</div></li>`;
@@ -1017,7 +1026,16 @@ function wfDbg(level, source, message, meta) {
         toast(t("viewer.tourUnavailable") || "Tour unavailable");
         return;
       }
-      if (window.MpPreview) window.MpPreview.open(S.route);
+      if (window.MpPreview) window.MpPreview.open(Object.assign({}, S.route, {
+        _destName: S.to && S.to.name ? S.to.name : null,
+        _fromName: S.from === "me" ? "Your Location" : (S.from && S.from.name ? S.from.name : null),
+        // Exact destination POI position — lets the tour's final-stop camera face the
+        // actual POI rather than wherever the routed path happens to end (e.g. a doorway).
+        // expected_x/y/z is a separate, curated "look here" anchor (from Supabase
+        // navme_pois.expected_pos_x/y/z) — prefer it over the POI's general x/y/z when set.
+        _destXYZ: (S.to && S.to !== "me" && S.to.expected_x != null) ? { x: S.to.expected_x, y: S.to.expected_y, z: S.to.expected_z }
+          : (S.to && S.to !== "me" && S.to.x != null) ? { x: S.to.x, y: S.to.y, z: S.to.z != null ? S.to.z : 0 } : null
+      }));
       else toast(t("viewer.tourUnavailable"));
     };
     if ($("dWalkNav")) $("dWalkNav").onclick = () => {
@@ -1044,12 +1062,46 @@ function wfDbg(level, source, message, meta) {
     const F = (s.type === "stairs" || s.type === "elevator") && s.toFloor ? s.pt.floor : s.pt.floor;
     if (F && F !== wf.currentFloor()) wf.setFloor(F);
     const ll = wf.modelToLL(s.pt.x, s.pt.y);
-    if (wf.is3D()) wf.getView3d().goTo({ target: new wf.esri.Point({ longitude: ll[0], latitude: ll[1], z: wf.modelZtoAbs(s.pt.z) }), zoom: 22.3, tilt: 55 }, { duration: 700 }).catch(() => { });
-    else wf.view2d.goTo({ center: ll, zoom: Math.max(wf.view2d.zoom, 22.3) }, { duration: 700 }).catch(() => { });
+    // Same chase-cam as the turn-by-turn nav banner and the full route preview —
+    // tapping a step in the list should land on exactly the view those give you.
+    const nxt = S.navSteps[i + 1];
+    const hd = nxt && nxt.pt ? turf.bearing(turf.point(ll), turf.point(wf.modelToLL(nxt.pt.x, nxt.pt.y))) : undefined;
+    if (wf.is3D()) wf.getView3d().goTo(tourCameraFor(ll, wf.modelZtoAbs(s.pt.z), hd), { duration: 700 }).catch(() => { });
+    else wf.view2d.goTo({ center: ll, zoom: Math.max(wf.view2d.zoom, TOUR_ZOOM) }, { duration: 700 }).catch(() => { });
     return ll;
   }
 
   // ---------------- navigation mode (simulated) ----------------
+  // Shared 3D "tour" camera framing — every walkthrough camera (step-through in
+  // navGo, continuous fly-through in preview3D) uses this same distance/tilt, so
+  // the route reads the same way and sits at the same zoomed-in angle regardless
+  // of which one is driving the view.
+  const TOUR_ZOOM = 22.5;         // 2D fallback zoom (MapView has no 3D camera)
+  // 0=straight down, 90=horizon. Pitching DOWN (lower number, toward 0) was the wrong
+  // direction — that's more overhead/top-down, less of the vertical space in frame.
+  // Pitched UP instead, close to horizon, so the ceiling/upper space is visible, not
+  // just the floor ahead.
+  const TOUR_TILT = 78;
+  const TOUR_BACK_M = 12;         // camera sits this far BEHIND the route point...
+  const TOUR_UP_M = TOUR_BACK_M * Math.tan((90 - TOUR_TILT) * Math.PI / 180); // ...and this far above it, so the point stays centred at TOUR_TILT
+  /**
+   * Explicit chase-cam Camera (position+heading+tilt) for a 3D tour step.
+   *
+   * `view.goTo({target, heading, tilt, zoom})` looks like the natural way to do this,
+   * but Esri silently drops the `zoom` the moment `target` carries an explicit z (which
+   * it must, here, to sit at the right floor rather than bare terrain) — the camera was
+   * landing many times farther back than asked, which is why "zoom in more" never
+   * actually zoomed in no matter how high the number went. Building the camera's eye
+   * position ourselves — a fixed distance behind the point, opposite the direction of
+   * travel, at a matching height for TOUR_TILT — sidesteps that entirely: the distance
+   * is exactly what we set it to, every single time, and the route ahead points straight
+   * up the screen because the camera is looking along the same heading it's travelling.
+   */
+  function tourCameraFor(lonlat, floorAbsZ, headingDeg) {
+    const hd = ((headingDeg || 0) % 360 + 360) % 360;
+    const eye = turf.destination(turf.point(lonlat), TOUR_BACK_M / 1000, (hd + 180) % 360, { units: "kilometers" }).geometry.coordinates;
+    return { position: { longitude: eye[0], latitude: eye[1], z: floorAbsZ + TOUR_UP_M }, heading: hd, tilt: TOUR_TILT };
+  }
   function bindNav() {
     $("navNext").onclick = () => navGo(S.navI + 1);
     $("navPrev").onclick = () => navGo(S.navI - 1);
@@ -1085,13 +1137,18 @@ function wfDbg(level, source, message, meta) {
     if (at) {
       const a = wf.modelToLL(at.x, at.y), b = s.pt ? wf.modelToLL(s.pt.x, s.pt.y) : a;
       const hd = (a[0] !== b[0] || a[1] !== b[1]) ? turf.bearing(turf.point(a), turf.point(b)) : null;
-      S.sim = { lonlat: a, floor: at.floor, heading: hd };
+      // Carry the last real heading forward instead of snapping to north (0°) when a
+      // step has nowhere new to point at (e.g. the arrival step) — the route should
+      // never visibly spin to face away from the direction of travel.
+      const hdFinal = hd != null ? hd : ((S.sim && S.sim.heading != null) ? S.sim.heading : 0);
+      S.sim = { lonlat: a, floor: at.floor, heading: hdFinal };
       if (at.floor && at.floor !== wf.currentFloor()) wf.setFloor(at.floor);
       const v = wf.view();
-      // Step-through zooms in close enough to read the turn itself, not the whole floor.
-      const STEP_ZOOM = 22.3;
-      if (wf.is3D()) v.goTo({ target: new wf.esri.Point({ longitude: a[0], latitude: a[1], z: wf.modelZtoAbs(at.z) }), heading: hd || 0, tilt: 62, zoom: STEP_ZOOM }, { duration: 800 }).catch(() => { });
-      else v.goTo({ center: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], zoom: STEP_ZOOM, rotation: 0 }, { duration: 800 }).catch(() => { });
+      // Same chase-cam framing as the full route preview — every 3D "tour" camera
+      // (step-through here, continuous fly-through in preview3D) now sits at the
+      // same distance/angle instead of each using its own values.
+      if (wf.is3D()) v.goTo(tourCameraFor(a, wf.modelZtoAbs(at.z), hdFinal), { duration: 800 }).catch(() => { });
+      else v.goTo({ center: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], zoom: TOUR_ZOOM, rotation: 0 }, { duration: 800 }).catch(() => { });
       placeMe();
     }
     if (s.type === "arrive") toast(t("viewer.youArrived", { name: nameOf(S.to) }));
@@ -1105,13 +1162,22 @@ function wfDbg(level, source, message, meta) {
     if (!S.route || S.previewing) return;
     S.previewing = true; toast(t("viewer.previewingRoute"), t("viewer.stop"), () => { S.previewing = false; });
     await toggle3D(true);
+    // Keep the "All" floor button active for the whole preview — switching to each
+    // point's own floor (as this used to) hid every other floor in turn, which read
+    // as floors popping in and out while the camera flew through them.
+    if (wf.currentFloor() !== "all") wf.setFloor("all");
     const v = wf.getView3d(); const pts = S.route.navPath || S.route.smoothed;
+    // Carried across steps so the camera always keeps facing the way the route is
+    // travelling — the route segment ahead stays pointing straight up the screen
+    // instead of the heading resetting (and the view visibly swinging) on the last
+    // point of a leg, where there is no further point to aim at.
+    let lastHeading;
     for (let i = 0; i < pts.length && S.previewing; i++) {
       const p = pts[i], q = pts[Math.min(i + 1, pts.length - 1)];
       const a = wf.modelToLL(p.x, p.y), b = wf.modelToLL(q.x, q.y);
-      const hd = i < pts.length - 1 && (a[0] !== b[0] || a[1] !== b[1]) ? turf.bearing(turf.point(a), turf.point(b)) : undefined;
-      if (p.floor !== wf.currentFloor() && !p.outdoor) wf.setFloor(p.floor);
-      try { await v.goTo({ target: new wf.esri.Point({ longitude: a[0], latitude: a[1], z: wf.modelZtoAbs(p.z) + 1 }), heading: hd, tilt: 68, zoom: 21.3 }, { duration: 1300, easing: "linear" }); } catch (e) { break; }
+      const hd = i < pts.length - 1 && (a[0] !== b[0] || a[1] !== b[1]) ? turf.bearing(turf.point(a), turf.point(b)) : lastHeading;
+      if (hd != null) lastHeading = hd;
+      try { await v.goTo(tourCameraFor(a, wf.modelZtoAbs(p.z) + 1, hd), { duration: 1300, easing: "linear" }); } catch (e) { break; }
     }
     S.previewing = false; hideToast();
   }
@@ -1444,6 +1510,44 @@ function wfDbg(level, source, message, meta) {
     document.querySelectorAll(".sty").forEach(b => b.onclick = () => setStyle(b.dataset.style));
     $("togPhoto").onchange = () => { $("photoPlan").checked = $("togPhoto").checked; $("photoPlan").dispatchEvent(new Event("change")); };
     $("togGraph").onchange = () => wf.showGraph($("togGraph").checked);
+    $("togHideShell").onchange = () => wf.setHideShell($("togHideShell").checked);
+    $("togHideOsmBlocks").onchange = () => wf.setHideOsmBlocks($("togHideOsmBlocks").checked);
+    $("togHideMesh").onchange = () => wf.setHideMesh($("togHideMesh").checked);
+    $("meshEdgeSwatches").querySelectorAll(".swatch").forEach(sw => sw.onclick = () => {
+      // "Live" has no colour yet until the scan has loaded and been averaged.
+      if (sw.id === "meshEdgeLive" && !wf.meshLiveColor) return;
+      $("meshEdgeSwatches").querySelectorAll(".swatch").forEach(o => { o.classList.remove("on"); o.setAttribute("aria-pressed", "false"); });
+      sw.classList.add("on"); sw.setAttribute("aria-pressed", "true");
+      wf.setMeshEdgeColor(sw.dataset.rgb.split(",").map(Number));
+    });
+    // Fill in "Live" as soon as the scan's own average colour is known (may be
+    // before or after this panel is opened — loadMesh() can finish either way).
+    wf.onMeshLiveColor = (rgb) => {
+      const sw = $("meshEdgeLive"); if (!sw) return;
+      sw.dataset.rgb = rgb.join(",");
+      sw.style.background = `rgb(${rgb.join(",")})`;
+      sw.disabled = false; sw.title = t("viewer.meshBorderLive");
+    };
+    if (wf.meshLiveColor) wf.onMeshLiveColor(wf.meshLiveColor);
+    $("meshEdgeCustom").oninput = () => {
+      $("meshEdgeSwatches").querySelectorAll(".swatch").forEach(o => { o.classList.remove("on"); o.setAttribute("aria-pressed", "false"); });
+      const hex = $("meshEdgeCustom").value;
+      const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+      wf.setMeshEdgeColor(rgb);
+    };
+    // Coalesced to one update per animation frame — dragging fired setMeshEdgeIntensity
+    // (which replaces the whole mesh symbol) on every native input event, often several
+    // per frame, which is what was actually causing the lag while dragging.
+    let meshIntensityRaf = 0;
+    $("meshEdgeIntensity").oninput = () => {
+      const v = +$("meshEdgeIntensity").value;
+      $("meshEdgeIntensityVal").textContent = v + "%";
+      if (meshIntensityRaf) return;
+      meshIntensityRaf = requestAnimationFrame(() => {
+        meshIntensityRaf = 0;
+        wf.setMeshEdgeIntensity(+$("meshEdgeIntensity").value / 100);
+      });
+    };
     document.addEventListener("pointerdown", (e) => { const p = $("layersPop"); if (!p.hidden && !p.contains(e.target) && !$("btnLayers").contains(e.target)) closePop(); });
   }
   function closePop() { $("layersPop").hidden = true; }

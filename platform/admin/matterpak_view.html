@@ -32,7 +32,6 @@
   <button id="gen">Generate navmesh</button>
   <button id="toggle" class="sec" disabled>Hide navmesh</button>
   <button id="build3d" class="build3d">Build 3D</button>
-  <button id="build3dTexture" class="build3d" style="background:#6f42c1">Use Texture</button>
   <button id="build3dAdv" class="build3d" style="background:#b08800">Advanced 3D</button>
   <button id="toggleMesh" class="sec" style="display:none">Hide mesh</button>
   <button id="fit" class="sec">Fit view</button>
@@ -54,7 +53,8 @@
   "use strict";
   var THREE = WFThree.THREE, GLTFLoader = WFThree.GLTFLoader, OrbitControls = WFThree.OrbitControls;
   var Q = new URLSearchParams(location.search);
-  var SLUG = Q.get("slug") || "", TOKEN = Q.get("token") || "";
+  var SLUG = Q.get("slug") || Q.get("b") || "";
+  var TOKEN = Q.get("token") || localStorage.getItem("wf_admin_token") || "";
   var PUBLIC = "/api/v1/public/buildings/" + encodeURIComponent(SLUG) + "/data/";
   var D = function (f) { return "/api/v1/admin/buildings/" + encodeURIComponent(SLUG) + "/files/out/" + f + "?token=" + encodeURIComponent(TOKEN); };
 
@@ -264,47 +264,91 @@
       var minY   = bbox.min.y;
       var rangeY = Math.max(0.1, bbox.max.y - bbox.min.y);
 
-      // ── 7. Single flat colour — same for every face, dynamic per building type ─
+      // ── 7. Per-mesh material: vertical surfaces get fine line pattern, horizontal get solid ─
+      // Classify each mesh by its geometry normals:
+      //   avgAbsNormalY > 0.6  → horizontal (floor/ceiling) → solid flat colour
+      //   avgAbsNormalY < 0.4  → vertical (wall/glass)      → tiny vertical stripe pattern
+      //   in-between           → treat as vertical
+
+      function avgAbsNormalY(geo) {
+        var nAttr = geo.attributes && geo.attributes.normal;
+        if (!nAttr || !nAttr.count) return 0.5;
+        var sum = 0, step = Math.max(1, Math.floor(nAttr.count / 200));
+        var n = 0;
+        for (var i = 0; i < nAttr.count; i += step) {
+          sum += Math.abs(nAttr.getY(i)); n++;
+        }
+        return n ? sum / n : 0.5;
+      }
+
+      // Shared vertex shader
+      var VS = `
+        varying vec3 vWorldPos;
+        void main() {
+          vec4 wp = modelMatrix * vec4(position, 1.0);
+          vWorldPos = wp.xyz;
+          gl_Position = projectionMatrix * viewMatrix * wp;
+        }
+      `;
+
+      // Horizontal (floor/ceiling) — solid flat colour, no stripe
+      var flatMat = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        uniforms: {
+          color:   { value: new THREE.Color().setRGB(wallVec.x, wallVec.y, wallVec.z) },
+          opacity: { value: 0.85 }
+        },
+        vertexShader: VS,
+        fragmentShader: `
+          uniform vec3  color;
+          uniform float opacity;
+          varying vec3  vWorldPos;
+          void main() { gl_FragColor = vec4(color, opacity); }
+        `
+      });
+
+      // Vertical (wall/glass) — very narrow vertical lines, close-spaced
+      var glassMat = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        uniforms: {
+          lineWidth:  { value: 0.012 },   // width of each line  (metres)
+          lineGap:    { value: 0.055 },   // gap between lines   (metres)
+          lineColor:  { value: new THREE.Color(0.55, 0.82, 0.95) },
+          fillColor:  { value: new THREE.Color(0.18, 0.45, 0.72) },
+          lineOpacity: { value: 0.90 },
+          fillOpacity: { value: 0.18 }
+        },
+        vertexShader: VS,
+        fragmentShader: `
+          uniform float lineWidth;
+          uniform float lineGap;
+          uniform vec3  lineColor;
+          uniform vec3  fillColor;
+          uniform float lineOpacity;
+          uniform float fillOpacity;
+          varying vec3  vWorldPos;
+          void main() {
+            float period = lineWidth + lineGap;
+            float x = mod(vWorldPos.x, period);
+            float isLine = step(0.0, x) - step(lineWidth, x);
+            vec3  col = mix(fillColor, lineColor, isLine);
+            float op  = mix(fillOpacity, lineOpacity, isLine);
+            gl_FragColor = vec4(col, op);
+          }
+        `
+      });
+
       var nMeshes = 0;
       modelRoot.traverse(function (o) {
         if (!o.isMesh) return;
         nMeshes++;
         _origMeshMats.push({ mesh: o, orig: o.material });
-        o.material = new THREE.ShaderMaterial({
-          transparent: true,
-          side:        THREE.DoubleSide,
-          depthWrite:  false,
-          uniforms: {
-            stripeWidth:  { value: 0.4 },
-            colorA:       { value: new THREE.Color(0.53, 0.81, 0.92) },
-            colorB:       { value: new THREE.Color(0.22, 0.55, 0.75) },
-            opacityA:     { value: 0.90 },
-            opacityB:     { value: 0.55 }
-          },
-          vertexShader: `
-            varying vec3 vWorldPos;
-            void main() {
-              vec4 wp = modelMatrix * vec4(position, 1.0);
-              vWorldPos = wp.xyz;
-              gl_Position = projectionMatrix * viewMatrix * wp;
-            }
-          `,
-          fragmentShader: `
-            uniform float stripeWidth;
-            uniform vec3  colorA;
-            uniform vec3  colorB;
-            uniform float opacityA;
-            uniform float opacityB;
-            varying vec3  vWorldPos;
-            void main() {
-              float t = mod(vWorldPos.x, stripeWidth * 2.0) / (stripeWidth * 2.0);
-              float edge = smoothstep(0.45, 0.55, t) - smoothstep(0.95, 1.0, t);
-              vec3  col  = mix(colorA, colorB, step(0.5, t));
-              float op   = mix(opacityA, opacityB, step(0.5, t));
-              gl_FragColor = vec4(col, op);
-            }
-          `
-        });
+        var ay = avgAbsNormalY(o.geometry);
+        o.material = ay > 0.6 ? flatMat : glassMat;
       });
 
       // ── 8. Show mesh and update UI ────────────────────────────────────────────
@@ -324,34 +368,6 @@
     btn.disabled = false;
   };
 
-  // ---- Use Texture: restore original MatterPak photogrammetry materials -------
-  document.getElementById("build3dTexture").onclick = function () {
-    if (!modelRoot) { status("Mesh not loaded yet", "err"); return; }
-
-    // Dispose any flat/shader materials we applied, restore originals
-    if (_origMeshMats.length) {
-      _origMeshMats.forEach(function (entry) {
-        if (!entry.mesh) return;
-        (Array.isArray(entry.mesh.material) ? entry.mesh.material : [entry.mesh.material])
-          .forEach(function (m) { m.dispose(); });
-        entry.mesh.material = entry.orig;
-      });
-      _origMeshMats = [];
-      document.getElementById("legend").classList.remove("show");
-      modelRoot.visible = true;
-      document.getElementById("toggleMesh").style.display = "";
-      document.getElementById("toggleMesh").textContent = "Hide mesh";
-      fitView(modelRoot);
-      status("Original MatterPak texture restored.", "ok");
-    } else {
-      // Already on original texture — nothing to do
-      modelRoot.visible = true;
-      document.getElementById("toggleMesh").style.display = "";
-      document.getElementById("toggleMesh").textContent = "Hide mesh";
-      fitView(modelRoot);
-      status("Showing original MatterPak texture.", "ok");
-    }
-  };
 
   // ---- Advanced 3D: voxelize mesh, remove outliers, draw clean box model -----
   var advGroup = null;

@@ -84,7 +84,20 @@ require([
 
     const siteLayer = new GraphicsLayer({ title: "Site", minScale: 0, maxScale: 3000 });
     const FIDS = CFG.floors.slice().sort((a, b) => a.ordinal - b.ordinal).map(f => f.id);
-    const map2d = new Map({ basemap, layers: [siteLayer, ...FIDS.map(f => floorLayers[f]).filter(Boolean), dotLayer] });
+    const glassLayer = new GraphicsLayer({ title: "Building glass overlay" });
+    (function () {
+      const gf = floorsData.floors.find(f => f.id === FIDS[0]) || floorsData.floors[0];
+      if (!gf || !gf.corners_lonlat || gf.corners_lonlat.length < 4) return;
+      const c = gf.corners_lonlat; // TL TR BR BL
+      glassLayer.add(new Graphic({
+        geometry: new Polygon({
+          rings: [[[c[0][0],c[0][1]], [c[1][0],c[1][1]], [c[2][0],c[2][1]], [c[3][0],c[3][1]], [c[0][0],c[0][1]]]],
+          spatialReference: { wkid: 4326 }
+        }),
+        symbol: { type: "simple-fill", color: [0, 0, 0, 0.09], outline: { color: [0, 0, 0, 0.28], width: 1.5 } }
+      }));
+    })();
+    const map2d = new Map({ basemap, layers: [siteLayer, glassLayer, ...FIDS.map(f => floorLayers[f]).filter(Boolean), dotLayer] });
     const map3d = new Map({ basemap: new Basemap({ baseLayers: [new TileLayer({ url: imagery.url })] }), ground: "world-elevation",
                             layers: [meshLayer, dotLayer3D] });
 
@@ -102,6 +115,9 @@ require([
       rotation: 0, popupEnabled: false,
       padding: { left: window.innerWidth > 900 ? 300 : 0 } });
     view2d.watch("rotation", (r) => { if (r) view2d.rotation = 0; });
+    if (window.WFMeshOverlay) {
+      WFMeshOverlay.init({ georef: georef, glbUrl: D("model_full.glb"), view2d: view2d });
+    }
     let view3d = null, activeView = view2d, currentFloor = CFG.default_floor || FIDS[0], localizing = false, lastLoc = null;
     status("2D · Esri World Imagery (no API key)");
 
@@ -170,6 +186,7 @@ require([
         environment: { lighting: { type: "virtual" } }, popupEnabled: false,
         camera: { position: { longitude: bldgLL[0], latitude: bldgLL[1] - 0.00075, z: 300 }, tilt: 55, heading: 0 } });
       view3d.on("click", onClick);
+      if (window.WFMeshOverlay) WFMeshOverlay.setView3D(view3d);
       if (window.wf.on3DCreated) window.wf.on3DCreated(view3d);
       try {
         const el = new ElevationLayer({ url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer" });
@@ -180,6 +197,44 @@ require([
       if (window.wf.on3DReady) window.wf.on3DReady();
     }
     function modelZtoAbs(z) { return ground0 + (z - GRADE_Z); }
+    // Mesh glass-border colour + intensity — user-adjustable (Map layers panel).
+    // Fill stays flat/translucent; only the edge wireframe colour and opacity change.
+    let meshEdgeColor = [110, 110, 120], meshEdgeIntensity = 0.8;
+    function meshSymbol() {
+      return {
+        type: "mesh-3d",
+        symbolLayers: [{
+          type: "fill",
+          material: { color: [255, 255, 255, 0.12], colorMixMode: "replace" },
+          edges: { type: "solid", color: [...meshEdgeColor, meshEdgeIntensity], size: 0.8 }
+        }]
+      };
+    }
+    function applyMeshSymbol() {
+      const g = meshLayer.graphics.getItemAt(0);
+      if (g) g.symbol = meshSymbol();
+    }
+    window.wf.setMeshEdgeColor = (rgb) => { meshEdgeColor = rgb; applyMeshSymbol(); };
+    window.wf.setMeshEdgeIntensity = (v) => { meshEdgeIntensity = Math.max(0, Math.min(1, v)); applyMeshSymbol(); };
+    // "Live" border colour — averaged from the GLB's own baked vertex colours (the
+    // actual photographed scan, same COLOR_0 data glb.py wrote from the colour plans),
+    // not a server round-trip: the mesh is already downloaded and decoded locally by
+    // the time this runs, so sampling it here is instant and needs no separate API call.
+    function averageMeshColor(mesh) {
+      try {
+        const col = mesh && mesh.vertexAttributes && mesh.vertexAttributes.color;
+        if (!col || !col.length) return null;
+        let r = 0, g = 0, b = 0, n = 0, mx = 0;
+        const step = Math.max(4, Math.floor(col.length / 4 / 20000) * 4); // sample, not every vertex, on huge meshes
+        for (let i = 0; i < col.length; i += step) {
+          r += col[i]; g += col[i + 1]; b += col[i + 2]; n++;
+          if (col[i] > mx) mx = col[i];
+        }
+        if (!n) return null;
+        const scale = mx <= 1.0001 ? 255 : 1; // vertexAttributes.color can be 0-1 floats or 0-255 bytes
+        return [Math.round(r / n * scale), Math.round(g / n * scale), Math.round(b / n * scale)];
+      } catch (e) { return null; }
+    }
     function loadMesh() {
       // All floors (or unknown): prefer full multi-floor GLB so stacked levels show together
       let glbName = "model_full.glb";
@@ -196,8 +251,23 @@ require([
       status("3D · loading " + key + ".glb …");
       const origin = new Point({ longitude: oLL[0], latitude: oLL[1], z: modelZtoAbs(0) });
       Mesh.createFromGLTF(origin, D(key + ".glb"), { vertexSpace: "local" }).then(mesh => {
-        meshLayer.add(new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }));
-        status("3D · " + (window.wf.style && window.wf.style !== "satellite" ? (window.wf.styleLabel + " · indoor blocks + OSM buildings") : "Matterport mesh (" + key + ", decimated, vertex-coloured)") + " · ground " + ground0.toFixed(1) + " m");
+        // The pipeline's glb.py step already rotates every vertex into true ENU
+        // (+X=east, +Y=up, -Z=north) using this exact georef rotation angle, so the
+        // GLB needs NO further rotation here — vertexSpace:"local" assumes ENU axes,
+        // which the export already provides. Rotating again on top of that (as this
+        // code used to) double-applies the angle and is why the mesh used to land
+        // visibly off from the 2D floor plans / footprint, which only ever pass
+        // through the georef affine once.
+        // Glass look, matching shell3d's building-shell style exactly: colorMixMode
+        // "replace" drops the mesh's own baked vertex-colour texture (walls/floor
+        // photos) in favour of a flat translucent fill, with edges drawn as a solid
+        // wireframe — same material + edge color/width as the OSM/indoor "glass"
+        // extrusions elsewhere in this view, just applied to the real scanned shape
+        // instead of a simple box.
+        meshLayer.add(new Graphic({ geometry: mesh, symbol: meshSymbol() }));
+        const live = averageMeshColor(mesh);
+        if (live) { window.wf.meshLiveColor = live; if (window.wf.onMeshLiveColor) window.wf.onMeshLiveColor(live); }
+        status("3D · " + (window.wf.style && window.wf.style !== "satellite" ? (window.wf.styleLabel + " · indoor blocks + OSM buildings") : "Matterport mesh (" + key + ", glass)") + " · ground " + ground0.toFixed(1) + " m");
         window.wf.meshReady = true;
         if (activeView === view3d) fit3DCamera({ animate: true, duration: 700 });
       }).catch(e => { status("mesh load failed: " + e.message); console.error(e); });
@@ -207,6 +277,7 @@ require([
         await ensure3D();
         const cam2dCenter = view2d.center.clone();
         view2d.container = null; view3d.container = "viewDiv"; activeView = view3d;
+        if (window.WFMeshOverlay) WFMeshOverlay.setMode("3d");
         loadMesh(); if (window.wf.onStyleFloor) window.wf.onStyleFloor(currentFloor);
         await view3d.when();
         fit3DCamera({ animate: false });
@@ -215,6 +286,7 @@ require([
         if (lastLoc) localizeAt(lastLoc.lon, lastLoc.lat);
       } else {
         view3d.container = null; view2d.container = "viewDiv"; activeView = view2d;
+        if (window.WFMeshOverlay) WFMeshOverlay.setMode("2d");
         $("btnDim").textContent = "Switch to 3D"; status("2D · " + (window.wf.styleLabel || "Esri World Imagery (no API key)"));
       }
     };
@@ -316,6 +388,14 @@ require([
           const x = p.x, y = -p.z, z = p.y;                 // SDK -> model
           const o = { id: String(p.id), name: p.name, category: p.category || "room",
                       x: x, y: y, z: z, floor: floorFor(z), sdk: { x: p.x, y: p.y, z: p.z } };
+          // expected_pos_* is a separate curated "look here" anchor, same SDK -> model
+          // conversion as the main position. Not every POI has one.
+          if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null) {
+            o.expected_x = p.expected_pos_x;
+            o.expected_y = -p.expected_pos_z;
+            o.expected_z = p.expected_pos_y;
+            o.sdk.expected = { x: p.expected_pos_x, y: p.expected_pos_y, z: p.expected_pos_z };
+          }
           try { const s2 = WFRouting.snap(x, y, o.floor); if (s2 && s2.node) o.nearest_node = s2.node.id; } catch (e) {}
           try { o.lonlat = modelToLL(x, y); } catch (e) {}
           return o;
@@ -376,7 +456,23 @@ require([
 
       let lastRoute = null, startInfo = null;
       const ll = (x, y) => modelToLL(x, y);
-      const COL = { route: [26, 115, 232], other: [26, 115, 232, 0.5], trans: [249, 171, 0] };
+      // Deep midnight navy (#182858 — NavMe's own brand navy, same tone used for the
+      // destination pin / trail elsewhere) rather than the bright green.
+      const COL = { route: [24, 40, 88], other: [24, 40, 88, 0.5], trans: [249, 171, 0] };
+      // 3D route: back to one continuous tube (not the bead-trail), but noticeably
+      // thinner than the original — a wide, low-opacity "glow" layer behind a slim
+      // opaque core, so it still reads clearly through the translucent glass/mesh
+      // without looking like a thick solid bar.
+      function routeTubeSymbol(color) {
+        const glow = Array.isArray(color) && color.length === 4 ? color.slice(0, 3) : color;
+        const glowAlpha = Array.isArray(color) && color.length === 4 ? color[3] * 0.6 : 0.5;
+        return {
+          type: "line-3d", symbolLayers: [
+            { type: "path", profile: "circle", width: 0.4, height: 0.4, material: { color: [...glow, glowAlpha] }, cap: "round", join: "round" },
+            { type: "path", profile: "circle", width: 0.16, height: 0.16, material: { color }, cap: "round", join: "round" }
+          ]
+        };
+      }
 
       function drawPOIs() {
         poiLayer.removeAll();
@@ -488,17 +584,19 @@ require([
           const path = leg.points.map(p => ll(p.x, p.y));
           const active = leg.outdoor || !cur || leg.floor === cur;
           if (leg.transition) {
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.trans, width: 5, style: "short-dot" } }));
+            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.trans, width: 4, style: "short-dot" } }));
           } else if (active) {
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: [255, 255, 255], width: 9, cap: "round", join: "round" } }));
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 6, cap: "round", join: "round" } }));
+            // Back to a solid line (not dotted) — thinner than the original 9px white
+            // halo + 6px core, single 4px stroke in the high-intensity green.
+            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 4, cap: "round", join: "round" } }));
           } else {
             routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.other, width: 3, style: "dash" } }));
           }
-          // 3D tube at floor height (+0.35 m)
-          const p3 = leg.points.map(p => { const q = ll(p.x, p.y); return [q[0], q[1], modelZtoAbs(p.z) + 0.35]; });
+          // 3D tube floats above floor height — reduced back down to +0.20 m (was
+          // +0.85 m) per request, just enough to clear the floor surface.
+          const p3 = leg.points.map(p => { const q = ll(p.x, p.y); return [q[0], q[1], modelZtoAbs(p.z) + 0.20]; });
           route3D.add(new Graphic({ geometry: new Polyline({ paths: [p3], hasZ: true, spatialReference: { wkid: 4326 } }),
-            symbol: { type: "line-3d", symbolLayers: [{ type: "path", profile: "circle", width: 0.35, height: 0.35, material: { color: leg.transition ? COL.trans : (active ? COL.route : [120, 170, 255]) }, cap: "round", join: "round" }] } }));
+            symbol: routeTubeSymbol(leg.transition ? COL.trans : (active ? COL.route : [110, 120, 160])) }));
         });
         // floor-change markers
         r.legs.filter(l => l.transition).forEach(l => {
@@ -702,6 +800,9 @@ require([
         return { polys, lines, pal };
       }
       let style = "satellite", photo = false, pal = PAL.light;
+      // Manual 3D layer visibility overrides — independent of style/floor/photo so a
+      // user's choice (e.g. "hide mesh") survives switching styles or floors.
+      let hideShell = false, hideOsmBlocks = false, hideMpMesh = false;
       const bmCache2d = {}, bmCache3d = {};
       let osm3d = null, shell3d = null;
       const SHELL_Z0 = Math.min(...CFG.floors.map(f => f.elevation)) - 0.15;
@@ -734,13 +835,13 @@ require([
           const show = fid === "all" ? true : (fid !== "none" && k === fid);
           l.visible = show && (!blocks || photo);
         });
-        meshLayer.visible = !blocks || photo;
+        meshLayer.visible = !hideMpMesh;
         for (const F of FIDS) {
           const on = blocks && (fid === "all" || fid === F);
           if (indoor2d[F]) { indoor2d[F].polys.visible = on && !photo; indoor2d[F].lines.visible = on; }
           if (indoor3d[F]) { indoor3d[F].polys.visible = on && !photo; indoor3d[F].lines.visible = on && !photo; }
         }
-        if (osm3d) { osm3d.visible = blocks; shell3d.visible = blocks && !photo; }
+        if (osm3d) { osm3d.visible = blocks && !hideOsmBlocks; shell3d.visible = blocks && !photo && !hideShell; }
         document.querySelectorAll("button.bstyle").forEach(b => b.classList.toggle("active", b.dataset.style === style));
         $("photoRow").style.display = blocks ? "" : "none";
       }
@@ -763,6 +864,10 @@ require([
       window.wf.onStyleFloor = () => applyVisibility();
       window.wf.on3DReady = () => { if (style !== "satellite") { build3DContext(); ensureIndoor(true); applyVisibility(); } };
       window.wf.setStyle = setStyle;
+      // 3D layer visibility toggles (wired to the Map layers popover's checkboxes).
+      window.wf.setHideShell = (on) => { hideShell = !!on; applyVisibility(); };
+      window.wf.setHideOsmBlocks = (on) => { hideOsmBlocks = !!on; applyVisibility(); };
+      window.wf.setHideMesh = (on) => { hideMpMesh = !!on; applyVisibility(); };
       document.querySelectorAll("button.bstyle").forEach(b => b.onclick = () => setStyle(b.dataset.style));
       $("photoPlan").onchange = () => { photo = $("photoPlan").checked; applyVisibility(); };
       const indoorP = loadIndoor().then(() => { window.wf.indoorReady = true; });
@@ -784,6 +889,8 @@ require([
     window.wf.dotLayer = dotLayer;
     window.wf.ready = true;
     if (window.wf.onReady) window.wf.onReady();
+    // Default to 3D view
+    setTimeout(() => { if ($("btnDim")) $("btnDim").click(); }, 800);
     window.wf.modelToScreen = (x, y) => { const ll = modelToLL(x, y); const p = activeView.toScreen(new Point({ longitude: ll[0], latitude: ll[1] })); return [p.x, p.y]; };
   }
 });

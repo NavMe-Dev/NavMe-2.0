@@ -800,11 +800,16 @@ const Georef = {
       </div>
     </div>
     <div class="split"><div class="mapwrap">
-      <div class="map" ref="el" v-show="viewMode!=='twin'" :class="{dragging: dragOn}"></div>
+      <div class="map" ref="el" v-show="viewMode!=='twin' && viewMode!=='3dadjust'" :class="{dragging: dragOn}"></div>
       <iframe class="showcase map-twin-frame" v-show="viewMode==='twin'" :src="sc || 'about:blank'" allow="xr-spatial-tracking; fullscreen; clipboard-write" allowfullscreen></iframe>
+      <iframe class="showcase map-twin-frame" v-show="viewMode==='3dadjust'" ref="adjIframe" :src="viewMode==='3dadjust' ? adjSrc : 'about:blank'" allowfullscreen></iframe>
       <div class="toolbar">
-        <view-mode-bar v-model="viewMode" :show-matterpak="true"></view-mode-bar>
+        <view-mode-bar v-if="viewMode!=='3dadjust'" v-model="viewMode" :show-matterpak="true"></view-mode-bar>
+        <button type="button" class="sm" :class="{primary: viewMode==='3dadjust'}" @click="toggle3dAdj" style="white-space:nowrap">3D Overlay Adjust</button>
         <template v-if="viewMode==='matterpak'"></template>
+        <template v-else-if="viewMode==='3dadjust'">
+          <span class="small muted">Move sliders to shift the glass indoor overlay · Save &amp; Rebuild bakes it in</span>
+        </template>
         <template v-else-if="viewMode!=='twin'">
           <label class="tb-label">Floor</label>
           <select v-model="floor" style="width:auto" aria-label="Floor"><option v-for="o in overlays" :value="o.id">{{o.id}}</option></select>
@@ -841,6 +846,18 @@ const Georef = {
           <td>{{c.residual_m!=null ? c.residual_m.toFixed(2)+' m' : ''}}</td><td><button class="sm danger" @click="delCp(c)">✕</button></td></tr></table>
       <div class="row" style="margin-top:8px"><button @click="fit(false)" :disabled="cps.length<2">Fit (preview residuals)</button><button class="primary" @click="fit(true)" :disabled="cps.length<2">Fit & apply</button></div>
       <div class="small" v-if="fitRes">RMS {{fitRes.rms_m.toFixed(3)}} m, max {{fitRes.max_err_m.toFixed(3)}} m, rotation {{fitRes.rotation_deg.toFixed(3)}}°</div></div>
+    <div class="card" v-if="viewMode==='3dadjust'" style="margin-top:12px">
+      <h2 style="margin-top:0">3D Overlay Adjust</h2>
+      <p class="small muted" style="margin-top:0">Shifts the glass indoor overlay only — the solid Matterpak mesh stays fixed. Save &amp; Rebuild bakes the change into the georef.</p>
+      <label class="small">Rotation <b>{{adj.rot.toFixed(2)}}°</b></label>
+      <input type="range" min="-30" max="30" step="0.05" v-model.number="adj.rot" @input="sendAdj" style="width:100%;margin:3px 0 10px">
+      <label class="small">East offset <b>{{adj.east.toFixed(1)}} m</b></label>
+      <input type="range" min="-100" max="100" step="0.5" v-model.number="adj.east" @input="sendAdj" style="width:100%;margin:3px 0 10px">
+      <label class="small">North offset <b>{{adj.north.toFixed(1)}} m</b></label>
+      <input type="range" min="-100" max="100" step="0.5" v-model.number="adj.north" @input="sendAdj" style="width:100%;margin:3px 0 10px">
+      <p class="small muted" style="margin:2px 0 8px">{{adjStatus || 'Move a slider to update the 3D view.'}}</p>
+      <div class="row"><button @click="resetAdj">Reset</button><button class="primary" @click="saveAdj" :disabled="adjSaving">{{adjSaving ? 'Saving…' : 'Save &amp; Rebuild'}}</button></div>
+    </div>
     <job-log v-if="jobId" :job-id="jobId" @done="onJobDone"></job-log></div></div></div>`,
   setup(props, { emit }) {
     const el = ref(null), data = reactive({ georef: null, overlays: [], control_points: [] });
@@ -848,6 +865,32 @@ const Georef = {
     const picking = ref(false), pickMsg = ref(""), fitRes = ref(null), jobId = ref(null), mode = ref("auto");
     const tool = ref("nudge"), dragOn = ref(false), viewMode = ref(preferredShowcaseViewMode(props.b, "satellite")), mapStyle = ref("map"), sc = ref(""), scBusy = ref(false), scErr = ref("");
     const hybridLabels = ref(false);
+    const adjIframe = ref(null);
+    const adjSrc = computed(() => `route_preview.html?slug=${encodeURIComponent(props.b.slug)}&token=${encodeURIComponent(store.token)}`);
+    const adj = reactive({ rot: 0, east: 0, north: 0 });
+    const adjSaving = ref(false), adjStatus = ref("");
+    let adjSendTimer = null;
+    function toggle3dAdj() { viewMode.value = viewMode.value === "3dadjust" ? "satellite" : "3dadjust"; }
+    function sendAdj() {
+      if (adjSendTimer) clearTimeout(adjSendTimer);
+      adjSendTimer = setTimeout(() => {
+        if (adjIframe.value && adjIframe.value.contentWindow)
+          adjIframe.value.contentWindow.postMessage({ type: "adj-delta", dRot: adj.rot, dEast: adj.east, dNorth: adj.north }, "*");
+      }, 120);
+    }
+    function resetAdj() { adj.rot = adj.east = adj.north = 0; adjStatus.value = ""; sendAdj(); }
+    async function saveAdj() {
+      adjSaving.value = true;
+      try {
+        const res = await api(`/admin/buildings/${props.b.slug}/georef/finetune`, { method: "POST", json: { d_east_m: adj.east, d_north_m: adj.north, d_rot_deg: adj.rot, auto_rebuild: true } });
+        adj.rot = adj.east = adj.north = 0; sendAdj();
+        adjStatus.value = "✓ Saved!";
+        if (res.job_id) { jobId.value = res.job_id; toast("Transform saved. Rebuilding…"); }
+        else toast("Transform saved.");
+        await load(); draw(); emit("reload");
+      } catch (e) { toast(e.message); }
+      adjSaving.value = false;
+    }
     let pick1 = null, map = null, cpMarkers = [], dragStart = null, scrollRaf = null, lastDragXY = null;
     const g = computed(() => data.georef || {}), overlays = computed(() => data.overlays || []), cps = computed(() => data.control_points || []);
     const dirty = computed(() => d.e || d.n || d.r);
@@ -865,6 +908,7 @@ const Georef = {
     });
     const helpText = computed(() => {
       if (viewMode.value === "twin") return "Digital twin preview. Switch to Satellite (best) or 2D / 3D to align the coloured plan.";
+      if (viewMode.value === "3dadjust") return "3D Overlay Adjuster — use the sliders to shift the glass indoor overlay (rooms/walls) without moving the Matterpak mesh. Save & Rebuild bakes the change into the georef.";
       if (viewMode.value === "3d") return "3D pitched view — drag still nudges/rotates the plan overlay. Satellite mode is usually easier for roof edges.";
       if (viewMode.value === "2d") return "2D map under the coloured plan. Use Map / Light / Dark styles; Satellite mode is best for roof edges.";
       return "Align the coloured plan to satellite imagery. Drag to move / rotate, then Save fine-tune.";
@@ -980,8 +1024,33 @@ const Georef = {
       };
       map.on("mouseup", endDrag); map.on("mouseleave", endDrag);
       window.addEventListener("keydown", onKey);
+      window.addEventListener("message", onAdjMessage);
       if (viewMode.value === "twin" && !sc.value && !scBusy.value) openTwin();
     });
+    function onAdjMessage(ev) {
+      if (!ev.data) return;
+      if (ev.data.type === "preview-ready" && viewMode.value === "3dadjust") {
+        // iframe finished loading — switch to 3D then immediately apply adj-mode (hides mesh, shows all floors)
+        if (adjIframe.value && adjIframe.value.contentWindow) {
+          adjIframe.value.contentWindow.postMessage({ type: "view", mode: "3d" }, "*");
+          // Small delay so the 3D view has time to initialise before we hide the mesh
+          setTimeout(() => {
+            if (adjIframe.value && adjIframe.value.contentWindow)
+              adjIframe.value.contentWindow.postMessage({ type: "adj-delta", dRot: adj.rot, dEast: adj.east, dNorth: adj.north }, "*");
+          }, 800);
+        }
+      } else if (ev.data.type === "adj-update") {
+        // Drag in 3D view updated the overlay position — sync sliders
+        adj.rot  = +(ev.data.dRot  || 0).toFixed(3);
+        adj.east = +(ev.data.dEast || 0).toFixed(2);
+        adj.north= +(ev.data.dNorth|| 0).toFixed(2);
+      } else if (ev.data.type === "adj-status") {
+        adjStatus.value = ev.data.text;
+      } else if (ev.data.type === "adj-saved") {
+        if (ev.data.jobId) jobId.value = ev.data.jobId;
+        load(); draw(); emit("reload");
+      }
+    }
     function onKey(ev) {
       if (!el.value || !document.body.contains(el.value)) return;
       const tag = (ev.target && ev.target.tagName) || "";
@@ -993,7 +1062,7 @@ const Georef = {
       else if (ev.key === "[" || ev.key === ",") { nudge(0, 0, rstep.value); ev.preventDefault(); }
       else if (ev.key === "]" || ev.key === ".") { nudge(0, 0, -rstep.value); ev.preventDefault(); }
     }
-    onBeforeUnmount(() => { window.removeEventListener("keydown", onKey); if (scrollRaf) cancelAnimationFrame(scrollRaf); map && map.remove(); });
+    onBeforeUnmount(() => { window.removeEventListener("keydown", onKey); window.removeEventListener("message", onAdjMessage); if (scrollRaf) cancelAnimationFrame(scrollRaf); map && map.remove(); });
     watch([floor, opacity], draw);
     watch(tool, (v) => { if (v !== "pick") { picking.value = false; pick1 = null; } });
     watch(viewMode, async (m) => {
@@ -1001,6 +1070,8 @@ const Georef = {
         picking.value = false; dragOn.value = false;
         await nextTick();
         if (!sc.value && !scBusy.value) openTwin();
+      } else if (m === "3dadjust") {
+        picking.value = false; dragOn.value = false;
       } else {
         await nextTick();
         syncMapPresentation();
@@ -1037,7 +1108,7 @@ const Georef = {
       } catch (e) { toast(e.message); }
     }
     async function onJobDone() { await load(); draw(); emit("reload"); }
-    return { el, floor, opacity, step, rstep, d, g, overlays, cps, rot, dirty, picking, pickMsg, fitRes, jobId, mode, tool, dragOn, viewMode, mapStyle, hybridLabels, toggleHybrid, sc, scBusy, scErr, toolHint, helpText, nccHint, startPick, nudge, reset, saveTune, delCp, fit, setMode, rebuild, rerunAuto, onJobDone, openTwin, closeTwin };
+    return { el, floor, opacity, step, rstep, d, g, overlays, cps, rot, dirty, picking, pickMsg, fitRes, jobId, mode, tool, dragOn, viewMode, mapStyle, hybridLabels, toggleHybrid, sc, scBusy, scErr, toolHint, helpText, nccHint, startPick, nudge, reset, saveTune, delCp, fit, setMode, rebuild, rerunAuto, onJobDone, openTwin, closeTwin, adjIframe, adjSrc, toggle3dAdj, adj, adjSaving, adjStatus, sendAdj, resetAdj, saveAdj };
   }
 };
 
@@ -1397,6 +1468,7 @@ const Routes = {
       <label>From <span class="muted small">({{pois.length}} NavMe POIs)</span></label><select v-model="from"><option v-for="p in pois" :value="p.sel">{{p.name}} ({{p.floor}})</option></select>
       <label>To</label><select v-model="to"><option v-for="p in pois" :value="p.sel">{{p.name}} ({{p.floor}})</option></select>
       <div class="row" style="margin-top:10px"><button class="primary" @click="run" :disabled="!from||!to||viewMode==='twin'||(viewMode==='matterpak'?!mpNav:!navReady)">Show Nav Route</button></div>
+      <div class="row" style="margin-top:6px"><button class="sm" @click="openMesh">View Mesh</button></div>
       <template v-if="viewMode==='matterpak'">
         <div class="row" style="margin-top:8px"><button class="sm" @click="mpGenerate">Generate navigation mesh</button></div>
         <p class="small muted" style="margin:6px 0 0">{{mpMsg || 'Loading MatterPak mesh…'}}</p>
@@ -1560,8 +1632,12 @@ const Routes = {
       scBusy.value = false;
     }
     function closeTwin() { sc.value = ""; scErr.value = ""; }
+    function openMesh() {
+      const url = `matterpak_view.html?slug=${encodeURIComponent(props.b.slug)}&token=${encodeURIComponent(store.token)}`;
+      window.open(url, "_blank");
+    }
     return { el, pois, from, to, sfree, res, err, run, floor, viewMode, steps, navReady, navStatus,
-      mpEl, mpSrc, mpReady, mpNav, mpMsg, mpGenerate, sc, scBusy, scErr, helpText, openTwin, closeTwin, previewUrl, onPreviewLoad };
+      mpEl, mpSrc, mpReady, mpNav, mpMsg, mpGenerate, sc, scBusy, scErr, helpText, openTwin, closeTwin, previewUrl, onPreviewLoad, openMesh };
   }
 };
 

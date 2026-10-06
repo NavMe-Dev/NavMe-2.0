@@ -59,13 +59,13 @@
 
     function init(CFG, georef, floorsData) {
       const A = georef.model_to_epsg3857_affine;
-      // The affine carries the georef rotation (and the Mercator stretch). The 2D plan and
-      // route lines go through it, so they are rotated correctly. The 3D GLB is placed in
-      // local vertex space at an origin point instead, which applies NO rotation — so the
-      // mesh has to be rotated by the same angle explicitly or it sits north-aligned while
-      // everything else is rotated. Scale is deliberately not taken from the affine: local
-      // vertex space is already true metres, whereas the affine includes Mercator stretch.
-      const GEOREF_ROT_DEG = Math.atan2(A[0][1], A[0][0]) * 180 / Math.PI;
+      // The affine carries the georef rotation (and the Mercator stretch); the 2D plan and
+      // route lines go through it, so they land correctly. The 3D GLB does NOT need the same
+      // rotation applied again here: the pipeline's glb.py step already bakes this exact
+      // rotation into the exported vertices (true ENU: +X=east, +Y=up, -Z=north), precisely so
+      // vertexSpace:"local" placement needs zero extra rotation. Re-applying it here used to
+      // double-rotate the mesh relative to the 2D plan/route, which only pass through the
+      // affine once.
       const modelToMerc = (x, y) => [A[0][0] * x + A[0][1] * y + A[0][2], A[1][0] * x + A[1][1] * y + A[1][2]];
       const mercToLL = (X, Y) => [X / R * 180 / Math.PI, Math.atan(Math.sinh(Y / R)) * 180 / Math.PI];
       const modelToLL = (x, y) => mercToLL(...modelToMerc(x, y));
@@ -106,6 +106,10 @@
       let view3d = null, activeView = view2d, currentFloor = CFG.default_floor || FIDS[0], ground0 = 0, meshKey = null;
       let lastNavPath = null;   // full navmesh route, kept across floor/mesh changes
       const GRADE_Z = CFG.grade_z != null ? CFG.grade_z : 0.5;
+      // Indoor overlay adjustment deltas (only affect glass overlay, never the Matterpak mesh)
+      const rawIndoorFC = {}; // floor_id -> original FeatureCollection (cached on first load)
+      let adjIndoorRot = 0, adjIndoorEast = 0, adjIndoorNorth = 0;
+      let adjDragMode = false; // true once overlay adj is active; enables drag-to-move
       const COL = { route: [26, 115, 232], trans: [230, 118, 0], other: [138, 180, 248] };
 
       function buildingExtent() {
@@ -144,6 +148,40 @@
           const r = await el.queryElevation(new Point({ longitude: oLL[0], latitude: oLL[1] }));
           ground0 = r.geometry.z;
         } catch (e) { console.warn("elevation query failed", e); }
+
+        // Drag-to-move: when adjDragMode is active intercept drag to shift the glass overlay
+        let _drag = null;
+        const viewDiv = document.getElementById("viewDiv");
+        view3d.on("drag", (evt) => {
+          if (!adjDragMode) return;
+          evt.stopPropagation();
+          if (evt.action === "start") {
+            viewDiv.style.cursor = "grabbing";
+            _drag = {
+              mapPt: view3d.toMap({ x: evt.x, y: evt.y }),
+              baseEast: adjIndoorEast,
+              baseNorth: adjIndoorNorth
+            };
+          } else if (evt.action === "update" && _drag) {
+            const cur = view3d.toMap({ x: evt.x, y: evt.y });
+            if (cur && _drag.mapPt) {
+              const Rm = 6378137.0;
+              const latRad = _drag.mapPt.latitude * Math.PI / 180;
+              adjIndoorEast  = _drag.baseEast  + (cur.longitude - _drag.mapPt.longitude) * (Math.PI / 180) * Rm * Math.cos(latRad);
+              adjIndoorNorth = _drag.baseNorth + (cur.latitude  - _drag.mapPt.latitude)  * (Math.PI / 180) * Rm;
+            } else {
+              // fallback: pixel delta × approximate ground resolution
+              const res = (view3d.scale || 2000) * 0.000264583;
+              adjIndoorEast  = _drag.baseEast  + (evt.x - evt.origin.x) * res;
+              adjIndoorNorth = _drag.baseNorth - (evt.y - evt.origin.y) * res;
+            }
+            applyIndoorAdj();
+            parent.postMessage({ type: "adj-update", dRot: adjIndoorRot, dEast: adjIndoorEast, dNorth: adjIndoorNorth }, "*");
+          } else if (evt.action === "end") {
+            viewDiv.style.cursor = "grab";
+            _drag = null;
+          }
+        });
       }
       function modelZtoAbs(z) { return ground0 + (z - GRADE_Z); }
       function loadMesh() {
@@ -158,11 +196,8 @@
         status("3D · loading " + key + ".glb …");
         const origin = new Point({ longitude: oLL[0], latitude: oLL[1], z: modelZtoAbs(0) });
         Mesh.createFromGLTF(origin, D(key + ".glb"), { vertexSpace: "local" }).then(mesh => {
-          // Rotate about the vertical axis so the mesh lines up with the georeferenced
-          // 2D plan / route. Without this the GLB renders north-aligned (see GEOREF_ROT_DEG).
-          if (GEOREF_ROT_DEG) mesh.rotate(0, 0, -GEOREF_ROT_DEG, { origin });
-          meshLayer.add(new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] } }));
-          status("3D · Matterpak mesh (" + key + ") · ground " + ground0.toFixed(1) + " m · rot " + GEOREF_ROT_DEG.toFixed(1) + "°");
+          meshLayer.add(new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: [200, 225, 255, 0.15] } }] } }));
+          status("3D · Matterpak mesh (" + key + ")");
           if (activeView === view3d) fit3DCamera({ animate: true, duration: 600 });
         }).catch(e => { status("mesh load failed: " + e.message); console.error(e); });
       }
@@ -220,35 +255,89 @@
                 material: { color: k === "window" ? IPAL.window.concat([0.45]) : (k === "wall" ? [200,200,205] : IPAL[k]) } }] }
             : { type: "simple-line", color: IPAL[k], width: W[k], cap: "butt" } })) };
       }
+      // Shift all GeoJSON feature coordinates by east/north metres + rotation around pivot point.
+      function shiftGeoJSON(fc, dEastM, dNorthM, dRotDeg, pivLon, pivLat) {
+        if (!dEastM && !dNorthM && !dRotDeg) return fc;
+        const Rm = 6378137.0;
+        const dRad = dRotDeg * Math.PI / 180;
+        const cosR = Math.cos(dRad), sinR = Math.sin(dRad);
+        const mPerDegLon = Rm * Math.cos(pivLat * Math.PI / 180) * Math.PI / 180;
+        const mPerDegLat = Rm * Math.PI / 180;
+        function xc(coord) {
+          const dx = (coord[0] - pivLon) * mPerDegLon;
+          const dy = (coord[1] - pivLat) * mPerDegLat;
+          const rx = dx * cosR - dy * sinR + dEastM;
+          const ry = dx * sinR + dy * cosR + dNorthM;
+          return [pivLon + rx / mPerDegLon, pivLat + ry / mPerDegLat];
+        }
+        function xg(g) {
+          if (!g) return g;
+          if (g.type === "Point") return { ...g, coordinates: xc(g.coordinates) };
+          if (g.type === "LineString") return { ...g, coordinates: g.coordinates.map(xc) };
+          if (g.type === "Polygon") return { ...g, coordinates: g.coordinates.map(r => r.map(xc)) };
+          if (g.type === "MultiPolygon") return { ...g, coordinates: g.coordinates.map(p => p.map(r => r.map(xc))) };
+          return g;
+        }
+        return { ...fc, features: fc.features.map(f => ({ ...f, geometry: xg(f.geometry) })) };
+      }
+
+      // Build (or rebuild) the GeoJSONLayers for one floor from the given FeatureCollection.
+      // Removes old layers for this floor before adding the new ones.
+      function makeIndoorFloor(F, fc) {
+        if (indoorLayers.d2[F]) { map2d.remove(indoorLayers.d2[F].polys); map2d.remove(indoorLayers.d2[F].lines); }
+        if (indoorLayers.d3[F]) { map3d.remove(indoorLayers.d3[F].polys); map3d.remove(indoorLayers.d3[F].lines); }
+        const blob = (pred) => URL.createObjectURL(new Blob(
+          [JSON.stringify({ type: "FeatureCollection", features: (fc.features || []).filter(pred) })],
+          { type: "application/json" }));
+        const isPoly = f => f.geometry && (f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon");
+        const isLine = f => f.geometry && f.geometry.type === "LineString";
+        const elev3d = { mode: "absolute-height",
+          featureExpressionInfo: { expression: "$feature.floor_z" },
+          offset: ground0 - GRADE_Z, unit: "meters" };
+        [["d2", false], ["d3", true]].forEach(([k, is3D]) => {
+          indoorLayers[k][F] = {
+            polys: new GeoJSONLayer({ url: blob(isPoly), title: `Indoor ${F} units`,
+              renderer: iPolyRenderer(is3D), visible: false, outFields: ["*"],
+              opacity: is3D ? GLASS_UNITS_3D : GLASS_UNITS_2D,
+              elevationInfo: is3D ? elev3d : undefined }),
+            lines: new GeoJSONLayer({ url: blob(isLine), title: `Indoor ${F} walls/doors`,
+              renderer: iLineRenderer(is3D), visible: false, outFields: ["*"],
+              opacity: is3D ? GLASS_WALLS_3D : GLASS_WALLS_2D,
+              elevationInfo: is3D ? elev3d : undefined })
+          };
+        });
+        map2d.addMany([indoorLayers.d2[F].polys, indoorLayers.d2[F].lines]);
+        map3d.addMany([indoorLayers.d3[F].polys, indoorLayers.d3[F].lines]);
+      }
+
+      // Re-build all indoor overlay layers with the current adj deltas applied to coordinates.
+      // Hides the Matterpak mesh and shows ALL floors so every overlay is visible at once.
+      function applyIndoorAdj() {
+        adjDragMode = true; // enable drag-to-move once overlay adj is initialised
+        meshLayer.visible = true; // glass mesh stays visible alongside the indoor overlay
+        const viewDiv = document.getElementById("viewDiv");
+        if (viewDiv && viewDiv.style.cursor !== "grabbing") viewDiv.style.cursor = "grab";
+        for (const [F, fc] of Object.entries(rawIndoorFC)) {
+          const shifted = shiftGeoJSON(fc, adjIndoorEast, adjIndoorNorth, adjIndoorRot, oLL[0], oLL[1]);
+          makeIndoorFloor(F, shifted);
+        }
+        [routeLayer, turnLayer].forEach(l => { try { map2d.reorder(l, map2d.layers.length - 1); } catch (e) {} });
+        [route3D, turn3D].forEach(l => { try { map3d.reorder(l, map3d.layers.length - 1); } catch (e) {} });
+        applyIndoorFloor("all"); // show every floor's glass overlay regardless of floor selector
+        const txt = adjIndoorRot || adjIndoorEast || adjIndoorNorth
+          ? "overlay · rot " + adjIndoorRot.toFixed(2) + "° · E " + adjIndoorEast.toFixed(1) + " m · N " + adjIndoorNorth.toFixed(1) + " m"
+          : "Glass overlay — all floors visible · mesh hidden";
+        parent.postMessage({ type: "adj-status", text: txt }, "*");
+      }
+
       // indoorLayers is declared above, next to the other layers: setFloor() runs during
       // init, before this point, and a const here would be in its temporal dead zone.
       async function buildIndoorLayers() {
         for (const F of FIDS) {
           let fc;
           try { fc = await J(D("indoor_" + F + ".geojson") + NOCACHE); } catch (e) { continue; }
-          const blob = (pred) => URL.createObjectURL(new Blob(
-            [JSON.stringify({ type: "FeatureCollection", features: (fc.features || []).filter(pred) })],
-            { type: "application/json" }));
-          const isPoly = f => f.geometry && (f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon");
-          const isLine = f => f.geometry && f.geometry.type === "LineString";
-          const fm = (CFG.floors || []).find(f => f.id === F) || {};
-          const elev3d = { mode: "absolute-height",
-            featureExpressionInfo: { expression: "$feature.floor_z" },
-            offset: ground0 - GRADE_Z, unit: "meters" };
-          [["d2", false], ["d3", true]].forEach(([k, is3D]) => {
-            indoorLayers[k][F] = {
-              polys: new GeoJSONLayer({ url: blob(isPoly), title: `Indoor ${F} units`,
-                renderer: iPolyRenderer(is3D), visible: false, outFields: ["*"],
-                opacity: is3D ? GLASS_UNITS_3D : GLASS_UNITS_2D,
-                elevationInfo: is3D ? elev3d : undefined }),
-              lines: new GeoJSONLayer({ url: blob(isLine), title: `Indoor ${F} walls/doors`,
-                renderer: iLineRenderer(is3D), visible: false, outFields: ["*"],
-                opacity: is3D ? GLASS_WALLS_3D : GLASS_WALLS_2D,
-                elevationInfo: is3D ? elev3d : undefined })
-            };
-          });
-          map2d.addMany([indoorLayers.d2[F].polys, indoorLayers.d2[F].lines]);
-          map3d.addMany([indoorLayers.d3[F].polys, indoorLayers.d3[F].lines]);
+          rawIndoorFC[F] = fc; // cache for live overlay adjustment
+          makeIndoorFloor(F, fc);
         }
         // route and turn markers stay on top of the plan
         [routeLayer, turnLayer].forEach(l => { try { map2d.reorder(l, map2d.layers.length - 1); } catch (e) {} });
@@ -360,7 +449,12 @@
         else if (msg.type === "route") drawRoute(msg.route);
         else if (msg.type === "navmesh-route") { drawNavmeshPath(msg.path); drawTurnMarkers(msg.steps); }
         else if (msg.type === "clear") { routeLayer.removeAll(); route3D.removeAll(); }
-        else if (msg.type === "clear") drawRoute(null);
+        else if (msg.type === "adj-delta") {
+          adjIndoorRot = msg.dRot || 0;
+          adjIndoorEast = msg.dEast || 0;
+          adjIndoorNorth = msg.dNorth || 0;
+          applyIndoorAdj(); // only moves the glass indoor overlay; Matterpak mesh is untouched
+        }
       });
       parent.postMessage({ type: "preview-ready" }, "*");
       status("2D");

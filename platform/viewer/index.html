@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20260930access2">
+<link rel="stylesheet" href="ui.css?v=20261005tour1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script src="vendor/ngraph.graph.min.js"></script>
 <script src="vendor/ngraph.path.min.js"></script>
@@ -116,6 +116,26 @@
     <div class="pophead sm" data-i18n="viewer.mapDetails">Map details</div>
     <label class="tog"><span class="ms">image</span><span data-i18n="viewer.photoFloorPlan">Photo floor plan</span><input type="checkbox" id="togPhoto"><i></i></label>
     <label class="tog"><span class="ms">hub</span><span data-i18n="viewer.debugGraph">Debug: sweep graph</span><input type="checkbox" id="togGraph"><i></i></label>
+    <div class="pophead sm" data-i18n="viewer.map3dLayers">3D layers</div>
+    <label class="tog"><span class="ms">domain</span><span data-i18n="viewer.hideShell">Hide 3D structure (glass building)</span><input type="checkbox" id="togHideShell"><i></i></label>
+    <label class="tog"><span class="ms">location_city</span><span data-i18n="viewer.hideOsmBlocks">Hide 3D map buildings (grey blocks)</span><input type="checkbox" id="togHideOsmBlocks"><i></i></label>
+    <label class="tog"><span class="ms">view_in_ar</span><span data-i18n="viewer.hideMesh">Hide mesh (Matterpak)</span><input type="checkbox" id="togHideMesh"><i></i></label>
+    <div class="meshEdgeRow">
+      <div class="pophead sm" data-i18n="viewer.meshBorderColor">Mesh border colour</div>
+      <div class="swatches" id="meshEdgeSwatches" role="group" aria-label="Mesh border colour">
+        <button type="button" class="swatch live" id="meshEdgeLive" data-rgb="110,110,120" disabled
+          style="background:linear-gradient(135deg,#9aa,#889,#a98)" aria-label="Live colour (from scan)"
+          data-i18n-aria-label="viewer.meshBorderLive" aria-pressed="false" title="Loading scan colour…"></button>
+        <button type="button" class="swatch on" data-rgb="110,110,120" style="background:rgb(110,110,120)" aria-label="Grey" aria-pressed="true"></button>
+        <button type="button" class="swatch" data-rgb="25,116,210" style="background:rgb(25,116,210)" aria-label="Navy blue" aria-pressed="false"></button>
+        <button type="button" class="swatch" data-rgb="249,171,0" style="background:rgb(249,171,0)" aria-label="Amber" aria-pressed="false"></button>
+        <button type="button" class="swatch" data-rgb="0,191,165" style="background:rgb(0,191,165)" aria-label="Teal" aria-pressed="false"></button>
+        <button type="button" class="swatch" data-rgb="255,255,255" style="background:rgb(255,255,255)" aria-label="White" aria-pressed="false"></button>
+        <input type="color" id="meshEdgeCustom" class="swatch-custom" value="#6e6e78" aria-label="Custom border colour" data-i18n-aria-label="viewer.meshBorderCustom">
+      </div>
+      <div class="ctrl-label sm"><span data-i18n="viewer.meshBorderIntensity">Border intensity</span><span id="meshEdgeIntensityVal">80%</span></div>
+      <input type="range" id="meshEdgeIntensity" min="0" max="100" value="80" aria-label="Mesh border intensity" data-i18n-aria-label="viewer.meshBorderIntensity">
+    </div>
   </div>
 
   <nav id="drawer" class="drawer" aria-label="Menu" hidden>
@@ -270,6 +290,7 @@
     <div class="mp-panel">
       <header class="mp-bar">
         <div class="mp-title"><span class="ms">view_in_ar</span><span>Tour interior</span></div>
+        <div class="mp-dest-label" id="mpDest" hidden></div>
         <div class="mp-step" id="mpStep">—</div>
         <div class="mp-actions">
           <button type="button" class="mp-btn" id="mpPlay" aria-label="Play"><span class="ms">play_arrow</span></button>
@@ -292,11 +313,12 @@
 <script src="wf-config.js"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
 <script src="wf-boot.js"></script>
-<script src="app.js?v=20260930turn5"></script>
-<script src="mp_preview.js?v=20261005t3"></script>
+<script src="wf_mesh_overlay.js?v=20261005overlay8"></script>
+<script src="app.js?v=20261006expectedpos1"></script>
+<script src="mp_preview.js?v=20261006floor6"></script>
 <script src="threed_nav.js?v=20261005hybrid17"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261005walk1"></script>
+<script src="ui.js?v=20261006expectedpos1"></script>
 </body>
 </html>

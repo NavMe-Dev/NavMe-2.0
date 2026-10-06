@@ -550,6 +550,28 @@ def _fetch_navme_pois(slug: str, cfg) -> list:
         raise HTTPException(502, f"Supabase unreachable: {e}")
 
 
+def _fetch_navme_pois_expected_pos(ids: list[str], cfg) -> dict:
+    """gmap_list_pois doesn't project expected_pos_x/y/z, so read them straight off the
+    navme_pois table for the ids we already resolved. Best-effort: on any failure, callers
+    just fall back to each POI's regular (non-expected) position."""
+    if not ids:
+        return {}
+    import urllib.request, urllib.error, urllib.parse
+    id_list = ",".join(urllib.parse.quote(i, safe="") for i in ids)
+    url = (f"{cfg.supabase_url}/rest/v1/navme_pois?id=in.({id_list})"
+           f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z")
+    req = urllib.request.Request(url, headers={
+        "apikey": cfg.supabase_anon_key,
+        "Authorization": f"Bearer {cfg.supabase_anon_key}",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            rows = json.loads(resp.read())
+        return {str(r.get("id")): r for r in rows if r.get("id")}
+    except Exception:
+        return {}
+
+
 @router.get("/dashboard/buildings/{slug}/navme-pois")
 def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_db)):
     """Return NavMe Supabase POI list for a building slug — live, no sync needed.
@@ -561,7 +583,7 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
     rows = _fetch_navme_pois(slug, cfg)
-    pois = []
+    staged = []
     seen = set()
     for r in rows:
         meta = r.get("metadata") or {}
@@ -570,16 +592,28 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
         if not label or not src_id or src_id in seen:
             continue
         seen.add(src_id)
-        pois.append({
+        staged.append((src_id, r))
+    expected_by_id = _fetch_navme_pois_expected_pos([sid for sid, _ in staged], cfg)
+    pois = []
+    for src_id, r in staged:
+        exp = expected_by_id.get(src_id) or {}
+        poi = {
             "id": src_id,
-            "name": label,
+            "name": str(r.get("label") or r.get("name") or ""),
             "floor": str(r.get("floor_id") or "F1"),
             "category": str(r.get("category") or "room"),
             # SDK coords: x=right, y=elevation, z=depth → pass as-is for snapping
             "x": r.get("x"),
             "y": r.get("y"),
             "z": r.get("z"),
-        })
+        }
+        # expected_pos_* is the curated "look here" anchor (distinct from the room/tag's
+        # general x/y/z) — only present when the source row actually has it set.
+        if exp.get("expected_pos_x") is not None and exp.get("expected_pos_y") is not None and exp.get("expected_pos_z") is not None:
+            poi["expected_pos_x"] = exp.get("expected_pos_x")
+            poi["expected_pos_y"] = exp.get("expected_pos_y")
+            poi["expected_pos_z"] = exp.get("expected_pos_z")
+        pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois
 

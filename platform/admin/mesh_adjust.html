@@ -1,0 +1,275 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>3D Mesh Adjuster</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
+<style>
+  html, body, #viewDiv { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+  #panel {
+    position: absolute; top: 12px; right: 12px; z-index: 10;
+    background: rgba(255,255,255,.97); border-radius: 10px;
+    padding: 14px 16px; width: 230px;
+    font: 13px/1.5 system-ui, sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+  #panel h3 { margin: 0 0 12px; font-size: 13px; font-weight: 700; color: #1a1a1a; }
+  .ctrl-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: #555; margin-bottom: 1px;
+  }
+  .ctrl-label span { font-weight: 600; color: #1a73e8; }
+  input[type=range] { width: 100%; margin: 0 0 10px; accent-color: #1a73e8; cursor: pointer; }
+  .sep { border: none; border-top: 1px solid #eee; margin: 8px 0; }
+  .row { display: flex; gap: 6px; margin-top: 2px; }
+  .row button {
+    flex: 1; padding: 7px 4px; border: none; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-weight: 500;
+    background: #f0f0f0; color: #333; transition: background .15s;
+  }
+  .row button:hover:not(:disabled) { background: #ddd; }
+  .row button.primary { background: #1a73e8; color: #fff; }
+  .row button.primary:hover:not(:disabled) { background: #1558b0; }
+  .row button:disabled { opacity: .45; cursor: not-allowed; }
+  #saveStatus { font-size: 11px; color: #888; margin-top: 7px; text-align: center; min-height: 15px; }
+  #status {
+    position: absolute; left: 8px; bottom: 8px; z-index: 5;
+    font: 11px/1.4 system-ui; color: #333;
+    background: rgba(255,255,255,.88); padding: 3px 8px; border-radius: 4px;
+    pointer-events: none; max-width: calc(100% - 260px);
+  }
+  #toast {
+    position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+    z-index: 30; background: #222; color: #fff; padding: 7px 16px;
+    border-radius: 6px; font-size: 12px; opacity: 0; transition: opacity .25s;
+    pointer-events: none; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #loading {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; background: rgba(26,26,46,.75); z-index: 20;
+    color: #fff; font: 14px system-ui; flex-direction: column; gap: 12px;
+  }
+  .spinner {
+    width: 30px; height: 30px; border: 3px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<script src="https://js.arcgis.com/4.34/"></script>
+</head>
+<body>
+<div id="viewDiv"></div>
+<div id="loading"><div class="spinner"></div><span>Loading 3D mesh…</span></div>
+<div id="panel">
+  <h3>3D Mesh Adjuster</h3>
+  <div class="ctrl-label">Rotation offset <span id="rotVal">0.00°</span></div>
+  <input type="range" id="rotSlider" min="-30" max="30" step="0.05" value="0">
+  <div class="ctrl-label">East offset <span id="eastVal">0.0 m</span></div>
+  <input type="range" id="eastSlider" min="-100" max="100" step="0.5" value="0">
+  <div class="ctrl-label">North offset <span id="northVal">0.0 m</span></div>
+  <input type="range" id="northSlider" min="-100" max="100" step="0.5" value="0">
+  <hr class="sep">
+  <div class="row">
+    <button id="resetBtn">Reset</button>
+    <button id="saveBtn" class="primary" disabled>Save &amp; Rebuild</button>
+  </div>
+  <div id="saveStatus"></div>
+</div>
+<div id="status">Loading…</div>
+<div id="toast"></div>
+<script>
+(function () {
+  "use strict";
+  const q = new URLSearchParams(location.search);
+  const slug = q.get("slug"), token = q.get("token");
+  if (!slug || !token) { document.getElementById("loading").innerHTML = '<span style="color:#faa">Missing slug / token</span>'; return; }
+
+  const API = "/api/v1/admin";
+  const NOCACHE = "&_=" + Date.now();
+  const D = (f) => `${API}/buildings/${encodeURIComponent(slug)}/files/out/${f}?token=${encodeURIComponent(token)}${NOCACHE}`;
+  const R = 6378137.0;
+
+  const $ = (id) => document.getElementById(id);
+  const st = (t) => { $("status").textContent = t; };
+  const rotSlider = $("rotSlider"), rotVal = $("rotVal");
+  const eastSlider = $("eastSlider"), eastVal = $("eastVal");
+  const northSlider = $("northSlider"), northVal = $("northVal");
+  const saveBtn = $("saveBtn"), resetBtn = $("resetBtn");
+  const saveStatus = $("saveStatus"), loading = $("loading"), toastEl = $("toast");
+
+  function toast(msg, ms) {
+    toastEl.textContent = msg; toastEl.classList.add("show");
+    setTimeout(() => toastEl.classList.remove("show"), ms || 2500);
+  }
+
+  require([
+    "esri/Map", "esri/Basemap", "esri/layers/TileLayer", "esri/views/SceneView",
+    "esri/layers/GraphicsLayer", "esri/Graphic", "esri/geometry/Point",
+    "esri/geometry/Mesh", "esri/layers/ElevationLayer"
+  ], function (Map, Basemap, TileLayer, SceneView, GraphicsLayer, Graphic, Point, Mesh, ElevationLayer) {
+    const IMAGERY = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer";
+    const meshLayer = new GraphicsLayer({ elevationInfo: { mode: "absolute-height" } });
+    const map = new Map({
+      basemap: new Basemap({ baseLayers: [new TileLayer({ url: IMAGERY })] }),
+      ground: "world-elevation",
+      layers: [meshLayer]
+    });
+
+    Promise.all([
+      fetch(D("config.json")).then(r => { if (!r.ok) throw new Error("config.json " + r.status); return r.json(); }),
+      fetch(D("georef.json")).then(r => { if (!r.ok) throw new Error("georef.json " + r.status); return r.json(); })
+    ]).then(([CFG, georef]) => init(CFG, georef))
+      .catch(e => { loading.innerHTML = '<span style="color:#faa">Load failed: ' + e.message + '</span>'; });
+
+    function init(CFG, georef) {
+      const A = georef.model_to_epsg3857_affine;
+      // No base rotation here: the pipeline's glb.py step already bakes the georef rotation
+      // into model_full.glb's own vertices (true ENU — +X=east, +Y=up, -Z=north), precisely so
+      // vertexSpace:"local" placement needs none applied again. The rotation slider below is
+      // the ONLY rotation this tool applies, and it matches exactly what POST .../georef/finetune
+      // does server-side: d_rot_deg is a delta added on top of the already-correct rotation_deg,
+      // not a correction for a misaligned mesh.
+      const oLL = [georef.model_origin_wgs84.lon, georef.model_origin_wgs84.lat];
+      const BB = CFG.model_bbox || [-40, -30, 20, 25];
+      const BC = [(BB[0] + BB[2]) / 2, (BB[1] + BB[3]) / 2];
+      const GRADE_Z = CFG.grade_z != null ? CFG.grade_z : 0.5;
+
+      const modelToMerc = (x, y) => [A[0][0]*x + A[0][1]*y + A[0][2], A[1][0]*x + A[1][1]*y + A[1][2]];
+      const mercToLL = (X, Y) => [X/R*180/Math.PI, Math.atan(Math.sinh(Y/R))*180/Math.PI];
+      const bldgLL = mercToLL(...modelToMerc(BC[0], BC[1]));
+
+      let ground0 = 0, loadTimer = null;
+
+      const view = new SceneView({
+        container: "viewDiv", map, qualityProfile: "high",
+        environment: { lighting: { type: "virtual" } }, popupEnabled: false,
+        camera: { position: { longitude: bldgLL[0], latitude: bldgLL[1] - 0.00075, z: 320 }, tilt: 55 }
+      });
+
+      // Query ground elevation at model origin
+      (async () => {
+        try {
+          const el = new ElevationLayer({ url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer" });
+          const r = await el.queryElevation(new Point({ longitude: oLL[0], latitude: oLL[1] }));
+          ground0 = r.geometry.z;
+        } catch (e) { console.warn("Elevation query failed, using 0", e); }
+        loadMesh(0, 0, 0);
+      })();
+
+      function modelZtoAbs(z) { return ground0 + (z - GRADE_Z); }
+
+      // Shift origin lat/lon by east/north metres (flat-earth approx, fine at building scale)
+      function shiftOrigin(dEastM, dNorthM) {
+        const latRad = oLL[1] * Math.PI / 180;
+        return [
+          oLL[0] + (dEastM / (R * Math.cos(latRad))) * 180 / Math.PI,
+          oLL[1] + (dNorthM / R) * 180 / Math.PI
+        ];
+      }
+
+      function loadMesh(dRot, dEast, dNorth) {
+        meshLayer.removeAll();
+        st("Loading 3D mesh…");
+        const [lon, lat] = shiftOrigin(dEast, dNorth);
+        const origin = new Point({ longitude: lon, latitude: lat, z: modelZtoAbs(0) });
+        Mesh.createFromGLTF(origin, D("model_full.glb"), { vertexSpace: "local" })
+          .then(mesh => {
+            if (dRot) mesh.rotate(0, 0, -dRot, { origin });
+            meshLayer.add(new Graphic({
+              geometry: mesh,
+              symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill" }] }
+            }));
+            loading.style.display = "none";
+            saveBtn.disabled = false;
+            st("rotation offset " + dRot.toFixed(2) + "° · E " + dEast.toFixed(1) + " m · N " + dNorth.toFixed(1) + " m");
+            parent.postMessage({ type: "adj-ready" }, "*");
+          })
+          .catch(e => { st("Mesh load failed: " + e.message); loading.style.display = "none"; });
+      }
+
+      function scheduleLoad() {
+        if (loadTimer) clearTimeout(loadTimer);
+        loadTimer = setTimeout(() => {
+          loadMesh(parseFloat(rotSlider.value), parseFloat(eastSlider.value), parseFloat(northSlider.value));
+        }, 180);
+      }
+
+      rotSlider.addEventListener("input", () => {
+        rotVal.textContent = parseFloat(rotSlider.value).toFixed(2) + "°";
+        scheduleLoad();
+      });
+      eastSlider.addEventListener("input", () => {
+        eastVal.textContent = parseFloat(eastSlider.value).toFixed(1) + " m";
+        scheduleLoad();
+      });
+      northSlider.addEventListener("input", () => {
+        northVal.textContent = parseFloat(northSlider.value).toFixed(1) + " m";
+        scheduleLoad();
+      });
+
+      function resetControls() {
+        rotSlider.value = eastSlider.value = northSlider.value = 0;
+        rotVal.textContent = "0.00°";
+        eastVal.textContent = "0.0 m";
+        northVal.textContent = "0.0 m";
+        saveStatus.textContent = "";
+      }
+
+      resetBtn.addEventListener("click", () => {
+        resetControls();
+        loading.style.display = "flex";
+        loadMesh(0, 0, 0);
+      });
+
+      saveBtn.addEventListener("click", async () => {
+        const dRot = parseFloat(rotSlider.value);
+        const dEast = parseFloat(eastSlider.value);
+        const dNorth = parseFloat(northSlider.value);
+        saveBtn.disabled = true;
+        saveStatus.textContent = "Saving…";
+        try {
+          const r = await fetch(`${API}/buildings/${encodeURIComponent(slug)}/georef/finetune`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify({ d_east_m: dEast, d_north_m: dNorth, d_rot_deg: dRot, auto_rebuild: true })
+          });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          const res = await r.json();
+          resetControls();
+          saveStatus.textContent = "✓ Saved! Rebuilding…";
+          toast("Saved! Downstream rebuild started.");
+          // Reload the mesh with the new (now baked) georef
+          loading.style.display = "flex";
+          // Re-fetch georef to get the updated values
+          fetch(D("georef.json")).then(re => re.json()).then(newGeoref => {
+            const NA = newGeoref.model_to_epsg3857_affine;
+            A[0][0] = NA[0][0]; A[0][1] = NA[0][1]; A[0][2] = NA[0][2];
+            A[1][0] = NA[1][0]; A[1][1] = NA[1][1]; A[1][2] = NA[1][2];
+            oLL[0] = newGeoref.model_origin_wgs84.lon;
+            oLL[1] = newGeoref.model_origin_wgs84.lat;
+            loadMesh(0, 0, 0);
+          }).catch(() => loadMesh(0, 0, 0));
+          parent.postMessage({ type: "adj-saved", jobId: res.job_id }, "*");
+        } catch (e) {
+          saveStatus.textContent = "Error: " + e.message;
+          toast("Save failed: " + e.message, 3500);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+
+      // Parent can tell us to reload (e.g. after an external finetune)
+      window.addEventListener("message", (ev) => {
+        if (ev.data && ev.data.type === "adj-reload") {
+          resetControls();
+          loading.style.display = "flex";
+          loadMesh(0, 0, 0);
+        }
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>
