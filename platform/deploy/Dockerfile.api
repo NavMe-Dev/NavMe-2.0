@@ -6,6 +6,10 @@ WORKDIR /app
 COPY pipeline /app/pipeline
 COPY api /app/api
 RUN pip install --no-cache-dir -e ./pipeline -e ./api   # editable: the CLI finds api/alembic.ini next to the package
+# Static files for single-container deploys (VIEWER_DIR/ADMIN_DIR env vars point here).
+COPY viewer /app/viewer
+COPY admin /app/admin
+COPY locales /app/locales
 WORKDIR /app/api
 ENV DATA_DIR=/data
 EXPOSE 8000
