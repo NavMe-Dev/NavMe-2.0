@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from ..db import get_db
 from ..auth import verify_password, hash_password, create_token, current_admin
@@ -24,7 +24,7 @@ def me(u: models.User = Depends(current_admin)):
 
 
 class _BootstrapIn(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
