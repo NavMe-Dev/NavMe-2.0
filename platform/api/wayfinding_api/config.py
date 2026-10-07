@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     wf_chat_rate_limit_per_min: int = 20
     supabase_url: str = ""
     supabase_anon_key: str = ""
+    # One-time HTTP admin bootstrap for hosts with no Shell access (e.g. Render free
+    # plan) — see routers/auth.py:bootstrap_admin. Empty disables the endpoint.
+    bootstrap_secret: str = ""
 
     @property
     def buildings_dir(self) -> Path: return self.data_dir / "buildings"
