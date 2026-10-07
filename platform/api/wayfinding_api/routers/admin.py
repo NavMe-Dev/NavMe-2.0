@@ -692,6 +692,132 @@ def sync_pois_from_supabase(slug: str, db: Session = Depends(get_db)):
     return {"synced": created + updated, "created": created, "updated": updated, "skipped": skipped, "errors": errors}
 
 
+@router.post("/buildings/{slug}/navme-gmap/sync")
+def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
+    """Pull this building's NavMe Dashboard POI list (Supabase gmap_list_pois RPC, same
+    source as the pre-existing /pois/sync-supabase) and its active navmesh (Supabase
+    navme_media, media_type='navmesh') in — no new tables: POIs upsert into the existing
+    `pois` table (source="supabase", same as sync-supabase already does; dashboard-only
+    fields like expected_pos_* and the Supabase row id live in POI.extra, which already
+    exists), and the navmesh file is downloaded to local disk with its pointer kept in
+    Building.pipeline_config["navme_navmesh"] (also an existing JSONB column — no schema
+    change). Run this once (or whenever the dashboard changes POIs/navmesh); after that,
+    /dashboard/buildings/{slug}/navme-pois and /navmesh-url serve straight from Postgres /
+    local disk and never call Supabase again at request time."""
+    import urllib.request, urllib.error, urllib.parse
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
+    b = B(db, slug)
+    if not b.georef:
+        raise HTTPException(400, "Building has no georef — set georef before syncing POIs")
+    T = navgraph.GeoT(b.georef)
+    headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
+
+    def _get(url):
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read())
+
+    # ---- POIs: gmap_list_pois RPC + expected_pos_* straight off navme_pois ----
+    rpc_url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
+    req = urllib.request.Request(rpc_url, data=json.dumps({"p_slug": slug}).encode(), method="POST",
+                                  headers={**headers, "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            rows = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        raise HTTPException(502, f"Supabase RPC error {e.code}: {e.read().decode()}")
+    except Exception as e:
+        raise HTTPException(502, f"Supabase unreachable: {e}")
+
+    staged, seen = [], set()
+    for r in (rows or []):
+        meta = r.get("metadata") or {}
+        src_id = str(r.get("src_id") or meta.get("src_id") or r.get("id") or "")
+        label = str(r.get("label") or r.get("name") or "")
+        if not label or not src_id or src_id in seen:
+            continue
+        seen.add(src_id); staged.append((src_id, r, meta))
+
+    expected_by_id = {}
+    if staged:
+        id_list = ",".join(urllib.parse.quote(sid, safe="") for sid, _, _ in staged)
+        try:
+            exp_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_pois?id=in.({id_list})"
+                             f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z")
+            expected_by_id = {str(r.get("id")): r for r in exp_rows if r.get("id")}
+        except Exception:
+            pass
+
+    # key is the full src_id (not truncated) so two POIs never collide on a shared prefix.
+    poi_created = poi_updated = 0
+    for src_id, r, meta in staged:
+        exp = expected_by_id.get(src_id) or {}
+        key = "gmap_" + re.sub(r"[^a-z0-9]+", "_", src_id.lower())[:70]
+        name = str(r.get("label") or r.get("name") or "")
+        x, y, z = r.get("x") or 0, r.get("y") or 0, r.get("z") or 0
+        lon, lat = T.ll(float(x), float(y))
+        existing = db.query(models.POI).filter_by(building_id=b.id, key=key).first()
+        if not existing:
+            existing = models.POI(building_id=b.id, key=key, source="supabase", locked=False)
+            db.add(existing); poi_created += 1
+        else:
+            poi_updated += 1
+        existing.name = name
+        existing.category = str(r.get("category") or "room")
+        existing.floor = str(r.get("floor_id") or "F1")
+        existing.model_x, existing.model_y, existing.model_z = x, y, z
+        existing.geom = WKTElement(f"POINT({lon} {lat})", srid=4326)
+        existing.extra = {**(existing.extra or {}), "gmap_poi_type": slug, "gmap_src_id": src_id,
+                           "gmap_metadata": meta, "expected_pos_x": exp.get("expected_pos_x"),
+                           "expected_pos_y": exp.get("expected_pos_y"), "expected_pos_z": exp.get("expected_pos_z")}
+
+    # ---- Navmesh media: find the active row, download the file onto local disk ----
+    base = slug.split("-")[0]
+    seen_c, candidates = set(), []
+    for c in (slug, slug.upper(), base, base.upper()):
+        if c not in seen_c:
+            seen_c.add(c); candidates.append(c)
+    media_row = None
+    for cand in candidates:
+        q = urllib.parse.urlencode({"select": "poi_type,label,media_url,updated_at", "media_type": "eq.navmesh",
+                                     "is_active": "is.true", "poi_type": f"eq.{cand}", "order": "updated_at.desc", "limit": "1"})
+        try:
+            found = _get(f"{cfg.supabase_url}/rest/v1/navme_media?{q}")
+        except Exception:
+            found = []
+        if found:
+            media_row = found[0]; break
+    if not media_row:
+        q = urllib.parse.urlencode({"select": "poi_type,label,media_url,updated_at", "media_type": "eq.navmesh",
+                                     "is_active": "is.true", "poi_type": f"ilike.{base.upper()}*", "order": "updated_at.desc", "limit": "1"})
+        try:
+            found = _get(f"{cfg.supabase_url}/rest/v1/navme_media?{q}")
+        except Exception:
+            found = []
+        if found:
+            media_row = found[0]
+
+    media_synced = False
+    if media_row and media_row.get("media_url"):
+        try:
+            data = urllib.request.urlopen(media_row["media_url"], timeout=60).read()
+            local_path = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
+            local_path.write_bytes(data)
+            b.pipeline_config = {**(b.pipeline_config or {}), "navme_navmesh": {
+                "label": media_row.get("label"), "url": f"/{slug}_navmesh.navmesh",
+                "updated_at": media_row.get("updated_at")}}
+            media_synced = True
+        except Exception as e:
+            raise HTTPException(502, f"navmesh download failed: {e}")
+
+    db.commit()
+    workspace.recompute_step_free(db, b)
+    return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
+            "navmesh_synced": media_synced}
+
+
 # ---------------- georef ----------------
 @router.get("/buildings/{slug}/georef")
 def get_georef(slug: str, db: Session = Depends(get_db)):

@@ -528,91 +528,39 @@ def _verify_supabase_key_or_admin(request: Request):
     raise HTTPException(403, "invalid supabase key or admin token")
 
 
-def _fetch_navme_pois(slug: str, cfg) -> list:
-    """Fetch POIs from Supabase gmap_list_pois RPC for the given slug."""
-    import urllib.request, urllib.error
-    url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    body = json.dumps({"p_slug": slug}).encode()
-    req = urllib.request.Request(url, data=body, method="POST", headers={
-        "Content-Type": "application/json",
-        "apikey": cfg.supabase_anon_key,
-        "Authorization": f"Bearer {cfg.supabase_anon_key}",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            return json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        body_err = ""
-        try: body_err = e.read().decode()
-        except Exception: pass
-        raise HTTPException(502, f"Supabase RPC error {e.code}: {body_err}")
-    except Exception as e:
-        raise HTTPException(502, f"Supabase unreachable: {e}")
-
-
-def _fetch_navme_pois_expected_pos(ids: list[str], cfg) -> dict:
-    """gmap_list_pois doesn't project expected_pos_x/y/z, so read them straight off the
-    navme_pois table for the ids we already resolved. Best-effort: on any failure, callers
-    just fall back to each POI's regular (non-expected) position."""
-    if not ids:
-        return {}
-    import urllib.request, urllib.error, urllib.parse
-    id_list = ",".join(urllib.parse.quote(i, safe="") for i in ids)
-    url = (f"{cfg.supabase_url}/rest/v1/navme_pois?id=in.({id_list})"
-           f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z")
-    req = urllib.request.Request(url, headers={
-        "apikey": cfg.supabase_anon_key,
-        "Authorization": f"Bearer {cfg.supabase_anon_key}",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            rows = json.loads(resp.read())
-        return {str(r.get("id")): r for r in rows if r.get("id")}
-    except Exception:
-        return {}
-
 
 @router.get("/dashboard/buildings/{slug}/navme-pois")
 def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_db)):
-    """Return NavMe Supabase POI list for a building slug — live, no sync needed.
+    """Return the NavMe Dashboard POI list for a building slug — served straight from this
+    server's own `pois` table (source="supabase"), no new table, self-hosted: no Supabase
+    call at request time.
+
+    Rows are upserted here by an admin POST to
+    /api/v1/admin/buildings/{slug}/navme-gmap/sync whenever the dashboard's POIs change —
+    the dashboard itself still owns and edits this data in Supabase as before.
 
     Unauthenticated: the public viewer renders this same POI set and has neither an admin
-    token nor the anon key. The Supabase anon key stays server-side and is never returned.
-    Note this does expose POI names and positions to anyone who can reach the server."""
-    cfg = get_settings()
-    if not cfg.supabase_url or not cfg.supabase_anon_key:
-        raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
-    rows = _fetch_navme_pois(slug, cfg)
-    staged = []
-    seen = set()
-    for r in rows:
-        meta = r.get("metadata") or {}
-        src_id = str(r.get("src_id") or meta.get("src_id") or r.get("id") or "")
-        label = str(r.get("label") or r.get("name") or "")
-        if not label or not src_id or src_id in seen:
-            continue
-        seen.add(src_id)
-        staged.append((src_id, r))
-    expected_by_id = _fetch_navme_pois_expected_pos([sid for sid, _ in staged], cfg)
+    token nor any Supabase credential. Note this does expose POI names and positions to
+    anyone who can reach the server, same as before."""
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        return []
+    rows = db.query(models.POI).filter_by(building_id=b.id, source="supabase").all()
     pois = []
-    for src_id, r in staged:
-        exp = expected_by_id.get(src_id) or {}
+    for r in rows:
+        extra = r.extra or {}
         poi = {
-            "id": src_id,
-            "name": str(r.get("label") or r.get("name") or ""),
-            "floor": str(r.get("floor_id") or "F1"),
-            "category": str(r.get("category") or "room"),
+            "id": extra.get("gmap_src_id") or r.key,
+            "name": r.name,
+            "floor": r.floor,
+            "category": r.category,
             # SDK coords: x=right, y=elevation, z=depth → pass as-is for snapping
-            "x": r.get("x"),
-            "y": r.get("y"),
-            "z": r.get("z"),
+            "x": r.model_x, "y": r.model_y, "z": r.model_z,
         }
-        # expected_pos_* is the curated "look here" anchor (distinct from the room/tag's
-        # general x/y/z) — only present when the source row actually has it set.
-        if exp.get("expected_pos_x") is not None and exp.get("expected_pos_y") is not None and exp.get("expected_pos_z") is not None:
-            poi["expected_pos_x"] = exp.get("expected_pos_x")
-            poi["expected_pos_y"] = exp.get("expected_pos_y")
-            poi["expected_pos_z"] = exp.get("expected_pos_z")
+        if extra.get("expected_pos_x") is not None and extra.get("expected_pos_y") is not None and extra.get("expected_pos_z") is not None:
+            poi["expected_pos_x"] = extra.get("expected_pos_x")
+            poi["expected_pos_y"] = extra.get("expected_pos_y")
+            poi["expected_pos_z"] = extra.get("expected_pos_z")
         pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois
@@ -664,70 +612,28 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
 
     The route is computed purely on this mesh (stairs are walkable geometry in it, so
     floor changes come from the mesh itself — there is no stair/door graph involved).
-    navme_media.poi_type is stored upper-case ('GCU'), so match case-insensitively
-    rather than assuming the wayfinding slug casing.
 
-    Unauthenticated: the response is a public Supabase storage URL that is already
-    world-readable, and contains no secret. The public viewer needs it to route."""
-    import urllib.request, urllib.error, urllib.parse
+    Self-hosted, no new table: served straight from this building's existing
+    pipeline_config["navme_navmesh"] pointer (JSONB column that already existed) + the
+    navmesh file an admin sync already downloaded onto local disk — no Supabase call at
+    request time. Run POST /api/v1/admin/buildings/{slug}/navme-gmap/sync (or drop a
+    <slug>_navmesh.navmesh file directly in the viewer directory) to populate/refresh it.
+
+    Unauthenticated: the public viewer needs this to route and has no admin token."""
     cfg = get_settings()
+    base_url = str(request.base_url).rstrip("/")
 
-    # DEV OVERRIDE: serve a local navmesh file placed next to viewer files.
-    # Drop <slug>_navmesh.navmesh in the viewer directory to skip Supabase for that building.
+    # Local file dropped directly next to the viewer (manual override / pre-sync state).
     if cfg.viewer_dir:
         local_nm = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
         if local_nm.exists():
-            base_url = str(request.base_url).rstrip("/")
             return {"url": f"{base_url}/{slug}_navmesh.navmesh",
                     "label": "local-override", "poi_type": slug, "updated_at": None}
 
-    if not cfg.supabase_url or not cfg.supabase_anon_key:
-        raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
-
-    base = slug.split("-")[0]
-    seen, candidates = set(), []
-    for c in (slug, slug.upper(), base, base.upper()):
-        if c not in seen:
-            seen.add(c); candidates.append(c)
-
-    headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
-
-    def _query_supabase(params: dict):
-        q = urllib.parse.urlencode(params)
-        req = urllib.request.Request(f"{cfg.supabase_url}/rest/v1/navme_media?{q}", headers=headers)
-        try:
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                return json.loads(resp.read())
-        except Exception as e:
-            raise HTTPException(502, f"Supabase unreachable: {e}")
-
-    # Try exact poi_type matches first (gcu, GCU, …)
-    for cand in candidates:
-        rows = _query_supabase({
-            "select": "poi_type,label,media_url,updated_at",
-            "media_type": "eq.navmesh",
-            "is_active": "is.true",
-            "poi_type": f"eq.{cand}",
-            "order": "updated_at.desc",
-            "limit": "1",
-        })
-        if rows:
-            r = rows[0]
-            return {"url": r.get("media_url"), "label": r.get("label"),
-                    "poi_type": r.get("poi_type"), "updated_at": r.get("updated_at")}
-
-    # Fallback: prefix match so "GCU" slug finds "GCU OMR", "GCU Library", etc.
-    rows = _query_supabase({
-        "select": "poi_type,label,media_url,updated_at",
-        "media_type": "eq.navmesh",
-        "is_active": "is.true",
-        "poi_type": f"ilike.{base.upper()}*",
-        "order": "updated_at.desc",
-        "limit": "1",
-    })
-    if rows:
-        r = rows[0]
-        return {"url": r.get("media_url"), "label": r.get("label"),
-                "poi_type": r.get("poi_type"), "updated_at": r.get("updated_at")}
-
-    raise HTTPException(404, f"no active navmesh for '{slug}' (tried {', '.join(candidates)} + prefix)")
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    nm = (b.pipeline_config or {}).get("navme_navmesh") if b else None
+    if not nm or not nm.get("url"):
+        raise HTTPException(404, f"no synced navmesh for '{slug}' — "
+                                  f"run POST /api/v1/admin/buildings/{slug}/navme-gmap/sync first")
+    url = nm["url"] if nm["url"].startswith("http") else f"{base_url}{nm['url']}"
+    return {"url": url, "label": nm.get("label"), "poi_type": slug, "updated_at": nm.get("updated_at")}

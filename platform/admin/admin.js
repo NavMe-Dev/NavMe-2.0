@@ -564,6 +564,11 @@ const Overview = {
       <div>SDK key</div><div>env <code>{{b.sdk_key_ref}}</code>: <span :class="b.sdk_key_configured?'ok':'muted'">{{b.sdk_key_configured?'configured':'not set (Showcase preview works without; SDK features need it)'}}</span></div>
       <div>Georeference</div><div>{{b.georef ? b.georef.mode+' · rotation '+b.georef.rotation_deg.toFixed(2)+'°'+(b.georef.rms_m!=null?' · RMS '+b.georef.rms_m.toFixed(2)+' m':'')+(b.georef.auto&&b.georef.auto.ncc?' · NCC '+b.georef.auto.ncc:'') : '—'}}</div>
       <div>Centre</div><div class="mono">{{mi.center ? mi.center.lat.toFixed(6)+', '+mi.center.lon.toFixed(6) : '—'}}</div></div></div>
+    <div class="card"><h2 style="margin-top:0">NavMe Dashboard sync</h2>
+      <p class="muted small">Pulls this building's POIs and navmesh from the NavMe Dashboard's Supabase project into this server's own existing <code>pois</code> table (source="supabase") and local disk — no new tables. The public viewer and admin route tester always read from here — never live from Supabase — so re-run this whenever POIs or the navmesh change in the dashboard.</p>
+      <button class="sm primary" @click="syncNavmeGmap" :disabled="gmapBusy"><span v-if="gmapBusy" class="spinner"></span>{{gmapBusy ? 'Syncing…' : 'Sync from NavMe Dashboard'}}</button>
+      <p class="small" v-if="gmapMsg" :class="gmapErr ? 'err' : 'ok'" style="margin-top:8px">{{gmapMsg}}</p>
+    </div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.buildingSettings")}}</h2>
       <div class="row"><div class="grow"><label>{{t("admin.name")}}</label><input v-model="e.name"></div><div class="grow"><label>{{t("admin.venue")}}</label><input v-model="e.venue_slug"></div></div>
       <label>{{t("admin.address")}}</label><input v-model="e.address">
@@ -781,7 +786,17 @@ const Overview = {
       } catch (x) { delErr.value = x.message; }
       delBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, mpPath, mpSuggestions, mpBusy, mpOk, mpErr, setMpPath, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding };
+    const gmapBusy = ref(false), gmapMsg = ref(""), gmapErr = ref(false);
+    async function syncNavmeGmap() {
+      gmapBusy.value = true; gmapMsg.value = ""; gmapErr.value = false;
+      try {
+        const r = await api(`/admin/buildings/${props.b.slug}/navme-gmap/sync`, { method: "POST" });
+        gmapMsg.value = `Synced ${r.pois_total} POIs (${r.pois_created} new, ${r.pois_updated} updated)` +
+          (r.navmesh_synced ? ", navmesh updated." : ", no active navmesh found.");
+      } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
+      gmapBusy.value = false;
+    }
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, mpPath, mpSuggestions, mpBusy, mpOk, mpErr, setMpPath, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap };
   }
 };
 
@@ -1478,7 +1493,10 @@ const Routes = {
         <div>Points</div><div>{{res.path.length}}</div><div>Snap gap</div><div>{{res.start_gap_m}} m / {{res.end_gap_m}} m</div></div>
       <div v-if="steps.length" style="margin-top:12px"><b class="small">Turn-by-turn</b>
         <ol class="small" style="margin:6px 0 0;padding-left:18px;line-height:1.7">
-          <li v-for="(s,i) in steps" :key="i">{{s.text}}<span class="muted" v-if="s.dist_m"> &middot; {{s.dist_m}} m</span></li>
+          <li v-for="(s,i) in steps" :key="i">{{s.text}}<span class="muted" v-if="s.dist_m"> &middot; {{s.dist_m}} m</span>
+            <img v-if="thumbUrl(s.sweep)" :src="thumbUrl(s.sweep)" alt="Matterport view at this turn"
+              style="display:block;margin:4px 0 8px;width:100%;max-width:220px;height:84px;object-fit:cover;border-radius:8px">
+          </li>
         </ol></div>
       <div class="err" v-if="err">{{err}}</div></div></div></div>`,
   setup(props) {
@@ -1498,6 +1516,14 @@ const Routes = {
     let previewReady = false;
     const previewUrl = `route_preview.html?slug=${encodeURIComponent(props.b.slug)}&token=${encodeURIComponent(store.token)}`;
     function post(msg) { if (el.value && el.value.contentWindow) el.value.contentWindow.postMessage(JSON.parse(JSON.stringify(msg)), "*"); }
+    // Turn-by-turn thumbnails: same Matterport-skybox thumbs the pipeline's thumbs step
+    // generates for the public viewer (steps/thumbs.py — POI + Supabase-POI + stair sweeps),
+    // read here straight off this building's draft workspace (out/thumbs/*).
+    const thumbIds = ref(new Set());
+    function thumbUrl(sweepId) {
+      if (!sweepId || !thumbIds.value.has(sweepId)) return null;
+      return `${API}/admin/buildings/${props.b.slug}/files/out/thumbs/${sweepId}.jpg?token=${encodeURIComponent(store.token)}`;
+    }
     mpSrc.value = `matterpak_view.html?slug=${encodeURIComponent(props.b.slug)}&token=${encodeURIComponent(store.token)}`;
     function onMpMessage(ev) {
       const m = ev.data || {};
@@ -1511,7 +1537,8 @@ const Routes = {
         res.value = { length_m: m.length_m, path: m.path, start_gap_m: 0, end_gap_m: 0 };
         steps.value = WFNavmeshRoute.guidance(m.path, {
           floors: (props.b.floors || []).map(f => ({ id: f.fid, label: f.label || f.fid, elevation: f.elevation })),
-          levelYs: pois.value.map(p => p.y).filter(y => y != null)
+          levelYs: pois.value.map(p => p.y).filter(y => y != null),
+          sweeps: navSweeps.value
         });
       }
     }
@@ -1579,6 +1606,10 @@ const Routes = {
                                           .map(n => ({ id: n.id, x: n.x, y: n.y, z: n.z }));
       } catch (e) { navSweeps.value = []; }
       try {
+        const ti = await api(`/admin/buildings/${props.b.slug}/files/out/thumbs/index.json`);
+        thumbIds.value = new Set(ti || []);
+      } catch (e) { thumbIds.value = new Set(); }
+      try {
         const nm = await api(`/public/dashboard/buildings/${props.b.slug}/navmesh-url`);
         await WFNavmeshRoute.load(nm.url, props.b.slug);
         navReady.value = true;
@@ -1637,7 +1668,7 @@ const Routes = {
       window.open(url, "_blank");
     }
     return { el, pois, from, to, sfree, res, err, run, floor, viewMode, steps, navReady, navStatus,
-      mpEl, mpSrc, mpReady, mpNav, mpMsg, mpGenerate, sc, scBusy, scErr, helpText, openTwin, closeTwin, previewUrl, onPreviewLoad, openMesh };
+      mpEl, mpSrc, mpReady, mpNav, mpMsg, mpGenerate, sc, scBusy, scErr, helpText, openTwin, closeTwin, previewUrl, onPreviewLoad, openMesh, thumbUrl };
   }
 };
 

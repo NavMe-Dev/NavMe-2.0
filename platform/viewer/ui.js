@@ -858,8 +858,11 @@ function wfDbg(level, source, message, meta) {
     return segs.filter(s => s.d > 0.5);
   }
   function nearestSweep(pt) {
+    // The route result's own nodes are the routing graph's door/room waypoints — a path
+    // rarely passes through a node literally tagged kind:"sweep". The real sweep positions
+    // (990 of them here) live on the full nav graph, so search that instead.
     let best = null, bd = 1e9;
-    (S.route.nodes || []).forEach(n => { if (n.kind !== "sweep") return; const d = Math.hypot(n.x - pt.x, n.y - pt.y) + (n.floor === pt.floor ? 0 : 3); if (d < bd) { bd = d; best = n; } });
+    ((wf.nav && wf.nav.nodes) || S.route.nodes || []).forEach(n => { if (n.kind !== "sweep") return; const d = Math.hypot(n.x - pt.x, n.y - pt.y) + (n.floor === pt.floor ? 0 : 3); if (d < bd) { bd = d; best = n; } });
     return best;
   }
   

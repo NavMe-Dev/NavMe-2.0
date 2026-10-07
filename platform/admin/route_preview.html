@@ -110,7 +110,14 @@
       const rawIndoorFC = {}; // floor_id -> original FeatureCollection (cached on first load)
       let adjIndoorRot = 0, adjIndoorEast = 0, adjIndoorNorth = 0;
       let adjDragMode = false; // true once overlay adj is active; enables drag-to-move
-      const COL = { route: [26, 115, 232], trans: [230, 118, 0], other: [138, 180, 248] };
+      // Same palette as the public viewer's app.js (deep midnight navy route).
+      const COL = { route: [24, 40, 88], trans: [249, 171, 0], other: [110, 120, 160] };
+      const meshEdgeColor = [110, 110, 120], meshEdgeIntensity = 0.8;
+      function meshSymbol() {
+        return { type: "mesh-3d", symbolLayers: [{ type: "fill",
+          material: { color: [255, 255, 255, 0.12], colorMixMode: "replace" },
+          edges: { type: "solid", color: [...meshEdgeColor, meshEdgeIntensity], size: 0.8 } }] };
+      }
 
       function buildingExtent() {
         const cs = floorsData.floors.flatMap(f => f.corners_lonlat);
@@ -196,7 +203,7 @@
         status("3D · loading " + key + ".glb …");
         const origin = new Point({ longitude: oLL[0], latitude: oLL[1], z: modelZtoAbs(0) });
         Mesh.createFromGLTF(origin, D(key + ".glb"), { vertexSpace: "local" }).then(mesh => {
-          meshLayer.add(new Graphic({ geometry: mesh, symbol: { type: "mesh-3d", symbolLayers: [{ type: "fill", material: { color: [200, 225, 255, 0.15] } }] } }));
+          meshLayer.add(new Graphic({ geometry: mesh, symbol: meshSymbol() }));
           status("3D · Matterpak mesh (" + key + ")");
           if (activeView === view3d) fit3DCamera({ animate: true, duration: 600 });
         }).catch(e => { status("mesh load failed: " + e.message); console.error(e); });
@@ -405,7 +412,7 @@
         if (view3d) {
           // Use each point's own mesh height, so stairs render as real 3D slopes.
           // model_z == SDK y, so the height needs no conversion beyond grade.
-          const p3 = path.map((p, i) => [path2[i][0], path2[i][1], modelZtoAbs(p.y) + 0.35]);
+          const p3 = path.map((p, i) => [path2[i][0], path2[i][1], modelZtoAbs(p.y) + 0.20]);
           route3D.add(new Graphic({ geometry: new Polyline({ paths: [p3], hasZ: true, spatialReference: { wkid: 4326 } }),
             symbol: { type: "line-3d", symbolLayers: [{ type: "path", profile: "circle", width: 0.35, height: 0.35, material: { color: COL.route }, cap: "round", join: "round" }] } }));
         }
@@ -429,7 +436,7 @@
           symbol: { type: "simple-marker", size: 14, color, outline: { color: "white", width: 2.5 } } })); };
         mk(legs[0], [30, 180, 60]); mk(legs[legs.length - 1], [220, 40, 40]);
         if (view3d) {
-          const p3 = legs.map(p => { const z = (CFG.floors.find(f => f.id === p.floor) || {}).elevation || 0; return [p.lonlat[0], p.lonlat[1], modelZtoAbs(z) + 0.35]; });
+          const p3 = legs.map(p => { const z = (CFG.floors.find(f => f.id === p.floor) || {}).elevation || 0; return [p.lonlat[0], p.lonlat[1], modelZtoAbs(z) + 0.20]; });
           route3D.add(new Graphic({ geometry: new Polyline({ paths: [p3], hasZ: true, spatialReference: { wkid: 4326 } }),
             symbol: { type: "line-3d", symbolLayers: [{ type: "path", profile: "circle", width: 0.35, height: 0.35, material: { color: COL.route }, cap: "round", join: "round" }] } }));
         }
