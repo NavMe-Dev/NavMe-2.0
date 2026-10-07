@@ -105,6 +105,8 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 .pill .ms{font-size:18px}.pill.primary{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important}
 .pill.red{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important}
 .photo{width:100%;aspect-ratio:5/3;object-fit:cover;border-radius:12px;background:var(--bg2);display:block;margin:4px 0 10px}
+.photo-gallery{display:flex;gap:8px;overflow-x:auto;margin:4px 0 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.photo-gallery .gallery-img{width:72%;max-width:260px;flex:0 0 auto;aspect-ratio:5/3;object-fit:cover;border-radius:12px;background:var(--bg2);margin:0;scroll-snap-align:start}
 .facts{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .facts li{display:flex;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .facts li .ms{color:var(--blue);font-size:22px}

@@ -24,13 +24,16 @@ require([
       F.navmesh ? J(D(F.navmesh)).catch(() => null) : Promise.resolve(null),
       // Live NavMe POIs (Supabase). These are the real places; the published pois.json
       // holds pipeline-detected entrances. Null on failure so the viewer still loads.
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-pois").catch(() => null)]); })
-    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois]) => {
+      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-pois").catch(() => null),
+      // NavMe Dashboard's curated category chips (name/icon_key/sort_order) — used by
+      // ui.js only in Matterport mode (?mp=1) to replace the viewer's fixed chip set.
+      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-categories").catch(() => [])]); })
+    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories]) => {
       pois._navme = navmePois;
       // platform config -> fields the prototype engine expects
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));
       floorsData.floors.forEach(f => { if (!/^(https?:|\/|data:)/.test(f.image)) f.image = D(f.image); });
-      init(georef, floorsData, { nav, walkgrid, pois, rawGraph, navmesh }); })
+      init(georef, floorsData, { nav, walkgrid, pois, rawGraph, navmesh, navmeCategories }); })
     .catch(e => { status("Failed to load data: " + e); console.error(e); });
 
   function init(georef, floorsData, R2) {
@@ -697,6 +700,7 @@ require([
       window.wf.route = (fromKey, toPoiId, opts) => doRoute(fromKey, toPoiId, opts || {});
       window.wf.showGraph = (on) => { $("showGraph").checked = on; graphLayer.visible = on; drawGraph(); };
       window.wf.pois = pois.pois;
+      window.wf.categories = (R2 && R2.navmeCategories) || [];
       window.wf.redrawPOIs = drawPOIs;
       if (window.wf.showLabels == null) {
         try { window.wf.showLabels = localStorage.getItem("wf_showLabels") === "1"; }

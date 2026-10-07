@@ -637,3 +637,14 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
                                   f"run POST /api/v1/admin/buildings/{slug}/navme-gmap/sync first")
     url = nm["url"] if nm["url"].startswith("http") else f"{base_url}{nm['url']}"
     return {"url": url, "label": nm.get("label"), "poi_type": slug, "updated_at": nm.get("updated_at")}
+
+
+@router.get("/dashboard/buildings/{slug}/navme-categories")
+def dashboard_navme_categories(slug: str, db: Session = Depends(get_db)):
+    """NavMe Dashboard's curated POI category list (navme_categories: name + icon_key +
+    sort_order) for this building — served from Building.pipeline_config["navme_categories"]
+    (synced by POST /api/v1/admin/buildings/{slug}/navme-gmap/sync), never live from
+    Supabase. Used by the Matterport public viewer (?mp=1) to build its category chips
+    from the dashboard's own categories instead of the viewer's fixed built-in set."""
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    return (b.pipeline_config or {}).get("navme_categories", []) if b else []

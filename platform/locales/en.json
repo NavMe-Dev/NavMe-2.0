@@ -107,6 +107,7 @@
     "viewIn3d": "View in 3D",
     "photoOf": "Photo of {{name}}",
     "photoNear": "Photo near {{name}} from the Matterport scan",
+    "mpZoomDollhouseHint": "Pinch or scroll on the view to zoom in the dollhouse",
     "reachableStepFree": "Reachable without steps from the parking lot",
     "routesIncludeSteps": "Mapped routes from outside include steps or stairs",
     "basedOnScan": "Based on the 3D scan; not yet verified on site",

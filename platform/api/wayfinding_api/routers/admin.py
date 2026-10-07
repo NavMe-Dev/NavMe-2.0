@@ -812,10 +812,22 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         except Exception as e:
             raise HTTPException(502, f"navmesh download failed: {e}")
 
+    # ---- Categories: navme_categories (dashboard-curated POI category chips) ----
+    categories = []
+    try:
+        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order", "poi_type": f"ilike.{slug}",
+                                     "order": "sort_order.asc,name.asc"})
+        rows = _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}")
+        categories = [{"id": r.get("id"), "name": r.get("name"), "icon_key": r.get("icon_key"),
+                       "sort_order": r.get("sort_order")} for r in (rows or [])]
+    except Exception:
+        pass  # best-effort; categories are optional chrome, never block the rest of the sync
+    b.pipeline_config = {**(b.pipeline_config or {}), "navme_categories": categories}
+
     db.commit()
     workspace.recompute_step_free(db, b)
     return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
-            "navmesh_synced": media_synced}
+            "navmesh_synced": media_synced, "categories_synced": len(categories)}
 
 
 # ---------------- georef ----------------

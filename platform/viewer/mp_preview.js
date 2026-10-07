@@ -27,6 +27,7 @@ function wfDbg(level, source, message, meta) {
   let sdkScriptPromise = null;
   let openGen = 0;
   let navPathTour = false; // when true: INSTANT transitions + zero dwell (computed from navPath)
+  let tourNavSteps = [];  // same turn-by-turn instructions Start Preview shows (route._navSteps)
 
   // Tour interior UX (1A HUD arrow + distance + 3A look-ahead; NO orbit peek) — Embed SDK only
   const HUD_TURN_EMPHASIS_DEG = 30;   // larger chevron when turn > 30° (never hide)
@@ -69,6 +70,18 @@ function wfDbg(level, source, message, meta) {
         title.insertAdjacentElement("afterend", d);
       }
     }
+    if (!$("mpInstr")) {
+      const bar = ov.querySelector(".mp-bar");
+      const dest = $("mpDest");
+      if (bar) {
+        const d = document.createElement("div");
+        d.className = "mp-dest-label mp-instr";
+        d.id = "mpInstr";
+        d.hidden = true;
+        if (dest) dest.insertAdjacentElement("afterend", d);
+        else bar.insertBefore(d, bar.firstChild.nextSibling);
+      }
+    }
   }
 
   function ensureOverlay() {
@@ -86,6 +99,7 @@ function wfDbg(level, source, message, meta) {
         <header class="mp-bar">
           <div class="mp-title"><span class="ms">view_in_ar</span><span>Tour interior</span></div>
           <div class="mp-dest-label" id="mpDest" hidden></div>
+          <div class="mp-dest-label mp-instr" id="mpInstr" hidden></div>
           <div class="mp-step" id="mpStep">—</div>
           <div class="mp-actions">
             <button type="button" class="mp-btn" id="mpPlay" aria-label="Play"><span class="ms">play_arrow</span></button>
@@ -151,6 +165,36 @@ function wfDbg(level, source, message, meta) {
     }
   }
 
+  /** Nearest turn-by-turn instruction (from the same list Start Preview shows) to a point. */
+  function nearestTourStepText(pt) {
+    if (!tourNavSteps.length || !pt || pt.x == null) return null;
+    let best = null, bd = Infinity;
+    tourNavSteps.forEach(s => {
+      if (!s || !s.pt || s.pt.x == null) return;
+      if (s.pt.floor != null && pt.floor != null && s.pt.floor !== pt.floor) return;
+      const d = Math.hypot(s.pt.x - pt.x, s.pt.y - pt.y);
+      if (d < bd) { bd = d; best = s; }
+    });
+    return best;
+  }
+
+  function updateTourInstruction(pt, isLast) {
+    const el = $("mpInstr");
+    if (!el) return;
+    if (isLast) {
+      el.textContent = destName ? ("You have arrived at " + destName) : "You have arrived";
+      el.hidden = false;
+      return;
+    }
+    const step = nearestTourStepText(pt);
+    if (step && step.text) {
+      el.textContent = step.text;
+      el.hidden = false;
+    } else {
+      el.hidden = true;
+    }
+  }
+
   function showcaseUrl(key, startSweep) {
     // dh=1: Dollhouse must be enabled in the embed itself, or Mode.moveTo(DOLLHOUSE) from the
     // SDK silently no-ops during the tour's cinematic opening shot (matches threed_nav.js's dh=1).
@@ -160,7 +204,13 @@ function wfDbg(level, source, message, meta) {
     // building. The working Mattercraft build (threed_nav.js) carries this same param for
     // exactly that reason; it never calls Floor.showAll() at all, because f=0 means there is
     // no floor filter to begin with.
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2`;
+    // logo=0/newtop=0/mt=0/gt=0/vr=0/search=0/pin=0/sr=0/kb=0/lp=0: the rest of Showcase's own
+    // chrome (watermark logo, bottom mode-switch toolbar, guided-tour prompt, VR/search/pin/
+    // share buttons, keyboard-shortcut hint, loading-progress bar) — same param set threed_nav.js
+    // already uses for its own chromeless walkthrough. None of these are reachable via CSS/DOM:
+    // the iframe is cross-origin (my.matterport.com), so hiding them is only possible through
+    // Showcase's own embed parameters, never by styling into the iframe from this page.
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
     return u;
@@ -354,45 +404,59 @@ function wfDbg(level, source, message, meta) {
   // NavMe Z-up {x=east,y=north,z=up} → Matterport Y-up
   function rtToMp(p) { return { x: +p.x, y: +(p.z || 0), z: -(+p.y) }; }
 
+  function parseSweepEntries(vals) {
+    const out = [];
+    for (const sw of vals) {
+      if (!sw || sw.enabled === false) continue;
+      const sid = String(sw.id || sw.sid || sw.uuid || "");
+      const pos = sw.position || (sw.pose && sw.pose.position) || sw.location;
+      if (!sid || !pos) continue;
+      const x = Number(pos.x), y = Number(pos.y), z = Number(pos.z);
+      if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
+      const nbRaw = sw.neighbors || sw.neighbours || [];
+      const neighbours = [];
+      if (Array.isArray(nbRaw)) {
+        for (const n of nbRaw) {
+          const nid = typeof n === "string" ? n : String((n && (n.id || n.sid)) || "");
+          if (nid) neighbours.push(nid);
+        }
+      }
+      out.push({ sid, position: { x, y, z }, neighbours });
+    }
+    return out;
+  }
+
   // Read full sweep data (positions + neighbours) from the SDK.
-  // Tries direct dict read first (same trick knownSweepIds uses); falls back to subscribe.
+  // Model.getData() returns every sweep immediately and reliably — verified live (990
+  // sweeps, available right after connect, no further waiting needed). Sweep.data (the
+  // observable collection) was tried first originally, but its subscribe event never
+  // actually fires in this environment/model — confirmed by direct testing, both via
+  // object-form and function-form callbacks, with and without an early subscribe set up
+  // right after connect (matching threed_nav.js's documented "emits once, early" pattern
+  // for its own build/model) — so it's kept only as a last-resort fallback, not relied on.
   async function rtReadSweeps(sdk) {
+    try {
+      if (sdk && sdk.Model && typeof sdk.Model.getData === "function") {
+        const d = await sdk.Model.getData();
+        const parsed = parseSweepEntries((d && d.sweeps) || []);
+        if (parsed.length) return parsed;
+      }
+    } catch (e) { console.warn("[MpPreview] Model.getData failed", e); }
+
     const sweepApi = sdk && sdk.Sweep;
     if (!sweepApi || !sweepApi.data) return [];
 
-    function parseEntries(vals) {
-      const out = [];
-      for (const sw of vals) {
-        if (!sw || sw.enabled === false) continue;
-        const sid = String(sw.id || sw.sid || sw.uuid || "");
-        const pos = sw.position || (sw.pose && sw.pose.position) || sw.location;
-        if (!sid || !pos) continue;
-        const x = Number(pos.x), y = Number(pos.y), z = Number(pos.z);
-        if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
-        const nbRaw = sw.neighbors || sw.neighbours || [];
-        const neighbours = [];
-        if (Array.isArray(nbRaw)) {
-          for (const n of nbRaw) {
-            const nid = typeof n === "string" ? n : String((n && (n.id || n.sid)) || "");
-            if (nid) neighbours.push(nid);
-          }
-        }
-        out.push({ sid, position: { x, y, z }, neighbours });
-      }
-      return out;
-    }
-
-    // 1) Direct dict read (the observable often doubles as a keyed snapshot)
+    // Direct dict read (the observable sometimes doubles as a keyed snapshot)
     try {
       const data = sweepApi.data;
       if (typeof data === "object" && !Array.isArray(data)) {
         const vals = Object.values(data).filter(v => v && typeof v === "object");
-        const parsed = parseEntries(vals);
+        const parsed = parseSweepEntries(vals);
         if (parsed.length) return parsed;
       }
     } catch (_) { /* ignore */ }
 
-    // 2) Subscribe fallback (the collection may not have fired yet)
+    // Subscribe, last resort
     let col = null, sub = null;
     try {
       await new Promise((resolve) => {
@@ -416,7 +480,7 @@ function wfDbg(level, source, message, meta) {
     if (Array.isArray(col)) entries = col;
     else if (typeof col.forEach === "function") { entries = []; col.forEach(v => entries.push(v)); }
     else entries = Object.values(col);
-    return parseEntries(entries);
+    return parseSweepEntries(entries);
   }
 
   function rtDist3(a, b) {
@@ -1334,6 +1398,88 @@ function wfDbg(level, source, message, meta) {
     return null;
   }
 
+  // ── Floor control for ui.js's floor-picker buttons (Showcase's own floor explorer is
+  // hidden — see f=0 in showcaseUrl). Matterport's native Floor API turned out to be a dead
+  // end for this content: Floor.getData() reports totalFloors:1 here (floors were never
+  // tagged in Matterport's own capture tool), so Floor.moveTo() is a silent no-op — verified
+  // live (moveTo(0) resolves but currentFloor stays -1). Our 5 floors are a NavMe-only
+  // construct, built from each sweep's real height (WF.cfg.floors[].elevation, same SDK Y-up
+  // units as sweep.position.y — see WFNavmeshRoute.floorAt, already used by the navmesh
+  // router for the same height→floor lookup).
+  //
+  // First version flew the camera into a representative sweep on that floor (Sweep.moveTo),
+  // which switches Showcase out of Dollhouse into first-person Panorama mode — not what was
+  // asked for ("show the floors in the dollhouse view"). Camera.lookAt(target), verified live,
+  // re-centres the Dollhouse orbit on a point WITHOUT leaving Dollhouse mode (confirmed via
+  // Camera.getPose(): mode stayed "mode.dollhouse", position moved toward the target, rotation
+  // unchanged) — so floor buttons now stay in Dollhouse and just refocus on that floor. ──
+  function sweepFloorId(sdkY) {
+    try {
+      const floors = (window.WF && WF.cfg && WF.cfg.floors) || [];
+      if (window.WFNavmeshRoute && WFNavmeshRoute.floorAt) {
+        const f = WFNavmeshRoute.floorAt(sdkY, floors);
+        return f ? f.id : null;
+      }
+    } catch (_) { /* ignore */ }
+    return null;
+  }
+
+  async function ensureDollhouse() {
+    const Mode = mpSdk.Mode;
+    if (Mode && Mode.moveTo && Mode.Mode) {
+      const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+      await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+    }
+  }
+
+  /** floorId: one of WF.cfg.floors[].id (e.g. "F1"), or "all"/falsy to reset to the default,
+   *  unfiltered Dollhouse overview this background view already opens into. */
+  async function setFloor(floorId) {
+    if (!mpSdk) return false;
+    if (!floorId || floorId === "all") {
+      try { await ensureDollhouse(); return true; }
+      catch (e) { console.warn("[MpPreview] setFloor(all) failed", e); return false; }
+    }
+    const rtSweeps = await rtReadSweeps(mpSdk);
+    if (!rtSweeps.length) return false;
+    const onFloor = rtSweeps.filter(s => sweepFloorId(s.position.y) === floorId);
+    if (!onFloor.length) return false;
+    // Centroid of that floor's sweeps — the point the Dollhouse camera re-centres on.
+    const cx = onFloor.reduce((a, s) => a + s.position.x, 0) / onFloor.length;
+    const cy = onFloor.reduce((a, s) => a + s.position.y, 0) / onFloor.length;
+    const cz = onFloor.reduce((a, s) => a + s.position.z, 0) / onFloor.length;
+    try {
+      await ensureDollhouse();
+      await mpSdk.Camera.lookAt({ x: cx, y: cy, z: cz });
+      return true;
+    } catch (e) { console.warn("[MpPreview] setFloor lookAt failed", e); return false; }
+  }
+
+  /** Camera.zoomBy is only valid in first-person Inside mode (pose.mode === "mode.inside" —
+   *  verified live; Dollhouse rejects it with "Zoom controls are currently only supported in
+   *  Panorama mode", a misleading message since the real mode string is "inside" not
+   *  "panorama"). Dollhouse has NO zoom/dolly API at all: moveInDirection is Inside-only too,
+   *  orbit() turned out to be an auto-spin toggle (not a manual nudge), and Camera.lookAt —
+   *  the only way to reposition in Dollhouse — snaps to ITS OWN preferred framing distance for
+   *  whatever point it's given, not a proportional move toward it (verified live: aiming it at
+   *  a point just 10m ahead from ~200 units out away moved the camera 146 units in one step,
+   *  the opposite of a gentle zoom step). So Dollhouse zoom is left as a no-op here — the
+   *  dollhouse view still supports native pinch/scroll zoom by interacting with it directly. */
+  async function zoomBy(delta) {
+    if (!mpSdk || !mpSdk.Camera) return false;
+    try {
+      const pose = await mpSdk.Camera.getPose();
+      if (pose && pose.mode === "mode.inside" && typeof mpSdk.Camera.zoomBy === "function") {
+        await mpSdk.Camera.zoomBy(delta);
+        return true;
+      }
+    } catch (e) { console.warn("[MpPreview] zoomBy failed", e); }
+    return false;
+  }
+
+  /** "Your location" has no GPS/map meaning in mp mode — repurposed as a home/reset button. */
+  async function resetView() { return setFloor(null); }
+
   async function alignSweepIds(sdk) {
     const known = await knownSweepIds(sdk);
     if (!known || !known.size || !sweepIds.length) return sweepIds;
@@ -1401,6 +1547,7 @@ function wfDbg(level, source, message, meta) {
       updateStep();
       try { await updateDirArrow(i); } catch (_) { /* ignore */ }
       try { updateDistHud(i); } catch (_) { /* ignore */ }
+      try { updateTourInstruction(sweepNodes[i], i === sweepIds.length - 1); } catch (_) { /* ignore */ }
       return true;
     }
     // Standard FLY transition for routes with server-provided sweep IDs.
@@ -1428,6 +1575,7 @@ function wfDbg(level, source, message, meta) {
     updateStep();
     try { await updateDirArrow(i); } catch (_) { /* ignore */ }
     try { updateDistHud(i); } catch (_) { /* ignore */ }
+    try { updateTourInstruction(sweepNodes[i], i === sweepIds.length - 1); } catch (_) { /* ignore */ }
     return true;
   }
 
@@ -1909,6 +2057,7 @@ function wfDbg(level, source, message, meta) {
     }
     const gen = ++openGen;
     destName = (route && route._destName) || null;
+    tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     ensureOverlay();
     const ov = $("mpOverlay");
     ov.hidden = false;
@@ -2076,6 +2225,8 @@ function wfDbg(level, source, message, meta) {
     hideDirArrow();
     hideDistHud();
     clearMediaTags();
+    tourNavSteps = [];
+    { const el = $("mpInstr"); if (el) el.hidden = true; }
     try { if (mpSdk && mpSdk.disconnect) mpSdk.disconnect(); } catch (_) { /* ignore */ }
     mpSdk = null;
     const iframe = $("mpFrame");
@@ -2165,5 +2316,72 @@ function wfDbg(level, source, message, meta) {
     return true;
   }
 
-  window.MpPreview = { open, close, showBackground, focusAt };
+  // ── "Start Preview" walkthrough: the exact same sweep-by-sweep engine Tour interior
+  // uses (prepareRoute/fillSweepIdsFromNavPath/alignSweepIds/moveTo — FLY transitions,
+  // rotate-toward-next-waypoint mid-flight, faceAlongRoute correction on arrival) driven
+  // by ui.js's own Start Preview buttons instead of the Tour overlay's play/pause/stop. ──
+  let walkGen = 0;
+
+  /** Prepare the module's sweepIds/sweepNodes/distances for `route`, reusing mpSdk
+   *  that's already connected in mp background mode (see showBackground()). */
+  async function prepareWalk(route) {
+    tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
+    destName = (route && route._destName) || null;
+    const ids = prepareRoute(route || {});
+    if (!ids.length && mpSdk && route && (route.navPath || route.smoothed || route.nodes)) {
+      try { await fillSweepIdsFromNavPath(mpSdk, route); } catch (_) { /* ignore */ }
+    }
+    if (mpSdk && sweepIds.length) {
+      try { await alignSweepIds(mpSdk); } catch (_) { /* ignore */ }
+    }
+    stepI = 0;
+    updateStep();
+    return sweepIds.length;
+  }
+
+  /** Nearest prepared sweep-stop index (from prepareWalk) to a model Z-up point. */
+  function nearestIndexForPoint(pt) {
+    if (!sweepNodes.length || !pt || pt.x == null) return -1;
+    let best = -1, bd = Infinity;
+    sweepNodes.forEach((n, i) => {
+      if (!n || n.x == null) return;
+      if (n.floor != null && pt.floor != null && n.floor !== pt.floor) return;
+      const d = Math.hypot(n.x - pt.x, n.y - pt.y);
+      if (d < bd) { bd = d; best = i; }
+    });
+    return best;
+  }
+
+  /** Walk (FLY + rotate, same as Tour's play()) from the current stop to sweep index
+   *  `targetIdx`, one hop at a time. Cancellable — a newer call supersedes an older one
+   *  still in flight (e.g. the user tapping Next again before the camera lands).
+   *  `onStep`, if given, fires after each landed hop with the real route distance still
+   *  remaining to the destination from THAT exact scan point (same calculation moveTo()
+   *  already uses for the arrow/distance HUD) — lets a caller (ui.js's nav banner) show a
+   *  remaining-distance readout that ticks down per scan point instead of per instruction. */
+  async function walkToIndex(targetIdx, onStep) {
+    if (!mpSdk || targetIdx < 0 || targetIdx >= sweepIds.length) return false;
+    const gen = ++walkGen;
+    const dir = targetIdx >= stepI ? 1 : -1;
+    let i = stepI;
+    while (i !== targetIdx) {
+      if (gen !== walkGen) return false;
+      i += dir;
+      const ok = await moveTo(i);
+      if (gen !== walkGen) return false;
+      if (ok && typeof onStep === "function") {
+        try { onStep({ index: i, remainingM: remainingDistM(i), nextLegM: nextLegDistM(i) }); } catch (_) { /* ignore */ }
+      }
+      if (!ok) break;
+    }
+    return true;
+  }
+
+  /** Cancel any in-flight walkToIndex loop (e.g. on exiting Start Preview). */
+  function cancelWalkTo() { walkGen++; }
+
+  window.MpPreview = {
+    open, close, showBackground, focusAt, setFloor, zoomBy, resetView,
+    prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo
+  };
 })();

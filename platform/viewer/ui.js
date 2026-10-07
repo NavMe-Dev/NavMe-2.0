@@ -31,6 +31,38 @@ function wfDbg(level, source, message, meta) {
   }});
   const CHIP_KEYS = [["room", "viewer.rooms"], ["hall", "viewer.halls"], ["entrance", "viewer.entrances"], ["stairs", "viewer.stairs"], ["elevator", "viewer.elevators"], ["restroom", "viewer.restrooms"], ["parking", "viewer.parking"]];
   const CHIPS = () => CHIP_KEYS.map(([c, k]) => [c, t(k)]);
+  // Matterport public viewer (?mp=1): category chips come from the NavMe Dashboard's own
+  // navme_categories (name + Lucide icon_key) for this poi_type instead of the viewer's
+  // fixed built-in set — see wf.categories (app.js) / navme-gmap/sync (admin.py).
+  // t(labelKey) already falls back to returning the key string unchanged when it's not a
+  // real i18n key, so a plain category name works as a "labelKey" with zero other changes.
+  const LUCIDE_TO_MS = {
+    "map-pin": "place", "door-open": "door_open", users: "groups", "building2": "apartment",
+    toilet: "wc", bath: "bathtub", "shower-head": "shower", "move-vertical": "elevator",
+    "arrow-up-down": "elevator", footprints: "stairs", "circle-parking": "local_parking",
+    "square-parking": "local_parking", car: "directions_car", utensils: "restaurant",
+    "utensils-crossed": "restaurant", coffee: "local_cafe", sofa: "weekend", store: "storefront",
+    info: "info", key: "key", "key-round": "key", search: "search", image: "image",
+    video: "videocam", accessibility: "accessible", refrigerator: "kitchen", school2: "school",
+    "graduation-cap": "school", landmark: "museum", sparkles: "auto_awesome"
+  };
+  const CHIP_PALETTE = [[26, 115, 232], [161, 66, 244], [24, 128, 56], [227, 116, 0], [66, 133, 244], [0, 137, 123], [25, 103, 210], [194, 24, 91]];
+  function applyDynamicCategories() {
+    if (!isMpMode() || !wf.categories || !wf.categories.length) return;
+    const sorted = wf.categories.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.name).localeCompare(String(b.name)));
+    Object.keys(CAT_BASE).forEach(k => delete CAT_BASE[k]);
+    CHIP_KEYS.length = 0;
+    sorted.forEach((c, i) => {
+      const key = String(c.name || "").trim().toLowerCase();
+      if (!key) return;
+      CAT_BASE[key] = { icon: LUCIDE_TO_MS[c.icon_key] || "place", color: CHIP_PALETTE[i % CHIP_PALETTE.length], labelKey: c.name };
+      CHIP_KEYS.push([key, c.name]);
+    });
+    // CAT's Proxy fallback (unmatched POI category) always reads CAT_BASE.room — keep a
+    // generic entry there so a POI whose category string doesn't match any dashboard
+    // category name still renders instead of breaking on an undefined icon/color/label.
+    if (!CAT_BASE.room) CAT_BASE.room = { icon: "place", color: [95, 99, 104], labelKey: "viewer.catRoom" };
+  }
   const rgb = (c) => `rgb(${c.join(",")})`;
   const cat = (p) => CAT[p.category] || CAT.room;
   const isDesk = () => window.matchMedia("(min-width:768px)").matches;
@@ -80,6 +112,7 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.ui.components = ["attribution"];
     wf.on3DCreated = (v) => { v.ui.components = ["attribution"]; };
     const uiLayer = new wf.esri.GraphicsLayer({ title: "UI markers" }); wf.map2d.add(uiLayer); S.uiLayer = uiLayer;
+    applyDynamicCategories();
     buildChips(); bindSearch(); bindDirections(); bindControls(); bindSheet(); bindDrawer(); bindNav();
     wf.onRoute = onRoute;
     wf.onLocalized = onLocalized;
@@ -496,12 +529,48 @@ function wfDbg(level, source, message, meta) {
       : `<span class="badge st" title="${esc(t("viewer.stepsTitle"))}"><span class="ms">stairs</span>${short ? t("viewer.stepsShort") : t("viewer.stepsOnRoute")}</span>`;
   }
   function thumbFor(nodeId) { return thumbs.has(nodeId) ? WF.D(`thumbs/${nodeId}.jpg`) : null; }
+  /** This POI's own scan thumbnail plus any nearby sweeps' thumbnails (walking outward
+   *  through the nav graph), for a small photo gallery on the place card. Thumbnails only
+   *  exist for POI/stair sweeps (see steps/thumbs.py), so most POIs will only ever turn up
+   *  their own single photo — that's expected, not a bug; the search just also catches the
+   *  occasional POI with a neighbouring stair/POI sweep photo nearby. */
+  function nearbyThumbs(p, limit) {
+    limit = limit || 6;
+    const out = [], seen = new Set();
+    const tryAdd = (nodeId) => {
+      if (!nodeId || seen.has(nodeId)) return;
+      seen.add(nodeId);
+      const url = thumbFor(nodeId);
+      if (url) out.push(url);
+    };
+    tryAdd(p.nearest_node);
+    if (wf.nav && Array.isArray(wf.nav.edges) && p.nearest_node) {
+      const adj = {};
+      wf.nav.edges.forEach(e => {
+        if (!e) return;
+        (adj[e.u] = adj[e.u] || []).push(e.v);
+        (adj[e.v] = adj[e.v] || []).push(e.u);
+      });
+      let frontier = [p.nearest_node];
+      const visited = new Set(frontier);
+      let depth = 0;
+      while (out.length < limit && frontier.length && depth < 5) {
+        const next = [];
+        frontier.forEach(id => (adj[id] || []).forEach(n => {
+          if (visited.has(n)) return;
+          visited.add(n); tryAdd(n); next.push(n);
+        }));
+        frontier = next; depth++;
+      }
+    }
+    return out.slice(0, limit);
+  }
   function selectPlace(p, o = {}) {
     S.place = p; S.mode = "place"; document.body.classList.remove("dir");
     $("q").value = p.name; $("btnClearQ").hidden = false;
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
     markPlace(p);
-    const c = cat(p), th = thumbFor(p.nearest_node);
+    const c = cat(p), galleryUrls = nearbyThumbs(p, 6);
     setSheet(`
       <h1 class="pname">${esc(p.name)}</h1>
       <div class="prow"><span>${esc(c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
@@ -511,7 +580,9 @@ function wfDbg(level, source, message, meta) {
         <button class="pill" id="pShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
         <button class="pill" id="p3d"><span class="ms">view_in_ar</span>${esc(t("viewer.viewIn3d"))}</button>
       </div>
-      ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">` : th ? `<img class="photo" src="${th}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">` : ""}
+      ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">`
+        : galleryUrls.length > 1 ? `<div class="photo-gallery">${galleryUrls.map(u => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">`).join("")}</div>`
+        : galleryUrls.length === 1 ? `<img class="photo" src="${esc(galleryUrls[0])}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">` : ""}
       <ul class="facts">
         <li><span class="ms">location_on</span><div>${esc(wf.floorLabel(p.floor))}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
         <li><span class="ms">accessible</span><div>${p.step_free_from_parking ? esc(t("viewer.reachableStepFree")) : esc(t("viewer.routesIncludeSteps"))}<div class="muted">${esc(t("viewer.basedOnScan"))}</div></div></li>
@@ -523,7 +594,16 @@ function wfDbg(level, source, message, meta) {
     $("pStart").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(true); };
     $("pShare").onclick = share;
     $("p3d").onclick = async () => { await toggle3D(true); flyTo3D(p); };
-    if (o.fly !== false) flyTo(p);
+    // mp mode hides the ArcGIS view entirely (see mp_background.js) and POIs here carry
+    // flat x/y/z, not the .model the ArcGIS 3D fly needs — flyTo3D would throw and abort
+    // the rest of this function (including the Matterport focus below) before it runs.
+    if (o.fly !== false && !isMpMode()) flyTo(p);
+    if (isMpMode() && window.MpPreview && p.x != null) {
+      // Fly the live, draggable Matterport background to this POI, facing its curated
+      // "look here" direction — this IS the 360° view, no separate static photo needed.
+      const face = (p.expected_x != null) ? { x: p.expected_x, y: p.expected_y, z: p.expected_z } : { x: p.x, y: p.y, z: p.z };
+      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
+    }
   }
   function markPlace(p) {
     S.uiLayer.removeAll();
@@ -844,6 +924,18 @@ function wfDbg(level, source, message, meta) {
     renderDirections(r);
     if (pendingNav) { pendingNav = false; startNav(); }
   }
+  /** S.route plus the extra fields MpPreview's tour/walk engine wants: destination name,
+   *  the turn-by-turn instruction list (for matching instruction text), and the curated
+   *  "look here" destination anchor (expected_x/y/z, falling back to the POI's own xyz). */
+  function mpRoutePayload() {
+    return Object.assign({}, S.route, {
+      _destName: S.to && S.to.name ? S.to.name : null,
+      _fromName: S.from === "me" ? "Your Location" : (S.from && S.from.name ? S.from.name : null),
+      _navSteps: S.navSteps,
+      _destXYZ: (S.to && S.to !== "me" && S.to.expected_x != null) ? { x: S.to.expected_x, y: S.to.expected_y, z: S.to.expected_z }
+        : (S.to && S.to !== "me" && S.to.x != null) ? { x: S.to.x, y: S.to.y, z: S.to.z != null ? S.to.z : 0 } : null
+    });
+  }
   function condense(r) {
     // merge "Walk N m" into the following action -> [{type, text, icon, dist, pt, toFloor}]
     const out = []; let acc = 0;
@@ -1025,7 +1117,7 @@ function wfDbg(level, source, message, meta) {
       <div class="actions">
         <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
         ${isMpMode() ? "" : `<button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
-        ${tm.embed_showcase && !isMpMode() ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
+        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
@@ -1047,16 +1139,7 @@ function wfDbg(level, source, message, meta) {
         toast(t("viewer.tourUnavailable") || "Tour unavailable");
         return;
       }
-      if (window.MpPreview) window.MpPreview.open(Object.assign({}, S.route, {
-        _destName: S.to && S.to.name ? S.to.name : null,
-        _fromName: S.from === "me" ? "Your Location" : (S.from && S.from.name ? S.from.name : null),
-        // Exact destination POI position — lets the tour's final-stop camera face the
-        // actual POI rather than wherever the routed path happens to end (e.g. a doorway).
-        // expected_x/y/z is a separate, curated "look here" anchor (from Supabase
-        // navme_pois.expected_pos_x/y/z) — prefer it over the POI's general x/y/z when set.
-        _destXYZ: (S.to && S.to !== "me" && S.to.expected_x != null) ? { x: S.to.expected_x, y: S.to.expected_y, z: S.to.expected_z }
-          : (S.to && S.to !== "me" && S.to.x != null) ? { x: S.to.x, y: S.to.y, z: S.to.z != null ? S.to.z : 0 } : null
-      }));
+      if (window.MpPreview) window.MpPreview.open(mpRoutePayload());
       else toast(t("viewer.tourUnavailable"));
     };
     if ($("dWalkNav")) $("dWalkNav").onclick = () => {
@@ -1131,14 +1214,33 @@ function wfDbg(level, source, message, meta) {
     $("navNext").onclick = () => navGo(S.navI + 1);
     $("navPrev").onclick = () => navGo(S.navI - 1);
     $("navExit").onclick = exitNav;
-    document.addEventListener("keydown", (e) => { if (S.mode !== "nav") return; if (e.key === "ArrowRight") navGo(S.navI + 1); if (e.key === "ArrowLeft") navGo(S.navI - 1); });
+    // Arrow-key shortcut for step navigation — skipped in mp mode, where the whole screen
+    // is the Matterport embed and arrow keys are far more likely to be an incidental key
+    // press (or an attempt to look around) than an intentional "next step", which read as
+    // the route advancing on its own without clicking Next/Prev.
+    document.addEventListener("keydown", (e) => { if (S.mode !== "nav" || isMpMode()) return; if (e.key === "ArrowRight") navGo(S.navI + 1); if (e.key === "ArrowLeft") navGo(S.navI - 1); });
   }
-  function startNav() {
+  async function startNav() {
     if (!S.route) return;
     S.mode = "nav"; document.body.classList.add("nav");
     $("navBanner").hidden = false; $("navBar").hidden = false; closePop();
     applyPadding();
+    // Prepare the same sweep-by-sweep walk engine Tour interior uses (FLY transitions,
+    // rotate-toward-next-waypoint, faceAlongRoute correction) before stepping through it.
+    if (isMpMode() && window.MpPreview && window.MpPreview.prepareWalk) {
+      try { await window.MpPreview.prepareWalk(mpRoutePayload()); } catch (_) { /* ignore */ }
+    }
     navGo(S.navSteps.length > 1 ? 1 : 0);
+  }
+  /** mp mode only: recompute the "time/distance remaining" readout from the REAL route,
+   *  anchored at the scan point the camera just landed on — called after every sweep hop
+   *  in walkToIndex, so it ticks down per scan point instead of jumping once per instruction. */
+  function updateMpRemaining(info) {
+    if (!info || info.remainingM == null || S.mode !== "nav") return;
+    const remT = info.remainingM / 1.2 + (S.route.stairs_rise_m || 0) * 2 * (info.remainingM / Math.max(1, S.route.total_m));
+    const eta = new Date(Date.now() + remT * 1000);
+    $("navEta").textContent = fmtMin(remT);
+    $("navRem").textContent = `${fmtDist(info.remainingM) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
   }
   function navGo(i) {
     const n = S.navSteps.length; i = Math.max(0, Math.min(n - 1, i)); S.navI = i;
@@ -1168,7 +1270,12 @@ function wfDbg(level, source, message, meta) {
       const hdFinal = hd != null ? hd : ((S.sim && S.sim.heading != null) ? S.sim.heading : 0);
       S.sim = { lonlat: a, floor: at.floor, heading: hdFinal };
       if (at.floor && at.floor !== wf.currentFloor()) wf.setFloor(at.floor);
-      if (isMpMode() && window.MpPreview) window.MpPreview.focusAt(at, s.pt || null);
+      if (isMpMode() && window.MpPreview && window.MpPreview.nearestIndexForPoint) {
+        const target = s.pt || at;
+        const idx = window.MpPreview.nearestIndexForPoint(target);
+        if (idx >= 0 && window.MpPreview.walkToIndex) window.MpPreview.walkToIndex(idx, updateMpRemaining);
+        else window.MpPreview.focusAt(at, target); // no prepared route (e.g. nothing to walk) — single hop
+      }
       const v = wf.view();
       // Same chase-cam framing as the full route preview — every 3D "tour" camera
       // (step-through here, continuous fly-through in preview3D) now sits at the
@@ -1180,6 +1287,7 @@ function wfDbg(level, source, message, meta) {
     if (s.type === "arrive") toast(t("viewer.youArrived", { name: nameOf(S.to) }));
   }
   function exitNav() {
+    if (isMpMode() && window.MpPreview && window.MpPreview.cancelWalkTo) window.MpPreview.cancelWalkTo();
     S.mode = "dir"; S.sim = null; document.body.classList.remove("nav");
     $("navBanner").hidden = true; $("navBar").hidden = true; placeMe(); applyPadding();
     if (S.route) renderDirections(S.route);
@@ -1504,8 +1612,20 @@ function wfDbg(level, source, message, meta) {
 
   // ---------------- right controls, floors, layers ----------------
   function bindControls() {
-    $("btnZoomIn").onclick = () => { const v = wf.view(); v.goTo({ zoom: v.zoom + 1 }, { duration: 250 }).catch(() => { }); };
-    $("btnZoomOut").onclick = () => { const v = wf.view(); v.goTo({ zoom: v.zoom - 1 }, { duration: 250 }).catch(() => { }); };
+    $("btnZoomIn").onclick = () => {
+      if (isMpMode() && window.MpPreview) {
+        window.MpPreview.zoomBy(1).then(ok => { if (!ok) toast(t("viewer.mpZoomDollhouseHint") || "Pinch or scroll on the view to zoom in the dollhouse"); });
+        return;
+      }
+      const v = wf.view(); v.goTo({ zoom: v.zoom + 1 }, { duration: 250 }).catch(() => { });
+    };
+    $("btnZoomOut").onclick = () => {
+      if (isMpMode() && window.MpPreview) {
+        window.MpPreview.zoomBy(-1).then(ok => { if (!ok) toast(t("viewer.mpZoomDollhouseHint") || "Pinch or scroll on the view to zoom in the dollhouse"); });
+        return;
+      }
+      const v = wf.view(); v.goTo({ zoom: v.zoom - 1 }, { duration: 250 }).catch(() => { });
+    };
     $("btn3D").onclick = () => toggle3D(!wf.is3D());
 
     if ($("btnLabels")) {
@@ -1524,13 +1644,21 @@ function wfDbg(level, source, message, meta) {
       syncLab();
     }
     $("btnMe").onclick = () => {
+      // No GPS/map concept applies to the Matterport-only background view — repurposed
+      // as a home button, resetting the Dollhouse camera to the default overview.
+      if (isMpMode() && window.MpPreview) { window.MpPreview.resetView(); return; }
       if (wf.lastLoc && !wf.isLocalizing()) {
         if (wf.lastLoc.floor !== wf.currentFloor()) wf.setFloor(wf.lastLoc.floor);
         wf.view().goTo({ center: [wf.lastLoc.lon, wf.lastLoc.lat], zoom: Math.max(wf.view().zoom, 20.5) }, { duration: 600 }).catch(() => { });
         toast(t("viewer.showingLocation"), t("viewer.setNew"), () => startLocalize());
       } else startLocalize();
     };
-    $("floorPicker").querySelectorAll("button").forEach(b => b.onclick = () => wf.setFloor(b.dataset.floor));
+    $("floorPicker").querySelectorAll("button").forEach(b => b.onclick = () => {
+      wf.setFloor(b.dataset.floor);
+      // f=0 (see mp_preview.js showcaseUrl) hides Showcase's own floor explorer — these
+      // buttons are the only way to change floor in mp mode, so drive it directly.
+      if (isMpMode() && window.MpPreview && window.MpPreview.setFloor) window.MpPreview.setFloor(b.dataset.floor);
+    });
     $("btnLayers").onclick = () => { const p = $("layersPop"); p.hidden = !p.hidden; if (!p.hidden) { syncLayers(); p.querySelector(".sty").focus(); } };
     $("btnLayersClose").onclick = closePop;
     document.querySelectorAll(".sty").forEach(b => b.onclick = () => setStyle(b.dataset.style));
@@ -1595,7 +1723,7 @@ function wfDbg(level, source, message, meta) {
   }
   function updateFloorPicker() {
     const fp = $("floorPicker"); if (!wf) return;
-    const show = wf.is3D() || (wf.view2d.zoom >= 17.5);
+    const show = isMpMode() || wf.is3D() || (wf.view2d.zoom >= 17.5);
     fp.hidden = !show;
     fp.querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });
     placeMe();
