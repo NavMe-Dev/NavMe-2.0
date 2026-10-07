@@ -20,6 +20,8 @@
     body.mp-bg-mode .mp-panel, body.mp-bg-mode .mp-frame-wrap, body.mp-bg-mode #mpFrame {
       width:100%; height:100%; border-radius:0;
     }
+    /* ArcGIS-only map controls — meaningless once the map itself is hidden. */
+    body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels { display:none !important; }
   `;
   document.head.appendChild(style);
 

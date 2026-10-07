@@ -1023,19 +1023,19 @@ function wfDbg(level, source, message, meta) {
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
       <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
       <div class="actions">
-        <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(t("viewer.start"))}</button>
-        <button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>
-        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.preview") || "Preview") : t("viewer.tourInterior"))}</button>` : ""}
+        <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
+        ${isMpMode() ? "" : `<button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
+        ${tm.embed_showcase && !isMpMode() ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
         <button class="pill" id="dStartAr" hidden><span class="ms">view_in_ar</span>${esc(t("viewer.startAr"))}</button>
         <button class="pill" id="dShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
-        <button class="pill" id="dJson" title="Ordered Matterport sweep ids + XYZ"><span class="ms">data_object</span>${esc(t("viewer.export"))}</button>
+        ${isMpMode() ? "" : `<button class="pill" id="dJson" title="Ordered Matterport sweep ids + XYZ"><span class="ms">data_object</span>${esc(t("viewer.export"))}</button>`}
       </div>
       <ol class="steps" aria-label="${esc(t("viewer.steps"))}">${steps}</ol>`, "half");
     $("dStart").onclick = () => startNav();
-    $("dPrev3d").onclick = () => preview3D();
+    if ($("dPrev3d")) $("dPrev3d").onclick = () => preview3D();
     if ($("dTourMp")) $("dTourMp").onclick = () => {
       if (!S.route) return;
       const acc = accessFlags();
@@ -1074,7 +1074,7 @@ function wfDbg(level, source, message, meta) {
     };
     wireStartArButton($("dStartAr"));
     $("dShare").onclick = share;
-    $("dJson").onclick = () => $("btnExport").click();
+    if ($("dJson")) $("dJson").onclick = () => $("btnExport").click();
     $("sheetBody").querySelectorAll(".steps li").forEach(li => { const go = () => focusStep(+li.dataset.i); li.onclick = go; li.onkeydown = (e) => { if (e.key === "Enter") go(); }; });
   }
   function focusStep(i) {
@@ -1168,6 +1168,7 @@ function wfDbg(level, source, message, meta) {
       const hdFinal = hd != null ? hd : ((S.sim && S.sim.heading != null) ? S.sim.heading : 0);
       S.sim = { lonlat: a, floor: at.floor, heading: hdFinal };
       if (at.floor && at.floor !== wf.currentFloor()) wf.setFloor(at.floor);
+      if (isMpMode() && window.MpPreview) window.MpPreview.focusAt(at, s.pt || null);
       const v = wf.view();
       // Same chase-cam framing as the full route preview — every 3D "tour" camera
       // (step-through here, continuous fly-through in preview3D) now sits at the
