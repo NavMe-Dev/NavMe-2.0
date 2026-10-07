@@ -763,11 +763,16 @@ require([
                 utility: [60, 60, 60], stairs: [84, 70, 110], wall: [215, 215, 215], window: [90, 150, 220], door: [70, 74, 80], entrance: [60, 200, 110], text: [230, 230, 230], halo: [30, 30, 30] }
       };
       const EXTR = { building: 0.12, walkway: 0.18, corridor: 0.18, hall: 0.3, room: 0.3, utility: 0.3, stairs: 0.9 };
+      // "Solid buildings" mode: extrude to real wall height instead of the paper-thin
+      // floor tint above, so the building actually reads as a volume from a city-scale
+      // camera — matching the opaque look of a Mappedin-style floor plan.
+      const EXTR_SOLID = { building: 2.6, walkway: 2.4, corridor: 2.4, hall: 2.4, room: 2.4, utility: 2.4, stairs: 2.7 };
       const ORDER = ["building", "walkway", "corridor", "utility", "hall", "room", "stairs"];
-      function polyRenderer(pal, is3D) {
+      function polyRenderer(pal, is3D, solid) {
+        const extr = solid ? EXTR_SOLID : EXTR;
         return { type: "unique-value", field: "style", orderByClassesEnabled: true,
           uniqueValueInfos: (is3D ? ORDER : ORDER.slice().reverse()).map(k => ({ value: k, symbol: is3D
-            ? { type: "polygon-3d", symbolLayers: [{ type: "extrude", size: EXTR[k], material: { color: pal[k].concat(k === "building" ? [0.9] : [1]) }, edges: { type: "solid", color: [120, 120, 120, 0.6], size: 0.5 } }] }
+            ? { type: "polygon-3d", symbolLayers: [{ type: "extrude", size: extr[k], material: { color: pal[k].concat(solid ? [1] : (k === "building" ? [0.9] : [1])) }, edges: { type: "solid", color: [120, 120, 120, 0.6], size: 0.5 } }] }
             : { type: "simple-fill", color: pal[k], outline: k === "building" ? { color: pal.buildingLine, width: 1.2 } : { color: pal[k].map(c => Math.max(0, c - 25)), width: 0.5 } } })) };
       }
       function lineRenderer(pal, is3D) {
@@ -793,8 +798,10 @@ require([
         // Glass structure: units render translucent and walls are kept faint, so the
         // route stays readable through the building instead of being hidden behind it.
         // Only opacity changes — geometry, renderer and labels are untouched.
-        const GLASS_UNITS = is3D ? 0.28 : 0.45, GLASS_WALLS = is3D ? 0.35 : 0.6;
-        const polys = new GeoJSONLayer({ url: blobUrl(fc, f => f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon"), title: `Indoor ${F} units`, renderer: polyRenderer(pal, is3D),
+        // "Solid buildings" mode (3D only) trades that see-through route for a fully
+        // opaque floor plan — same geometry/palette, easier to read the building shape.
+        const GLASS_UNITS = !is3D ? 0.45 : (solidBuildings ? 1 : 0.28), GLASS_WALLS = !is3D ? 0.6 : (solidBuildings ? 1 : 0.35);
+        const polys = new GeoJSONLayer({ url: blobUrl(fc, f => f.geometry.type === "Polygon" || f.geometry.type === "MultiPolygon"), title: `Indoor ${F} units`, renderer: polyRenderer(pal, is3D, is3D && solidBuildings),
           labelingInfo: is3D ? [] : labelInfo(pal), labelsVisible: !is3D && !!window.wf.showLabels, visible: false, elevationInfo: elev, outFields: ["*"], opacity: GLASS_UNITS });
         const lines = new GeoJSONLayer({ url: blobUrl(fc, f => f.geometry.type === "LineString"), title: `Indoor ${F} walls/doors`, renderer: lineRenderer(pal, is3D), visible: false, elevationInfo: elev, outFields: ["*"], opacity: GLASS_WALLS });
         return { polys, lines, pal };
@@ -802,7 +809,7 @@ require([
       let style = "satellite", photo = false, pal = PAL.light;
       // Manual 3D layer visibility overrides — independent of style/floor/photo so a
       // user's choice (e.g. "hide mesh") survives switching styles or floors.
-      let hideShell = false, hideOsmBlocks = false, hideMpMesh = false;
+      let hideShell = false, hideOsmBlocks = false, hideMpMesh = false, solidBuildings = false;
       const bmCache2d = {}, bmCache3d = {};
       let osm3d = null, shell3d = null;
       const SHELL_Z0 = Math.min(...CFG.floors.map(f => f.elevation)) - 0.15;
@@ -868,6 +875,15 @@ require([
       window.wf.setHideShell = (on) => { hideShell = !!on; applyVisibility(); };
       window.wf.setHideOsmBlocks = (on) => { hideOsmBlocks = !!on; applyVisibility(); };
       window.wf.setHideMesh = (on) => { hideMpMesh = !!on; applyVisibility(); };
+      window.wf.setSolidBuildings = (on) => {
+        solidBuildings = !!on;
+        const units = solidBuildings ? 1 : 0.28, walls = solidBuildings ? 1 : 0.35;
+        for (const F of FIDS) {
+          if (!indoor3d[F]) continue;
+          indoor3d[F].polys.opacity = units; indoor3d[F].lines.opacity = walls;
+          indoor3d[F].polys.renderer = polyRenderer(indoor3d[F].pal, true, solidBuildings);
+        }
+      };
       document.querySelectorAll("button.bstyle").forEach(b => b.onclick = () => setStyle(b.dataset.style));
       $("photoPlan").onchange = () => { photo = $("photoPlan").checked; applyVisibility(); };
       const indoorP = loadIndoor().then(() => { window.wf.indoorReady = true; });

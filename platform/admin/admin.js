@@ -1679,7 +1679,8 @@ const Publish = {
       <p class="muted">Freezes the current pipeline output + POI/floor edits into an immutable version that the public viewer serves. Previous versions stay available for rollback.</p>
       <label>Release notes</label><input v-model="notes" placeholder="e.g. Renamed halls, added restroom">
       <div class="row" style="margin-top:10px"><button class="primary" @click="pub" :disabled="busy">Publish</button><span class="ok" v-if="msg">{{msg}}</span><span class="err" v-if="err">{{err}}</span>
-        <a class="btn" :href="viewerUrl(b)" target="_blank" v-if="versions.length">Open viewer ↗</a></div></div>
+        <a class="btn" :href="viewerUrl(b)" target="_blank" v-if="versions.length">Open viewer ↗</a>
+        <a class="btn" :href="viewerUrl(b)+'&mp=1'" target="_blank" v-if="versions.length">Matterport public viewer ↗</a></div></div>
     <div class="card"><h2 style="margin-top:0">Versions</h2><table><tr><th>Version</th><th>Created</th><th>By</th><th>Notes</th><th>POIs</th><th></th></tr>
       <tr v-for="v in versions" :key="v.version"><td><b>v{{v.version}}</b> <span class="badge ok" v-if="v.is_current">live</span></td><td>{{new Date(v.created_at).toLocaleString()}}</td><td>{{v.created_by}}</td><td>{{v.notes}}</td><td>{{v.summary.pois}}</td>
         <td><button class="sm" v-if="!v.is_current" @click="activate(v)">Make live</button></td></tr></table></div></div>`,

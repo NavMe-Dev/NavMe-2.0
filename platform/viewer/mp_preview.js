@@ -2086,5 +2086,84 @@ function wfDbg(level, source, message, meta) {
     setStatus("");
   }
 
-  window.MpPreview = { open, close };
+  // ── Matterport public viewer (background mode) ──────────────────────────────
+  // Lighter-weight sibling of open(): connects the same Showcase iframe/SDK and
+  // drops straight into Dollhouse (f=0 already means no floor filter — see
+  // showcaseUrl()'s comment — so unlike open() there is no route/tour to prepare
+  // here), then leaves it idle as the page's permanent background. mp_background.js
+  // calls this once; focusAt() (below) handles every camera move after that.
+  async function showBackground() {
+    const gen = ++openGen;
+    ensureOverlay();
+    const ov = $("mpOverlay");
+    ov.hidden = false;
+    document.body.classList.add("mp-open");
+    setStatus("Loading digital twin…");
+    try {
+      await resolveConfig();
+    } catch (e) {
+      setStatus((e && e.message) || "Digital twin unavailable", true);
+      return false;
+    }
+    if (gen !== openGen) return false;
+    const url = showcaseUrl(applicationKey, null);
+    const iframe = $("mpFrame");
+    mpSdk = null;
+    const loadP = waitIframeLoad(iframe, gen);
+    iframe.src = "about:blank";
+    await new Promise(r => setTimeout(r, 40));
+    if (gen !== openGen) return false;
+    iframe.src = url;
+    await loadP;
+    if (gen !== openGen) return false;
+    if (!applicationKey) { setStatus("Matterport SDK key not found (data/sdk_config.json).", true); return false; }
+    setStatus("Connecting to digital twin…");
+    const sdk = await connectSdk(iframe);
+    if (gen !== openGen) return false;
+    if (!sdk) { setStatus("Could not connect Matterport SDK (" + (connectError || "unknown") + ").", true); return false; }
+    setStatus("Waiting for twin to be ready…");
+    const ready = await waitPlaying(sdk, 90000, () => setStatus("Tap Enter inside the Matterport window to continue."));
+    if (gen !== openGen) return false;
+    if (!ready) { setStatus("Still on the Matterport launch screen (" + (connectError || "timeout") + "). Tap Enter, then try again.", true); return false; }
+    try {
+      const Mode = sdk.Mode;
+      if (Mode && Mode.moveTo && Mode.Mode) {
+        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+      }
+    } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && (e.message || e)); }
+    if (gen !== openGen) return false;
+    setStatus("");
+    return true;
+  }
+
+  /**
+   * Single-shot camera move: fly to the real Matterport sweep nearest `target`
+   * (model Z-up {x,y,z}), optionally facing toward `face` (also model Z-up).
+   * Used for POI "to"/"from" selection and turn-by-turn step clicks in MP
+   * background mode — the same Sweep.moveTo + yawSdk mechanics moveTo()/
+   * faceAlongRoute() use internally for the auto-played tour, just standalone.
+   */
+  async function focusAt(target, face) {
+    if (!mpSdk || !target || target.x == null || target.y == null) return false;
+    const rtSweeps = await rtReadSweeps(mpSdk);
+    if (!rtSweeps.length) return false;
+    const mpTarget = modelToSdk(target);
+    const sw = rtNearestSweep(rtSweeps, mpTarget);
+    if (!sw) return false;
+    const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+    const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200 };
+    const mpFace = (face && face.x != null) ? modelToSdk(face) : null;
+    const yaw = mpFace ? yawSdk(sw.position, mpFace) : null;
+    if (yaw != null && Number.isFinite(yaw)) opts.rotation = { x: 0, y: yaw };
+    try {
+      await mpSdk.Sweep.moveTo(sw.sid, opts);
+    } catch (e) {
+      console.warn("[MpBackground] focusAt moveTo failed", sw.sid, e && (e.message || e));
+      return false;
+    }
+    return true;
+  }
+
+  window.MpPreview = { open, close, showBackground, focusAt };
 })();

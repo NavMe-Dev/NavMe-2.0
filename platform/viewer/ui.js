@@ -38,6 +38,22 @@ function wfDbg(level, source, message, meta) {
   const S = { mode: "home",
     uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, previewing: false, locMeta: null };
 
+  // Matterport public viewer (?mp=1, see mp_background.js): same search/directions/
+  // turn-by-turn UI, but POI selection and turn-by-turn clicks drive the live
+  // Matterport Showcase camera (MpPreview.focusAt) instead of only the ArcGIS one.
+  function isMpMode() { return new URLSearchParams(location.search).get("mp") === "1"; }
+  function mpFocusSelection(which) {
+    if (!isMpMode() || !window.MpPreview) return;
+    const p = S[which];
+    if (!p || p === "me" || p.x == null) return;
+    if (which === "to") {
+      const face = (p.expected_x != null) ? { x: p.expected_x, y: p.expected_y, z: p.expected_z } : { x: p.x, y: p.y, z: p.z };
+      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
+    } else {
+      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, null);
+    }
+  }
+
   // ---------------- boot ----------------
   const boot = setInterval(() => { if (window.wf && window.wf.ready && window.wf.pois && window.wf.setStyle && window.wf.indoorReady) { clearInterval(boot); init(); } }, 100);
 
@@ -412,7 +428,7 @@ function wfDbg(level, source, message, meta) {
       const which = target === $("fromQ") ? "from" : "to";
       if (it.me) { S[which] = "me"; if (which === "from" && !wf.lastLoc) startLocalize(true); }
       else if (it.poi) { S[which] = it.poi; pushRecent(it.poi.id); if (which === "from") S.locMeta = null; }
-      target.blur(); syncDirFields(); computeRoute();
+      target.blur(); syncDirFields(); computeRoute(); mpFocusSelection(which);
     }
   }
   function closeAc() { $("acList").hidden = true; [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
@@ -748,6 +764,7 @@ function wfDbg(level, source, message, meta) {
       S.locMeta = null;
       syncDirFields();
       computeRoute();
+      mpFocusSelection("from");
       toast("From · " + p.name);
       if (!S.to) {
         S.dirFocus = "to";
@@ -757,6 +774,7 @@ function wfDbg(level, source, message, meta) {
       S.to = p;
       syncDirFields();
       computeRoute();
+      mpFocusSelection("to");
       toast("To · " + p.name);
     }
   }
@@ -1007,7 +1025,7 @@ function wfDbg(level, source, message, meta) {
       <div class="actions">
         <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(t("viewer.start"))}</button>
         <button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>
-        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
+        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.preview") || "Preview") : t("viewer.tourInterior"))}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
@@ -1068,6 +1086,10 @@ function wfDbg(level, source, message, meta) {
     // Same chase-cam as the turn-by-turn nav banner and the full route preview —
     // tapping a step in the list should land on exactly the view those give you.
     const nxt = S.navSteps[i + 1];
+    if (isMpMode() && window.MpPreview) {
+      window.MpPreview.focusAt(s.pt, nxt && nxt.pt ? nxt.pt : null);
+      return ll;
+    }
     const hd = nxt && nxt.pt ? turf.bearing(turf.point(ll), turf.point(wf.modelToLL(nxt.pt.x, nxt.pt.y))) : undefined;
     if (wf.is3D()) wf.getView3d().goTo(tourCameraFor(ll, wf.modelZtoAbs(s.pt.z), hd), { duration: 700 }).catch(() => { });
     else wf.view2d.goTo({ center: ll, zoom: Math.max(wf.view2d.zoom, TOUR_ZOOM) }, { duration: 700 }).catch(() => { });
@@ -1516,6 +1538,7 @@ function wfDbg(level, source, message, meta) {
     $("togHideShell").onchange = () => wf.setHideShell($("togHideShell").checked);
     $("togHideOsmBlocks").onchange = () => wf.setHideOsmBlocks($("togHideOsmBlocks").checked);
     $("togHideMesh").onchange = () => wf.setHideMesh($("togHideMesh").checked);
+    $("togSolidBuildings").onchange = () => wf.setSolidBuildings($("togSolidBuildings").checked);
     $("meshEdgeSwatches").querySelectorAll(".swatch").forEach(sw => sw.onclick = () => {
       // "Live" has no colour yet until the scan has loaded and been averaged.
       if (sw.id === "meshEdgeLive" && !wf.meshLiveColor) return;
