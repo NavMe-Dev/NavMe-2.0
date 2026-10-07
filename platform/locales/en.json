@@ -105,6 +105,8 @@
     "start": "Start",
     "share": "Share",
     "viewIn3d": "View in 3D",
+    "viewInAr": "View in AR",
+    "arLocked": "AR is temporarily locked",
     "photoOf": "Photo of {{name}}",
     "photoNear": "Photo near {{name}} from the Matterport scan",
     "mpZoomDollhouseHint": "Pinch or scroll on the view to zoom in the dollhouse",

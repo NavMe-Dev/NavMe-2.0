@@ -578,7 +578,7 @@ function wfDbg(level, source, message, meta) {
         <button class="pill primary" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
         <button class="pill" id="pStart"><span class="ms fill">navigation</span>${esc(t("viewer.start"))}</button>
         <button class="pill" id="pShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
-        <button class="pill" id="p3d"><span class="ms">view_in_ar</span>${esc(t("viewer.viewIn3d"))}</button>
+        <button class="pill" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
       </div>
       ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">`
         : galleryUrls.length > 1 ? `<div class="photo-gallery">${galleryUrls.map(u => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">`).join("")}</div>`
@@ -593,7 +593,12 @@ function wfDbg(level, source, message, meta) {
     $("pDir").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(); };
     $("pStart").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(true); };
     $("pShare").onclick = share;
-    $("p3d").onclick = async () => { await toggle3D(true); flyTo3D(p); };
+    // ArcGIS's 3D fly-to needs the map view, which MP mode hides entirely (mp_background.js)
+    // — the button used to silently no-op there. Real AR is a future feature, not reachable
+    // from MP mode today, so say so instead of pretending to do something.
+    $("p3d").onclick = isMpMode()
+      ? () => toast(t("viewer.arLocked") || "AR is temporarily locked")
+      : async () => { await toggle3D(true); flyTo3D(p); };
     // mp mode hides the ArcGIS view entirely (see mp_background.js) and POIs here carry
     // flat x/y/z, not the .model the ArcGIS 3D fly needs — flyTo3D would throw and abort
     // the rest of this function (including the Matterport focus below) before it runs.
