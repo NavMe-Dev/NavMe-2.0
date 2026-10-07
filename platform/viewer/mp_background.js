@@ -23,6 +23,15 @@
     body.mp-bg-mode .mp-panel, body.mp-bg-mode .mp-frame-wrap, body.mp-bg-mode #mpFrame {
       width:100%; height:100%; border-radius:0;
     }
+    /* ui.css's pre-existing body.mp-mobile rules (min-height:0, flex:1 1 auto, height:auto)
+       fight this on phones — mobile viewport means Tour interior's own isCoarseMobile()
+       check also sets body.mp-mobile, and that selector has the same specificity as
+       body.mp-bg-mode, so whichever rule happens to apply last/first was deciding the
+       outcome instead of us. Named explicitly + !important so this always wins regardless
+       of mp-mobile, fixing the crop (and the chrome it hides) being desktop-only before. */
+    body.mp-bg-mode.mp-mobile .mp-frame-wrap, body.mp-bg-mode .mp-frame-wrap {
+      width:100% !important; height:100% !important; min-height:0 !important; flex:1 1 auto !important;
+    }
     /* Showcase's own top info strip and bottom mode-switch toolbar (Dollhouse/Floorplan/
        Inside/measure icons, "View Floor Plan" button) render INSIDE the cross-origin
        my.matterport.com iframe — no CSS/DOM access from this page can target them directly,
@@ -32,9 +41,10 @@
        oversizing the iframe and clipping the wrapper is the only remaining lever: it also
        clips a strip of the real 3D view along with the chrome, which is the accepted
        trade-off for removing chrome Showcase won't let this page hide any other way. */
-    body.mp-bg-mode .mp-frame-wrap { overflow:hidden; }
-    body.mp-bg-mode .mp-frame-wrap #mpFrame {
-      top:-56px; height:calc(100% + 128px); width:100%; left:0; border:0;
+    body.mp-bg-mode .mp-frame-wrap { overflow:hidden !important; }
+    body.mp-bg-mode .mp-frame-wrap #mpFrame, body.mp-bg-mode.mp-mobile .mp-frame-wrap #mpFrame {
+      top:-56px !important; height:calc(100% + 128px) !important; min-height:0 !important;
+      width:100% !important; left:0 !important; border:0 !important;
     }
     /* ArcGIS-only map controls — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels { display:none !important; }

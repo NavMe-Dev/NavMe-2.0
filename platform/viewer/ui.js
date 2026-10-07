@@ -1216,14 +1216,36 @@ function wfDbg(level, source, message, meta) {
     return { position: { longitude: eye[0], latitude: eye[1], z: floorAbsZ + TOUR_UP_M }, heading: hd, tilt: TOUR_TILT };
   }
   function bindNav() {
-    $("navNext").onclick = () => navGo(S.navI + 1);
-    $("navPrev").onclick = () => navGo(S.navI - 1);
+    $("navNext").onclick = () => mpOrNavGo(1);
+    $("navPrev").onclick = () => mpOrNavGo(-1);
     $("navExit").onclick = exitNav;
     // Arrow-key shortcut for step navigation — skipped in mp mode, where the whole screen
     // is the Matterport embed and arrow keys are far more likely to be an incidental key
     // press (or an attempt to look around) than an intentional "next step", which read as
     // the route advancing on its own without clicking Next/Prev.
     document.addEventListener("keydown", (e) => { if (S.mode !== "nav" || isMpMode()) return; if (e.key === "ArrowRight") navGo(S.navI + 1); if (e.key === "ArrowLeft") navGo(S.navI - 1); });
+  }
+  // mp mode: Next/Prev must move exactly one real scan point per click — same as Tour
+  // interior's own stepping — never a multi-hop walk toward a (possibly several scan
+  // points away) turn-by-turn instruction. navGo()'s own nearestIndexForPoint+walkToIndex
+  // call (used once, by startNav()) stays as the "enter the walkthrough" jump; this is the
+  // separate per-click path used by the arrows after that.
+  function mpOrNavGo(delta) {
+    if (isMpMode() && window.MpPreview && window.MpPreview.walkToIndex) { mpArrowStep(delta); return; }
+    navGo(S.navI + delta);
+  }
+  async function mpArrowStep(delta) {
+    const mp = window.MpPreview;
+    const total = mp.totalSweepStops ? mp.totalSweepStops() : 0;
+    if (!total) return;
+    const cur = mp.currentSweepIndex ? mp.currentSweepIndex() : 0;
+    const next = cur + delta;
+    // Out of range — "or else it should not [move]": do nothing, except announce arrival
+    // once, the moment Next would have gone past the final scan point.
+    if (next < 0) return;
+    if (next >= total) { toast(t("viewer.destinationReached") || "Destination reached"); return; }
+    const ok = await mp.walkToIndex(next, updateMpRemaining);
+    if (ok && next === total - 1) toast(t("viewer.destinationReached") || "Destination reached");
   }
   async function startNav() {
     if (!S.route) return;

@@ -2380,8 +2380,15 @@ function wfDbg(level, source, message, meta) {
   /** Cancel any in-flight walkToIndex loop (e.g. on exiting Start Preview). */
   function cancelWalkTo() { walkGen++; }
 
+  /** Where walkToIndex/moveTo last actually landed, and how many stops prepareWalk found —
+   *  lets a caller (ui.js's Next/Prev arrows) step exactly one scan point at a time instead
+   *  of jumping to wherever a turn-by-turn instruction's nearest sweep happens to be. */
+  function currentSweepIndex() { return stepI; }
+  function totalSweepStops() { return sweepIds.length; }
+
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView,
-    prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo
+    prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo,
+    currentSweepIndex, totalSweepStops
   };
 })();
