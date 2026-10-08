@@ -637,6 +637,9 @@ const Overview = {
         </p>
         <button class="sm primary" @click="startVpsBuild" :disabled="vpsBusy || !!vpsJobId">{{vpsBusy ? 'Starting…' : 'Onboard for image localization'}}</button>
         <job-log v-if="vpsJobId" :job-id="vpsJobId" @done="onVpsJobDone"></job-log>
+        <p class="small" style="margin-top:10px">
+          <a :href="'/localize.html?b=' + b.slug" target="_blank" rel="noopener">Open the field-test page (upload a photo, see match + confidence)</a> — debug tool, not shown to end users.
+        </p>
       </template>
     </div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.buildingSettings")}}</h2>

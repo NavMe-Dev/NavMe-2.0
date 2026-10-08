@@ -871,20 +871,17 @@ function wfDbg(level, source, message, meta) {
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); return; }
     if (!S.from) {
-      // MP mode: no map to pick on, and no reason to force a fixed entrance start —
-      // but GPS still has real meaning (on-site visitor) and "Use image" works too.
+      // MP mode: no 2D map to tap, but "Pick on map" still exists there as a dollhouse
+      // pick-and-walk (see pickOnMapMp()) — and GPS has real meaning (on-site visitor).
       setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseStart"))}</div>
         <div class="actions">
-          ${isMpMode() ? `
-          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
+          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
-      if ($("dSetMe")) $("dSetMe").onclick = () => startLocalize(true);
+      if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       S.dirFocus = "from";
       try { $("fromQ").classList.add("dir-focus-input"); $("toQ").classList.remove("dir-focus-input"); } catch (e) {}
       $("fromQ").focus(); return;
@@ -904,17 +901,14 @@ function wfDbg(level, source, message, meta) {
     if (S.from === "me" && !wf.lastLoc) {
       setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
-          ${isMpMode() ? `
-          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
           <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
-          <button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>`}
+          ${isMpMode() ? "" : `<button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>`}
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
-      if ($("dSetMe")) $("dSetMe").onclick = () => startLocalize(true);
+      if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       if ($("dUseEnt")) $("dUseEnt").onclick = () => { S.from = mainEntrance() || byId.poi_main_entrance; S.locMeta = null; syncDirFields(); computeRoute(startNav); };
       return;
     }
@@ -1402,9 +1396,10 @@ function wfDbg(level, source, message, meta) {
     wf.localizeAt(lon, lat);
     // wf.localizeAt only updates 2D/web-mercator state (wf.lastLoc, the dot on the
     // map) — it has no isMpMode() awareness, so without this the Matterport camera
-    // never moves on a GPS fix. applyVpsResult does its own version of this with the
-    // raw model x/y it already has; this covers every other caller (GPS, entrance).
-    if (isMpMode() && window.MpPreview && (!meta || meta.source !== "vps")) {
+    // never moves on a GPS fix. applyVpsResult and pickOnMapMp() do their own version
+    // of this with the raw model x/y they already have; this covers every other
+    // caller (GPS, entrance) — skip it for those two so the camera doesn't fly twice.
+    if (isMpMode() && window.MpPreview && (!meta || (meta.source !== "vps" && meta.source !== "map"))) {
       try {
         const [mx, my] = wf.llToModel(lon, lat);
         window.MpPreview.focusAt({ x: mx, y: my, z: 0 }, null);
@@ -1493,7 +1488,7 @@ function wfDbg(level, source, message, meta) {
       </div>`, "half");
     if ($("dRetryGps")) $("dRetryGps").onclick = () => locateMe();
     if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
-    if ($("dSetMe")) $("dSetMe").onclick = () => startLocalize(true);
+    if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
     if ($("dSearchFrom")) $("dSearchFrom").onclick = () => { $("fromQ").focus(); };
   }
   function bindLocateChooser() {
@@ -1505,15 +1500,10 @@ function wfDbg(level, source, message, meta) {
     modal.addEventListener("click", (ev) => { if (ev.target === modal) close(); });
     if ($("lcGps")) $("lcGps").onclick = () => { closeLocateChooser(); locateMe(); };
     if ($("lcCam")) $("lcCam").onclick = () => { closeLocateChooser(); openLocateModal(); };
-    if ($("lcPickMap")) $("lcPickMap").onclick = () => { closeLocateChooser(); startLocalize(true); };
+    if ($("lcPickMap")) $("lcPickMap").onclick = () => { closeLocateChooser(); isMpMode() ? pickOnMapMp() : startLocalize(true); };
   }
   function openLocateChooser() {
     const m = $("locateChooser");
-    if (m) {
-      // "Pick on map" has no map in MP mode — hide it there. "Use image" works in
-      // both modes (local photo matching, no external VPS needed).
-      if ($("lcPickMap")) $("lcPickMap").hidden = isMpMode();
-    }
     if (!m) {
       // Fallback if markup missing: sheet-based chooser (still no permission yet)
       setSheet(`<div class="muted" style="padding:4px 0 8px">${esc(t("viewer.locateChooserHint"))}</div>
@@ -1524,7 +1514,7 @@ function wfDbg(level, source, message, meta) {
         </div>`, "half");
       if ($("dLcGps")) $("dLcGps").onclick = () => locateMe();
       if ($("dLcCam")) $("dLcCam").onclick = () => openLocateModal();
-      if ($("dLcMap")) $("dLcMap").onclick = () => startLocalize(true);
+      if ($("dLcMap")) $("dLcMap").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       return;
     }
     m.hidden = false;
@@ -1535,32 +1525,21 @@ function wfDbg(level, source, message, meta) {
   function closeLocateChooser() { const m = $("locateChooser"); if (m) m.hidden = true; }
 
   function bindLocateModal() {
-    const modal = $("locateModal"); if (!modal || modal.dataset.bound) return;
-    modal.dataset.bound = "1";
-    $("locModalClose").onclick = closeLocateModal;
-    $("locPickMap").onclick = () => { closeLocateModal(); startLocalize(true); };
-    $("locOpenFull").onclick = () => {
-      const url = localizePageUrl() + "?embed=1&return=viewer";
-      // Prefer same-tab for mobile tunnel; also listen for postMessage if opened as popup
-      const w = window.open(url, "wf_localize", "noopener");
-      if (!w) location.href = url;
-    };
-    $("locFile").onchange = () => { const f = $("locFile").files && $("locFile").files[0]; if (f) runVpsLocalize(f); };
-    window.addEventListener("message", (ev) => {
-      const d = ev.data; if (!d || d.type !== "wf-vps-fix" || !d.result) return;
-      applyVpsResult(d.result);
-      closeLocateModal();
-    });
+    const f = $("locFile"); if (!f || f.dataset.bound) return;
+    f.dataset.bound = "1";
+    f.onchange = () => { const file = f.files && f.files[0]; if (file) runVpsLocalize(file); };
   }
+  // "Use image" used to open a chooser modal (take photo / full localize page / pick on
+  // map) — now it's a single action: go straight to the camera. The full localize page
+  // moved to admin (building-detail debug tools); "pick on map" moved to the Locate-me
+  // chooser as its own option (see dollhouse pick-and-walk below).
   function openLocateModal() {
     closeLocateChooser();
-    const m = $("locateModal"); if (!m) { location.href = localizePageUrl(); return; }
-    $("locModalStatus").textContent = t("viewer.camPermissionHint");
-    if ($("locFile")) $("locFile").value = "";
-    m.hidden = false;
-    if (window.WFi18n) WFi18n.applyDom(m);
+    const f = $("locFile"); if (!f) { location.href = localizePageUrl(); return; }
+    toast(t("viewer.camPermissionHint"));
+    f.value = "";
+    f.click();
   }
-  function closeLocateModal() { const m = $("locateModal"); if (m) m.hidden = true; }
   async function shrinkImage(file, maxSide) {
     maxSide = maxSide || 1600;
     const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -1572,8 +1551,7 @@ function wfDbg(level, source, message, meta) {
     return blob;
   }
   async function runVpsLocalize(file) {
-    const st = $("locModalStatus");
-    st.textContent = t("viewer.vpsWorking");
+    toast(t("viewer.vpsWorking"));
     try {
       const blob = await shrinkImage(file);
       const fd = new FormData();
@@ -1597,16 +1575,15 @@ function wfDbg(level, source, message, meta) {
         // distinctive detail" vs "couldn't find a confident match") instead of a
         // generic message — and the generic fallback used to suggest "pick on the
         // map", which doesn't exist in MP mode at all.
-        st.textContent = r.message || (isMpMode() ? t("viewer.vpsFailedMp") : t("viewer.vpsFailed"));
+        toast(r.message || (isMpMode() ? t("viewer.vpsFailedMp") : t("viewer.vpsFailed")));
         return;
       }
       if (r.confidence != null && r.confidence < 0.3) {
-        st.textContent = t("viewer.vpsLowConf");
+        toast(t("viewer.vpsLowConf"));
       }
       applyVpsResult(r);
-      closeLocateModal();
     } catch (e) {
-      st.textContent = t("viewer.vpsError", { msg: String(e.message || e) });
+      toast(t("viewer.vpsError", { msg: String(e.message || e) }));
     }
   }
   function applyVpsResult(r) {
@@ -1637,6 +1614,33 @@ function wfDbg(level, source, message, meta) {
     if (isMpMode() && window.MpPreview && r.x != null && r.y != null) {
       window.MpPreview.focusAt({ x: r.x, y: r.y, z: r.z || 0 }, null);
     }
+  }
+  // MP mode's "Pick on map": switches to the Matterport dollhouse view, lets the user
+  // aim at their spot (native Showcase orbit/pan — untouched) and confirm, then walks
+  // the camera there (mp_preview.js's pickOnMap() does the Dollhouse-mode switch +
+  // Pointer.intersection tracking + the walk-there fly) and sets that point as "from",
+  // same as a GPS fix or an image match would.
+  async function pickOnMapMp() {
+    if (!window.MpPreview || !window.MpPreview.pickOnMap) { toast(t("viewer.vpsNotConfigured") || "Not available"); return; }
+    toast(t("viewer.pickOnMapHint"));
+    const pt = await window.MpPreview.pickOnMap();
+    if (!pt) return; // user cancelled
+    const ll = wf.modelToLL(pt.x, pt.y);
+    let floor = null;
+    try {
+      const floors = ((window.WF && WF.cfg && WF.cfg.floors) || []).slice().sort((a, b) => a.ordinal - b.ordinal);
+      if (pt.floorIndex != null && floors[pt.floorIndex]) floor = floors[pt.floorIndex].id;
+    } catch (e) { }
+    let lon = ll[0], lat = ll[1], label = t("viewer.currentLocation");
+    try {
+      const snap = window.WFRouting && WFRouting.snap && WFRouting.snap(pt.x, pt.y, floor);
+      if (snap && snap.node && snap.dist < 8) {
+        const sl = wf.modelToLL(snap.node.x, snap.node.y);
+        lon = sl[0]; lat = sl[1];
+        if (snap.node.label) label = t("viewer.nearPlace", { name: snap.node.label });
+      }
+    } catch (e) { }
+    applyLocated(lon, lat, { source: "map", floor, label, accuracy: null });
   }
 
   // ---------------- you are here ----------------
@@ -1732,6 +1736,7 @@ function wfDbg(level, source, message, meta) {
     $("togHideShell").onchange = () => wf.setHideShell($("togHideShell").checked);
     $("togHideOsmBlocks").onchange = () => wf.setHideOsmBlocks($("togHideOsmBlocks").checked);
     $("togHideMesh").onchange = () => wf.setHideMesh($("togHideMesh").checked);
+    $("togRealMesh").onchange = () => wf.setRealMesh($("togRealMesh").checked);
     $("togSolidBuildings").onchange = () => wf.setSolidBuildings($("togSolidBuildings").checked);
     $("meshEdgeSwatches").querySelectorAll(".swatch").forEach(sw => sw.onclick = () => {
       // "Live" has no colour yet until the scan has loaded and been averaged.

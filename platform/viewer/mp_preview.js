@@ -138,11 +138,14 @@ function wfDbg(level, source, message, meta) {
     ensureGlassHud();
     if (!overlayBound) {
       const closeBtn = $("mpClose"), playBtn = $("mpPlay"), pauseBtn = $("mpPause"), stopBtn = $("mpStop");
-      if (closeBtn) closeBtn.onclick = () => close();
+      // Go through window.MpPreview.close (not the bare local close()) so tour.html's
+      // override — which navigates back to returnUrl after closing — actually fires;
+      // a direct call to the closed-over local function would bypass that monkey-patch.
+      if (closeBtn) closeBtn.onclick = () => window.MpPreview.close();
       if (playBtn) playBtn.onclick = () => play();
       if (pauseBtn) pauseBtn.onclick = () => pause();
       if (stopBtn) stopBtn.onclick = () => stopWalk();
-      ov.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+      ov.addEventListener("keydown", (e) => { if (e.key === "Escape") window.MpPreview.close(); });
       overlayBound = true;
     }
     return ov;
@@ -2411,6 +2414,78 @@ function wfDbg(level, source, message, meta) {
     return true;
   }
 
+  function sdkToModel(p) {
+    if (!p || p.x == null || p.y == null) return null;
+    return { x: +p.x, y: -(+p.z), z: +p.y };
+  }
+
+  function ensurePickOverlay() {
+    const wrap = document.querySelector("#mpOverlay .mp-frame-wrap");
+    if (!wrap) return null;
+    let el = $("mpPickBar");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "mpPickBar";
+      el.className = "mp-pick-bar";
+      el.hidden = true;
+      el.innerHTML = `
+        <div class="mp-pick-hint" id="mpPickHint">Tap/drag to orbit the dollhouse, aim at where you are, then confirm.</div>
+        <div class="mp-pick-actions">
+          <button type="button" class="pill" id="mpPickCancel">Cancel</button>
+          <button type="button" class="pill primary" id="mpPickGo">Go here</button>
+        </div>`;
+      wrap.appendChild(el);
+    } else if (el.parentElement !== wrap) {
+      wrap.appendChild(el);
+    }
+    return el;
+  }
+
+  let pickGen = 0;
+  /** "Pick on map" for MP mode: switch to Dollhouse, let the user aim (orbit/pan — native
+   *  Showcase dollhouse controls, untouched), track Pointer.intersection for the live 3D
+   *  point under the pointer, and on confirm walk there (same focusAt() FLY used by
+   *  POI selection) and resolve with the picked point so the caller can set it as the
+   *  route's "from". Resolves null if the user cancels or nothing was ever picked.
+   *  There's no reliable cross-origin click signal from the iframe (Pointer.intersection
+   *  itself just tracks hover/drag continuously) — hence the explicit confirm button
+   *  instead of a single tap-to-commit gesture. */
+  async function pickOnMap() {
+    if (!mpSdk) return null;
+    const gen = ++pickGen;
+    const bar = ensurePickOverlay();
+    const goBtn = $("mpPickGo"), cancelBtn = $("mpPickCancel");
+    if (!bar || !goBtn || !cancelBtn) return null;
+    try {
+      const Mode = mpSdk.Mode;
+      if (Mode && Mode.moveTo && Mode.Mode) {
+        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+      }
+    } catch (e) { console.warn("[MpBackground] pickOnMap dollhouse moveTo failed", e && (e.message || e)); }
+    if (gen !== pickGen) return null;
+    let lastHit = null;
+    const sub = mpSdk.Pointer.intersection.subscribe((d) => {
+      if (d && d.object === "intersectedobject.model") lastHit = d;
+    });
+    bar.hidden = false;
+    goBtn.disabled = true;
+    const stopWatch = setInterval(() => { goBtn.disabled = !lastHit; }, 150);
+    const result = await new Promise((resolve) => {
+      goBtn.onclick = () => resolve(lastHit);
+      cancelBtn.onclick = () => resolve(null);
+    });
+    clearInterval(stopWatch);
+    try { sub.cancel(); } catch (_) { /* ignore */ }
+    bar.hidden = true;
+    if (gen !== pickGen || !result) return null;
+    const modelPt = sdkToModel(result.position);
+    if (!modelPt) return null;
+    modelPt.floorIndex = result.floorIndex;
+    try { await focusAt(modelPt, null); } catch (_) { /* ignore — point is still valid even if the fly-there animation fails */ }
+    return modelPt;
+  }
+
   // ── "Start Preview" walkthrough: the exact same sweep-by-sweep engine Tour interior
   // uses (prepareRoute/fillSweepIdsFromNavPath/alignSweepIds/moveTo — FLY transitions,
   // rotate-toward-next-waypoint mid-flight, faceAlongRoute correction on arrival) driven
@@ -2484,6 +2559,6 @@ function wfDbg(level, source, message, meta) {
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo,
-    currentSweepIndex, totalSweepStops
+    currentSweepIndex, totalSweepStops, pickOnMap
   };
 })();

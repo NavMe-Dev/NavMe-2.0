@@ -83,7 +83,10 @@ require([
         image: f.image,
         georeference: new CornersGeoreference({ topLeft: pt(c[0]), topRight: pt(c[1]), bottomRight: pt(c[2]), bottomLeft: pt(c[3]) })
       });
-      floorLayers[f.id] = new MediaLayer({ source: [el], opacity: 0.9, title: floorsMeta[f.id].name, visible: false });
+      // Monochrome, not the raw full-colour colorplan photo — same grey "glass" tone as
+      // the 3D mesh/2D glassLayer elsewhere in this view, just with the photo's real
+      // architectural detail (walls, trees, paths) instead of one flat silhouette.
+      floorLayers[f.id] = new MediaLayer({ source: [el], opacity: 0.9, effect: "grayscale(100%) brightness(1.05)", title: floorsMeta[f.id].name, visible: false });
     });
     const dotLayer = new GraphicsLayer({ title: "I'm here" });
     const dotLayer3D = new GraphicsLayer({ title: "I'm here 3D", elevationInfo: { mode: "absolute-height" } });
@@ -93,7 +96,10 @@ require([
     const FIDS = CFG.floors.slice().sort((a, b) => a.ordinal - b.ordinal).map(f => f.id);
     const glassLayer = new GraphicsLayer({ title: "Building glass overlay" });
     (function () {
-      const gf = floorsData.floors.find(f => f.id === FIDS[0]) || floorsData.floors[0];
+      // Top floor's footprint, not the ground floor's — looking straight down (2D),
+      // the top floor is the silhouette actually visible first, same as the 3D glass
+      // mesh's own grey tone (meshEdgeColor default [110,110,120]) for a consistent look.
+      const gf = floorsData.floors.find(f => f.id === FIDS[FIDS.length - 1]) || floorsData.floors[floorsData.floors.length - 1];
       if (!gf || !gf.corners_lonlat || gf.corners_lonlat.length < 4) return;
       const c = gf.corners_lonlat; // TL TR BR BL
       glassLayer.add(new Graphic({
@@ -101,7 +107,7 @@ require([
           rings: [[[c[0][0],c[0][1]], [c[1][0],c[1][1]], [c[2][0],c[2][1]], [c[3][0],c[3][1]], [c[0][0],c[0][1]]]],
           spatialReference: { wkid: 4326 }
         }),
-        symbol: { type: "simple-fill", color: [0, 0, 0, 0.09], outline: { color: [0, 0, 0, 0.28], width: 1.5 } }
+        symbol: { type: "simple-fill", color: [110, 110, 120, 0.12], outline: { color: [110, 110, 120, 0.8], width: 1.5 } }
       }));
     })();
     const map2d = new Map({ basemap, layers: [siteLayer, glassLayer, ...FIDS.map(f => floorLayers[f]).filter(Boolean), dotLayer] });
@@ -206,8 +212,20 @@ require([
     function modelZtoAbs(z) { return ground0 + (z - GRADE_Z); }
     // Mesh glass-border colour + intensity — user-adjustable (Map layers panel).
     // Fill stays flat/translucent; only the edge wireframe colour and opacity change.
-    let meshEdgeColor = [110, 110, 120], meshEdgeIntensity = 0.8;
+    let meshEdgeColor = [110, 110, 120], meshEdgeIntensity = 0.8, realMesh = false;
     function meshSymbol() {
+      if (realMesh) {
+        // material.colorMixMode ("tint"/"multiply") turned out to only affect an actual
+        // diffuse texture — this GLB's colour comes from per-vertex COLOR_0 data instead
+        // (same data averageMeshColor() samples for the "Live" swatch), which any
+        // material override (even a near-white tint) replaces outright rather than
+        // blending with, verified live: it rendered as flat grey, identical to the
+        // default look. No material key at all is what actually lets the vertex colours
+        // through — translucency instead comes from meshLayer.opacity (layer-level, set
+        // in setRealMesh below), which dims the whole rendered result uniformly without
+        // touching the symbol/material at all.
+        return { type: "mesh-3d", symbolLayers: [{ type: "fill" }] };
+      }
       return {
         type: "mesh-3d",
         symbolLayers: [{
@@ -217,6 +235,7 @@ require([
         }]
       };
     }
+    window.wf.setRealMesh = (on) => { realMesh = !!on; meshLayer.opacity = realMesh ? 0.55 : 1; applyMeshSymbol(); };
     function applyMeshSymbol() {
       const g = meshLayer.graphics.getItemAt(0);
       if (g) g.symbol = meshSymbol();
@@ -276,6 +295,7 @@ require([
         if (live) { window.wf.meshLiveColor = live; if (window.wf.onMeshLiveColor) window.wf.onMeshLiveColor(live); }
         status("3D · " + (window.wf.style && window.wf.style !== "satellite" ? (window.wf.styleLabel + " · indoor blocks + OSM buildings") : "Matterport mesh (" + key + ", glass)") + " · ground " + ground0.toFixed(1) + " m");
         window.wf.meshReady = true;
+        applyVisibility();   // re-evaluate shell3d's visibility now that meshReady flipped true
         if (activeView === view3d) fit3DCamera({ animate: true, duration: 700 });
       }).catch(e => { status("mesh load failed: " + e.message); console.error(e); });
     }
@@ -599,15 +619,10 @@ require([
         r.legs.forEach(leg => {
           const path = leg.points.map(p => ll(p.x, p.y));
           const active = leg.outdoor || !cur || leg.floor === cur;
-          if (leg.transition) {
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.trans, width: 4, style: "short-dot" } }));
-          } else if (active) {
-            // Back to a solid line (not dotted) — thinner than the original 9px white
-            // halo + 6px core, single 4px stroke in the high-intensity green.
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 4, cap: "round", join: "round" } }));
-          } else {
-            routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.other, width: 3, style: "dash" } }));
-          }
+          // 2D always draws one continuous solid dark line regardless of transition/
+          // other-floor status (that distinction stayed useful in 3D's tube colour —
+          // see route3D below — but in 2D it read as "the route is dotted").
+          routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [path], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 4, cap: "round", join: "round" } }));
           // 3D tube floats above floor height — reduced back down to +0.20 m (was
           // +0.85 m) per request, just enough to clear the floor surface.
           const p3 = leg.points.map(p => { const q = ll(p.x, p.y); return [q[0], q[1], modelZtoAbs(p.z) + 0.20]; });
@@ -636,7 +651,7 @@ require([
         };
         if (startInfo && startInfo.fromDot) {
           const a = ll(startInfo.x, startInfo.y), b = ll(s0.x, s0.y);
-          routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [[a, b]], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 3, style: "dot" } }));
+          routeLayer.add(new Graphic({ geometry: new Polyline({ paths: [[a, b]], spatialReference: { wkid: 4326 } }), symbol: { type: "simple-line", color: COL.route, width: 3, cap: "round", join: "round" } }));
         } else mk(s0, [30, 180, 60], null);
         mk(s1, [220, 40, 40], r.toName);
       }
@@ -855,8 +870,13 @@ require([
       }
       function applyVisibility() {
         const fid = currentFloor, blocks = style !== "satellite";
+        // "All floors" stacks every floor's photo at once — each one's own unscanned
+        // area renders as a big flat dark block (Matterport's colorplan fills gaps with
+        // solid dark grey, not transparent), and 5 of those overlaid is what actually
+        // produced "the black box", not any one floor individually. Only the top floor's
+        // photo shows in "all floors" mode (same single floor glassLayer already uses).
         Object.entries(floorLayers).forEach(([k, l]) => {
-          const show = fid === "all" ? true : (fid !== "none" && k === fid);
+          const show = fid === "all" ? (k === FIDS[FIDS.length - 1]) : (fid !== "none" && k === fid);
           l.visible = show && (!blocks || photo);
         });
         meshLayer.visible = !hideMpMesh;
@@ -865,7 +885,14 @@ require([
           if (indoor2d[F]) { indoor2d[F].polys.visible = on && !photo; indoor2d[F].lines.visible = on; }
           if (indoor3d[F]) { indoor3d[F].polys.visible = on && !photo; indoor3d[F].lines.visible = on && !photo; }
         }
-        if (osm3d) { osm3d.visible = blocks && !hideOsmBlocks; shell3d.visible = blocks && !photo && !hideShell; }
+        // shell3d is a simple extruded-footprint box standing in for "the building" when
+        // there's no real scan — once the actual Matterport mesh is ready, it's just a
+        // second translucent glass layer directly behind/within the first, and the two
+        // stacked together visually flatten into a plain box, hiding the real mesh's own
+        // detail. Default it off whenever the real mesh is available; still togglable
+        // (hideShell) for whoever wants the simple box back, and still the right default
+        // for a building with no mesh at all.
+        if (osm3d) { osm3d.visible = blocks && !hideOsmBlocks; shell3d.visible = blocks && !photo && !hideShell && !window.wf.meshReady; }
         document.querySelectorAll("button.bstyle").forEach(b => b.classList.toggle("active", b.dataset.style === style));
         $("photoRow").style.display = blocks ? "" : "none";
       }

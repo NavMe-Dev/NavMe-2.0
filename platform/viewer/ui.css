@@ -270,8 +270,9 @@ body.dir .ctop{top:182px}
    found and documents this for the ?mp=1 background view, fixing it by oversizing the iframe
    and clipping the wrapper instead of trying to hide chrome Showcase won't let us hide any
    other way. Same trade-off here: a thin strip of the real 3D view is clipped along with the
-   chrome. Unlike mp-bg-mode, our OWN .mp-bar/.mp-status stay visible here — this only crops
-   the iframe itself, scoped to body.mp-open (the Tour interior modal), not the background mode. */
+   chrome. Scoped to body.mp-open, which both the Tour interior modal AND the background
+   mp=1 view set — harmless overlap with mp-bg-mode's identical crop values there; the
+   point of this rule is covering Tour interior, which carries mp-open but not mp-bg-mode. */
 body.mp-open .mp-frame-wrap{overflow:hidden}
 body.mp-open .mp-frame-wrap #mpFrame{top:-56px;height:calc(100% + 128px)}
 /* Arrow: top-right corner */
@@ -289,6 +290,13 @@ body.mp-open .mp-frame-wrap #mpFrame{top:-56px;height:calc(100% + 128px)}
 .mp-dist-hud[hidden]{display:none!important}
 .mp-dist-hud .mp-dist-val{font-size:20px;font-weight:700;letter-spacing:.01em;line-height:1.1}
 .mp-dist-hud .mp-dist-leg{display:inline-flex;align-items:baseline;gap:4px;opacity:.9}
+/* "Pick on map" (dollhouse): bottom bar, doesn't block the iframe so native Showcase
+   orbit/pan/zoom in Dollhouse mode still works underneath it. */
+.mp-pick-bar{position:absolute;left:12px;right:12px;bottom:16px;z-index:32;display:flex;flex-direction:column;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(20,20,24,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.mp-pick-bar[hidden]{display:none!important}
+.mp-pick-hint{font-size:13px;text-align:center;opacity:.9}
+.mp-pick-actions{display:flex;gap:10px}
+.mp-pick-actions .pill{pointer-events:auto}
 .mp-dist-hud .mp-dist-leg[hidden]{display:none!important}
 .mp-dist-hud .mp-dist-sep{font-size:16px;font-weight:600;opacity:.7}
 .mp-dist-hud .mp-dist-leg-val{font-size:14px;font-weight:600;opacity:.95}
