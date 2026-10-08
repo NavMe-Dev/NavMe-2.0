@@ -53,6 +53,10 @@ body.large{--fs:17px}
   .dfield.from-field{height:auto;min-height:40px;padding-top:6px;padding-bottom:6px}
   .modes{margin-left:8px}
   .loc-modal{align-items:flex-end}
+  /* iOS Safari auto-zooms the page on focus of any text input under 16px — these were
+     13-15px (14px base * sub-1 em multipliers). Bump to 16px only on mobile so desktop's
+     tighter 14px sizing is untouched. */
+  .searchbox input,.dfield input,.wf-chat-form input,input[type=text],input[type=search]{font-size:16px!important}
 }
 @media (min-width:768px){
   .loc-modal{align-items:center}

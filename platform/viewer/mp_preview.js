@@ -82,6 +82,17 @@ function wfDbg(level, source, message, meta) {
         else bar.insertBefore(d, bar.firstChild.nextSibling);
       }
     }
+    if (!$("mpBgLoading")) {
+      const wrap = ov.querySelector(".mp-frame-wrap");
+      const frame = $("mpFrame");
+      if (wrap) {
+        const d = document.createElement("div");
+        d.className = "mp-bg-loading"; d.id = "mpBgLoading"; d.hidden = true;
+        d.innerHTML = '<div class="mp-bg-spinner" aria-hidden="true"></div><div id="mpBgLoadingText"></div>';
+        if (frame) frame.insertAdjacentElement("afterend", d);
+        else wrap.insertBefore(d, wrap.firstChild);
+      }
+    }
   }
 
   function ensureOverlay() {
@@ -112,6 +123,7 @@ function wfDbg(level, source, message, meta) {
         <div class="mp-status" id="mpStatus" hidden></div>
         <div class="mp-frame-wrap">
           <iframe id="mpFrame" title="Matterport digital twin" allow="xr-spatial-tracking;gyroscope;accelerometer;autoplay;fullscreen;clipboard-write" allowfullscreen webkitallowfullscreen mozallowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div id="mpBgLoading" class="mp-bg-loading" hidden><div class="mp-bg-spinner" aria-hidden="true"></div><div id="mpBgLoadingText"></div></div>
           <div id="mpDirArrow" class="mp-dir-arrow" hidden aria-hidden="true"><div class="mp-dir-arr" aria-hidden="true">➤</div></div>
           <div id="mpDistHud" class="mp-dist-hud" hidden aria-hidden="true"><span class="mp-dist-val" id="mpDistRem">—</span><span class="mp-dist-leg" id="mpDistLegRow" hidden><span class="mp-dist-sep" aria-hidden="true">·</span><span class="mp-dist-leg-val" id="mpDistLeg">—</span></span></div>
         </div>
@@ -138,11 +150,23 @@ function wfDbg(level, source, message, meta) {
 
   function setStatus(msg, isErr) {
     const el = $("mpStatus");
-    if (!el) return;
-    if (!msg) { el.hidden = true; el.textContent = ""; return; }
-    el.hidden = false;
-    el.textContent = msg;
-    el.classList.toggle("err", !!isErr);
+    if (el) {
+      if (!msg) { el.hidden = true; el.textContent = ""; }
+      else { el.hidden = false; el.textContent = msg; el.classList.toggle("err", !!isErr); }
+    }
+    // mp_background.js hides .mp-bar/.mp-status entirely (Tour interior's own header has
+    // no place in a full-bleed background), which silently dropped every status update —
+    // the public MP viewer showed a plain black screen with zero loading feedback for the
+    // whole connect sequence. Mirror the same messages into a centered spinner instead,
+    // scoped to mp-bg-mode only so normal Tour interior (which still has .mp-status) is
+    // unaffected.
+    if (document.body.classList.contains("mp-bg-mode")) {
+      const bg = $("mpBgLoading"), bgText = $("mpBgLoadingText");
+      if (bg && bgText) {
+        if (!msg) { bg.hidden = true; }
+        else { bg.hidden = false; bgText.textContent = msg; bg.classList.toggle("err", !!isErr); }
+      }
+    }
   }
 
   function updateStep() {
@@ -294,10 +318,30 @@ function wfDbg(level, source, message, meta) {
       else if (cfg.model_id) modelId = cfg.model_id;
     } catch (_) { /* ignore */ }
 
+    // Fire the prototype config fetch and the platform endpoint fetch together — step 2
+    // only *depends* on step 1 for precedence when applying results (step 2's model_id
+    // always wins; step 1's applicationKey is used only as a fallback), not for the
+    // request itself. Awaiting them one after another was a full extra network round
+    // trip before the Showcase iframe could even start loading — costly on mobile.
+    const protoPromise = fetch("data/sdk_config.json", { cache: "no-store" }).catch(() => null);
+    const cfg0 = (window.WF && window.WF.cfg) || window.WF_CONFIG || {};
+    const slug0 = cfg0.slug || (window.WF && window.WF.building && window.WF.building.slug) || cfg0.building;
+    const apiBase0 = (cfg0.apiBase || (window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
+    let platformPromise = null;
+    if (slug0 && apiBase0) {
+      const headers0 = {};
+      let url0 = `${apiBase0}buildings/${encodeURIComponent(slug0)}/matterport`;
+      if (accessToken) {
+        headers0["X-WF-Access"] = accessToken;
+        url0 += (url0.indexOf("?") >= 0 ? "&" : "?") + "access=" + encodeURIComponent(accessToken);
+      }
+      platformPromise = fetch(url0, { cache: "no-store", headers: headers0 }).catch(() => null);
+    }
+
     // 1) Prototype: data/sdk_config.json
     try {
-      const r = await fetch("data/sdk_config.json", { cache: "no-store" });
-      if (r.ok) {
+      const r = await protoPromise;
+      if (r && r.ok) {
         const d = await r.json();
         if (d.modelId) modelId = d.modelId;
         if (d.applicationKey) applicationKey = d.applicationKey;
@@ -311,15 +355,10 @@ function wfDbg(level, source, message, meta) {
       const cfg = (window.WF && window.WF.cfg) || window.WF_CONFIG || {};
       const slug = cfg.slug || (window.WF && window.WF.building && window.WF.building.slug) || cfg.building;
       const apiBase = (cfg.apiBase || (window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
-      if (slug && apiBase) {
-        const headers = {};
-        let url = `${apiBase}buildings/${encodeURIComponent(slug)}/matterport`;
-        if (accessToken) {
-          headers["X-WF-Access"] = accessToken;
-          url += (url.indexOf("?") >= 0 ? "&" : "?") + "access=" + encodeURIComponent(accessToken);
-        }
-        const r = await fetch(url, { cache: "no-store", headers });
-        if (r.status === 403) {
+      if (slug && apiBase && platformPromise) {
+        const r = await platformPromise;
+        if (!r) { /* network error already swallowed */ }
+        else if (r.status === 403) {
           let detail = "Access denied";
           try { const j = await r.json(); detail = j.detail || detail; } catch (_) { /* ignore */ }
           // Wrong PIN — clear session and retry once via prompt
@@ -1270,6 +1309,20 @@ function wfDbg(level, source, message, meta) {
   }
 
 
+  /** Setting the same iframe src twice is a no-op in browsers, so re-entering MP mode
+   *  a second time needs an about:blank reset to force a fresh navigation — but on
+   *  first load the iframe has no src at all yet, so that detour (one wasted
+   *  navigation + a flat 40ms sleep) can be skipped, letting the real — already
+   *  slow-on-mobile — Showcase bundle start loading immediately. Returns true if the
+   *  reset ran (caller should still re-check its own gen before navigating to url). */
+  async function resetFrameIfNeeded(iframe) {
+    const curSrc = iframe.getAttribute("src") || "";
+    if (!curSrc || curSrc === "about:blank") return false;
+    iframe.src = "about:blank";
+    await new Promise(r => setTimeout(r, 40));
+    return true;
+  }
+
   function waitIframeLoad(iframe, gen) {
     return new Promise((resolve) => {
       let settled = false;
@@ -2111,8 +2164,7 @@ function wfDbg(level, source, message, meta) {
 
     // Attach load listener BEFORE navigating so we do not miss the event
     const loadP = waitIframeLoad(iframe, gen);
-    iframe.src = "about:blank";
-    await new Promise(r => setTimeout(r, 40));
+    await resetFrameIfNeeded(iframe);
     if (gen !== openGen) return;
     iframe.src = url;
     await loadP;
@@ -2249,6 +2301,7 @@ function wfDbg(level, source, message, meta) {
     const ov = $("mpOverlay");
     ov.hidden = false;
     document.body.classList.add("mp-open");
+    document.body.classList.remove("mp-frame-loaded");
     setStatus("Loading digital twin…");
     try {
       await resolveConfig();
@@ -2261,12 +2314,15 @@ function wfDbg(level, source, message, meta) {
     const iframe = $("mpFrame");
     mpSdk = null;
     const loadP = waitIframeLoad(iframe, gen);
-    iframe.src = "about:blank";
-    await new Promise(r => setTimeout(r, 40));
+    await resetFrameIfNeeded(iframe);
     if (gen !== openGen) return false;
     iframe.src = url;
     await loadP;
     if (gen !== openGen) return false;
+    // From here on the iframe is rendering Matterport's own UI, which can include its
+    // branded "tap to enter" gate — the loading overlay must stop covering/blocking it
+    // (see the mp-frame-loaded CSS in mp_background.js) or that gate becomes untappable.
+    document.body.classList.add("mp-frame-loaded");
     if (!applicationKey) { setStatus("Matterport SDK key not found (data/sdk_config.json).", true); return false; }
     setStatus("Connecting to digital twin…");
     const sdk = await connectSdk(iframe);

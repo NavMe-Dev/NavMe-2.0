@@ -8,6 +8,16 @@
   function isMpMode() { return new URLSearchParams(location.search).get("mp") === "1"; }
   if (!isMpMode()) return;
 
+  // Warm up DNS/TLS for the Showcase domains as early as possible — the iframe
+  // navigation itself doesn't start until resolveConfig()'s fetch resolves, so
+  // without this every mobile connection pays that handshake cost serially,
+  // on top of an already-heavy embed load.
+  ["https://my.matterport.com", "https://cdn-2.matterport.com", "https://static.matterport.com"].forEach((href) => {
+    const l = document.createElement("link");
+    l.rel = "preconnect"; l.href = href; l.crossOrigin = "";
+    document.head.appendChild(l);
+  });
+
   document.body.classList.add("mp-bg-mode");
   const style = document.createElement("style");
   style.textContent = `
@@ -48,6 +58,36 @@
     }
     /* ArcGIS-only map controls — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels { display:none !important; }
+    /* Loading feedback while the Showcase iframe/SDK connect (mp_preview.js setStatus()
+       mirrors its messages here since .mp-status is hidden above) — without this the
+       background was a plain black screen with no indication anything was happening,
+       which read as "stuck" rather than "loading", especially over slower mobile networks.
+       Before the iframe has loaded there's nothing underneath to see, so this covers it
+       fully opaque. Once mp_preview.js adds .mp-frame-loaded (iframe has real content —
+       which can include Matterport's own "tap to enter" gate), it must stop covering/
+       blocking the iframe or that gate becomes impossible to see or tap; it shrinks to a
+       small, click-through status pill instead. */
+    body.mp-bg-mode #mpBgLoading {
+      position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:14px; background:#000; color:#e8eaed;
+      font:14px/1.4 Roboto,system-ui,-apple-system,sans-serif; text-align:center; padding:24px;
+    }
+    body.mp-bg-mode #mpBgLoading[hidden] { display:none !important; }
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoading {
+      inset:auto; bottom:18px; left:50%; transform:translateX(-50%); right:auto;
+      flex-direction:row; max-width:86%; width:auto; padding:9px 16px; gap:10px;
+      background:rgba(0,0,0,.72); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      border-radius:20px; pointer-events:none;
+    }
+    body.mp-bg-mode .mp-bg-spinner {
+      width:36px; height:36px; border-radius:50%; border:3px solid rgba(255,255,255,.25);
+      border-top-color:#8ab4f8; animation:mpBgSpin .8s linear infinite; flex-shrink:0;
+    }
+    body.mp-bg-mode.mp-frame-loaded .mp-bg-spinner { width:16px; height:16px; border-width:2px; }
+    body.mp-bg-mode #mpBgLoading.err .mp-bg-spinner { display:none; }
+    body.mp-bg-mode #mpBgLoading.err { color:#f28b82; }
+    @keyframes mpBgSpin { to { transform:rotate(360deg); } }
+    @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .mp-bg-spinner { animation:none; } }
   `;
   document.head.appendChild(style);
 
