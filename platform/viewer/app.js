@@ -429,6 +429,15 @@ require([
           sweeps: (nav.nodes || []).filter(n => n.kind === "sweep")
                                    .map(n => ({ id: n.id, x: n.x, y: n.y, z: n.z })),
           modelToLL: modelToLL
+        }).then(() => {
+          // doRoute() falls back to the old sweep-graph route whenever the navmesh (a
+          // ~2MB binary, slower to fetch+parse on mobile) isn't ready yet at click time —
+          // and never re-tries, so a route picked before it loaded stayed on the old
+          // method for the rest of the session. Recompute once it's ready so the navmesh
+          // route wins as intended.
+          if (lastRoute && lastRoute.source !== "navmesh" && lastRouteArgs) {
+            doRoute(lastRouteArgs.fromKey, lastRouteArgs.toPoiId, lastRouteArgs.opts);
+          }
         }).catch(e => console.warn("[navmesh] not available:", e.message || e));
       }
       const poiById = {}; pois.pois.forEach(p => poiById[p.id] = p);
@@ -457,7 +466,7 @@ require([
       dl.innerHTML = sorted.map(p => `<option value="${disp(p)}">${p.category}${p.code && p.code !== p.name ? ' · ' + p.code : ''}</option>`).join("");
       const poiFromText = t => sorted.find(p => disp(p) === t) || sorted.find(p => p.name.toLowerCase() === t.toLowerCase()) || sorted.find(p => (p.name + ' ' + (p.code || '')).toLowerCase().includes(t.toLowerCase()));
 
-      let lastRoute = null, startInfo = null;
+      let lastRoute = null, startInfo = null, lastRouteArgs = null;
       const ll = (x, y) => modelToLL(x, y);
       // Deep midnight navy (#182858 — NavMe's own brand navy, same tone used for the
       // destination pin / trail elsewhere) rather than the bright green.
@@ -674,7 +683,7 @@ require([
           r.instructions[0].text = `Start at ${fromName}`;
           r.instructions[r.instructions.length - 1].text = `Arrive at ${to.name} (${floorLabel(to.floor)})`;
         }
-        lastRoute = r; window.wf.lastRoute = r;
+        lastRoute = r; window.wf.lastRoute = r; lastRouteArgs = { fromKey, toPoiId, opts };
         drawRoute(); renderSteps(r);
         if (window.wf.onRoute) window.wf.onRoute(r);
         if (activeView === view2d && !opts.noZoom) {

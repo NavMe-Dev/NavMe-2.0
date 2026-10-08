@@ -290,6 +290,18 @@ function wfDbg(level, source, message, meta) {
     modelId = DEFAULT_MODEL;
     applicationKey = "";
 
+    // window.WF.cfg (building slug, model id, access policy) is filled in asynchronously
+    // by wf-boot.js once window.WF.ready resolves. Every read of window.WF.cfg below
+    // (readAccessPolicy included) silently falls back to {} until then — reliably
+    // populated in practice only because showBackground() happens to run after a human
+    // clicks a building, which takes far longer than wf-boot's own fetch. That's not a
+    // guarantee: a fast re-trigger or a slow /manifest.json response can still race it,
+    // silently resolving against an empty cfg — which is exactly how this loaded the
+    // wrong (hardcoded default) Matterport model intermittently. Wait for it explicitly.
+    if (window.WF && window.WF.ready && typeof window.WF.ready.then === "function") {
+      try { await window.WF.ready; } catch (_) { /* boot failed — fall through, cfg stays {} */ }
+    }
+
     const policy = readAccessPolicy();
     if (policy.twin_disabled) {
       const err = new Error("Digital twin is disabled for this building");
@@ -425,6 +437,20 @@ function wfDbg(level, source, message, meta) {
       }
     } catch (_) { /* ignore */ }
 
+    // DEFAULT_MODEL is a hardcoded fallback for local/prototype testing, completely
+    // unrelated to any real building. If nothing above (building boot config, the
+    // platform's own /matterport endpoint, or an admin override) actually resolved a
+    // real model id for THIS building — e.g. the platform endpoint 404s/500s from a
+    // transient network hiccup or cold-start — silently proceeding would load whatever
+    // random model DEFAULT_MODEL happens to be, with no indication anything was wrong.
+    // Fail loudly instead: showing an error is strictly better than showing the wrong
+    // building's digital twin.
+    if (modelId === DEFAULT_MODEL) {
+      const err = new Error("Could not resolve this building's Matterport model — refusing to fall back to an unrelated default model. Check your connection and retry.");
+      err.code = "model_unresolved";
+      throw err;
+    }
+
     return { modelId, applicationKey };
   }
 
@@ -473,7 +499,20 @@ function wfDbg(level, source, message, meta) {
   // object-form and function-form callbacks, with and without an early subscribe set up
   // right after connect (matching threed_nav.js's documented "emits once, early" pattern
   // for its own build/model) — so it's kept only as a last-resort fallback, not relied on.
+  // Sweep positions don't change during a connection — re-fetching/re-parsing all of
+  // them (990 for GCU) on every single POI click, arrow step, and walk hop was the real
+  // cause of "point to point" lag and mobile CPU heat: the slowest fallback path even
+  // sets up an SDK subscription and waits up to 8s. Cache per sdk instance so a fresh
+  // connect (new object from connectSdk()) naturally invalidates it.
+  let _sweepCache = null, _sweepCacheSdk = null;
   async function rtReadSweeps(sdk) {
+    if (_sweepCacheSdk === sdk && _sweepCache) return _sweepCache;
+    const result = await rtReadSweepsUncached(sdk);
+    if (result.length) { _sweepCache = result; _sweepCacheSdk = sdk; }
+    return result;
+  }
+
+  async function rtReadSweepsUncached(sdk) {
     try {
       if (sdk && sdk.Model && typeof sdk.Model.getData === "function") {
         const d = await sdk.Model.getData();
