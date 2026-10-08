@@ -327,6 +327,148 @@ def matterpak_suggestions():
 
 
 
+@router.get("/buildings/{slug}/export-bundle")
+def export_bundle(slug: str, db: Session = Depends(get_db)):
+    """Zip the already-published bundle (mesh GLBs + floor plans + navmesh + POIs — frozen
+    output of the pipeline, typically tens of MB) plus a DB manifest (building/floors/POIs),
+    so a fully-processed building can move to another environment (e.g. local dev -> a hosted
+    free-tier instance) without ever transferring the raw, possibly multi-GB MatterPak export
+    or re-running ingest/mesh/colorplan/georef there."""
+    import zipfile
+    b = B(db, slug)
+    mv = pub.current_version(db, b)
+    if not mv:
+        raise HTTPException(400, "building has no published version yet - publish it first")
+    bundle_dir = Path(mv.path)
+    if not bundle_dir.is_dir():
+        raise HTTPException(404, f"published bundle missing on disk: {bundle_dir}")
+    manifest = {
+        "schema": "wayfinding.building_export/v1",
+        "slug": b.slug, "name": b.name, "address": b.address, "lat": b.lat, "lon": b.lon,
+        "venue_slug": b.venue.slug if b.venue else None,
+        "matterport_model_id": b.matterport_model_id, "sdk_key_ref": b.sdk_key_ref,
+        "georef": b.georef, "pipeline_config": b.pipeline_config, "model_info": b.model_info,
+        "branding": b.branding, "version": mv.version, "notes": mv.notes, "summary": mv.summary,
+        "floors": [{"fid": f.fid, "label": f.label, "short_label": f.short_label, "ordinal": f.ordinal,
+                    "elevation_m": f.elevation_m, "height_m": f.height_m, "mp_floor_id": f.mp_floor_id} for f in b.floors],
+        "pois": [{"key": p.key, "name": p.name, "code": p.code, "category": p.category, "floor": p.floor,
+                  "model_x": p.model_x, "model_y": p.model_y, "model_z": p.model_z,
+                  "lon": to_shape(p.geom).x if p.geom is not None else None,
+                  "lat": to_shape(p.geom).y if p.geom is not None else None,
+                  "nearest_node": p.nearest_node, "nearest_sweep_label": p.nearest_sweep_label, "room_id": p.room_id,
+                  "step_free": p.step_free, "step_free_auto": p.step_free_auto, "hours": p.hours,
+                  "description": p.description, "photo_url": p.photo_url, "published": p.published,
+                  "source": p.source, "locked": p.locked, "extra": p.extra}
+                 for p in db.query(models.POI).filter_by(building_id=b.id)],
+    }
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("manifest.json", json.dumps(manifest, indent=1))
+        for f in bundle_dir.rglob("*"):
+            if f.is_file():
+                z.write(f, arcname=f"bundle/{f.relative_to(bundle_dir)}")
+    buf.seek(0)
+    fname = f"{b.slug}-export-v{mv.version}.zip"
+    return StreamingResponse(buf, media_type="application/zip",
+                              headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
+@router.post("/buildings/import-bundle")
+async def import_bundle(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Import a zip produced by export-bundle: creates/updates the Building + Floor + POI rows
+    and installs the already-processed published version directly on this server's disk —
+    skips ingest/mesh/colorplan/georef/etc. entirely, so the heavy MatterPak never needs to
+    reach this (typically smaller / hosted free-tier) environment."""
+    import zipfile
+    raw = await file.read()
+    if len(raw) > get_settings().max_upload_mb << 20:
+        raise HTTPException(413, "bundle too large")
+    try:
+        z = zipfile.ZipFile(io.BytesIO(raw))
+    except zipfile.BadZipFile:
+        raise HTTPException(400, "not a valid zip")
+    try:
+        manifest = json.loads(z.read("manifest.json"))
+    except KeyError:
+        raise HTTPException(400, "zip is missing manifest.json - not an export-bundle archive")
+    slug = manifest.get("slug")
+    if not slug:
+        raise HTTPException(400, "manifest missing slug")
+
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        b = models.Building(slug=slug, name=manifest.get("name") or slug)
+        db.add(b); db.flush()
+    vs = manifest.get("venue_slug")
+    if vs:
+        v = db.query(models.Venue).filter_by(slug=vs).first()
+        if not v:
+            v = models.Venue(slug=vs, name=vs.replace("-", " ").title()); db.add(v); db.flush()
+        b.venue = v
+    b.name = manifest.get("name") or b.name
+    b.address = manifest.get("address"); b.lat = manifest.get("lat"); b.lon = manifest.get("lon")
+    if b.lat is not None and b.lon is not None:
+        b.location = WKTElement(f"POINT({b.lon} {b.lat})", srid=4326)
+    b.matterport_model_id = manifest.get("matterport_model_id")
+    b.sdk_key_ref = manifest.get("sdk_key_ref") or b.sdk_key_ref
+    b.georef = manifest.get("georef")
+    b.pipeline_config = manifest.get("pipeline_config") or {}
+    b.model_info = manifest.get("model_info") or {}
+    b.branding = manifest.get("branding") or {}
+    b.status = "published"
+    db.flush()
+
+    db.query(models.Floor).filter_by(building_id=b.id).delete()
+    for f in manifest.get("floors") or []:
+        db.add(models.Floor(building_id=b.id, fid=f["fid"], label=f["label"], short_label=f["short_label"],
+                             ordinal=f["ordinal"], elevation_m=f.get("elevation_m") or 0.0,
+                             height_m=f.get("height_m") or 3.0, mp_floor_id=f.get("mp_floor_id")))
+
+    db.query(models.POI).filter_by(building_id=b.id).delete()
+    for p in manifest.get("pois") or []:
+        geom = (WKTElement(f"POINT({p['lon']} {p['lat']})", srid=4326)
+                if p.get("lon") is not None and p.get("lat") is not None else None)
+        db.add(models.POI(building_id=b.id, key=p["key"], name=p["name"], code=p.get("code"),
+                           category=p.get("category") or "room", floor=p.get("floor") or "F1", geom=geom,
+                           model_x=p.get("model_x"), model_y=p.get("model_y"), model_z=p.get("model_z"),
+                           nearest_node=p.get("nearest_node"), nearest_sweep_label=p.get("nearest_sweep_label"),
+                           room_id=p.get("room_id"), step_free=p.get("step_free"), step_free_auto=p.get("step_free_auto"),
+                           hours=p.get("hours"), description=p.get("description"), photo_url=p.get("photo_url"),
+                           published=p.get("published", True), source=p.get("source") or "import",
+                           locked=p.get("locked") or False, extra=p.get("extra") or {}))
+    db.flush()
+
+    last = db.query(models.MapVersion).filter_by(building_id=b.id).order_by(models.MapVersion.version.desc()).first()
+    ver = (last.version if last else 0) + 1
+    dest = get_settings().published_dir / b.slug / f"v{ver}"
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    extracted = 0
+    for name in z.namelist():
+        if not name.startswith("bundle/") or name.endswith("/"):
+            continue
+        rel = name[len("bundle/"):]
+        if not rel:
+            continue
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with z.open(name) as src, open(target, "wb") as out:
+            shutil.copyfileobj(src, out)
+        extracted += 1
+    if not extracted:
+        raise HTTPException(400, "zip has no bundle/ files - not a valid export-bundle archive")
+
+    db.query(models.MapVersion).filter_by(building_id=b.id).update({"is_current": False})
+    mv = models.MapVersion(building_id=b.id, version=ver, notes=f"imported export (source slug {manifest.get('slug')})",
+                            created_by="import-bundle", path=str(dest), is_current=True,
+                            summary=manifest.get("summary") or {})
+    db.add(mv)
+    db.commit()
+    return {"slug": b.slug, "version": ver, "files": extracted,
+            "floors": len(manifest.get("floors") or []), "pois": len(manifest.get("pois") or [])}
+
+
 @router.get("/geocode")
 def geocode(q: str, provider: str | None = None):
     from wfpipe.cli import geocode as gc

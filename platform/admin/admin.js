@@ -23,6 +23,19 @@ async function api(path, opts = {}) {
   if (!r.ok) throw new Error((body && body.detail) ? (typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail)) : r.statusText);
   return body;
 }
+async function downloadExportBundle(slug) {
+  const r = await fetch(`${API}/admin/buildings/${slug}/export-bundle`, { headers: { Authorization: "Bearer " + store.token } });
+  if (!r.ok) {
+    let msg = r.statusText;
+    try { const j = await r.json(); msg = j.detail || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${slug}-export-bundle.zip`; document.body.appendChild(a); a.click();
+  a.remove(); setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
 function go(p) { location.hash = p; }
 window.addEventListener("hashchange", () => store.route = location.hash.slice(1) || "/");
 function toast(msg) { store.toast = msg; clearTimeout(toast._t); toast._t = setTimeout(() => store.toast = "", 3500); }
@@ -241,7 +254,11 @@ const Login = {
 };
 
 const Buildings = {
-  template: `<div><div class="row" style="margin-bottom:12px"><h1 class="grow" style="margin:0">{{t("admin.buildings")}}</h1><button class="primary" @click="go('/new')">{{t("admin.addBuilding")}}</button></div>
+  template: `<div><div class="row" style="margin-bottom:12px"><h1 class="grow" style="margin:0">{{t("admin.buildings")}}</h1>
+      <input ref="importInput" type="file" accept=".zip" style="display:none" @change="onImportFile">
+      <button @click="$refs.importInput.click()" :disabled="importBusy"><span v-if="importBusy" class="spinner"></span>{{importBusy ? 'Importing…' : 'Import processed building'}}</button>
+      <button class="primary" @click="go('/new')">{{t("admin.addBuilding")}}</button></div>
+    <p class="muted small" v-if="importErr || importOk" :class="importErr ? 'err' : 'ok'">{{importErr || importOk}}</p>
     <div class="grid"><div class="card" v-for="b in list" :key="b.slug">
       <div class="row"><b class="grow" style="font-size:16px"><a :href="'#/b/'+b.slug">{{b.name}}</a></b><span class="badge" :class="stCls(b.status)">{{b.status}}</span></div>
       <div class="muted small">{{b.address || '—'}}</div>
@@ -249,11 +266,13 @@ const Buildings = {
         <div>Venue</div><div>{{b.venue || '—'}}</div><div>Floors / POIs</div><div>{{b.floors.length}} / {{b.poi_count}}</div>
         <div>Published</div><div>{{b.published_version ? 'v'+b.published_version : 'not yet'}}</div>
         <div>Georef</div><div>{{b.georef ? (b.georef.mode + (b.georef.rms_m!=null ? ' · RMS '+b.georef.rms_m.toFixed(2)+' m' : '')) : '—'}}</div></div>
-      <div class="row" style="margin-top:12px"><button @click="go('/b/'+b.slug)">{{t("admin.open")}}</button><a class="btn" :href="viewerUrl(b)" target="_blank" v-if="b.published_version">{{t("admin.viewer")}}</a><button class="danger" style="margin-left:auto" @click="del(b)">Delete</button></div>
+      <div class="row" style="margin-top:12px"><button @click="go('/b/'+b.slug)">{{t("admin.open")}}</button><a class="btn" :href="viewerUrl(b)" target="_blank" v-if="b.published_version">{{t("admin.viewer")}}</a>
+        <button v-if="b.published_version" @click="exportOne(b)" :disabled="exportBusy===b.slug"><span v-if="exportBusy===b.slug" class="spinner"></span>{{exportBusy===b.slug ? 'Exporting…' : 'Export bundle'}}</button>
+        <button class="danger" style="margin-left:auto" @click="del(b)">Delete</button></div>
     </div></div>
     <div class="card muted" v-if="!list.length && loaded">{{t("admin.noBuildings")}}</div></div>`,
   setup() {
-    const list = ref([]), loaded = ref(false);
+    const list = ref([]), loaded = ref(false), importBusy = ref(false), importErr = ref(""), importOk = ref(""), exportBusy = ref("");
     onMounted(async () => { list.value = await api("/admin/buildings"); loaded.value = true; });
     async function del(b) {
       const typed = prompt(`Type the slug "${b.slug}" to permanently delete this building and its workspace files. This cannot be undone.`);
@@ -265,7 +284,26 @@ const Buildings = {
         toast(`Deleted ${b.slug}`);
       } catch (e) { toast(e.message); }
     }
-    return { list, loaded, go, stCls, viewerUrl, del, t, i18nTick };
+    async function exportOne(b) {
+      exportBusy.value = b.slug;
+      try { await downloadExportBundle(b.slug); } catch (e) { toast(e.message); }
+      exportBusy.value = "";
+    }
+    async function onImportFile(ev) {
+      const file = ev.target.files[0]; ev.target.value = "";
+      if (!file) return;
+      importBusy.value = true; importErr.value = ""; importOk.value = "";
+      try {
+        const fd = new FormData(); fd.append("file", file);
+        const r = await fetch(`${API}/admin/buildings/import-bundle`, { method: "POST", headers: { Authorization: "Bearer " + store.token }, body: fd });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || r.statusText);
+        importOk.value = `Imported ${j.slug} v${j.version} — ${j.floors} floors, ${j.pois} POIs, ${j.files} files. No MatterPak or pipeline run needed on this server.`;
+        list.value = await api("/admin/buildings");
+      } catch (e) { importErr.value = e.message; }
+      importBusy.value = false;
+    }
+    return { list, loaded, go, stCls, viewerUrl, del, exportOne, exportBusy, importBusy, importErr, importOk, onImportFile, t, i18nTick };
   }
 };
 function stCls(s) { return { published: "ok", ready: "blue", failed: "bad", processing: "run", queued: "run" }[s] || ""; }
