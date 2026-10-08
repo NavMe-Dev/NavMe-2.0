@@ -647,6 +647,15 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
     # Local file dropped directly next to the viewer (manual override / pre-sync state).
     if cfg.viewer_dir:
         local_nm = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
+        if not local_nm.exists():
+            # Local disk wiped (Render free-tier restart) — recover from Supabase
+            # Storage the same way published bundle files do. See bundle_storage.py.
+            data = bundle_storage.fetch_navmesh_bytes(slug)
+            if data:
+                try:
+                    local_nm.write_bytes(data)
+                except OSError:
+                    pass
         if local_nm.exists():
             return {"url": f"{base_url}/{slug}_navmesh.navmesh",
                     "label": "local-override", "poi_type": slug, "updated_at": None}

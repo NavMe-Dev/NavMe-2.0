@@ -88,6 +88,39 @@ def fetch_bytes(slug: str, version: int, relpath: str) -> bytes | None:
     return None
 
 
+def upload_navmesh(slug: str, local_path: Path) -> bool:
+    """Mirror the standalone Recast .navmesh file (served as a static file straight out
+    of viewer_dir, outside the versioned publish bundle entirely — see
+    dashboard_navmesh_url()) the same way published bundles are mirrored."""
+    if not is_enabled() or not local_path.is_file():
+        return False
+    s = get_settings()
+    try:
+        with httpx.Client(timeout=60) as client:
+            r = client.put(
+                f"{s.supabase_url}/storage/v1/object/{s.supabase_storage_bucket}/navmesh/{slug}.navmesh",
+                content=local_path.read_bytes(),
+                headers={**_headers(), "Content-Type": "application/octet-stream", "x-upsert": "true"},
+            )
+        return r.status_code < 300
+    except httpx.HTTPError:
+        return False
+
+
+def fetch_navmesh_bytes(slug: str) -> bytes | None:
+    if not is_enabled():
+        return None
+    s = get_settings()
+    url = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/navmesh/{slug}.navmesh"
+    try:
+        r = httpx.get(url, timeout=30)
+        if r.status_code < 300:
+            return r.content
+    except httpx.HTTPError:
+        pass
+    return None
+
+
 def read_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> bytes:
     """Read one bundle file, local disk first, Supabase Storage as fallback —
     the fallback path that recovers from a wiped container disk. Best-effort

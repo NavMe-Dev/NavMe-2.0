@@ -955,6 +955,8 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
             data = urllib.request.urlopen(media_row["media_url"], timeout=60).read()
             local_path = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
             local_path.write_bytes(data)
+            from ..services import bundle_storage
+            bundle_storage.upload_navmesh(slug, local_path)
             b.pipeline_config = {**(b.pipeline_config or {}), "navme_navmesh": {
                 "label": media_row.get("label"), "url": f"/{slug}_navmesh.navmesh",
                 "updated_at": media_row.get("updated_at")}}
@@ -996,6 +998,8 @@ async def upload_navmesh(slug: str, file: UploadFile = File(...), db: Session = 
         raise HTTPException(413, "file too large")
     local_path = Path(get_settings().viewer_dir) / f"{slug}_navmesh.navmesh"
     local_path.write_bytes(data)
+    from ..services import bundle_storage
+    bundle_storage.upload_navmesh(slug, local_path)
     b.pipeline_config = {**(b.pipeline_config or {}), "navme_navmesh": {
         "label": file.filename or "uploaded", "url": f"/{slug}_navmesh.navmesh",
         "updated_at": datetime.now(timezone.utc).isoformat(), "source": "upload"}}
