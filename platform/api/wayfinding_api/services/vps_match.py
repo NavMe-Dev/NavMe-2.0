@@ -103,8 +103,10 @@ def match(db, slug: str, image_bytes: bytes) -> dict:
     orb = cv2.ORB_create(nfeatures=1000)
     _, query_desc = orb.detectAndCompute(gray, None)
     if query_desc is None or len(query_desc) < MIN_QUERY_KEYPOINTS:
-        return {"success": False, "message": "photo doesn't have enough distinctive detail to match — "
-                                              "try a clearer shot of a distinctive wall, sign, or doorway"}
+        return {"success": False, "confidence": 0.0,
+                "message": f"photo doesn't have enough distinctive detail to match "
+                           f"({0 if query_desc is None else len(query_desc)} keypoints, need {MIN_QUERY_KEYPOINTS}+) — "
+                           f"try a clearer shot of a distinctive wall, sign, or doorway"}
 
     bf = cv2.BFMatcher(cv2.NORM_HAMMING)
     scores = {}  # sweep_id -> best single reference image's good-match count
@@ -124,16 +126,19 @@ def match(db, slug: str, image_bytes: bytes) -> dict:
             scores[img["sweep"]] = good
 
     if not scores:
-        return {"success": False, "message": "couldn't find a confident match — try a clearer or "
-                                              "more distinctive photo"}
+        return {"success": False, "confidence": 0.0,
+                "message": "couldn't find a confident match (0 candidate matches) — "
+                           "try a clearer or more distinctive photo"}
     ranked = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
     best_sweep, best_count = ranked[0]
     second_count = ranked[1][1] if len(ranked) > 1 else 0
+    confidence = round(min(1.0, best_count / 60.0), 2)
     if best_count < MIN_GOOD_MATCHES or (second_count and best_count < second_count * MIN_MARGIN_RATIO):
-        return {"success": False, "message": "couldn't find a confident match — try a clearer or "
-                                              "more distinctive photo"}
+        return {"success": False, "confidence": confidence,
+                "message": f"couldn't find a confident match ({best_count} matches, {round(confidence * 100)}% confidence, "
+                           f"need {MIN_GOOD_MATCHES}+ with a clear margin over the next-best spot) — "
+                           f"try a clearer or more distinctive photo"}
 
     sweep_meta = next(m for m in images if m["sweep"] == best_sweep)
-    confidence = min(1.0, best_count / 60.0)
     return {"success": True, "x": sweep_meta["x"], "y": sweep_meta["y"], "z": sweep_meta.get("z"),
-            "floor": sweep_meta.get("floor"), "confidence": round(confidence, 2)}
+            "floor": sweep_meta.get("floor"), "confidence": confidence}

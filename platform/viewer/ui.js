@@ -871,13 +871,13 @@ function wfDbg(level, source, message, meta) {
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); return; }
     if (!S.from) {
-      // MP mode: "Use image" (photo matching) is the only location option that makes
-      // sense — there's no GPS "out there" meaning for a remote virtual tour, no map to
-      // pick on, and no reason to force a fixed entrance start. Normal mode keeps all of
-      // GPS/image/map.
+      // MP mode: no map to pick on, and no reason to force a fixed entrance start —
+      // but GPS still has real meaning (on-site visitor) and "Use image" works too.
       setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseStart"))}</div>
         <div class="actions">
-          ${isMpMode() ? `<button class="pill primary" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
+          ${isMpMode() ? `
+          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
+          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
           <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
@@ -904,7 +904,9 @@ function wfDbg(level, source, message, meta) {
     if (S.from === "me" && !wf.lastLoc) {
       setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
-          ${isMpMode() ? `<button class="pill primary" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
+          ${isMpMode() ? `
+          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
+          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
           <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
@@ -1398,6 +1400,16 @@ function wfDbg(level, source, message, meta) {
   function applyLocated(lon, lat, meta) {
     if (meta && meta.floor) wf.setFloor(meta.floor);
     wf.localizeAt(lon, lat);
+    // wf.localizeAt only updates 2D/web-mercator state (wf.lastLoc, the dot on the
+    // map) — it has no isMpMode() awareness, so without this the Matterport camera
+    // never moves on a GPS fix. applyVpsResult does its own version of this with the
+    // raw model x/y it already has; this covers every other caller (GPS, entrance).
+    if (isMpMode() && window.MpPreview && (!meta || meta.source !== "vps")) {
+      try {
+        const [mx, my] = wf.llToModel(lon, lat);
+        window.MpPreview.focusAt({ x: mx, y: my, z: 0 }, null);
+      } catch (e) { }
+    }
     if (wf.lastLoc) {
       if (meta && meta.accuracy != null) wf.lastLoc.accuracy = meta.accuracy;
       if (meta && meta.source) wf.lastLoc.source = meta.source;

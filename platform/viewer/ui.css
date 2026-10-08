@@ -264,6 +264,16 @@ body.dir .ctop{top:182px}
 /* 1A Tour interior — nav pointer (GMaps-style) over iframe; Embed-safe */
 /* iframe translateZ creates a compositor layer that can paint above siblings — pin z-index */
 .mp-frame-wrap iframe,.mp-frame-wrap #mpFrame{z-index:1}
+/* Tour interior modal: Showcase's own top info strip + bottom mode-switch toolbar render
+   INSIDE the cross-origin my.matterport.com iframe and ignore every hide-chrome embed param
+   (logo=0/mt=0/newtop=0/...) on this Showcase bundle/account — mp_background.js already
+   found and documents this for the ?mp=1 background view, fixing it by oversizing the iframe
+   and clipping the wrapper instead of trying to hide chrome Showcase won't let us hide any
+   other way. Same trade-off here: a thin strip of the real 3D view is clipped along with the
+   chrome. Unlike mp-bg-mode, our OWN .mp-bar/.mp-status stay visible here — this only crops
+   the iframe itself, scoped to body.mp-open (the Tour interior modal), not the background mode. */
+body.mp-open .mp-frame-wrap{overflow:hidden}
+body.mp-open .mp-frame-wrap #mpFrame{top:-56px;height:calc(100% + 128px)}
 /* Arrow: top-right corner */
 .mp-dir-arrow{position:absolute;right:16px;top:16px;width:80px;height:80px;margin:0;z-index:30;pointer-events:none;display:grid;place-items:center;transform:translateZ(0);-webkit-transform:translateZ(0);isolation:isolate}
 .mp-dir-arrow[hidden]{display:none!important}
