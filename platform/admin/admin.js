@@ -332,7 +332,7 @@ const Wizard = {
       <hr style="margin:18px 0;border:none;border-top:1px solid #e0e0e0">
       <h3 style="margin-top:0">Building details</h3>
       <label>Building name</label><input v-model="f.name" @input="autoslug" :disabled="created">
-      <label>Slug (URL id)</label><input v-model="f.slug" pattern="[a-z0-9\-]+" :disabled="created">
+      <label>Slug (URL id)</label><input v-model="f.slug" @input="onSlugInput" pattern="[a-z0-9\-]+" :disabled="created">
       <label>Venue / campus (optional slug – buildings sharing a venue appear on one map)</label><input v-model="f.venue_slug" placeholder="e.g. main-campus" :disabled="created">
       <label>Address</label><div class="row"><input class="grow" v-model="f.address" style="width:auto;flex:1" :disabled="created"><button @click="geocode" :disabled="!f.address||busy||created">Geocode</button></div>
       <div class="row"><div class="grow"><label>Latitude</label><input v-model.number="f.lat" type="number" step="any" :disabled="created"></div><div class="grow"><label>Longitude</label><input v-model.number="f.lon" type="number" step="any" :disabled="created"></div></div>
@@ -422,9 +422,16 @@ const Wizard = {
     });
     const onModelChange = () => { f.matterport_model_id = normalizeModelId(f.matterport_model_id); if (f.matterport_model_id.length >= 8) lookup(); };
     const onPaste = () => setTimeout(onModelChange, 0);
-    const autoslug = () => { if (created.value) return; f.slug = f.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60); };
+    const slugify = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+    const autoslug = () => { if (created.value) return; f.slug = slugify(f.name); };
+    // The slug field is also directly editable (e.g. pasting a POI-type value like
+    // "Sparkhouse" straight from elsewhere) — sanitize it the same way autoslug()
+    // does for the name field, so whatever case/characters come in, the slug sent
+    // to the API already matches its required pattern instead of 422ing.
+    const onSlugInput = () => { if (!created.value) f.slug = slugify(f.slug); };
     const geocode = () => wrap(async () => { const g = await api("/admin/geocode?q=" + encodeURIComponent(f.address)); f.lat = g.lat; f.lon = g.lon; geo.value = "Found: " + g.label; });
     const create = () => wrap(async () => {
+      f.slug = slugify(f.slug);
       try {
         await api("/admin/buildings", { method: "POST", json: { ...f, venue_slug: f.venue_slug || null, matterpak_path: null } });
       } catch (e) {
@@ -522,7 +529,7 @@ const Wizard = {
     const wizardSteps = computed(() => { i18nTick.value; return [t("admin.wizardDetails"), t("admin.wizardProcess")]; });
     // Auto-fetch Matterport info when wizard opens with a pre-filled SID
     onMounted(() => { if (_preSid) lookup(); });
-    return { step, f, mp, err, busy, geo, file, progress, jobId, done, filledFromMp, fileTooBig, isLocalDev, serverPath, pathSuggestions, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, geocode, create, onFile, upload, usePath, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps };
+    return { step, f, mp, err, busy, geo, file, progress, jobId, done, filledFromMp, fileTooBig, isLocalDev, serverPath, pathSuggestions, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, onSlugInput, geocode, create, onFile, upload, usePath, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps };
   }
 };
 
