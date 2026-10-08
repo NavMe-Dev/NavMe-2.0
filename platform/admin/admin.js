@@ -312,17 +312,10 @@ const Wizard = {
           <hr style="margin:16px 0;border:none;border-top:1px solid #e0e0e0">
         </template>
         <p v-else class="muted small">Enter a Matterport model ID above to enable fetching the mesh via API — or use a manual source below.</p>
-        <p><b>Recommended for files &gt;2&nbsp;GB:</b> copy the MatterPak zip / <code>.e57</code> onto the server, then paste the path below. Browser upload often hits 100 % then stalls on multi‑GB files.</p>
-        <label>Server path (zip, .e57, or folder)</label>
-        <div class="row"><input class="grow" v-model="serverPath" placeholder="/workspace/wayfinding/matterpak/&lt;slug&gt;/cloud_0.e57" style="width:auto;flex:1" list="matterpak-suggest"><button class="primary" @click="usePath" :disabled="!serverPath||busy"><span v-if="busy" class="spinner"></span>{{busy ? 'Checking…' : 'Use path'}}</button></div>
-        <datalist id="matterpak-suggest"><option v-for="s in pathSuggestions" :value="s.path">{{s.label}}</option></datalist>
-        <div class="muted small" style="margin-top:6px" v-if="pathSuggestions.length">Known on server: <button v-for="s in pathSuggestions.slice(0,6)" :key="s.path" type="button" class="linkish" style="margin-right:8px" @click="serverPath=s.path">{{s.label}}</button></div>
-        <p class="muted small" style="margin-top:8px">Copy tip: place files under <code>/workspace/wayfinding/matterpak/&lt;slug&gt;/</code> (e.g. <code>mp_e57_*.zip</code> or extracted <code>cloud_0.e57</code>), then click a suggestion or paste the full path.</p>
-        <hr style="margin:16px 0;border:none;border-top:1px solid #e0e0e0">
-        <p class="muted">Smaller files only (&lt;2&nbsp;GB): browser upload of MatterPak zip, bare <code>.e57</code>, or Matterport E57 export zip.</p>
+        <p class="muted small">Pick the MatterPak file from your computer — it uploads straight to this server and the path is set automatically, no path-pasting required. If Matterport gave you an extracted folder (lots of loose .jpg/.mtl files) instead of a single file, zip that folder first, then select the .zip here.</p>
         <input type="file" accept=".zip,.e57,application/octet-stream" @change="onFile">
-        <div class="row" style="margin-top:10px"><button @click="upload" :disabled="!file||busy||fileTooBig"><span v-if="busy" class="spinner"></span>{{busy ? 'Uploading…' : 'Upload'}}</button><span v-if="progress" class="muted">{{progress}}</span></div>
-        <div class="err" v-if="fileTooBig" style="margin-top:8px">Selected file is {{(file.size/1e9).toFixed(2)}} GB. Browser upload will stall after 100 %. Use the server path above instead.</div>
+        <div class="row" style="margin-top:10px"><button class="primary" @click="upload" :disabled="!file||busy||fileTooBig"><span v-if="busy" class="spinner"></span>{{busy ? 'Uploading…' : 'Upload'}}</button><span v-if="progress" class="muted">{{progress}}</span></div>
+        <div class="err" v-if="fileTooBig" style="margin-top:8px">Selected file is {{(file.size/1e9).toFixed(2)}} GB — over the 2 GB browser-upload limit. Re-export a smaller MatterPak, or ask someone with server access to place it under <code>/workspace/wayfinding/matterpak/&lt;slug&gt;/</code> and call the API's <code>matterpak/path</code> endpoint directly.</div>
 
         <div class="row" style="margin-top:14px"><button class="primary" @click="step=1">Continue to Process</button></div>
       </template>
@@ -345,7 +338,7 @@ const Wizard = {
     const _preSlug = _hq.get('slug') || '';
     const _anonKey = _hq.get('anon_key') || ''; // Supabase anon key for auto POI sync
     const step = ref(0), f = reactive({ matterport_model_id: _preSid, name: _preSlug, slug: _preSlug, venue_slug: "", address: "", lat: null, lon: null, sdk_key_ref: "MATTERPORT_SDK_KEY", matterpak_path: "" });
-    const mp = ref(null), err = ref(""), busy = ref(false), geo = ref(""), file = ref(null), progress = ref(""), serverPath = ref(""), jobId = ref(null), done = ref(""), filledFromMp = ref(false), pathSuggestions = ref([]), fileTooBig = ref(false);
+    const mp = ref(null), err = ref(""), busy = ref(false), geo = ref(""), file = ref(null), progress = ref(""), jobId = ref(null), done = ref(""), filledFromMp = ref(false), fileTooBig = ref(false);
     const mpApiBusy = ref(false), mpApiChecked = ref(""), mpApiResolutions = ref([]), mpApiErr = ref("");
     const created = ref(false);
     const wrap = async (fn) => { busy.value = true; err.value = ""; try { await fn(); } catch (e) { err.value = e.message; } busy.value = false; };
@@ -377,10 +370,6 @@ const Wizard = {
     const onPaste = () => setTimeout(onModelChange, 0);
     const autoslug = () => { if (created.value) return; f.slug = f.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60); };
     const geocode = () => wrap(async () => { const g = await api("/admin/geocode?q=" + encodeURIComponent(f.address)); f.lat = g.lat; f.lon = g.lon; geo.value = "Found: " + g.label; });
-    const loadPathSuggestions = async () => {
-      try { pathSuggestions.value = (await api("/admin/matterpak/suggestions")).paths || []; }
-      catch (e) { pathSuggestions.value = []; }
-    };
     const create = () => wrap(async () => {
       try {
         await api("/admin/buildings", { method: "POST", json: { ...f, venue_slug: f.venue_slug || null, matterpak_path: null } });
@@ -388,7 +377,6 @@ const Wizard = {
         if (/slug exists/i.test(e.message)) throw new Error(`Slug "${f.slug}" is already used by another building — change the Slug field above and try again.`);
         throw e;
       }
-      await loadPathSuggestions();
       created.value = true;
       // Auto-sync POIs from Supabase if opened from NavMe dashboard
       if (_anonKey && f.slug) {
@@ -404,7 +392,7 @@ const Wizard = {
     const onFile = (e) => {
       file.value = e.target.files[0] || null;
       fileTooBig.value = !!(file.value && file.value.size > 2 * 1024 * 1024 * 1024);
-      if (fileTooBig.value) err.value = "File is over 2 GB — use server path (recommended).";
+      if (fileTooBig.value) err.value = "File is over 2 GB — re-export a smaller MatterPak, or ask someone with server access to use the path endpoint.";
       else if (err.value && err.value.includes("2 GB")) err.value = "";
     };
     const upload = () => wrap(() => new Promise((res, rej) => {
@@ -425,7 +413,7 @@ const Wizard = {
       x.onload = () => {
         let j = {};
         try { j = JSON.parse(x.responseText || "{}"); } catch (parseErr) {
-          return rej(new Error("Server returned an empty/invalid response after upload. For large files use the server path instead."));
+          return rej(new Error("Server returned an empty/invalid response after upload. Re-export a smaller MatterPak or try again."));
         }
         const detail = typeof j.detail === "string" ? j.detail : (Array.isArray(j.detail) ? j.detail.map(d => d.msg || d).join("; ") : null);
         if (x.status >= 300) return rej(new Error(detail || x.statusText || ("HTTP " + x.status)));
@@ -436,26 +424,11 @@ const Wizard = {
         } else progress.value = `${(j.bytes / 1e6).toFixed(1)} MB, ${j.files} files, ${j.colorplans} colour plans`;
         step.value = 1; res();
       };
-      x.onerror = () => rej(new Error("Upload failed (network). For files ≳ 2 GB use the server path."));
-      x.ontimeout = () => rej(new Error("Upload timed out. Copy the file onto the server and use the path field."));
+      x.onerror = () => rej(new Error("Upload failed (network). Re-export a smaller MatterPak, or ask someone with server access to use the path endpoint."));
+      x.ontimeout = () => rej(new Error("Upload timed out. Re-export a smaller MatterPak, or ask someone with server access to use the path endpoint."));
       x.onabort = () => rej(new Error("Upload aborted"));
       x.send(fd);
     }));
-    const usePath = () => wrap(async () => {
-      const path = (serverPath.value || "").trim();
-      if (!path) throw new Error("paste a server path");
-      progress.value = "Checking path…";
-      const j = await api(`/admin/buildings/${f.slug}/matterpak/path`, { method: "POST", json: { path } });
-      f.matterpak_path = j.path;
-      if (j.format === "e57" || (j.format || "").startsWith("e57")) {
-        const extra = j.e57_files ? ` · ${j.e57_files.join(", ")}` : "";
-        const sz = j.bytes != null ? `${(j.bytes / 1e9).toFixed(2)} GB · ` : "";
-        progress.value = `${sz}E57${extra} (mesh + colour plans built at ingest)`;
-      } else if (j.bytes != null) {
-        progress.value = `${(j.bytes / 1e6).toFixed(1)} MB · ${j.format}`;
-      } else progress.value = j.format || "path set";
-      step.value = 1;
-    });
     const checkMpApi = () => wrap(async () => {
       mpApiBusy.value = true; mpApiErr.value = ""; mpApiChecked.value = ""; mpApiResolutions.value = [];
       try {
@@ -479,7 +452,7 @@ const Wizard = {
     const wizardSteps = computed(() => { i18nTick.value; return [t("admin.wizardDetails"), t("admin.wizardProcess")]; });
     // Auto-fetch Matterport info when wizard opens with a pre-filled SID
     onMounted(() => { if (_preSid) lookup(); });
-    return { step, f, mp, err, busy, geo, file, progress, serverPath, jobId, done, filledFromMp, pathSuggestions, fileTooBig, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, geocode, create, onFile, upload, usePath, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps };
+    return { step, f, mp, err, busy, geo, file, progress, jobId, done, filledFromMp, fileTooBig, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, geocode, create, onFile, upload, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps };
   }
 };
 
@@ -592,19 +565,12 @@ const Overview = {
       <p class="muted small">Global toggle: <a href="#/dashboard">Dashboard</a>. Override is saved with building settings; <b>Publish</b> writes <code>config.debug</code>. Live clients also poll <code>/api/v1/public/debug/status</code>.</p>
       <div class="row" style="margin-top:10px"><button class="primary" @click="save">{{t("common.save")}}</button><span class="ok" v-if="saved">{{t("common.saved")}}</span><span class="err" v-if="err">{{err}}</span></div></div>
     <div class="card"><h2 style="margin-top:0">MatterPak / E57 path</h2>
-      <p class="muted small" style="margin-top:0">For files &gt;2&nbsp;GB, copy onto the box then set the path here (browser upload stalls after 100 %).</p>
-      <div class="row"><input class="grow" v-model="mpPath" placeholder="/workspace/wayfinding/matterpak/&lt;slug&gt;/cloud_0.e57" style="width:auto;flex:1"><button class="primary" @click="setMpPath" :disabled="!mpPath||mpBusy">Use path</button></div>
-      <div class="muted small" style="margin-top:6px" v-if="mpSuggestions.length">
-        <button v-for="s in mpSuggestions.slice(0,8)" :key="s.path" type="button" class="linkish" style="margin-right:8px" @click="mpPath=s.path">{{s.label}}</button>
-      </div>
-      <div class="ok" v-if="mpOk" style="margin-top:6px">{{mpOk}}</div>
+      <p class="muted small" style="margin-top:0">Pick the MatterPak file from your computer — it uploads straight to this server and the path is set automatically, no path-pasting required. If Matterport gave you an extracted folder (lots of loose .jpg/.mtl files) instead of a single file, zip that folder first, then select the .zip here.</p>
+      <input type="file" accept=".zip,.e57,application/octet-stream" @change="onMpFile">
+      <div class="row" style="margin-top:10px"><button class="primary" @click="uploadMp" :disabled="!mpFile||mpUpBusy||mpFileTooBig"><span v-if="mpUpBusy" class="spinner"></span>{{mpUpBusy ? 'Uploading...' : 'Upload'}}</button><span v-if="mpUpProgress" class="muted">{{mpUpProgress}}</span></div>
+      <div class="err" v-if="mpFileTooBig" style="margin-top:8px">Selected file is {{(mpFile.size/1e9).toFixed(2)}} GB — over the 2 GB browser-upload limit. Re-export a smaller MatterPak, or ask someone with server access to place it under <code>/workspace/wayfinding/matterpak/&lt;slug&gt;/</code> and call the API's <code>matterpak/path</code> endpoint directly.</div>
       <div class="ok" v-if="mpOk" style="margin-top:6px">{{mpOk}}</div>
       <div class="err" v-if="mpErr" style="margin-top:6px">{{mpErr}}</div>
-      <hr style="margin:16px 0;border:none;border-top:1px solid #e0e0e0">
-      <p class="muted small" style="margin-top:0">Smaller files only (&lt;2 GB): upload a MatterPak zip, bare .e57, or Matterport E57 export zip from this device.</p>
-      <input type="file" accept=".zip,.e57,application/octet-stream" @change="onMpFile">
-      <div class="row" style="margin-top:10px"><button @click="uploadMp" :disabled="!mpFile||mpUpBusy||mpFileTooBig"><span v-if="mpUpBusy" class="spinner"></span>{{mpUpBusy ? 'Uploading...' : 'Upload'}}</button><span v-if="mpUpProgress" class="muted">{{mpUpProgress}}</span></div>
-      <div class="err" v-if="mpFileTooBig" style="margin-top:8px">Selected file is {{(mpFile.size/1e9).toFixed(2)}} GB. Browser upload will stall after 100%. Use the server path above instead.</div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.pipeline")}}</h2>
       <div class="row"><button class="primary" @click="run({})">{{t("admin.runUpdate")}}</button>
         <select v-model="from" style="width:auto"><option value="">{{t("admin.rebuildFrom")}}</option><option v-for="s in steps" :value="s">{{s}}</option></select>
@@ -662,7 +628,7 @@ const Overview = {
     const localeCatalog = I18N_CATALOG;
     const saved = ref(false), err = ref(""), jobId = ref(null), from = ref(""), sc = ref(""), scBusy = ref(false), scErr = ref(""), viewMode = ref(preferredShowcaseViewMode(props.b, "satellite")), mapStyle = ref("map");
     const mapEl = ref(null); let overviewMap = null;
-    const mpPath = ref(props.b.matterpak_path || ""), mpSuggestions = ref([]), mpBusy = ref(false), mpOk = ref(""), mpErr = ref("");
+    const mpPath = ref(props.b.matterpak_path || ""), mpOk = ref(""), mpErr = ref("");
     const mpFile = ref(null), mpFileTooBig = ref(false), mpUpBusy = ref(false), mpUpProgress = ref("");
     async function reloadTwin() {
       scBusy.value = true; scErr.value = "";
@@ -676,7 +642,6 @@ const Overview = {
       applyMapViewMode(overviewMap, viewMode.value, { mapStyle: mapStyle.value });
     }
     onMounted(async () => {
-      try { mpSuggestions.value = (await api("/admin/matterpak/suggestions")).paths || []; } catch (e) {}
       await nextTick();
       if (mapEl.value) {
         overviewMap = makeMap(mapEl.value, props.b, basemapKindForMode(viewMode.value, mapStyle.value));
@@ -696,20 +661,10 @@ const Overview = {
       }
     });
     watch(mapStyle, () => { if (viewMode.value === "2d" || viewMode.value === "3d") syncOverviewMap(); });
-    async function setMpPath() {
-      mpBusy.value = true; mpOk.value = ""; mpErr.value = "";
-      try {
-        const j = await api(`/admin/buildings/${props.b.slug}/matterpak/path`, { method: "POST", json: { path: mpPath.value.trim() } });
-        mpOk.value = `Path set: ${j.path}` + (j.bytes != null ? ` (${(j.bytes/1e9).toFixed(2)} GB, ${j.format})` : ` (${j.format})`);
-        mpPath.value = j.path;
-        emit("reload");
-      } catch (e) { mpErr.value = e.message; }
-      mpBusy.value = false;
-    }
     function onMpFile(ev) {
       mpFile.value = ev.target.files[0] || null;
       mpFileTooBig.value = !!(mpFile.value && mpFile.value.size > 2 * 1024 * 1024 * 1024);
-      mpErr.value = mpFileTooBig.value ? "File is over 2 GB — use server path above instead." : "";
+      mpErr.value = mpFileTooBig.value ? "File is over 2 GB — re-export a smaller MatterPak, or ask someone with server access to use the path endpoint." : "";
     }
     function uploadMp() {
       return new Promise((res, rej) => {
@@ -729,7 +684,7 @@ const Overview = {
         x.onload = () => {
           mpUpBusy.value = false;
           let j = {};
-          try { j = JSON.parse(x.responseText || "{}"); } catch (e) { return rej(new Error("Server returned an empty/invalid response after upload. For large files use the server path instead.")); }
+          try { j = JSON.parse(x.responseText || "{}"); } catch (e) { return rej(new Error("Server returned an empty/invalid response after upload. Re-export a smaller MatterPak or try again.")); }
           const detail = typeof j.detail === "string" ? j.detail : (Array.isArray(j.detail) ? j.detail.map(d => d.msg || d).join("; ") : null);
           if (x.status >= 300) return rej(new Error(detail || x.statusText || ("HTTP " + x.status)));
           mpPath.value = j.path;
@@ -740,7 +695,7 @@ const Overview = {
           emit("reload");
           res();
         };
-        x.onerror = () => { mpUpBusy.value = false; rej(new Error("Upload failed (network). For files ≳ 2 GB use the server path.")); };
+        x.onerror = () => { mpUpBusy.value = false; rej(new Error("Upload failed (network). Re-export a smaller MatterPak or try again.")); };
         x.ontimeout = () => { mpUpBusy.value = false; rej(new Error("Upload timed out. Copy the file onto the server and use the path field.")); };
         x.onabort = () => { mpUpBusy.value = false; rej(new Error("Upload aborted")); };
         x.send(fd);
@@ -796,7 +751,7 @@ const Overview = {
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, mpPath, mpSuggestions, mpBusy, mpOk, mpErr, setMpPath, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap };
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, mpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap };
   }
 };
 
