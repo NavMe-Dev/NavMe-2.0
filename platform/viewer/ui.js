@@ -871,11 +871,15 @@ function wfDbg(level, source, message, meta) {
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); return; }
     if (!S.from) {
+      // "Use image" needs a Visual Positioning Service backend (VPS_URL) that isn't
+      // configured anywhere in this deployment — shows a confusing 501 if clicked.
+      // "Pick on map" has no map to pick on in MP mode (?mp=1 hides the ArcGIS map
+      // entirely). Keep only options that actually work there.
       setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseStart"))}</div>
         <div class="actions">
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+          ${isMpMode() ? "" : `<button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
+          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
@@ -900,13 +904,13 @@ function wfDbg(level, source, message, meta) {
       setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+          ${isMpMode() ? "" : `<button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
+          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
           <button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
-      $("dSetMe").onclick = () => startLocalize(true);
+      if ($("dSetMe")) $("dSetMe").onclick = () => startLocalize(true);
       $("dUseEnt").onclick = () => { S.from = mainEntrance() || byId.poi_main_entrance; S.locMeta = null; syncDirFields(); computeRoute(startNav); };
       return;
     }
@@ -1491,6 +1495,14 @@ function wfDbg(level, source, message, meta) {
   }
   function openLocateChooser() {
     const m = $("locateChooser");
+    if (m) {
+      // "Use image" needs a VPS backend not configured anywhere in this deployment
+      // (shows a confusing 501); "Pick on map" has no map in MP mode. Hide both —
+      // only in the markup-based chooser, not the sheet-based fallback below, which
+      // already omits them via isMpMode() at render time.
+      if ($("lcCam")) $("lcCam").hidden = isMpMode();
+      if ($("lcPickMap")) $("lcPickMap").hidden = isMpMode();
+    }
     if (!m) {
       // Fallback if markup missing: sheet-based chooser (still no permission yet)
       setSheet(`<div class="muted" style="padding:4px 0 8px">${esc(t("viewer.locateChooserHint"))}</div>
