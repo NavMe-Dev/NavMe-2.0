@@ -5,13 +5,13 @@ Paths mirror the static export layout, so the viewer works against the API or a 
 import json, mimetypes
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from sqlalchemy.orm import Session
 from ..db import get_db
 from ..config import get_settings
 from .. import models, schemas
 from ..services.publish import current_version
-from ..services import navgraph
+from ..services import navgraph, bundle_storage
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 
@@ -36,7 +36,11 @@ def venue_manifest(db, venue_slug):
     for b in bs:
         mv = current_version(db, b)
         if not mv: continue
-        cfg = json.loads((Path(mv.path) / "config.json").read_text())
+        try:
+            raw = bundle_storage.read_bundle_file(Path(mv.path), b.slug, mv.version, "config.json")
+        except FileNotFoundError:
+            continue  # this building's local+Storage copies are both gone — skip rather than 500 the whole manifest
+        cfg = json.loads(raw)
         items.append({"slug": b.slug, "name": b.name, "address": b.address, "center": cfg["center"], "bounds": cfg["bounds"],
                       "floors": [{"id": f["id"], "label": f["label"], "short": f["short"]} for f in cfg["floors"]],
                       "version": mv.version, "data": f"buildings/{b.slug}/data/"})
@@ -68,10 +72,20 @@ def data_file(slug: str, path: str, db: Session = Depends(get_db)):
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "building not published yet")
     root = Path(mv.path).resolve(); f = (root / path).resolve()
-    if root not in f.parents or not f.is_file():
+    if root not in f.parents:
         raise HTTPException(404, "not found")
     mt = "application/json" if f.suffix in (".json", ".geojson") else (mimetypes.guess_type(f.name)[0] or "application/octet-stream")
-    return FileResponse(f, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
+    if f.is_file():
+        return FileResponse(f, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
+    # Local disk was wiped (Render free-tier restart, including automatic idle
+    # spin-down) — the DB still thinks this version is published, but its files are
+    # gone. Recover from Supabase Storage and re-cache locally. No-op (raises
+    # immediately) unless bundle_storage is configured. See services/bundle_storage.py.
+    try:
+        data = bundle_storage.read_bundle_file(root, slug, mv.version, path)
+    except FileNotFoundError:
+        raise HTTPException(404, "not found")
+    return Response(content=data, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
 
 
 @router.post("/buildings/{slug}/route")
@@ -79,10 +93,17 @@ def public_route(slug: str, r: schemas.RouteIn, db: Session = Depends(get_db)):
     """Server-side route between two published POIs (the viewer normally routes client-side)."""
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "not published")
-    nav = json.loads((Path(mv.path) / "nav_graph.json").read_text()); pois = {p["id"]: p for p in json.loads((Path(mv.path) / "pois.json").read_text())["pois"]}
+    root = Path(mv.path)
+    try:
+        nav = json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "nav_graph.json"))
+        pois = {p["id"]: p for p in json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "pois.json"))["pois"]}
+    except FileNotFoundError:
+        raise HTTPException(404, "building not published yet")
     if r.from_key not in pois or r.to_key not in pois: raise HTTPException(404, "unknown POI")
-    nm_file = Path(mv.path) / "navmesh.json"
-    navmesh = json.loads(nm_file.read_text()) if nm_file.exists() else None
+    try:
+        navmesh = json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "navmesh.json"))
+    except FileNotFoundError:
+        navmesh = None
     res = navgraph.route(nav, pois[r.from_key]["nearest_node"], pois[r.to_key]["nearest_node"], r.step_free, georef=b.georef, navmesh=navmesh)
     if not res: raise HTTPException(404, "no route" + (" without steps" if r.step_free else ""))
     return res
@@ -105,7 +126,7 @@ def public_matterport(slug: str, request: Request, access: str | None = None, db
     mv = current_version(db, b)
     if mv:
         try:
-            published_cfg = json.loads((Path(mv.path) / "config.json").read_text())
+            published_cfg = json.loads(bundle_storage.read_bundle_file(Path(mv.path), slug, mv.version, "config.json"))
         except Exception:
             published_cfg = None
     policy = access_svc.resolve_access_policy(b.pipeline_config, published_cfg)

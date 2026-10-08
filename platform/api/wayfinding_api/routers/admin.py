@@ -459,6 +459,13 @@ async def import_bundle(file: UploadFile = File(...), db: Session = Depends(get_
     if not extracted:
         raise HTTPException(400, "zip has no bundle/ files - not a valid export-bundle archive")
 
+    # Best-effort: without this, an imported building has the exact same problem that
+    # made import-bundle necessary in the first place — its files living only on this
+    # container's local disk, wiped on the next Render free-tier restart. See
+    # services/bundle_storage.py (no-op unless configured).
+    from ..services import bundle_storage
+    bundle_storage.upload_dir(b.slug, ver, dest)
+
     db.query(models.MapVersion).filter_by(building_id=b.id).update({"is_current": False})
     mv = models.MapVersion(building_id=b.id, version=ver, notes=f"imported export (source slug {manifest.get('slug')})",
                             created_by="import-bundle", path=str(dest), is_current=True,

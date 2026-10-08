@@ -209,6 +209,12 @@ def publish(db: Session, b: models.Building, user: str | None, notes: str | None
     ver = (last.version if last else 0) + 1
     dest = get_settings().published_dir / b.slug / f"v{ver}"
     cfg = build_bundle(db, b, dest)
+    # Best-effort: local disk is wiped on every Render free-tier restart (including
+    # automatic idle spin-down), not just deploys. Mirroring to Supabase Storage here
+    # means a freshly published version survives that; local disk stays the fast path
+    # either way. See services/bundle_storage.py. Inert (no-op) unless configured.
+    from . import bundle_storage
+    bundle_storage.upload_dir(b.slug, ver, dest)
     db.query(models.MapVersion).filter_by(building_id=b.id).update({"is_current": False})
     mv = models.MapVersion(building_id=b.id, version=ver, notes=notes, created_by=user, path=str(dest), is_current=True,
                            summary={"pois": cfg["stats"]["pois"], "floors": len(cfg["floors"]), "nav_nodes": cfg["stats"]["nav_nodes"]})

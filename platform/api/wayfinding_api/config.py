@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     wf_chat_rate_limit_per_min: int = 20
     supabase_url: str = ""
     supabase_anon_key: str = ""
+    # Backend-only secret — bypasses RLS, never sent to any client. Used solely to upload
+    # published bundles to Supabase Storage so they survive a Render free-tier disk wipe
+    # (see services/bundle_storage.py). Empty disables that fallback entirely (local disk
+    # only), which is what local dev always uses.
+    supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "wayfinding-bundles"
     # One-time HTTP admin bootstrap for hosts with no Shell access (e.g. Render free
     # plan) — see routers/auth.py:bootstrap_admin. Empty disables the endpoint.
     bootstrap_secret: str = ""
