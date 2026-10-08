@@ -93,7 +93,15 @@
 
   function boot() {
     if (!window.MpPreview || !window.MpPreview.showBackground) { setTimeout(boot, 150); return; }
-    window.MpPreview.showBackground();
+    // ui.js's boot sequence waits on this (see mpBackgroundReady()) so the NavMe chrome
+    // (search bar, chips, directions...) doesn't fade in over a still-loading/blank
+    // Matterport scene — it was previously timed off i18n+deep-link only, unrelated to
+    // whether the twin had actually finished connecting. Resolves either way (true or
+    // false) — a connect failure shouldn't leave the rest of the UI hidden forever.
+    window.MpPreview.showBackground().finally(() => {
+      window.__mpBackgroundReady = true;
+      window.dispatchEvent(new Event("mp-background-ready"));
+    });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();

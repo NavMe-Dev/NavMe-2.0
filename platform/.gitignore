@@ -14,3 +14,7 @@ matterpaks/
 # Runtime config overlay (Config Option 2)
 var/runtime_secrets.env
 var/runtime_settings.json
+
+# Downloaded local-only tool (cloudflared binary for the VPS engine's dev tunnel) —
+# not part of the versioned codebase, fetched fresh per machine.
+vps_prototype/bin/

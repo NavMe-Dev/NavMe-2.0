@@ -128,16 +128,31 @@ function wfDbg(level, source, message, meta) {
     if (localStorage.getItem("wf_large") === "1") { $("togLarge").checked = true; document.body.classList.add("large"); }
     if (localStorage.getItem("wf_hc") === "1") { $("togHC").checked = true; document.body.classList.add("hc"); }
     const ready = (window.WF && WF.i18nReady) ? WF.i18nReady : Promise.resolve();
+    // MP mode: wait for mp_background.js's Matterport connect to actually finish (or fail)
+    // before revealing the chrome — otherwise the search bar/chips/directions button fade
+    // in over a still-loading (sometimes still-blank) Matterport scene on a slow
+    // connection, which is what was happening. Resolves immediately once the connect
+    // attempt is done either way; the 15s cap only matters if that attempt hangs.
+    function mpBackgroundReady() {
+      if (!isMpMode()) return Promise.resolve();
+      if (window.__mpBackgroundReady) return Promise.resolve();
+      return new Promise((resolve) => {
+        const done = () => { window.removeEventListener("mp-background-ready", done); resolve(); };
+        window.addEventListener("mp-background-ready", done);
+        setTimeout(done, 15000);
+      });
+    }
     // Failsafe: never leave body.booting (opacity:0 UI = blank screen)
     const clearBoot = () => {
       try { document.body.classList.remove("booting"); } catch (_) {}
       try { updateFloorPicker(); } catch (_) {}
     };
-    setTimeout(clearBoot, 8000);
+    setTimeout(clearBoot, isMpMode() ? 16000 : 8000);
     ready.finally(() => {
       try { if (window.WFi18n) WFi18n.applyDom(); } catch (_) {}
       Promise.resolve()
         .then(() => applyDeepLink())
+        .then(() => mpBackgroundReady())
         .catch((e) => { try { console.warn("applyDeepLink", e); showHome(); } catch (_) {} })
         .finally(clearBoot);
     });
