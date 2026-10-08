@@ -1,5 +1,6 @@
 """Admin API (JWT required): buildings, uploads, onboarding jobs, floors, POIs, georef, routing test, publish."""
 import csv, io, json, math, shutil, re
+from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Body, Request
 from fastapi.responses import FileResponse, StreamingResponse, PlainTextResponse
@@ -977,6 +978,31 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
     workspace.recompute_step_free(db, b)
     return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
             "navmesh_synced": media_synced, "categories_synced": len(categories)}
+
+
+@router.post("/buildings/{slug}/navmesh")
+async def upload_navmesh(slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Manually attach a Recast navmesh (.navmesh, binary) without going through the
+    NavMe Dashboard sync above — for a file you already have locally (exported from
+    elsewhere, or an older/newer version than whatever the dashboard currently has
+    marked active). Same storage location/pointer as sync_navme_gmap's navmesh half
+    (Building.pipeline_config["navme_navmesh"]), so wf_navmesh_bridge.js picks it up
+    identically either way."""
+    b = B(db, slug)
+    data = await file.read()
+    if len(data) < 64:
+        raise HTTPException(400, "file is empty/truncated")
+    if len(data) > get_settings().max_upload_mb << 20:
+        raise HTTPException(413, "file too large")
+    local_path = Path(get_settings().viewer_dir) / f"{slug}_navmesh.navmesh"
+    local_path.write_bytes(data)
+    b.pipeline_config = {**(b.pipeline_config or {}), "navme_navmesh": {
+        "label": file.filename or "uploaded", "url": f"/{slug}_navmesh.navmesh",
+        "updated_at": datetime.now(timezone.utc).isoformat(), "source": "upload"}}
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(b, "pipeline_config")
+    db.commit()
+    return {"bytes": len(data), "path": str(local_path), "navme_navmesh": b.pipeline_config["navme_navmesh"]}
 
 
 # ---------------- georef ----------------

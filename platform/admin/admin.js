@@ -612,6 +612,12 @@ const Overview = {
       <p class="muted small">Pulls this building's POIs and navmesh from the NavMe Dashboard's Supabase project into this server's own existing <code>pois</code> table (source="supabase") and local disk — no new tables. The public viewer and admin route tester always read from here — never live from Supabase — so re-run this whenever POIs or the navmesh change in the dashboard.</p>
       <button class="sm primary" @click="syncNavmeGmap" :disabled="gmapBusy"><span v-if="gmapBusy" class="spinner"></span>{{gmapBusy ? 'Syncing…' : 'Sync from NavMe Dashboard'}}</button>
       <p class="small" v-if="gmapMsg" :class="gmapErr ? 'err' : 'ok'" style="margin-top:8px">{{gmapMsg}}</p>
+      <hr style="margin:14px 0;border:none;border-top:1px solid #e0e0e0">
+      <p class="small" style="margin-top:0">Active navmesh: <span class="mono">{{(b.pipeline_config&&b.pipeline_config.navme_navmesh&&b.pipeline_config.navme_navmesh.label)||'—'}}</span><span v-if="b.pipeline_config&&b.pipeline_config.navme_navmesh&&b.pipeline_config.navme_navmesh.source==='upload'" class="badge" style="margin-left:6px">manually uploaded</span></p>
+      <p class="muted small">Or attach a <code>.navmesh</code> file you already have locally instead of syncing from the dashboard — same slot, either way is used identically by routing.</p>
+      <input ref="navmeshInput" type="file" accept=".navmesh" style="display:none" @change="onNavmeshFile">
+      <button class="sm" @click="$refs.navmeshInput.click()" :disabled="navmeshBusy"><span v-if="navmeshBusy" class="spinner"></span>{{navmeshBusy ? 'Uploading…' : 'Upload navmesh file'}}</button>
+      <p class="small" v-if="navmeshMsg" :class="navmeshErr ? 'err' : 'ok'" style="margin-top:8px">{{navmeshMsg}}</p>
     </div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.buildingSettings")}}</h2>
       <div class="row"><div class="grow"><label>{{t("admin.name")}}</label><input v-model="e.name"></div><div class="grow"><label>{{t("admin.venue")}}</label><input v-model="e.venue_slug"></div></div>
@@ -845,7 +851,22 @@ const Overview = {
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap };
+    const navmeshBusy = ref(false), navmeshMsg = ref(""), navmeshErr = ref(false);
+    async function onNavmeshFile(ev) {
+      const file = ev.target.files[0]; ev.target.value = "";
+      if (!file) return;
+      navmeshBusy.value = true; navmeshMsg.value = ""; navmeshErr.value = false;
+      try {
+        const fd = new FormData(); fd.append("file", file);
+        const r = await fetch(`${API}/admin/buildings/${props.b.slug}/navmesh`, { method: "POST", headers: { Authorization: "Bearer " + store.token }, body: fd });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || r.statusText);
+        navmeshMsg.value = `Uploaded ${(j.bytes/1e6).toFixed(2)} MB as the active navmesh.`;
+        props.b.pipeline_config = { ...(props.b.pipeline_config||{}), navme_navmesh: j.navme_navmesh };
+      } catch (x) { navmeshErr.value = true; navmeshMsg.value = x.message; }
+      navmeshBusy.value = false;
+    }
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile };
   }
 };
 
