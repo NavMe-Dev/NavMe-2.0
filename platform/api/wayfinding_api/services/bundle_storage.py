@@ -37,6 +37,16 @@ def _headers() -> dict:
     return {"Authorization": f"Bearer {key}", "apikey": key}
 
 
+# Supabase Storage's standard upload endpoint rejects anything over ~50MB regardless of
+# the bucket's own file_size_limit setting (confirmed: a 73MB vps_index.npz got a 413
+# "Payload too large" even though the bucket allows up to 200MB) — split anything bigger
+# than this into chunks and reassemble on read, rather than compromise what gets indexed
+# to fit under an upload-protocol limit. A plain ".chunks" sibling object (just the chunk
+# count as text) lets fetch_bytes() know whether/how to reassemble without guessing.
+_CHUNK_THRESHOLD = 40 * 1024 * 1024
+_CHUNK_SIZE = 35 * 1024 * 1024
+
+
 def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) -> int:
     """Upload every file under local_dir to the bucket. Best-effort per file —
     returns the count actually uploaded; callers should log, not fail, on a
@@ -56,14 +66,23 @@ def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) 
     def put_one(f: Path) -> bool:
         rel = f.relative_to(local_dir).as_posix()
         ct = mimetypes.guess_type(f.name)[0] or "application/octet-stream"
+        obj = f"{base}/{_object_path(slug, version, rel)}"
+        data = f.read_bytes()
         try:
-            with httpx.Client(timeout=60) as client:
-                r = client.put(
-                    f"{base}/{_object_path(slug, version, rel)}",
-                    content=f.read_bytes(),
-                    headers={**_headers(), "Content-Type": ct, "x-upsert": "true"},
-                )
-            return r.status_code < 300
+            with httpx.Client(timeout=120) as client:
+                if len(data) <= _CHUNK_THRESHOLD:
+                    r = client.put(obj, content=data, headers={**_headers(), "Content-Type": ct, "x-upsert": "true"})
+                    return r.status_code < 300
+                n_chunks = (len(data) + _CHUNK_SIZE - 1) // _CHUNK_SIZE
+                ok = True
+                for i in range(n_chunks):
+                    chunk = data[i * _CHUNK_SIZE:(i + 1) * _CHUNK_SIZE]
+                    r = client.put(f"{obj}.part{i}", content=chunk,
+                                   headers={**_headers(), "Content-Type": "application/octet-stream", "x-upsert": "true"})
+                    ok = ok and r.status_code < 300
+                r = client.put(f"{obj}.chunks", content=str(n_chunks).encode(),
+                               headers={**_headers(), "Content-Type": "text/plain", "x-upsert": "true"})
+                return ok and r.status_code < 300
         except httpx.HTTPError:
             return False
 
@@ -74,16 +93,29 @@ def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) 
 
 def fetch_bytes(slug: str, version: int, relpath: str) -> bytes | None:
     """Fetch one bundle file from storage. The bucket is public-read, so no auth
-    is needed (and none is sent) for this GET."""
+    is needed (and none is sent) for these GETs. Reassembles chunked uploads
+    (see upload_dir) transparently if a direct fetch 404s and a ".chunks"
+    manifest exists alongside it."""
     if not is_enabled():
         return None
     s = get_settings()
-    url = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/{_object_path(slug, version, relpath)}"
+    base = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/{_object_path(slug, version, relpath)}"
     try:
-        r = httpx.get(url, timeout=30)
+        r = httpx.get(base, timeout=60)
         if r.status_code < 300:
             return r.content
-    except httpx.HTTPError:
+        rc = httpx.get(f"{base}.chunks", timeout=30)
+        if rc.status_code >= 300:
+            return None
+        n_chunks = int(rc.text.strip())
+        parts = []
+        for i in range(n_chunks):
+            rp = httpx.get(f"{base}.part{i}", timeout=120)
+            if rp.status_code >= 300:
+                return None
+            parts.append(rp.content)
+        return b"".join(parts)
+    except (httpx.HTTPError, ValueError):
         pass
     return None
 
