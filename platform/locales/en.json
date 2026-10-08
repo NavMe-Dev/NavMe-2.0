@@ -203,6 +203,7 @@
     "gpsPoorIndoor": "GPS looks unreliable indoors (±{{m}} m). Use an image or pick on the map.",
     "vpsWorking": "Uploading + localizing (~3–10 s)…",
     "vpsFailed": "Localization failed — try another photo or pick on the map.",
+    "vpsFailedMp": "Localization failed — try another, clearer photo of a distinctive wall, sign, or doorway.",
     "vpsLowConf": "Low confidence — verify the blue dot, or try another photo.",
     "vpsError": "Error: {{msg}}",
     "vpsNotConfigured": "Image positioning is not configured on this server.",

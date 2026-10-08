@@ -871,14 +871,16 @@ function wfDbg(level, source, message, meta) {
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); return; }
     if (!S.from) {
-      // "Pick on map" has no map to pick on in MP mode (?mp=1 hides the ArcGIS map
-      // entirely) — "Use image" works there too now (local photo matching, no external
-      // VPS needed; see vps_match.py), so it's offered in both modes.
+      // MP mode: "Use image" (photo matching) is the only location option that makes
+      // sense — there's no GPS "out there" meaning for a remote virtual tour, no map to
+      // pick on, and no reason to force a fixed entrance start. Normal mode keeps all of
+      // GPS/image/map.
       setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseStart"))}</div>
         <div class="actions">
+          ${isMpMode() ? `<button class="pill primary" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          ${isMpMode() ? "" : `<button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
+          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
@@ -902,15 +904,16 @@ function wfDbg(level, source, message, meta) {
     if (S.from === "me" && !wf.lastLoc) {
       setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
+          ${isMpMode() ? `<button class="pill primary" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>` : `
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          ${isMpMode() ? "" : `<button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>`}
-          <button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>
+          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+          <button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>`}
         </div>`, "peek");
       if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
       if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
       if ($("dSetMe")) $("dSetMe").onclick = () => startLocalize(true);
-      $("dUseEnt").onclick = () => { S.from = mainEntrance() || byId.poi_main_entrance; S.locMeta = null; syncDirFields(); computeRoute(startNav); };
+      if ($("dUseEnt")) $("dUseEnt").onclick = () => { S.from = mainEntrance() || byId.poi_main_entrance; S.locMeta = null; syncDirFields(); computeRoute(startNav); };
       return;
     }
     const fromKey = S.from === "me" ? "__loc" : S.from.id;
@@ -1577,7 +1580,14 @@ function wfDbg(level, source, message, meta) {
         throw new Error("HTTP " + resp.status + (detail ? (": " + detail) : ""));
       }
       const r = await resp.json();
-      if (!r.success) { st.textContent = t("viewer.vpsFailed"); return; }
+      if (!r.success) {
+        // Surface the server's actual reason (e.g. "photo doesn't have enough
+        // distinctive detail" vs "couldn't find a confident match") instead of a
+        // generic message — and the generic fallback used to suggest "pick on the
+        // map", which doesn't exist in MP mode at all.
+        st.textContent = r.message || (isMpMode() ? t("viewer.vpsFailedMp") : t("viewer.vpsFailed"));
+        return;
+      }
       if (r.confidence != null && r.confidence < 0.3) {
         st.textContent = t("viewer.vpsLowConf");
       }
