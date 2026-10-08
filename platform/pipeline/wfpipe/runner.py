@@ -2,7 +2,7 @@
 import time, traceback
 from .context import StepError
 from .steps import (ingest, fetch_mp, mesh, colorplan, imagery, georef, floors, overlays, glb, voxel,
-                    osm, graph, navmesh, pois, indoor, thumbs, export)
+                    osm, graph, navmesh, pois, indoor, thumbs, vps_index, export)
 
 # name: (module, deps, config keys that affect the result, outputs that must exist)
 STEPS = {
@@ -22,7 +22,8 @@ STEPS = {
     "pois":      (pois,      ["graph"],                         ["pois_seed", "arrival_poi"], ["out/pois.json"]),
     "indoor":    (indoor,    ["graph", "pois", "osm"],          ["name"],                  ["out/site_shell.geojson"]),
     "thumbs":    (thumbs,    ["pois"],                          ["thumbs"],                ["out/thumbs/index.json"]),
-    "export":    (export,    ["indoor", "overlays", "glb", "thumbs", "navmesh"], ["name", "address", "slug", "matterport_model_id", "branding"], ["out/config.json"]),
+    "vps_index": (vps_index, ["graph"],                         ["vps_index"],             ["out/vps_index.npz"]),
+    "export":    (export,    ["indoor", "overlays", "glb", "thumbs", "navmesh", "vps_index"], ["name", "address", "slug", "matterport_model_id", "branding"], ["out/config.json"]),
 }
 ORDER = list(STEPS)
 

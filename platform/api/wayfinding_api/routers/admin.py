@@ -15,7 +15,7 @@ from .. import models, schemas
 from ..services import workspace, publish as pub, navgraph
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"], dependencies=[Depends(current_admin)])
-PIPE_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "export"]
+PIPE_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "vps_index", "export"]
 CATEGORIES = ["room", "hall", "corridor", "entrance", "stairs", "elevator", "restroom", "parking", "outdoor", "info", "office", "worship", "kitchen", "other"]
 
 

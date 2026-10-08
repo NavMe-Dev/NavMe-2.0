@@ -11,6 +11,10 @@ require([
 
   const $ = (id) => document.getElementById(id);
   const status = (t) => { $("status").textContent = t; };
+  // georef.rms_m/max_err_m are null by design for "fixed" mode (a manual transform has no
+  // fitted residual to report) — this debug readout assumed every georef field is always
+  // a number and crashed the first time a location got set against a fixed-mode building.
+  const fmtNum = (v, d, fallback = "n/a") => (v == null ? fallback : v.toFixed(d));
   const R = 6378137.0;
 
   const J = (u) => fetch(u).then(r => r.json());
@@ -343,7 +347,7 @@ require([
         `        (z from ${zInfo.src})${inside ? "" : "\n        ⚠ outside the scanned model bounds"}\n` +
         `Back    model→WGS84 lat ${lat2.toFixed(7)}, lon ${lon2.toFixed(7)}\n` +
         `        round-trip error ${errMM.toFixed(3)} mm\n` +
-        `Georef  rot ${georef.rotation_deg.toFixed(2)}°, scale ${georef.scale.toFixed(3)}, RMS ${georef.rms_m.toFixed(2)} m`;
+        `Georef  rot ${fmtNum(georef.rotation_deg, 2)}°, scale ${fmtNum(georef.scale, 3)}, RMS ${fmtNum(georef.rms_m, 2, "n/a (fixed mode)")} m`;
     }
     window.wf.localizeAt = localizeAt;
 

@@ -7,6 +7,7 @@ DEFAULTS = {
     "osm": {"enabled": True, "footway_radius_m": 220, "building_radius_m": 450},
     "glb": {"target_reduction": 0.72},
     "thumbs": {"enabled": True, "size": [320, 192]},
+    "vps_index": {"enabled": True},
     "graph": {"max_edge_m": 15, "step_free_max_step_m": 0.16, "osm_link_max_m": 12},
     "floors": [],
     "stairs": None,          # None = auto-detect; list = manual zones

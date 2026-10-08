@@ -16,9 +16,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
-from fastapi import APIRouter, Request, HTTPException, Response
+from fastapi import APIRouter, Request, HTTPException, Response, Depends
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 from ..config import get_settings
+from ..db import get_db
+from ..services import vps_match
 
 router = APIRouter(tags=["vps"])
 
@@ -101,10 +104,30 @@ def _log_proxy_attempt(
         print(f"field_log write failed: {e}", flush=True)
 
 
-async def _forward_localize(request: Request) -> Response:
+async def _local_match_localize(request: Request, db: Session) -> Response:
+    """No external VPS_URL configured — match locally against this building's own
+    vps_index.npz (see services/vps_match.py) instead of the 501 this used to be."""
+    form = await request.form()
+    slug = str(form.get("building") or "")
+    image = form.get("image")
+    t0 = time.perf_counter()
+    if not slug or image is None:
+        data = {"success": False, "message": "multipart fields 'building' and 'image' are required"}
+        _log_proxy_attempt(meta={"model_id": form.get("model_id")}, status=400, data=data, error=None,
+                            elapsed_s=time.perf_counter() - t0, path=str(request.url.path))
+        return JSONResponse(content=data, status_code=400)
+    image_bytes = await image.read()
+    data = vps_match.match(db, slug, image_bytes)
+    _log_proxy_attempt(meta={"model_id": form.get("model_id"), "image_bytes": len(image_bytes)},
+                        status=200, data=data, error=None, elapsed_s=time.perf_counter() - t0,
+                        path=str(request.url.path))
+    return JSONResponse(content=data, status_code=200)
+
+
+async def _forward_localize(request: Request, db: Session) -> Response:
     url = get_settings().vps_url
     if not url:
-        raise HTTPException(501, "no visual positioning service configured (set VPS_URL)")
+        return await _local_match_localize(request, db)
     body = await request.body()
     headers = {k: v for k, v in request.headers.items() if k.lower() in ("content-type",)}
     meta = _peek_multipart_meta(body) if "multipart" in headers.get("content-type", "") else {
@@ -177,14 +200,14 @@ async def _forward_health() -> Response:
 
 
 @router.post("/api/v1/public/vps/localize")
-async def localize_api(request: Request):
-    return await _forward_localize(request)
+async def localize_api(request: Request, db: Session = Depends(get_db)):
+    return await _forward_localize(request, db)
 
 
 @router.post("/localize")
-async def localize_alias(request: Request):
+async def localize_alias(request: Request, db: Session = Depends(get_db)):
     """Same-origin alias for localize.html field test (posts to {origin}/localize)."""
-    return await _forward_localize(request)
+    return await _forward_localize(request, db)
 
 
 @router.get("/health")
