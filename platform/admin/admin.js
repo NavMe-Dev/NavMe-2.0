@@ -355,7 +355,6 @@ const Wizard = {
           <hr style="margin:16px 0;border:none;border-top:1px solid #e0e0e0">
         </template>
         <p v-else class="muted small">Enter a Matterport model ID above to enable fetching the mesh via API — or use a manual source below.</p>
-        <p v-else class="muted small">Enter a Matterport model ID above to enable fetching the mesh via API — or use a manual source below.</p>
         <template v-if="isLocalDev">
           <p><b>Running locally:</b> paste the absolute path to the MatterPak folder/zip/.e57 already on this machine — the dev server reads it directly off disk, no upload needed. This only works because the admin UI and the API happen to be the same machine right now; it will not appear once this is hosted elsewhere.</p>
           <label>Local path (zip, .e57, or extracted folder)</label>
