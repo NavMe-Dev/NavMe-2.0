@@ -54,13 +54,18 @@ def worker_loop(poll=2.0, once=False):
         db = SessionLocal()
         try:
             jid = claim(db)
+            kind = db.get(models.Job, jid).kind if jid else None
         finally:
             db.close()
         if jid:
             # A crash inside one job must not kill the worker thread — otherwise every
             # later job sits queued forever until the server is restarted.
             try:
-                run_job(jid)
+                if kind == "vps_build":
+                    from .vps_build import run_vps_build_job
+                    run_vps_build_job(jid)
+                else:
+                    run_job(jid)
             except Exception:
                 import traceback; traceback.print_exc()
                 db = SessionLocal()

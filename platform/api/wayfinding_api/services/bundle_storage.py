@@ -47,6 +47,42 @@ _CHUNK_THRESHOLD = 40 * 1024 * 1024
 _CHUNK_SIZE = 35 * 1024 * 1024
 
 
+def _put_chunked(client: httpx.Client, obj: str, data: bytes, content_type: str) -> bool:
+    if len(data) <= _CHUNK_THRESHOLD:
+        r = client.put(obj, content=data, headers={**_headers(), "Content-Type": content_type, "x-upsert": "true"})
+        return r.status_code < 300
+    n_chunks = (len(data) + _CHUNK_SIZE - 1) // _CHUNK_SIZE
+    ok = True
+    for i in range(n_chunks):
+        chunk = data[i * _CHUNK_SIZE:(i + 1) * _CHUNK_SIZE]
+        r = client.put(f"{obj}.part{i}", content=chunk,
+                       headers={**_headers(), "Content-Type": "application/octet-stream", "x-upsert": "true"})
+        ok = ok and r.status_code < 300
+    r = client.put(f"{obj}.chunks", content=str(n_chunks).encode(),
+                   headers={**_headers(), "Content-Type": "text/plain", "x-upsert": "true"})
+    return ok and r.status_code < 300
+
+
+def _get_chunked(base: str) -> bytes | None:
+    try:
+        r = httpx.get(base, timeout=60)
+        if r.status_code < 300:
+            return r.content
+        rc = httpx.get(f"{base}.chunks", timeout=30)
+        if rc.status_code >= 300:
+            return None
+        n_chunks = int(rc.text.strip())
+        parts = []
+        for i in range(n_chunks):
+            rp = httpx.get(f"{base}.part{i}", timeout=120)
+            if rp.status_code >= 300:
+                return None
+            parts.append(rp.content)
+        return b"".join(parts)
+    except (httpx.HTTPError, ValueError):
+        return None
+
+
 def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) -> int:
     """Upload every file under local_dir to the bucket. Best-effort per file —
     returns the count actually uploaded; callers should log, not fail, on a
@@ -67,22 +103,9 @@ def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) 
         rel = f.relative_to(local_dir).as_posix()
         ct = mimetypes.guess_type(f.name)[0] or "application/octet-stream"
         obj = f"{base}/{_object_path(slug, version, rel)}"
-        data = f.read_bytes()
         try:
             with httpx.Client(timeout=120) as client:
-                if len(data) <= _CHUNK_THRESHOLD:
-                    r = client.put(obj, content=data, headers={**_headers(), "Content-Type": ct, "x-upsert": "true"})
-                    return r.status_code < 300
-                n_chunks = (len(data) + _CHUNK_SIZE - 1) // _CHUNK_SIZE
-                ok = True
-                for i in range(n_chunks):
-                    chunk = data[i * _CHUNK_SIZE:(i + 1) * _CHUNK_SIZE]
-                    r = client.put(f"{obj}.part{i}", content=chunk,
-                                   headers={**_headers(), "Content-Type": "application/octet-stream", "x-upsert": "true"})
-                    ok = ok and r.status_code < 300
-                r = client.put(f"{obj}.chunks", content=str(n_chunks).encode(),
-                               headers={**_headers(), "Content-Type": "text/plain", "x-upsert": "true"})
-                return ok and r.status_code < 300
+                return _put_chunked(client, obj, f.read_bytes(), ct)
         except httpx.HTTPError:
             return False
 
@@ -100,24 +123,43 @@ def fetch_bytes(slug: str, version: int, relpath: str) -> bytes | None:
         return None
     s = get_settings()
     base = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/{_object_path(slug, version, relpath)}"
-    try:
-        r = httpx.get(base, timeout=60)
-        if r.status_code < 300:
-            return r.content
-        rc = httpx.get(f"{base}.chunks", timeout=30)
-        if rc.status_code >= 300:
-            return None
-        n_chunks = int(rc.text.strip())
-        parts = []
-        for i in range(n_chunks):
-            rp = httpx.get(f"{base}.part{i}", timeout=120)
-            if rp.status_code >= 300:
-                return None
-            parts.append(rp.content)
-        return b"".join(parts)
-    except (httpx.HTTPError, ValueError):
-        pass
-    return None
+    return _get_chunked(base)
+
+
+def upload_vps_dir(model_id: str, local_dir: Path, max_workers: int = 8) -> int:
+    """Mirror a VPS reference-database directory (db/meta.json, db/global.npy,
+    db/<sweep_id>.npz — NOT db/crops/, which is debug-only and not needed to serve
+    requests) to the bucket under vps/<model_id>/. Same chunking as upload_dir, since
+    individual .npz files can exceed Supabase's ~50MB per-request upload limit."""
+    if not is_enabled():
+        return 0
+    s = get_settings()
+    base = f"{s.supabase_url}/storage/v1/object/{s.supabase_storage_bucket}"
+    files = [f for f in local_dir.rglob("*") if f.is_file() and "crops" not in f.parts]
+    if not files:
+        return 0
+
+    def put_one(f: Path) -> bool:
+        rel = f.relative_to(local_dir).as_posix()
+        ct = mimetypes.guess_type(f.name)[0] or "application/octet-stream"
+        obj = f"{base}/vps/{model_id}/{rel}"
+        try:
+            with httpx.Client(timeout=120) as client:
+                return _put_chunked(client, obj, f.read_bytes(), ct)
+        except httpx.HTTPError:
+            return False
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        results = list(pool.map(put_one, files))
+    return sum(results)
+
+
+def fetch_vps_bytes(model_id: str, relpath: str) -> bytes | None:
+    if not is_enabled():
+        return None
+    s = get_settings()
+    base = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/vps/{model_id}/{relpath}"
+    return _get_chunked(base)
 
 
 def upload_navmesh(slug: str, local_path: Path) -> bool:

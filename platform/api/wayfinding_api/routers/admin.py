@@ -630,6 +630,33 @@ def start_job(slug: str, j: schemas.JobIn, db: Session = Depends(get_db), u: mod
     db.add(row); b.status = "queued"; db.commit(); return {"id": row.id, "status": row.status}
 
 
+@router.get("/vps/available")
+def vps_available_check():
+    """Whether this server has the local vps_prototype venv set up at all — local-machine-
+    only for now (heavy ML deps don't belong in the lean main API image), see
+    services/vps_build.py. The Overview tab uses this to show/hide the onboarding button
+    rather than let a job fail cryptically on a server that never installed it."""
+    from ..services.vps_build import vps_available
+    ok, reason = vps_available()
+    return {"available": ok, "reason": reason if not ok else None}
+
+
+@router.post("/buildings/{slug}/vps/build")
+def start_vps_build(slug: str, db: Session = Depends(get_db), u: models.User = Depends(current_admin)):
+    from ..services.vps_build import vps_available
+    b = B(db, slug)
+    ok, reason = vps_available()
+    if not ok:
+        raise HTTPException(400, reason)
+    if not b.matterport_model_id:
+        raise HTTPException(400, "set a Matterport model id first")
+    if db.query(models.Job).filter(models.Job.building_id == b.id, models.Job.status.in_(["queued", "running"])).first():
+        raise HTTPException(409, "a job is already queued/running for this building")
+    row = models.Job(building_id=b.id, kind="vps_build", params={}, created_by=u.email)
+    db.add(row); db.commit()
+    return {"id": row.id, "status": row.status}
+
+
 @router.get("/jobs")
 def list_jobs(building: str | None = None, limit: int = 50, db: Session = Depends(get_db)):
     q = db.query(models.Job)

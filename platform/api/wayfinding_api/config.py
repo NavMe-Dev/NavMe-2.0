@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     # One-time HTTP admin bootstrap for hosts with no Shell access (e.g. Render free
     # plan) — see routers/auth.py:bootstrap_admin. Empty disables the endpoint.
     bootstrap_secret: str = ""
+    # Local-machine-only "Use image" (VPS) build: a separate venv with heavy ML deps
+    # (torch, LightGlue, pycolmap) that don't belong in the lean main API image/venv.
+    # Empty or missing dir -> the admin endpoint reports the feature as unavailable
+    # here, rather than this service trying to run it in-process.
+    vps_prototype_dir: Path = Path("./vps_prototype")
 
     @property
     def buildings_dir(self) -> Path: return self.data_dir / "buildings"

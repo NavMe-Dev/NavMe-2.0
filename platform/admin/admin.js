@@ -625,6 +625,20 @@ const Overview = {
       <button class="sm" @click="$refs.navmeshInput.click()" :disabled="navmeshBusy"><span v-if="navmeshBusy" class="spinner"></span>{{navmeshBusy ? 'Uploading…' : 'Upload navmesh file'}}</button>
       <p class="small" v-if="navmeshMsg" :class="navmeshErr ? 'err' : 'ok'" style="margin-top:8px">{{navmeshMsg}}</p>
     </div>
+    <div class="card"><h2 style="margin-top:0">Onboard for image localization ("Use image")</h2>
+      <p class="muted small">Builds the real reference database (SuperPoint keypoints + MegaLoc global descriptors, ray-cast onto the building mesh — see <code>platform/vps_prototype/</code>) that lets a visitor's photo be matched to a position in the building. Needs the <code>mesh</code> and <code>georef</code> pipeline steps already run. Local-machine-only for now — the heavy ML dependencies this needs aren't part of the hosted server image.</p>
+      <template v-if="vpsAvailable===false">
+        <p class="err small">{{vpsReason}}</p>
+      </template>
+      <template v-else>
+        <p class="small" v-if="b.pipeline_config && b.pipeline_config.vps_ready" style="margin-top:0">
+          Last built {{b.pipeline_config.vps_ready.built_at}} · {{b.pipeline_config.vps_ready.sweeps}} scan points · {{b.pipeline_config.vps_ready.crops}} reference views
+          <span class="badge" :class="b.pipeline_config.vps_ready.uploaded_to_storage ? 'ok' : ''" style="margin-left:6px">{{b.pipeline_config.vps_ready.uploaded_to_storage ? 'in Supabase Storage' : 'local disk only'}}</span>
+        </p>
+        <button class="sm primary" @click="startVpsBuild" :disabled="vpsBusy || !!vpsJobId">{{vpsBusy ? 'Starting…' : 'Onboard for image localization'}}</button>
+        <job-log v-if="vpsJobId" :job-id="vpsJobId" @done="onVpsJobDone"></job-log>
+      </template>
+    </div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.buildingSettings")}}</h2>
       <div class="row"><div class="grow"><label>{{t("admin.name")}}</label><input v-model="e.name"></div><div class="grow"><label>{{t("admin.venue")}}</label><input v-model="e.venue_slug"></div></div>
       <label>{{t("admin.address")}}</label><input v-model="e.address">
@@ -857,6 +871,17 @@ const Overview = {
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }
+    const vpsAvailable = ref(null), vpsReason = ref(""), vpsBusy = ref(false), vpsJobId = ref(null);
+    api("/admin/vps/available").then(r => { vpsAvailable.value = r.available; vpsReason.value = r.reason || ""; }).catch(() => { vpsAvailable.value = false; vpsReason.value = "could not reach server"; });
+    async function startVpsBuild() {
+      vpsBusy.value = true;
+      try {
+        const r = await api(`/admin/buildings/${props.b.slug}/vps/build`, { method: "POST" });
+        vpsJobId.value = r.id;
+      } catch (e) { toast(e.message); }
+      vpsBusy.value = false;
+    }
+    function onVpsJobDone() { emit("reload"); }
     const navmeshBusy = ref(false), navmeshMsg = ref(""), navmeshErr = ref(false);
     async function onNavmeshFile(ev) {
       const file = ev.target.files[0]; ev.target.value = "";
@@ -872,7 +897,7 @@ const Overview = {
       } catch (x) { navmeshErr.value = true; navmeshMsg.value = x.message; }
       navmeshBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile };
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
   }
 };
 
