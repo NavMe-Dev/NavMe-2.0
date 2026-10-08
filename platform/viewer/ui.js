@@ -1122,6 +1122,7 @@ function wfDbg(level, source, message, meta) {
       <div class="actions">
         <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
         ${isMpMode() ? "" : `<button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
+        ${isMpMode() ? `<button class="pill" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
@@ -1133,6 +1134,7 @@ function wfDbg(level, source, message, meta) {
       <ol class="steps" aria-label="${esc(t("viewer.steps"))}">${steps}</ol>`, "half");
     $("dStart").onclick = () => startNav();
     if ($("dPrev3d")) $("dPrev3d").onclick = () => preview3D();
+    if ($("dViewAr")) $("dViewAr").onclick = () => toast(t("viewer.arLocked") || "AR is temporarily locked");
     if ($("dTourMp")) $("dTourMp").onclick = () => {
       if (!S.route) return;
       const acc = accessFlags();
