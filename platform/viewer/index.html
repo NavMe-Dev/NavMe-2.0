@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261009chipall1">
+<link rel="stylesheet" href="ui.css?v=20261009pinmore1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script src="vendor/ngraph.graph.min.js"></script>
 <script src="vendor/ngraph.path.min.js"></script>
@@ -72,9 +72,13 @@
     <ul id="acList" class="ac" role="listbox" aria-label="Suggestions" data-i18n-aria-label="viewer.suggestions" hidden></ul>
     <div id="chipsWrap" class="chips-wrap">
       <div id="chips" class="chips" role="toolbar" aria-label="Filter places by category" data-i18n-aria-label="viewer.filterByCategory"></div>
-      <div id="chipsDropdown" class="chips-dropdown" role="listbox" aria-label="All categories" hidden></div>
+      <button type="button" id="chipsMore" class="chip-more" aria-haspopup="listbox" aria-expanded="false" aria-controls="chipsDropdown" aria-label="More categories" data-i18n-aria-label="viewer.moreCategories"><span class="ms">expand_more</span></button>
     </div>
   </header>
+
+  <!-- Lives outside #top so its stacking (position:fixed, see ui.css) is independent of
+       .top vs .sheet's z-index — it must draw above both no matter which of those wins. -->
+  <div id="chipsDropdown" class="chips-dropdown" role="listbox" aria-label="All categories" hidden></div>
 
   <section id="sheet" class="sheet" aria-label="Details" data-i18n-aria-label="viewer.details" data-state="peek">
     <div id="sheetHandle" class="handle" role="button" tabindex="0" aria-label="Expand or collapse panel" data-i18n-aria-label="viewer.expandCollapse"><span></span></div>
@@ -319,6 +323,6 @@
 <script src="threed_nav.js?v=20261005hybrid17"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261009chipall1"></script>
+<script src="ui.js?v=20261009pinmore1"></script>
 </body>
 </html>

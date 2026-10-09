@@ -530,14 +530,25 @@ function wfDbg(level, source, message, meta) {
   function buildChips() {
     const chips = CHIPS();
     const chipsHtml = chips.map(([c, l]) => chipBtnHtml(c, l, CAT[c].icon, rgb(CAT[c].color))).join("");
-    $("chips").innerHTML = allChipHtml() + chipsHtml
-      + `<button type="button" id="chipsMore" class="chip chip-more" aria-haspopup="listbox" aria-expanded="false" aria-controls="chipsDropdown" aria-label="${esc(t("viewer.moreCategories") || "More categories")}"><span class="ms">expand_more</span></button>`;
+    // #chipsMore is a static pinned button (index.html), NOT part of this scrolling row —
+    // it stays put in the right corner while only these pills scroll past/behind it.
+    $("chips").innerHTML = allChipHtml() + chipsHtml;
     $("chips").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
     $("chipsDropdown").innerHTML = allChipHtml() + chipsHtml;
     $("chipsDropdown").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
     $("chipsMore").onclick = () => setChipsOpen($("chipsDropdown").hidden);
   }
   function setChipsOpen(open) {
+    if (open) {
+      // position:fixed + computed here (rather than CSS anchored to .chips-wrap) because
+      // the dropdown now lives outside .top in the DOM (see index.html) so its stacking
+      // is independent of .top/.sheet's z-index — it always draws above both.
+      const r = $("chipsMore").getBoundingClientRect();
+      const dd = $("chipsDropdown");
+      dd.style.top = (r.bottom + 2) + "px";
+      const w = Math.max(220, Math.min(280, window.innerWidth - 20));
+      dd.style.left = Math.max(8, r.right - w) + "px";
+    }
     $("chipsDropdown").hidden = !open;
     $("chipsMore").setAttribute("aria-expanded", String(!!open));
   }
