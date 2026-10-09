@@ -163,6 +163,11 @@
         "background:#182858;color:#fff;cursor:pointer;font:inherit;",
         "font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}",
       "#n3dOverlay .n3d-locate:disabled{opacity:.55;cursor:default}",
+      "#n3dOverlay .n3d-locate.n3d-locate-active{background:#b91c1c}",
+      "#n3dOverlay .n3d-locate-dot{width:8px;height:8px;border-radius:999px;background:#ef4444;",
+        "box-shadow:0 0 0 0 rgba(239,68,68,.7);animation:n3dPulse 1.4s infinite}",
+      "@keyframes n3dPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}",
+        "70%{box-shadow:0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}",
       "#n3dOverlay .n3d-status{position:absolute;top:72px;left:50%;transform:translateX(-50%);",
         "background:rgba(0,0,0,.7);color:#fff;border-radius:8px;padding:8px 16px;",
         "font-size:13px;font-weight:500;white-space:nowrap;pointer-events:none;",
@@ -209,7 +214,8 @@
           '<button class="n3d-close" id="n3dClose" aria-label="Close">&#x2715; Back</button>',
           '<span class="n3d-title" id="n3dTitle">Walkthrough Navigation</span>',
           '<button class="n3d-locate" id="n3dLocate" aria-label="Navigate from me" title="Navigate from me">&#x1F4F7; Navigate from me</button>',
-          '<input type="file" id="n3dLocateInput" accept="image/*" capture="environment" hidden>',
+          '<video id="n3dLocateVideo" autoplay playsinline muted ',
+            'style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></video>',
         '</div>',
         '<iframe id="n3dFrame" allow="xr-spatial-tracking;fullscreen" allowfullscreen></iframe>',
         '<canvas class="n3d-canvas" id="n3dCanvas" hidden></canvas>',
@@ -231,12 +237,7 @@
     document.body.appendChild(ov);
     $("n3dClose").addEventListener("click", close);
     $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); close(); });
-    $("n3dLocate").addEventListener("click", startLocateFromMe);
-    $("n3dLocateInput").addEventListener("change", function(e) {
-      var file = e.target.files && e.target.files[0];
-      e.target.value = "";   // allow picking the same file again next time
-      if (file) localizeFromImage(file);
-    });
+    $("n3dLocate").addEventListener("click", toggleLocateFromMe);
   }
 
   function setStatus(msg) {
@@ -1691,8 +1692,19 @@
     });
   }
 
-  // ── Navigate from me: photo -> VPS localize -> teleport + route from there ───
+  // ── Navigate from me: background camera -> VPS localize -> teleport + route ──
+  // Stays entirely on the walkthrough screen: the camera runs as a hidden
+  // getUserMedia stream (no native camera app, no page navigation), capturing a
+  // frame every LOCATE_INTERVAL_MS and re-localizing so the route keeps updating
+  // to wherever the user actually is, without them ever leaving this view.
   var locateBusy = false;
+  var locateActive = false;
+  var locateStream = null;
+  var locateTimer = null;
+  var lastLocateSid = null;
+  var LOCATE_INTERVAL_MS = 12000; // VPS match itself takes ~7-11s on CPU; this is the gap AFTER each result
+  var MIN_CONFIDENCE = 0.25; // below this, SuperPoint can still return a few inliers for a wrong spot
+
   function wfSlug() {
     try {
       return (window.WF && window.WF.building && window.WF.building.slug)
@@ -1701,73 +1713,149 @@
     } catch (_) { return ""; }
   }
 
+  function setLocateButtonState(active) {
+    var btn = $("n3dLocate");
+    if (!btn) return;
+    btn.classList.toggle("n3d-locate-active", !!active);
+    btn.innerHTML = active
+      ? '<span class="n3d-locate-dot"></span> Stop live positioning'
+      : "&#x1F4F7; Navigate from me";
+  }
+
+  function toggleLocateFromMe() {
+    if (locateActive) { stopLocateFromMe(); return; }
+    startLocateFromMe();
+  }
+
   function startLocateFromMe() {
-    if (locateBusy) return;
-    var input = $("n3dLocateInput");
-    if (input) input.click();
+    if (locateActive) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus("Camera not available on this device/browser");
+      return wait(2200).then(function () { setStatus(""); });
+    }
+    setStatus("Starting camera…");
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    }).then(function (stream) {
+      locateStream = stream;
+      locateActive = true;
+      lastLocateSid = null;
+      setLocateButtonState(true);
+      var video = $("n3dLocateVideo");
+      video.srcObject = stream;
+      return video.play().catch(function () {});
+    }).then(function () {
+      return runLocateCycle(/*first=*/true);
+    }).catch(function (e) {
+      console.warn("[ThreeDNav] camera start failed", e);
+      setStatus("Could not access camera — " + ((e && e.message) || "permission denied"));
+      return wait(2200).then(function () { setStatus(""); });
+    });
+  }
+
+  function stopLocateFromMe() {
+    locateActive = false;
+    if (locateTimer) { clearTimeout(locateTimer); locateTimer = null; }
+    if (locateStream) {
+      locateStream.getTracks().forEach(function (t) { t.stop(); });
+      locateStream = null;
+    }
+    var video = $("n3dLocateVideo");
+    if (video) video.srcObject = null;
+    setLocateButtonState(false);
+    setStatus("Live positioning stopped");
+    wait(1400).then(function () { setStatus(""); });
+  }
+
+  function captureVideoFrameBlob() {
+    var video = $("n3dLocateVideo");
+    if (!video || !video.videoWidth) return Promise.resolve(null);
+    var c = document.createElement("canvas");
+    c.width = video.videoWidth;
+    c.height = video.videoHeight;
+    c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+    return new Promise(function (resolve) {
+      c.toBlob(function (blob) { resolve(blob); }, "image/jpeg", 0.85);
+    });
   }
 
   /**
-   * Photo -> VPS localize (SuperPoint + MegaLoc against this building's own scan,
-   * see platform/vps_prototype/) -> resolve the matched sweep -> teleport there and
-   * start navigation to the SAME destination this session was already opened for
-   * (destPtMp, set once in open(), is untouched by this).
+   * Capture one frame from the hidden background camera -> VPS localize
+   * (SuperPoint + MegaLoc against this building's own scan, see
+   * platform/vps_prototype/) -> resolve the matched sweep -> on the FIRST fix,
+   * teleport there and start navigation to the SAME destination this session
+   * was already opened for (destPtMp, set once in open(), is untouched by
+   * this). On every fix AFTER that, if the matched sweep has changed (the user
+   * actually moved to a different scan point), silently regenerate the route
+   * from the new sweep to the same destination — no extra UI wait, the walk-
+   * through view never leaves this screen. Schedules itself again afterward
+   * while locateActive stays true.
    *
-   * The CV match genuinely takes a few seconds — CPU feature extraction, no faster
-   * path exists without a GPU service — so "no lag" here means the UI stays
-   * responsive and honest about progress throughout that wait, not that the match
-   * itself becomes instant. Everything AFTER a successful match (teleport, route,
-   * begin navigation) reuses runNavigate(), the exact same fast path as a normal
-   * POI-to-POI route — no added delay once the match is in.
+   * The CV match genuinely takes a few seconds — CPU feature extraction, no
+   * faster path exists without a GPU service — so "no lag" here means the UI
+   * stays responsive throughout the wait, not that the match itself becomes
+   * instant.
    */
-  function localizeFromImage(file) {
-    if (locateBusy) return Promise.resolve();
+  function runLocateCycle(first) {
+    if (!locateActive || locateBusy) return Promise.resolve();
     locateBusy = true;
-    var btn = $("n3dLocate"); if (btn) btn.disabled = true;
-    setStatus("Locating you — analysing photo…");
-    var fd = new FormData();
-    fd.append("image", file);
-    fd.append("building", wfSlug());
-    fd.append("model_id", modelId);
+    if (first) setStatus("Locating you — analysing camera…");
     var t0 = Date.now();
-    return fetch("/api/v1/public/vps/localize", { method: "POST", body: fd })
+    return captureVideoFrameBlob()
+      .then(function (blob) {
+        if (!blob) throw new Error("camera frame not ready");
+        var fd = new FormData();
+        fd.append("image", blob, "locate.jpg");
+        fd.append("building", wfSlug());
+        fd.append("model_id", modelId);
+        return fetch("/api/v1/public/vps/localize", { method: "POST", body: fd });
+      })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
       .then(function (res) {
         var j = res.body;
-        console.info("[ThreeDNav] localize result (" + (Date.now() - t0) + "ms)", j);
+        console.info("[ThreeDNav] locate cycle (" + (Date.now() - t0) + "ms)", j);
         if (!res.ok || !j || !j.success) {
-          setStatus((j && (j.detail || j.message)) || "Could not locate you from that photo");
-          return wait(2200).then(function () { setStatus(""); });
+          if (first) setStatus((j && (j.detail || j.message)) || "Could not locate you — retrying…");
+          return;
         }
         var conf = j.confidence || 0;
-        // Below this, SuperPoint can still return a handful of inliers for a wrong
-        // spot — too few to trust as "this is genuinely where you are."
-        var MIN_CONFIDENCE = 0.25;
         if (conf < MIN_CONFIDENCE) {
-          setStatus("Not confident enough (" + Math.round(conf * 100) + "%) — try a clearer shot");
-          return wait(2200).then(function () { setStatus(""); });
+          if (first) setStatus("Not confident enough (" + Math.round(conf * 100) + "%) — retrying…");
+          return;
         }
         var navNodes = (window.wf && window.wf.nav && window.wf.nav.nodes) || [];
         var match = navNodes.filter(function (n) { return n.mp_index === j.nearest_sweep; })[0];
-        var here = null;
+        var here = null, sid = match ? match.id : null;
         if (match) {
           var liveSw = sweeps.filter(function (s) { return s.sid === match.id; })[0];
           if (liveSw) here = liveSw.position;
         }
         if (!here) here = toMp({ x: j.x, y: j.y, z: j.z }); // fall back to the raw estimate
-        setStatus("Found you — " + Math.round(conf * 100) + "% match" + (j.floor ? ", " + j.floor : ""));
-        return wait(2000).then(function () {
-          setStatus("");
+        if (first) {
+          lastLocateSid = sid;
+          setStatus("Found you — " + Math.round(conf * 100) + "% match" + (j.floor ? ", " + j.floor : ""));
+          return wait(1400).then(function () {
+            setStatus("");
+            return runNavigate(here);
+          });
+        }
+        // Background cycle: only reroute when the matched scan point actually
+        // changed — avoids re-solving/teleporting on every tick while standing still.
+        if (sid && sid !== lastLocateSid) {
+          lastLocateSid = sid;
           return runNavigate(here);
-        });
+        }
       })
       .catch(function (e) {
-        console.warn("[ThreeDNav] localize failed", e);
-        setStatus("Localization failed — " + ((e && e.message) || "network error"));
-        return wait(2200).then(function () { setStatus(""); });
+        console.warn("[ThreeDNav] locate cycle failed", e);
+        if (first) setStatus("Localization failed — " + ((e && e.message) || "network error"));
       })
-      .then(function () { locateBusy = false; if (btn) btn.disabled = false; })
-      .catch(function () { locateBusy = false; if (btn) btn.disabled = false; });
+      .then(function () {
+        locateBusy = false;
+        if (first) wait(1200).then(function () { if (locateActive) setStatus(""); });
+        if (locateActive) locateTimer = setTimeout(function () { runLocateCycle(false); }, LOCATE_INTERVAL_MS);
+      });
   }
 
   // ── Route + teleport after sweeps are ready ───────────────────────────────────
@@ -1943,6 +2031,7 @@
 
   function close() {
     openGen++;
+    if (locateActive) stopLocateFromMe();
     if (unsubPose) { unsubPose(); unsubPose = null; }
     if (unsubSweep) { unsubSweep(); unsubSweep = null; }
     if (unsubSweepData) { unsubSweepData(); unsubSweepData = null; }
@@ -1966,7 +2055,8 @@
     open: open,
     close: close,
     setStairChainRows: setStairChainRows,
-    localizeFromImage: localizeFromImage,
+    startLocateFromMe: startLocateFromMe,
+    stopLocateFromMe: stopLocateFromMe,
     _debugRecompute: function(fromSid, toSid) {
       var fromSw = sweeps.filter(function(s){return s.sid===fromSid;})[0];
       var toSw = sweeps.filter(function(s){return s.sid===(toSid||destSweepSid);})[0];
