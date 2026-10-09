@@ -680,7 +680,7 @@ function wfDbg(level, source, message, meta) {
   }
   function flyTo3D(p) {
     const v = wf.getView3d(); if (!v) return;
-    const z = wf.modelZtoAbs(p.model.z);
+    const z = wf.modelZtoAbs((p.model && p.model.z != null) ? p.model.z : 0);
     v.goTo({ target: new wf.esri.Point({ longitude: p.lonlat[0], latitude: p.lonlat[1], z }), tilt: 60, zoom: 20.5 }, { duration: 1200 }).catch(() => { });
   }
 

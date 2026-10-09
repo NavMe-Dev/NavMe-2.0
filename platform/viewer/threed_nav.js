@@ -68,15 +68,38 @@
   let sweepCollection = null, unsubSweepData = null;
   let sweeps = [];                // {sid, position:{x,y,z}, neighbours:[sid], floor:n}
   let routeSids = [];             // solved route as sweep id sequence
+  // Declared staircases (NavMe Dashboard's navme_stair_chains table), as ordered runs of
+  // sweep ids, lowest step first. setStairChainRows() stores the raw {sweep_numbers}
+  // rows as soon as they're fetched; resolveStairChains() turns the numbers (Sweep.data
+  // collection indices) into sids once `sweeps` exists, since the two can arrive in
+  // either order. A building with no declared chains simply has none, and routing falls
+  // back to the geometric stair planner (STAIR_MIN_GRADE etc.) exactly as before.
+  let stairChains = [];
+  // sid -> chain index, O(1) membership for hopCost() (called on every edge relaxation,
+  // for every step the user takes — an indexOf() scan per chain per call was measurable).
+  let stairChainIndexBySid = null;
+  let pendingStairChainRows = null;
   let routeLegs = [];             // [{kind:"walk"|"stairs", points:[Vec3]}]
   let activeLeg = 0;
   let navPts = [];                // resampled Vec3 for active leg
   let lastPose = null, currentSweepSid = null;
+  // The sweep the camera was standing on immediately before currentSweepSid — used by
+  // onReachedWalkStop()'s loop guard to reject a freshly re-solved route whose very
+  // first hop would send the user straight back the way they just came (see the
+  // module comment above onReachedWalkStop for the "stuck rotating in a loop" bug
+  // this is guarding against).
+  let prevSweepSid = null;
+  // Destination sweep id for the active route — set once in runNavigate(), reused by
+  // every re-solve so a regenerated route always still aims at the real destination.
+  let destSweepSid = null;
+  // onReachedWalkStop() loop guard — see its call site for what this catches. Tracks
+  // the last scan point it was asked to re-plan from and how many times in a row that
+  // was the SAME point with no real movement in between.
+  let noProgressSid = null, noProgressCount = 0;
   let drawRaf = 0, unsubPose = null, unsubSweep = null;
   let modelId = "", appKey = "";
   let destPtMp = null;            // destination in MP Y-up (for pin drawing)
   let destName = "";
-  let rerouting = false;
   /** True once the arrival card has been shown for the current route. */
   let arrivedShown = false;
   /**
@@ -135,6 +158,11 @@
       "#n3dOverlay .n3d-title{color:#fff;font-size:14px;font-weight:600;",
         "font-family:-apple-system,system-ui,sans-serif;flex:1;padding-left:4px;",
         "text-shadow:0 1px 3px rgba(0,0,0,.5)}",
+      "#n3dOverlay .n3d-locate{display:inline-flex;align-items:center;gap:6px;height:40px;",
+        "padding:0 14px;border-radius:999px;border:0;white-space:nowrap;",
+        "background:#182858;color:#fff;cursor:pointer;font:inherit;",
+        "font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}",
+      "#n3dOverlay .n3d-locate:disabled{opacity:.55;cursor:default}",
       "#n3dOverlay .n3d-status{position:absolute;top:72px;left:50%;transform:translateX(-50%);",
         "background:rgba(0,0,0,.7);color:#fff;border-radius:8px;padding:8px 16px;",
         "font-size:13px;font-weight:500;white-space:nowrap;pointer-events:none;",
@@ -180,6 +208,8 @@
         '<div class="n3d-bar">',
           '<button class="n3d-close" id="n3dClose" aria-label="Close">&#x2715; Back</button>',
           '<span class="n3d-title" id="n3dTitle">Walkthrough Navigation</span>',
+          '<button class="n3d-locate" id="n3dLocate" aria-label="Navigate from me" title="Navigate from me">&#x1F4F7; Navigate from me</button>',
+          '<input type="file" id="n3dLocateInput" accept="image/*" capture="environment" hidden>',
         '</div>',
         '<iframe id="n3dFrame" allow="xr-spatial-tracking;fullscreen" allowfullscreen></iframe>',
         '<canvas class="n3d-canvas" id="n3dCanvas" hidden></canvas>',
@@ -201,6 +231,12 @@
     document.body.appendChild(ov);
     $("n3dClose").addEventListener("click", close);
     $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); close(); });
+    $("n3dLocate").addEventListener("click", startLocateFromMe);
+    $("n3dLocateInput").addEventListener("change", function(e) {
+      var file = e.target.files && e.target.files[0];
+      e.target.value = "";   // allow picking the same file again next time
+      if (file) localizeFromImage(file);
+    });
   }
 
   function setStatus(msg) {
@@ -378,7 +414,35 @@
     return cx*cx + cy*cy + cz*cz;
   }
 
-  function hopCost(a, b) { return Math.pow(dist3(a, b), HOP_EXPONENT); }
+  /**
+   * Cost of one Dijkstra hop: plain 3D distance, so the main solve finds the
+   * genuinely nearest-point route on flat ground instead of being biased
+   * towards touching extra scan points along the way (that used to be the
+   * point of a super-linear exponent here — it made two short hops beat one
+   * long one covering the same ground, which reliably over-covered open
+   * areas). Flat-ground gaps left behind by a real skip-edge are still filled
+   * in afterwards by insertSkippedSweeps(), so nothing is lost visually.
+   *
+   * A level-change hop (dy > FLOOR_STEP_M) that is NOT part of a declared stair
+   * chain gets a heavy penalty — ported from threednavigation.ts. Matterport's
+   * own neighbour graph links the bottom of a flight straight to a point part
+   * way up it, which is shorter than walking the steps, so without this the
+   * search always prefers that shortcut over the real stairs whenever both ends
+   * happen to sit in the graph's reachable set. The geometric repair passes
+   * (STAIR_MIN_GRADE, planLegByLeastClimb, planLegMostScanPoints) still run on
+   * every level change regardless and are what guarantee every step on a
+   * flight is covered — this penalty only stops Dijkstra steering around a
+   * declared chain in the first place.
+   */
+  function hopCost(a, b) {
+    var cost = dist3(a, b);
+    var dy = Math.abs(a.position.y - b.position.y);
+    if (dy > FLOOR_STEP_M && stairChainIndexBySid) {
+      var ca = stairChainIndexBySid[a.sid], cb = stairChainIndexBySid[b.sid];
+      if (ca === undefined || ca !== cb) cost += 10000;
+    }
+    return cost;
+  }
 
   /**
    * Is the step from a to b a change of LEVEL (stairs / lift) rather than a
@@ -398,27 +462,67 @@
   }
 
   // ── Dijkstra ─────────────────────────────────────────────────────────────────
+  /**
+   * Binary min-heap keyed by cost, with lazy deletion (push duplicates on
+   * decrease, skip stale pops) instead of decrease-key — simpler, and just as
+   * fast in practice for a graph this size. solveRoute() re-runs on every
+   * single step the user takes (watchSweepChanges -> rerouteFromSweep), so
+   * going from the old O(sweeps^2) linear scan for the next node to this
+   * O((V+E) log V) is what makes re-routing instant instead of visibly
+   * lagging on a 990-sweep scan.
+   */
+  function MinHeap() { this.a = []; }
+  MinHeap.prototype.push = function (id, cost) {
+    var a = this.a; a.push({ id: id, cost: cost });
+    var i = a.length - 1;
+    while (i > 0) {
+      var p = (i - 1) >> 1;
+      if (a[p].cost <= a[i].cost) break;
+      var t = a[p]; a[p] = a[i]; a[i] = t; i = p;
+    }
+  };
+  MinHeap.prototype.pop = function () {
+    var a = this.a; if (!a.length) return null;
+    var top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last;
+      var i = 0, n = a.length;
+      for (;;) {
+        var l = i * 2 + 1, r = i * 2 + 2, s = i;
+        if (l < n && a[l].cost < a[s].cost) s = l;
+        if (r < n && a[r].cost < a[s].cost) s = r;
+        if (s === i) break;
+        var t = a[s]; a[s] = a[i]; a[i] = t; i = s;
+      }
+    }
+    return top;
+  };
+
   function solveRoute(fromSid, toSid) {
     var byId = buildSweepMap();
     if (fromSid === toSid) return [fromSid];
-    var best = {}, prev = {}, unvisited = {};
-    for (var i = 0; i < sweeps.length; i++) { unvisited[sweeps[i].sid] = true; }
+    var best = {}, prev = {}, done = {};
     best[fromSid] = 0;
+    var heap = new MinHeap();
+    heap.push(fromSid, 0);
 
     for (;;) {
-      var curId = null, curCost = Infinity;
-      for (var id in unvisited) {
-        if (best[id] !== undefined && best[id] < curCost) { curCost = best[id]; curId = id; }
-      }
-      if (!curId || curId === toSid) break;
-      delete unvisited[curId];
+      var top = heap.pop();
+      if (!top) break;
+      var curId = top.id;
+      if (done[curId]) continue;          // stale entry from an earlier decrease
+      done[curId] = true;
+      if (curId === toSid) break;
       var cur = byId[curId]; if (!cur) continue;
       for (var j = 0; j < cur.neighbours.length; j++) {
         var nId = cur.neighbours[j];
-        if (!unvisited[nId]) continue;
+        if (done[nId]) continue;
         var nb = byId[nId]; if (!nb) continue;
-        var cost = curCost + hopCost(cur, nb);
-        if (best[nId] === undefined || cost < best[nId]) { best[nId] = cost; prev[nId] = curId; }
+        var cost = best[curId] + hopCost(cur, nb);
+        if (best[nId] === undefined || cost < best[nId]) {
+          best[nId] = cost; prev[nId] = curId;
+          heap.push(nId, cost);
+        }
       }
     }
 
@@ -430,7 +534,7 @@
     }
     var ins = insertSkippedSweeps(raw, byId);
     var rep = repairTeleports(ins, byId);
-    var fin = collapseLoops(rep);
+    var fin = applyStairChains(rep, byId);
     return fin;
   }
 
@@ -438,6 +542,92 @@
     var m = {};
     for (var i = 0; i < sweeps.length; i++) m[sweeps[i].sid] = sweeps[i];
     return m;
+  }
+
+  /**
+   * Where a single point falls along navPathMp, in plan view (X/Z only) — same
+   * projection sweepsAlongNavPath() does per scan point, factored out so a
+   * re-solve from an arbitrary current position (onReachedWalkStop) can find
+   * its own spot on the path without scanning the whole sweep list for it.
+   * Returns null if navPathMp isn't usable (no path, or degenerate/zero length).
+   */
+  function projectPointOntoNavPath(pos) {
+    var pts = navPathMp;
+    if (!pts || pts.length < 2) return null;
+    var total = 0, bestT = -1, bestDSq = Infinity, runLen = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var a = pts[i-1], b = pts[i];
+      var dx = b.x - a.x, dz = b.z - a.z;
+      var segLen = Math.sqrt(dx*dx + dz*dz);
+      total += segLen;
+    }
+    if (total < 0.1) return null;
+    for (var i = 1; i < pts.length; i++) {
+      var a = pts[i-1], b = pts[i];
+      var sdx = b.x - a.x, sdz = b.z - a.z;
+      var segLen = Math.sqrt(sdx*sdx + sdz*sdz);
+      if (segLen < 1e-6) continue;
+      var t = ((pos.x - a.x)*sdx + (pos.z - a.z)*sdz) / (segLen*segLen);
+      t = Math.max(0, Math.min(1, t));
+      var cx = a.x + t*sdx, cz = a.z + t*sdz;
+      var ex = pos.x - cx, ez = pos.z - cz;
+      var dSq = ex*ex + ez*ez;
+      if (dSq < bestDSq) { bestDSq = dSq; bestT = (runLen + t*segLen) / total; }
+      runLen += segLen;
+    }
+    return bestT >= 0 ? { t: bestT, distSq: bestDSq } : null;
+  }
+
+  /**
+   * Solve a route from `fromSweep` to `toSweep` — same navPath-projection-first,
+   * Dijkstra-fallback logic runNavigate() uses for the very first solve, factored
+   * out so onReachedWalkStop() can call it again from wherever the camera actually
+   * is. When re-solving mid-route, points on navPathMp that fall BEHIND fromSweep's
+   * own position on the path are dropped first — otherwise re-projecting the whole
+   * path from scratch would walk the user backward through ground they already
+   * covered before heading on to the destination again.
+   */
+  function computeRouteSids(fromSweep, toSweep) {
+    var pathIds = sweepsAlongNavPath(5);
+    if (pathIds.length >= 2) {
+      // Drop points behind fromSweep so a re-solve from mid-route doesn't walk
+      // backward through ground already covered. Prefer fromSweep's own position
+      // IN this corridor-filtered list over a freshly computed path-t: near the
+      // ends of the path (or any spot where two close-together scan points both
+      // clamp to the same t), a lone t comparison can't tell "behind" from
+      // "basically tied", which is exactly what let an earlier version of this
+      // bounce the camera one hop backward before continuing on.
+      var selfIdx = pathIds.indexOf(fromSweep.sid);
+      if (selfIdx >= 0) {
+        pathIds = pathIds.slice(selfIdx);
+      } else {
+        var fromProj = projectPointOntoNavPath(fromSweep.position);
+        if (fromProj) {
+          var kept = [];
+          for (var i = 0; i < pathIds.length; i++) {
+            var sw = sweeps.filter(function(s){ return s.sid === pathIds[i]; })[0];
+            if (!sw) continue;
+            var proj = projectPointOntoNavPath(sw.position);
+            if (proj && proj.t >= fromProj.t - 1e-6) kept.push(pathIds[i]);
+          }
+          pathIds = kept;
+        }
+      }
+      if (!pathIds.length || pathIds[0] !== fromSweep.sid) pathIds.unshift(fromSweep.sid);
+
+      var lastSid = pathIds[pathIds.length - 1];
+      var lastSw  = sweeps.filter(function(s){ return s.sid === lastSid; })[0];
+      var heightGap = lastSw ? Math.abs(lastSw.position.y - toSweep.position.y) : 0;
+      if (heightGap > 2.0 && lastSid !== toSweep.sid) {
+        var bridge = solveRoute(lastSid, toSweep.sid);
+        if (bridge.length > 1) bridge.shift();
+        pathIds = pathIds.concat(bridge);
+      } else if (pathIds[pathIds.length - 1] !== toSweep.sid) {
+        pathIds.push(toSweep.sid);
+      }
+      return pathIds;
+    }
+    return solveRoute(fromSweep.sid, toSweep.sid);
   }
 
   /**
@@ -548,6 +738,81 @@
       }
     }
     return out;
+  }
+
+  /**
+   * Re-order a solved route through a declared stair chain in the chain's own
+   * known-correct bottom-to-top order, instead of whatever order Dijkstra
+   * happened to produce. Ported from threednavigation.ts.
+   *
+   * Geometry gets most of the way there but not all of it: two points at the
+   * top of a flight can differ by a centimetre, which is not enough to order
+   * them, and a graph full of skip links offers several plausible ways up. A
+   * declared chain removes the ambiguity — these are the steps, in this order.
+   */
+  function applyStairChains(ids, byId) {
+    if (!stairChains.length || ids.length < 2) return ids;
+    var route = ids.slice();
+    for (var c = 0; c < stairChains.length; c++) {
+      var chain = stairChains[c];
+      var pos = {};
+      for (var p = 0; p < chain.length; p++) pos[chain[p]] = p;
+      var hits = [];
+      for (var i = 0; i < route.length; i++) { if (pos.hasOwnProperty(route[i])) hits.push(i); }
+      if (hits.length < 2) continue;
+      var first = hits[0], lastIdx = hits[hits.length - 1];
+      // Widest span of the flight the route actually touches.
+      var lo = Infinity, hi = -Infinity;
+      for (var h = 0; h < hits.length; h++) {
+        var pp = pos[route[hits[h]]];
+        if (pp < lo) lo = pp;
+        if (pp > hi) hi = pp;
+      }
+      if (hi - lo < 1) continue;
+      var ascending = pos[route[first]] <= pos[route[lastIdx]];
+      var run = chain.slice(lo, hi + 1);
+      var ordered = ascending ? run : run.slice().reverse();
+      // The seams must be real neighbour links, or this would invent a step.
+      var before = route[first - 1];
+      var after = route[lastIdx + 1];
+      var tail = byId[ordered[ordered.length - 1]];
+      if (!byId[ordered[0]] || !tail) continue;
+      if (before && byId[before] && byId[before].neighbours.indexOf(ordered[0]) < 0) continue;
+      if (after && tail.neighbours.indexOf(after) < 0) continue;
+      route = route.slice(0, first).concat(ordered, route.slice(lastIdx + 1));
+    }
+    return collapseLoops(route);
+  }
+
+  /** Raw {sweep_numbers} rows from navme_stair_chains, as soon as they're fetched —
+   *  see the module-level comment by `stairChains` for why resolution is deferred. */
+  function setStairChainRows(rows) {
+    pendingStairChainRows = rows || [];
+    resolveStairChains();
+  }
+
+  /** Turn pending {sweep_numbers} rows (Sweep.data collection indices) into sid
+   *  chains now that `sweeps` is populated. No-ops until both are available. */
+  function resolveStairChains() {
+    stairChains = [];
+    stairChainIndexBySid = null;
+    if (!pendingStairChainRows || !sweeps.length) return;
+    for (var r = 0; r < pendingStairChainRows.length; r++) {
+      var nums = pendingStairChainRows[r] && pendingStairChainRows[r].sweep_numbers;
+      if (!Array.isArray(nums)) continue;
+      var ids = [];
+      for (var n = 0; n < nums.length; n++) {
+        var idx = Number(nums[n]);
+        if (Number.isInteger(idx) && idx >= 0 && idx < sweeps.length) ids.push(sweeps[idx].sid);
+      }
+      if (ids.length >= 2) stairChains.push(ids);
+    }
+    if (stairChains.length) {
+      stairChainIndexBySid = {};
+      for (var c = 0; c < stairChains.length; c++) {
+        for (var i = 0; i < stairChains[c].length; i++) stairChainIndexBySid[stairChains[c][i]] = c;
+      }
+    }
   }
 
   function insertSkippedSweeps(ids, byId) {
@@ -776,17 +1041,41 @@
     var byId = buildSweepMap(), points = [];
     for (var i = 0; i < routeSids.length; i++) {
       var sw = byId[routeSids[i]];
-      if (sw) points.push({x:sw.position.x, y:sw.position.y, z:sw.position.z});
+      if (sw) points.push({x:sw.position.x, y:sw.position.y, z:sw.position.z, sid:sw.sid});
     }
     routeLegs = splitRouteAtLevelChanges(points);
     activeLeg = 0;
     setTrailFromActiveLeg();
   }
 
+  /**
+   * Scan-point indices of `leg` that are actual navmesh-route turns (see
+   * nextTurnIndex()), walked end to end — i.e. the same sparse waypoint sequence the
+   * auto-fly used to land on, now used to draw the floor trail too: straight lines
+   * between real turns, not a dot at every scan point along the way. Stairs legs skip
+   * this and keep the dense original sequence (unchanged, per stairs being untouched).
+   */
+  function legWaypointIndices(leg) {
+    var pts = leg.points;
+    var idxs = [0];
+    var i = 0;
+    while (i < pts.length - 1) {
+      var next = nextTurnIndex(pts, i);
+      if (next <= i) break;
+      idxs.push(next);
+      i = next;
+    }
+    return idxs;
+  }
+
   function setTrailFromActiveLeg() {
     var leg = routeLegs[activeLeg];
     if (!leg || leg.points.length < 2) { navPts = []; scheduleTrailDraw(); return; }
-    var verts = leg.points.map(function(p){ return {x:p.x, y:p.y-EYE_HEIGHT_M, z:p.z}; });
+    var srcPts = leg.points;
+    if (leg.kind === "walk") {
+      srcPts = legWaypointIndices(leg).map(function(i){ return leg.points[i]; });
+    }
+    var verts = srcPts.map(function(p){ return {x:p.x, y:p.y-EYE_HEIGHT_M, z:p.z}; });
     navPts = resamplePolylineEven(verts, DOT_SPACING_M, DOT_CAP);
     scheduleTrailDraw();
   }
@@ -1170,44 +1459,193 @@
     });
   }
 
-  // ── Re-route when user walks off trail ────────────────────────────────────────
-  function rerouteFromSweep(startSid) {
-    if (rerouting) return Promise.resolve();
-    if (!destPtMp || !routeLegs.length) return Promise.resolve();
-    var target = nearestSweep(destPtMp);
-    if (!target || target.sid === startSid) return Promise.resolve();
-    rerouting = true;
-    return Promise.resolve().then(function() {
-      var next = solveRoute(startSid, target.sid);
-      if (!next.length) { rerouting=false; return; }
-      routeSids = next;
-      applyRouteLegs();
-      return refreshPose(120).then(function(){ return faceNextPoint(); }).then(function(){
-        scheduleTrailDraw(); updateDistDisplay(); rerouting=false;
-      });
-    }).catch(function(){ rerouting=false; });
+  // Stairs legs are intentionally untouched by everything below: no re-solving, just
+  // the original fixed-path tracking (maybeAdvanceLeg + faceNextPoint), because a
+  // stair flight's scan points are already ordered by the declared chain / geometric
+  // repair and re-routing mid-flight risks jumping between flights.
+  //
+  // Walk legs instead regenerate the route from wherever the camera actually stands
+  // every time it comes to rest on a scan point (onReachedWalkStop) — the user moves
+  // the camera themselves (clicking in the Matterport view, same as always); nothing
+  // here moves it automatically. A naive re-solve on every single step was the earlier
+  // cause of a "stuck rotating in a loop" bug: in a big open room many sweeps are
+  // near-equally good, so a fresh solve could flip to a path whose first hop led
+  // straight back the way the user just came. onReachedWalkStop() guards against
+  // exactly that: a freshly solved route is rejected if its first hop is the sweep
+  // the camera was just standing on.
+  //
+  // nextTurnIndex() below is no longer used to drive the camera — only to simplify
+  // the floor trail (setTrailFromActiveLeg/legWaypointIndices) down to real navmesh
+  // turns instead of a dot at every scan point.
+
+  /**
+   * Perpendicular distance from point p to the line through a and b, in full 3-D.
+   * Degenerates to |p-a| if a and b coincide.
+   */
+  function perpDist3D(p, a, b) {
+    var abx=b.x-a.x, aby=b.y-a.y, abz=b.z-a.z;
+    var apx=p.x-a.x, apy=p.y-a.y, apz=p.z-a.z;
+    var lenSq = abx*abx+aby*aby+abz*abz;
+    if (lenSq < 1e-9) return Math.sqrt(apx*apx+apy*apy+apz*apz);
+    var t = (apx*abx+apy*aby+apz*abz)/lenSq;
+    t = Math.max(0, Math.min(1, t));
+    var cx=a.x+abx*t, cy=a.y+aby*t, cz=a.z+abz*t;
+    var dx=p.x-cx, dy=p.y-cy, dz=p.z-cz;
+    return Math.sqrt(dx*dx+dy*dy+dz*dz);
   }
 
-  // ── Sweep changes (re-aim + possible leg advance + possible re-route) ─────────
+  /**
+   * Turn points of the ROUTE itself — navPathMp, the navmesh polyline the backend
+   * routing engine produced from the original from/to, same as what the 2D map draws
+   * and turn-by-turn directions are built from — not of the scan-point sequence.
+   * Scan points are real captured positions and wobble left/right by a few tens of
+   * centimetres even down a dead-straight corridor; detecting turns on THEM (whether
+   * by angle or by distance-from-chord) means a long straight corridor still reads as
+   * a string of tiny turns. The navmesh route itself has no such capture noise — a
+   * straight corridor really is straight in it — so turns found here are the real
+   * ones. Computed once in open() (navPathMp doesn't change after that), each entry
+   * is {t, point}: t is its fractional distance along navPathMp (same parametrization
+   * projectPointOntoNavPath returns), point is its {x,y,z}.
+   */
+  let navPathTurns = [];
+
+  /**
+   * How far (metres, full 3-D) navPathMp may drift from a candidate straight chord
+   * before that stretch counts as a real turn. Looser than a scan-point tolerance
+   * would need to be, since navPathMp itself is already much cleaner.
+   */
+  const NAVPATH_TURN_TOLERANCE_M = 1.0;
+
+  function computeNavPathTurns() {
+    navPathTurns = [];
+    var pts = navPathMp;
+    if (!pts || pts.length < 2) return;
+    var segs = [], total = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var a = pts[i-1], b = pts[i];
+      var dx = b.x-a.x, dz = b.z-a.z;
+      segs.push(Math.sqrt(dx*dx+dz*dz));
+      total += segs[i-1];
+    }
+    var cum = [0];
+    for (var i = 0; i < segs.length; i++) cum.push(cum[i] + segs[i]);
+    function tAt(i) { return total > 0.1 ? cum[i] / total : 0; }
+
+    var start = 0;
+    while (start < pts.length - 1) {
+      var farthest = start + 1;
+      for (var j = start + 2; j < pts.length; j++) {
+        var straight = true;
+        for (var k = start + 1; k < j; k++) {
+          if (perpDist3D(pts[k], pts[start], pts[j]) > NAVPATH_TURN_TOLERANCE_M) { straight = false; break; }
+        }
+        if (!straight) break;
+        farthest = j;
+      }
+      navPathTurns.push({ t: tAt(farthest), point: pts[farthest] });
+      start = farthest;
+    }
+  }
+
+  /**
+   * Farthest scan-point index at/after fromIdx that lies on the same straight run of
+   * the navmesh route as pts[fromIdx] — i.e. the next real turn, snapped to the
+   * nearest scan point — else the last index of this leg (a leg boundary ends a run
+   * too — stairs or arrival).
+   *
+   * Finds the next real bend in navPathTurns strictly ahead of pts[fromIdx]'s own
+   * position along the route, then snaps that navmesh-space point to whichever scan
+   * point in THIS leg (at or after fromIdx+1) is physically nearest it. Used by
+   * legWaypointIndices() to draw the floor trail as straight lines between real turns
+   * instead of a dot at every scan point along a straight corridor.
+   */
+  function nextTurnIndex(pts, fromIdx) {
+    var n = pts.length;
+    if (fromIdx >= n - 1) return n - 1;
+    var fromProj = projectPointOntoNavPath(pts[fromIdx]);
+    var fromT = fromProj ? fromProj.t : 0;
+    var target = null;
+    for (var i = 0; i < navPathTurns.length; i++) {
+      if (navPathTurns[i].t > fromT + 1e-4) { target = navPathTurns[i].point; break; }
+    }
+    if (!target) return n - 1;
+    var bestIdx = -1, bestD = Infinity;
+    for (var j = fromIdx + 1; j < n; j++) {
+      var d = (pts[j].x-target.x)*(pts[j].x-target.x) + (pts[j].z-target.z)*(pts[j].z-target.z);
+      if (d < bestD) { bestD = d; bestIdx = j; }
+    }
+    return bestIdx >= 0 ? bestIdx : n - 1;
+  }
+
+  /**
+   * Called every time the camera comes to rest on a scan point while the camera is on
+   * (or just arrived at) a walk leg — always from the USER physically moving there
+   * (clicking a floor point in the Matterport view); nothing in this file moves the
+   * camera on its own. Re-solves the route from here to the destination (see
+   * computeRouteSids' module comment for why: it finds the right corridor again
+   * whether the user is still on the planned route or wandered off it), rejects a
+   * re-solve that would double back, then re-aims the camera — never moves it; the
+   * next step is always the user's own click, same as stairs already work.
+   */
+  function onReachedWalkStop(sid) {
+    if (!routeLegs.length) return;
+    updateDistDisplay();
+    scheduleTrailDraw();
+    if (hasArrived()) { showArrived(); noProgressSid = null; noProgressCount = 0; return; }
+    // Loop guard: if this is called again and again for the SAME scan point with no
+    // real movement in between (e.g. a degenerate re-solve that can't make progress
+    // from here), stop re-planning — just hold a passive re-aim until the camera
+    // actually lands somewhere new (which resets this and resumes normally).
+    if (sid === noProgressSid) {
+      if (++noProgressCount >= 2) { faceNextPoint(); return; }
+    } else {
+      noProgressSid = sid; noProgressCount = 0;
+    }
+    var curLeg = routeLegs[activeLeg];
+    if (curLeg && curLeg.kind === "stairs") {
+      // Stairs: untouched — original fixed-path tracking only, no re-solving.
+      maybeAdvanceLeg();
+      curLeg = routeLegs[activeLeg];
+      // maybeAdvanceLeg() may have just crossed OUT of the stairs leg (distance-based,
+      // same as always) — if so, fall through to the walk-leg handling below in this
+      // same call instead of waiting on another sweep-change event.
+      if (!curLeg || curLeg.kind === "stairs") { faceNextPoint(); return; }
+    }
+    var fromSw = sweeps.filter(function(s){ return s.sid === sid; })[0];
+    var toSw = sweeps.filter(function(s){ return s.sid === destSweepSid; })[0];
+    var regenerated = false;
+    if (fromSw && toSw) {
+      var fresh = computeRouteSids(fromSw, toSw);
+      var validFresh = fresh.length > 1 || (fresh.length === 1 && fresh[0] === destSweepSid);
+      var doublesBack = !!prevSweepSid && fresh.length > 1 && fresh[1] === prevSweepSid;
+      if (validFresh && !doublesBack) { routeSids = fresh; applyRouteLegs(); regenerated = true; }
+    }
+    if (!regenerated) maybeAdvanceLeg();
+    faceNextPoint();
+  }
+
+  /** Kick off navigation for the leg the camera is standing at the start of — a
+   *  passive re-aim only (no movement); the user clicks to actually move from here,
+   *  same for stairs and walk legs alike. */
+  function beginLegNavigation() {
+    var leg = routeLegs[activeLeg];
+    if (!leg) return Promise.resolve();
+    return faceNextPoint();
+  }
+
+  // ── Sweep changes (always a real user move — nothing here drives the camera itself) ──
   function watchSweepChanges() {
     if (!mpSdk || !mpSdk.Sweep || !mpSdk.Sweep.current) return;
     var sub = mpSdk.Sweep.current.subscribe(function(sweep) {
       var id = sweep && sweep.sid;
-      if (id) currentSweepSid = id;
       if (!id || !routeLegs.length) return;
-      // Still flying to the route start — this event describes where Showcase
-      // WAS, not where the user chose to be. Acting on it re-plans the route
-      // from the wrong end.
-      if (navLocked) return;
+      // Still flying to the route start — this event describes where Showcase WAS,
+      // not where the user chose to be.
+      if (navLocked) { currentSweepSid = id; return; }
       refreshPose(220).then(function() {
-        // The sweep we landed on may have changed again while the pose settled;
-        // only act on the one we are actually standing on.
-        if (id !== currentSweepSid) return;
-        if (routeSids.indexOf(id) < 0) { return rerouteFromSweep(id); }
-        maybeAdvanceLeg();
-        updateDistDisplay();
-        scheduleTrailDraw();
-        return faceNextPoint();
+        prevSweepSid = currentSweepSid;
+        currentSweepSid = id;
+        onReachedWalkStop(id);
       });
     });
     if (!sub) return;
@@ -1253,6 +1691,85 @@
     });
   }
 
+  // ── Navigate from me: photo -> VPS localize -> teleport + route from there ───
+  var locateBusy = false;
+  function wfSlug() {
+    try {
+      return (window.WF && window.WF.building && window.WF.building.slug)
+        || (window.WF && window.WF.cfg && window.WF.cfg.slug)
+        || new URLSearchParams(location.search).get("b") || "";
+    } catch (_) { return ""; }
+  }
+
+  function startLocateFromMe() {
+    if (locateBusy) return;
+    var input = $("n3dLocateInput");
+    if (input) input.click();
+  }
+
+  /**
+   * Photo -> VPS localize (SuperPoint + MegaLoc against this building's own scan,
+   * see platform/vps_prototype/) -> resolve the matched sweep -> teleport there and
+   * start navigation to the SAME destination this session was already opened for
+   * (destPtMp, set once in open(), is untouched by this).
+   *
+   * The CV match genuinely takes a few seconds — CPU feature extraction, no faster
+   * path exists without a GPU service — so "no lag" here means the UI stays
+   * responsive and honest about progress throughout that wait, not that the match
+   * itself becomes instant. Everything AFTER a successful match (teleport, route,
+   * begin navigation) reuses runNavigate(), the exact same fast path as a normal
+   * POI-to-POI route — no added delay once the match is in.
+   */
+  function localizeFromImage(file) {
+    if (locateBusy) return Promise.resolve();
+    locateBusy = true;
+    var btn = $("n3dLocate"); if (btn) btn.disabled = true;
+    setStatus("Locating you — analysing photo…");
+    var fd = new FormData();
+    fd.append("image", file);
+    fd.append("building", wfSlug());
+    fd.append("model_id", modelId);
+    var t0 = Date.now();
+    return fetch("/api/v1/public/vps/localize", { method: "POST", body: fd })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+      .then(function (res) {
+        var j = res.body;
+        console.info("[ThreeDNav] localize result (" + (Date.now() - t0) + "ms)", j);
+        if (!res.ok || !j || !j.success) {
+          setStatus((j && (j.detail || j.message)) || "Could not locate you from that photo");
+          return wait(2200).then(function () { setStatus(""); });
+        }
+        var conf = j.confidence || 0;
+        // Below this, SuperPoint can still return a handful of inliers for a wrong
+        // spot — too few to trust as "this is genuinely where you are."
+        var MIN_CONFIDENCE = 0.25;
+        if (conf < MIN_CONFIDENCE) {
+          setStatus("Not confident enough (" + Math.round(conf * 100) + "%) — try a clearer shot");
+          return wait(2200).then(function () { setStatus(""); });
+        }
+        var navNodes = (window.wf && window.wf.nav && window.wf.nav.nodes) || [];
+        var match = navNodes.filter(function (n) { return n.mp_index === j.nearest_sweep; })[0];
+        var here = null;
+        if (match) {
+          var liveSw = sweeps.filter(function (s) { return s.sid === match.id; })[0];
+          if (liveSw) here = liveSw.position;
+        }
+        if (!here) here = toMp({ x: j.x, y: j.y, z: j.z }); // fall back to the raw estimate
+        setStatus("Found you — " + Math.round(conf * 100) + "% match" + (j.floor ? ", " + j.floor : ""));
+        return wait(2000).then(function () {
+          setStatus("");
+          return runNavigate(here);
+        });
+      })
+      .catch(function (e) {
+        console.warn("[ThreeDNav] localize failed", e);
+        setStatus("Localization failed — " + ((e && e.message) || "network error"));
+        return wait(2200).then(function () { setStatus(""); });
+      })
+      .then(function () { locateBusy = false; if (btn) btn.disabled = false; })
+      .catch(function () { locateBusy = false; if (btn) btn.disabled = false; });
+  }
+
   // ── Route + teleport after sweeps are ready ───────────────────────────────────
   function runNavigate(fromPtMp) {
     // fromPtMp and destPtMp are in Matterport Y-up coords
@@ -1265,44 +1782,11 @@
     console.info("[ThreeDNav] FROM", fromPtMp, "→ sweep", fromSweep.sid, fromSweep.position);
     console.info("[ThreeDNav] TO  ", destPtMp, "→ sweep", toSweep.sid, toSweep.position);
     navLocked = true;
+    destSweepSid = toSweep.sid;
     setStatus("Planning route…");
 
-    // Primary: project all scan points onto the navPath polyline and order them
-    // by their position along it. This preserves the route's intended direction
-    // (correct corridor, correct stair side) regardless of what Dijkstra would
-    // pick. Dijkstra is only the fallback when the navPath is absent or yields
-    // too few scan points to draw a meaningful trail.
-    var pathIds = sweepsAlongNavPath(5);
-    if (pathIds.length >= 2) {
-      if (pathIds[0] !== fromSweep.sid) pathIds.unshift(fromSweep.sid);
-
-      // Multi-floor bridge: the flat 2-D navPath projection captures the
-      // horizontal corridor correctly but cannot reach scan points on upper
-      // floors because they are > 5 m away in X/Z from the ground-level path.
-      // If the last sweep the projection collected is still far below (or above)
-      // the destination floor, run Dijkstra only for that final vertical
-      // segment — starting from a sweep that is already in the right corridor,
-      // so the wrong-direction problem cannot occur.
-      var lastSid = pathIds[pathIds.length - 1];
-      var lastSw  = sweeps.find(function(s) { return s.sid === lastSid; });
-      var heightGap = lastSw ? Math.abs(lastSw.position.y - toSweep.position.y) : 0;
-      if (heightGap > 2.0 && lastSid !== toSweep.sid) {
-        var bridge = solveRoute(lastSid, toSweep.sid);
-        if (bridge.length > 1) bridge.shift(); // drop duplicate join point
-        pathIds = pathIds.concat(bridge);
-        console.info("[ThreeDNav] multi-floor bridge via Dijkstra from " + lastSid + " → " + toSweep.sid + " (" + bridge.length + " hops, gap " + heightGap.toFixed(1) + " m)");
-      } else if (pathIds[pathIds.length - 1] !== toSweep.sid) {
-        pathIds.push(toSweep.sid);
-      }
-
-      routeSids = pathIds;
-      console.info("[ThreeDNav] route via navPath projection: " + routeSids.length + " scan points");
-    } else {
-      // Fallback: Dijkstra on the Matterport neighbour graph.
-      routeSids = solveRoute(fromSweep.sid, toSweep.sid);
-      console.info("[ThreeDNav] route via Dijkstra (navPath had " + pathIds.length + " pts): " + routeSids.length + " scan points");
-    }
-    console.info("[ThreeDNav] route sids", routeSids);
+    routeSids = computeRouteSids(fromSweep, toSweep);
+    console.info("[ThreeDNav] route sids (" + routeSids.length + ")", routeSids);
     if (!routeSids.length) {
       navLocked = false;
       setStatus("No route found"); return Promise.resolve();
@@ -1317,8 +1801,12 @@
       .then(function(){ return wait(400); })
       .then(function(){
         currentSweepSid = routeSids[0];
+        prevSweepSid = null;
         navLocked = false;
-        return faceNextPoint();
+        // Fire-and-forget: a walk leg's auto-fly can run for the rest of the
+        // journey (re-solving and continuing turn to turn), far longer than this
+        // "settled at start" log below should wait for.
+        beginLegNavigation();
       })
       .then(function(){
         scheduleTrailDraw(); updateDistDisplay(); setStatus("");
@@ -1370,6 +1858,7 @@
       setStatus("Reading scan points…");
       sweeps = await readSweeps();
       if (gen !== openGen) return;
+      resolveStairChains();   // sweep_numbers -> sids now that sweeps exists
 
       var edges = sweeps.reduce(function(n,sw){ return n+sw.neighbours.length; }, 0);
       console.info("[ThreeDNav] " + sweeps.length + " sweeps, " + edges + " links; worldToScreen=" + (sdk.Conversion&&sdk.Conversion.worldToScreen?"sdk":"local"));
@@ -1406,7 +1895,9 @@
     mpSdk = null; lastPose = null; navPts = [];
     sweepCollection = null; sweeps = [];
     routeSids = []; routeLegs = []; activeLeg = 0;
-    currentSweepSid = null; rerouting = false; navLocked = false; arrivedShown = false;
+    currentSweepSid = null; prevSweepSid = null; destSweepSid = null;
+    noProgressSid = null; noProgressCount = 0;
+    navLocked = false; arrivedShown = false;
 
     ensureOverlay();
     resolveConfig();
@@ -1423,6 +1914,7 @@
     destPtMp     = toMp(pts[pts.length-1]);          // TO   — shown as destination pin
     // Store the full path in Matterport Y-up so sweepsAlongNavPath can use it.
     navPathMp    = pts.map(toMp);
+    computeNavPathTurns();
     // The viewer's route object does not carry the destination label on every
     // path, so fall back to the Directions "to" field the user actually typed —
     // without it the arrival card reads a bare "Destination reached".
@@ -1455,10 +1947,12 @@
     if (unsubSweep) { unsubSweep(); unsubSweep = null; }
     if (unsubSweepData) { unsubSweepData(); unsubSweepData = null; }
     if (drawRaf) { cancelAnimationFrame(drawRaf); drawRaf = 0; }
-    mpSdk = null; lastPose = null; navPts = []; navPathMp = [];
+    mpSdk = null; lastPose = null; navPts = []; navPathMp = []; navPathTurns = [];
     sweepCollection = null; sweeps = [];
     routeSids = []; routeLegs = []; activeLeg = 0;
-    currentSweepSid = null; rerouting = false; navLocked = false; arrivedShown = false;
+    currentSweepSid = null; prevSweepSid = null; destSweepSid = null;
+    noProgressSid = null; noProgressCount = 0;
+    navLocked = false; arrivedShown = false;
     var ov = $(OVERLAY_ID);
     if (ov) ov.hidden = true;
     var frame = $("n3dFrame");
@@ -1471,6 +1965,19 @@
   window.ThreeDNav = {
     open: open,
     close: close,
+    setStairChainRows: setStairChainRows,
+    localizeFromImage: localizeFromImage,
+    _debugRecompute: function(fromSid, toSid) {
+      var fromSw = sweeps.filter(function(s){return s.sid===fromSid;})[0];
+      var toSw = sweeps.filter(function(s){return s.sid===(toSid||destSweepSid);})[0];
+      if (!fromSw || !toSw) return {error:"sweep not found", fromSw:!!fromSw, toSw:!!toSw};
+      return {
+        fromProj: projectPointOntoNavPath(fromSw.position),
+        pathIdsRaw: sweepsAlongNavPath(5),
+        fresh: computeRouteSids(fromSw, toSw),
+        prevSweepSid: prevSweepSid
+      };
+    },
     get _debug() {
       return {
         sweeps: sweeps.length,
@@ -1484,7 +1991,8 @@
         legs: routeLegs.length,
         activeLeg: activeLeg,
         remaining: remainingMetres(),
-        routePoints: routeLegs.reduce(function(a, l){ return a.concat(l.points); }, [])
+        routePoints: routeLegs.reduce(function(a, l){ return a.concat(l.points); }, []),
+        navPathTurns: navPathTurns.length
       };
     }
   };

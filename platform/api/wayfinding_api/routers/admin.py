@@ -1044,8 +1044,15 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         if found:
             media_row = found[0]
 
+    # A manually-uploaded navmesh (POST .../navmesh, source="upload") is a deliberate
+    # override — usually because it fixes something the dashboard's own copy gets
+    # wrong (e.g. a connectivity gap). Silently replacing it every time this sync runs
+    # for POIs/categories undid that fix with no warning. Only let the dashboard's
+    # version back in if it is actually newer than the upload it would replace.
+    current_nm = (b.pipeline_config or {}).get("navme_navmesh") or {}
+    uploaded_at = current_nm.get("updated_at") if current_nm.get("source") == "upload" else None
     media_synced = False
-    if media_row and media_row.get("media_url"):
+    if media_row and media_row.get("media_url") and (not uploaded_at or (media_row.get("updated_at") or "") > uploaded_at):
         try:
             data = urllib.request.urlopen(media_row["media_url"], timeout=60).read()
             local_path = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
@@ -1061,10 +1068,27 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
 
     b.pipeline_config = {**(b.pipeline_config or {}), "navme_categories": categories}
 
+    # ---- Stair chains: navme_stair_chains (dashboard-declared real staircases,
+    # as Sweep.data collection indices) — used by threed_nav.js's Walkthrough
+    # Wayfinding router to stop Dijkstra from cutting through a flight via
+    # Matterport's own bottom-to-partway-up neighbour link instead of climbing it.
+    stair_chains = []
+    try:
+        q = urllib.parse.urlencode({"select": "name,sweep_numbers,sort_order",
+                                     "poi_type": f"ilike.{navme.pg_value(ptype)}",
+                                     "is_active": "is.true", "order": "sort_order.asc"})
+        sc_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_stair_chains?{q}")
+        stair_chains = [{"name": r.get("name"), "sweep_numbers": r.get("sweep_numbers") or [],
+                          "sort_order": r.get("sort_order")} for r in (sc_rows or [])]
+    except Exception:
+        pass  # best-effort; routing falls back to the geometric stair planner without these
+    b.pipeline_config = {**(b.pipeline_config or {}), "navme_stair_chains": stair_chains}
+
     db.commit()
     workspace.recompute_step_free(db, b)
     return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
-            "navmesh_synced": media_synced, "categories_synced": len(categories), "poi_type": ptype}
+            "navmesh_synced": media_synced, "categories_synced": len(categories),
+            "stair_chains_synced": len(stair_chains), "poi_type": ptype}
 
 
 @router.post("/buildings/{slug}/navmesh")

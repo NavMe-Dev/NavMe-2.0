@@ -31,9 +31,14 @@ require([
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-pois").catch(() => null),
       // NavMe Dashboard's curated category chips (name/icon_key/sort_order) — used by
       // ui.js only in Matterport mode (?mp=1) to replace the viewer's fixed chip set.
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-categories").catch(() => [])]); })
-    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories]) => {
+      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-categories").catch(() => []),
+      // NavMe Dashboard's declared staircases (Sweep.data indices) — fed to
+      // threed_nav.js's Walkthrough Wayfinding router. Empty array (not an error) for
+      // a building with none; that router falls back to its geometric stair planner.
+      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-stair-chains").catch(() => [])]); })
+    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains]) => {
       pois._navme = navmePois;
+      if (window.ThreeDNav && window.ThreeDNav.setStairChainRows) window.ThreeDNav.setStairChainRows(navmeStairChains);
       // platform config -> fields the prototype engine expects
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));
       floorsData.floors.forEach(f => { if (!/^(https?:|\/|data:)/.test(f.image)) f.image = D(f.image); });

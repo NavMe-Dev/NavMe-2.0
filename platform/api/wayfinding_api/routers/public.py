@@ -703,3 +703,17 @@ def dashboard_navme_categories(slug: str, db: Session = Depends(get_db)):
     from the dashboard's own categories instead of the viewer's fixed built-in set."""
     b = db.query(models.Building).filter_by(slug=slug).first()
     return (b.pipeline_config or {}).get("navme_categories", []) if b else []
+
+
+@router.get("/dashboard/buildings/{slug}/navme-stair-chains")
+def dashboard_navme_stair_chains(slug: str, db: Session = Depends(get_db)):
+    """NavMe Dashboard's declared staircases (navme_stair_chains: name + sweep_numbers +
+    sort_order) for this building — served from Building.pipeline_config["navme_stair_chains"]
+    (synced by POST /api/v1/admin/buildings/{slug}/navme-gmap/sync), never live from
+    Supabase. threed_nav.js's Walkthrough Wayfinding router resolves sweep_numbers
+    (Sweep.data collection indices) into sids once the live scan loads, and uses them to
+    keep Dijkstra on a real staircase instead of Matterport's own bottom-to-partway-up
+    neighbour shortcut. Empty for a building with no declared chains — routing then falls
+    back to the geometric stair planner exactly as before this existed."""
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    return (b.pipeline_config or {}).get("navme_stair_chains", []) if b else []
