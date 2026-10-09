@@ -76,7 +76,7 @@
       sweep_ids: [],            // not derivable from the mesh; tour nav falls back
       steps: steps,
       path: r.path,
-      start_gap_m: r.start_gap_m, end_gap_m: r.end_gap_m
+      start_gap_m: r.start_gap_m, end_gap_m: r.end_gap_m, partial: r.partial
     };
   };
 })();

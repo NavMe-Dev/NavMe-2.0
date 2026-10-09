@@ -679,7 +679,13 @@ require([
         const fromPoi = (fromKey === "__loc") ? null : poiById[fromKey];
         if (window.WFNav && WFNav.navmeshReady() && fromPoi && fromPoi.sdk && to.sdk) {
           const nr = WFNav.routeNavmesh(fromPoi.sdk, to.sdk);
-          if (nr && !nr.error) r = nr;
+          // nr.partial (navmesh path's own endGap > 2m, see wf_navmesh_route.js) means
+          // Recast's computePath dead-ended short of the real destination — e.g. a gap
+          // in navmesh connectivity between floors/wings. Accepting it anyway produced
+          // silently-truncated routes (premature "destination reached", miles from the
+          // actual room) instead of falling through to the sweep-graph router below,
+          // which has no such gap for the same two points.
+          if (nr && !nr.error && !nr.partial) r = nr;
         }
         // Graph fallback only when both ends actually have graph nodes.
         if (!r && fromNode && to.nearest_node) r = WFRouting.route(fromNode, to.nearest_node, { stepFree: !!opts.stepFree });

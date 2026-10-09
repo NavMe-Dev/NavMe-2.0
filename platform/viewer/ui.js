@@ -419,7 +419,7 @@ function wfDbg(level, source, message, meta) {
         html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(b.name || b.slug)}</b><div class="s">${esc([floors, b.address].filter(Boolean).join(" · "))}</div></span></li>`;
       });
       if (!buildings.length) html += `<li class="hdr" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
-      list.innerHTML = html; list.hidden = false; acSel = -1; input.setAttribute("aria-expanded", "true");
+      list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
       list.querySelectorAll("li[role=option]").forEach((li) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
       const top = $("top").getBoundingClientRect().top, fb = $("searchBox").getBoundingClientRect().bottom;
       $("top").style.setProperty("--acTop", Math.round(fb - top + 6) + "px");
@@ -454,7 +454,7 @@ function wfDbg(level, source, message, meta) {
       });
     } else if (!res.length) html += `<li class="hdr" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
     else res.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
-    list.innerHTML = html; list.hidden = false; acSel = -1; input.setAttribute("aria-expanded", "true");
+    list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
     list.querySelectorAll("li[role=option]").forEach((li, i) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
     // position under the active input (directions fields sit lower)
     const top = $("top").getBoundingClientRect().top, fb = (input === $("q") ? $("searchBox") : input.closest(".dfield")).getBoundingClientRect().bottom;
@@ -484,7 +484,7 @@ function wfDbg(level, source, message, meta) {
       target.blur(); syncDirFields(); computeRoute(); mpFocusSelection(which);
     }
   }
-  function closeAc() { $("acList").hidden = true; [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
+  function closeAc() { $("acList").hidden = true; document.body.classList.remove("ac-open"); [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
   function acKeys(input, extraFn) {
     input.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") { e.preventDefault(); if ($("acList").hidden) renderAc(input, extraFn && extraFn()); moveAc(1); }
