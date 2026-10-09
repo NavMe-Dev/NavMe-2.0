@@ -54,13 +54,16 @@ def _live_poi_sweep_ids(ctx, nav):
     auto-detected room centroids."""
     supabase_url = _env("SUPABASE_URL")
     supabase_key = _env("SUPABASE_ANON_KEY")
-    slug = ctx.cfg.get("slug")
-    if not supabase_url or not supabase_key or not slug:
+    # navme_pois.poi_type is free text in the dashboard ("POI Navme") and is matched
+    # byte-for-byte by Supabase; the slug is the URL-safe id. Prefer the verbatim value
+    # the building was onboarded with. See api/wayfinding_api/services/navme.py.
+    poi_type = (ctx.cfg.get("navme_poi_type") or "").strip() or ctx.cfg.get("slug")
+    if not supabase_url or not supabase_key or not poi_type:
         return set()
     try:
         req = urllib.request.Request(
             f"{supabase_url}/rest/v1/rpc/gmap_list_pois",
-            data=json.dumps({"p_slug": slug}).encode(),
+            data=json.dumps({"p_slug": poi_type}).encode(),
             method="POST",
             headers={"Content-Type": "application/json", "apikey": supabase_key,
                      "Authorization": f"Bearer {supabase_key}"},

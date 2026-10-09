@@ -11,7 +11,7 @@ from ..db import get_db
 from ..config import get_settings
 from .. import models, schemas
 from ..services.publish import current_version
-from ..services import navgraph, bundle_storage
+from ..services import navgraph, bundle_storage, navme
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 
@@ -428,7 +428,14 @@ def dashboard_create_building(inp: _DashboardBuildingIn, request: Request, db: S
 
 
 @router.post("/dashboard/buildings/{slug}/sync-pois")
-def dashboard_sync_pois(slug: str, request: Request, db: Session = Depends(get_db)):
+def dashboard_sync_pois(slug: str, request: Request, poi_type: str | None = None, db: Session = Depends(get_db)):
+    """Pull the dashboard's POIs for this building into our `pois` table.
+
+    `slug` is the wayfinding building id (URL-safe). `poi_type` is the dashboard's own
+    navme_pois.poi_type, verbatim — pass it whenever the caller knows it, because the
+    two differ as soon as the dashboard value has a space or a capital ("POI Navme" vs
+    "poi-navme") and Supabase matches it byte-for-byte. It is remembered on the building
+    so the admin sync, navmesh and category lookups all use the same value afterwards."""
     _verify_supabase_key(request)
     import urllib.request, urllib.error, json
     cfg = get_settings()
@@ -443,12 +450,26 @@ def dashboard_sync_pois(slug: str, request: Request, db: Session = Depends(get_d
         b = db.query(models.Building).filter(
             models.Building.slug.like(f"{slug}%")
         ).first()
+    if not b:
+        # The dashboard calls this with its own poi_type in the path, which is free text
+        # ("POI Navme") and generally is not a legal slug — match it against the verbatim
+        # value onboarding stored on the building. See services/navme.py.
+        b = db.query(models.Building).filter(
+            models.Building.pipeline_config["navme_poi_type"].astext == slug
+        ).first()
     if not b: raise HTTPException(404, f"building not found for slug '{slug}'")
 
     url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    # Use the POI type (original slug from the request) as the filter key so
-    # Supabase returns POIs for this tenant regardless of the wayfinding slug.
-    body = json.dumps({"p_slug": slug}).encode()
+    # Filter Supabase by the dashboard's poi_type, byte-for-byte: an explicit ?poi_type=
+    # from the caller wins, then whatever onboarding stored on the building, and only
+    # then the path value (which is what this did before the field existed).
+    ptype = (poi_type or "").strip() or (b.pipeline_config or {}).get("navme_poi_type") or slug
+    if (poi_type or "").strip() and (b.pipeline_config or {}).get("navme_poi_type") != ptype:
+        from sqlalchemy.orm.attributes import flag_modified
+        b.pipeline_config = navme.set_poi_type(b.pipeline_config, ptype)
+        flag_modified(b, "pipeline_config")
+        db.commit()
+    body = json.dumps({"p_slug": ptype}).encode()
     req = urllib.request.Request(url, data=body, method="POST", headers={
         "Content-Type": "application/json",
         "apikey": cfg.supabase_anon_key,
@@ -467,7 +488,9 @@ def dashboard_sync_pois(slug: str, request: Request, db: Session = Depends(get_d
 
     if not isinstance(rows, list) or not rows:
         return {"synced": 0, "created": 0, "updated": 0, "skipped": 0, "errors": [],
-                "building_slug": b.slug, "note": "gmap_list_pois returned 0 rows — ensure POIs have x/y/z set"}
+                "building_slug": b.slug, "poi_type": ptype,
+                "note": f"gmap_list_pois returned 0 rows for poi_type {ptype!r} — check the POI type "
+                        f"matches navme_pois.poi_type exactly, and that POIs have x/y/z set"}
 
     # Build floor label → floor id map from the building's floors
     floor_label_to_id: dict = {}
@@ -657,8 +680,10 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
                 except OSError:
                     pass
         if local_nm.exists():
+            nb = db.query(models.Building).filter_by(slug=slug).first()
             return {"url": f"{base_url}/{slug}_navmesh.navmesh",
-                    "label": "local-override", "poi_type": slug, "updated_at": None}
+                    "label": "local-override", "poi_type": navme.poi_type(nb) if nb else slug,
+                    "updated_at": None}
 
     b = db.query(models.Building).filter_by(slug=slug).first()
     nm = (b.pipeline_config or {}).get("navme_navmesh") if b else None
@@ -666,7 +691,7 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
         raise HTTPException(404, f"no synced navmesh for '{slug}' — "
                                   f"run POST /api/v1/admin/buildings/{slug}/navme-gmap/sync first")
     url = nm["url"] if nm["url"].startswith("http") else f"{base_url}{nm['url']}"
-    return {"url": url, "label": nm.get("label"), "poi_type": slug, "updated_at": nm.get("updated_at")}
+    return {"url": url, "label": nm.get("label"), "poi_type": navme.poi_type(b), "updated_at": nm.get("updated_at")}
 
 
 @router.get("/dashboard/buildings/{slug}/navme-categories")

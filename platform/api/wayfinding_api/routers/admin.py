@@ -12,7 +12,7 @@ from ..db import get_db
 from ..auth import current_admin, oauth2
 from ..config import get_settings
 from .. import models, schemas
-from ..services import workspace, publish as pub, navgraph
+from ..services import workspace, publish as pub, navgraph, navme
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"], dependencies=[Depends(current_admin)])
 PIPE_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "vps_index", "export"]
@@ -32,6 +32,7 @@ def bjson(db, b: models.Building):
     return {"id": b.id, "slug": b.slug, "name": b.name, "address": b.address, "lat": b.lat, "lon": b.lon, "venue": b.venue.slug if b.venue else None,
             "matterport_model_id": b.matterport_model_id, "sdk_key_ref": b.sdk_key_ref, "sdk_key_configured": bool(s.matterport_sdk_key),
             "matterpak_path": b.matterpak_path, "status": b.status, "model_info": b.model_info, "pipeline_config": b.pipeline_config, "branding": b.branding,
+            "navme_poi_type": navme.poi_type(b), "navme_poi_type_set": bool((b.pipeline_config or {}).get("navme_poi_type")),
             "georef": {k: (b.georef or {}).get(k) for k in ("mode", "method", "rotation_deg", "scale", "model_origin_wgs84", "rms_m", "max_err_m", "model_to_epsg3857_affine", "auto")} if b.georef else None,
             "floors": [{"fid": f.fid, "label": f.label, "short_label": f.short_label, "ordinal": f.ordinal, "elevation_m": f.elevation_m, "height_m": f.height_m, "mp_floor_id": f.mp_floor_id} for f in b.floors],
             "published_version": mv.version if mv else None, "last_job": {"id": lastjob.id, "status": lastjob.status, "kind": lastjob.kind} if lastjob else None,
@@ -69,6 +70,7 @@ def list_buildings(db: Session = Depends(get_db)):
 def create_building(inp: schemas.BuildingIn, db: Session = Depends(get_db)):
     if db.query(models.Building).filter_by(slug=inp.slug).first(): raise HTTPException(409, "building slug exists")
     d = inp.model_dump(); vs = d.pop("venue_slug")
+    d["pipeline_config"] = navme.set_poi_type(d.get("pipeline_config"), d.pop("navme_poi_type", None))
     b = models.Building(**d)
     if vs:
         v = db.query(models.Venue).filter_by(slug=vs).first()
@@ -102,6 +104,11 @@ def patch_building(slug: str, p: schemas.BuildingPatch, db: Session = Depends(ge
             except ValueError as e:
                 raise HTTPException(400, detail=str(e))
         d["pipeline_config"] = pc
+    if "navme_poi_type" in d:
+        # Folded into pipeline_config (no schema change) — on top of whatever this same
+        # PATCH may also be setting there, so the two can be sent together.
+        base_pc = d.get("pipeline_config") if d.get("pipeline_config") is not None else b.pipeline_config
+        d["pipeline_config"] = navme.set_poi_type(base_pc, d.pop("navme_poi_type"))
     for k, v in d.items(): setattr(b, k, v)
     if "pipeline_config" in d:
         flag_modified(b, "pipeline_config")
@@ -809,6 +816,42 @@ async def import_csv(slug: str, file: UploadFile = File(...), db: Session = Depe
     return {"created": created, "updated": updated, "errors": errors}
 
 
+@router.get("/navme/poi-types")
+def navme_poi_types():
+    """Every distinct `poi_type` the NavMe Dashboard's Supabase project knows about, verbatim.
+
+    Onboarding a client fails silently when the POI type is retyped by hand and the
+    casing/spacing drifts ("POI Navme" vs "poi-navme") — Supabase matches it exactly,
+    so a near-miss just returns zero rows. The admin UI offers this list so the value
+    is picked, never typed. Best-effort: anon RLS may hide these tables, in which case
+    the field stays free text."""
+    import urllib.request, urllib.parse, urllib.error
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
+    headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
+
+    def _rows(table, extra=None):
+        q = urllib.parse.urlencode({"select": "poi_type", "limit": "10000", **(extra or {})})
+        try:
+            req = urllib.request.Request(f"{cfg.supabase_url}/rest/v1/{table}?{q}", headers=headers)
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                return json.loads(resp.read()) or []
+        except Exception:
+            return []   # table hidden by RLS / missing — the other sources still answer
+
+    counts: dict[str, dict] = {}
+    for table, key in (("navme_pois", "pois"), ("navme_media", "media"), ("navme_categories", "categories")):
+        for r in _rows(table):
+            pt = r.get("poi_type")
+            if not isinstance(pt, str) or not pt.strip():
+                continue
+            e = counts.setdefault(pt, {"poi_type": pt, "pois": 0, "media": 0, "categories": 0})
+            e[key] += 1
+    out = sorted(counts.values(), key=lambda e: (-e["pois"], e["poi_type"].lower()))
+    return {"poi_types": out, "readable": bool(out)}
+
+
 @router.post("/buildings/{slug}/pois/sync-supabase")
 def sync_pois_from_supabase(slug: str, db: Session = Depends(get_db)):
     """Pull POIs from Supabase navme_gmap_pois (synced from navme_pois) and upsert into wayfinding."""
@@ -820,8 +863,9 @@ def sync_pois_from_supabase(slug: str, db: Session = Depends(get_db)):
     if not b.georef:
         raise HTTPException(400, "Building has no georef — set georef before syncing POIs")
     T = navgraph.GeoT(b.georef)
+    ptype = navme.poi_type(b)   # dashboard poi_type verbatim ("POI Navme"), not the slug
     url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    body = json.dumps({"p_slug": slug}).encode()
+    body = json.dumps({"p_slug": ptype}).encode()
     req = urllib.request.Request(url, data=body, method="POST", headers={
         "Content-Type": "application/json",
         "apikey": cfg.supabase_anon_key,
@@ -833,7 +877,9 @@ def sync_pois_from_supabase(slug: str, db: Session = Depends(get_db)):
     except urllib.error.HTTPError as e:
         raise HTTPException(502, f"Supabase error {e.code}: {e.read().decode()}")
     if not rows:
-        return {"synced": 0, "skipped": 0, "errors": []}
+        return {"synced": 0, "skipped": 0, "errors": [], "poi_type": ptype,
+                "note": f"gmap_list_pois returned 0 rows for poi_type {ptype!r} — check the "
+                        f"building's \u201cNavMe dashboard POI type\u201d matches navme_pois.poi_type exactly"}
     created = updated = skipped = 0; errors = []
     for row in rows:
         try:
@@ -889,6 +935,7 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
     if not b.georef:
         raise HTTPException(400, "Building has no georef — set georef before syncing POIs")
     T = navgraph.GeoT(b.georef)
+    ptype = navme.poi_type(b)   # dashboard poi_type verbatim ("POI Navme"), not the slug
     headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
 
     def _get(url):
@@ -898,7 +945,7 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
 
     # ---- POIs: gmap_list_pois RPC + expected_pos_* straight off navme_pois ----
     rpc_url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    req = urllib.request.Request(rpc_url, data=json.dumps({"p_slug": slug}).encode(), method="POST",
+    req = urllib.request.Request(rpc_url, data=json.dumps({"p_slug": ptype}).encode(), method="POST",
                                   headers={**headers, "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -946,20 +993,17 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         existing.floor = str(r.get("floor_id") or "F1")
         existing.model_x, existing.model_y, existing.model_z = x, y, z
         existing.geom = WKTElement(f"POINT({lon} {lat})", srid=4326)
-        existing.extra = {**(existing.extra or {}), "gmap_poi_type": slug, "gmap_src_id": src_id,
+        existing.extra = {**(existing.extra or {}), "gmap_poi_type": ptype, "gmap_src_id": src_id,
                            "gmap_metadata": meta, "expected_pos_x": exp.get("expected_pos_x"),
                            "expected_pos_y": exp.get("expected_pos_y"), "expected_pos_z": exp.get("expected_pos_z")}
 
     # ---- Navmesh media: find the active row, download the file onto local disk ----
-    base = slug.split("-")[0]
-    seen_c, candidates = set(), []
-    for c in (slug, slug.upper(), base, base.upper()):
-        if c not in seen_c:
-            seen_c.add(c); candidates.append(c)
+    candidates = navme.media_candidates(b)
     media_row = None
     for cand in candidates:
         q = urllib.parse.urlencode({"select": "poi_type,label,media_url,updated_at", "media_type": "eq.navmesh",
-                                     "is_active": "is.true", "poi_type": f"eq.{cand}", "order": "updated_at.desc", "limit": "1"})
+                                     "is_active": "is.true", "poi_type": f"eq.{navme.pg_value(cand)}",
+                                     "order": "updated_at.desc", "limit": "1"})
         try:
             found = _get(f"{cfg.supabase_url}/rest/v1/navme_media?{q}")
         except Exception:
@@ -967,8 +1011,12 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         if found:
             media_row = found[0]; break
     if not media_row:
+        # PostgREST maps * -> % only on an unquoted value, and a poi_type with spaces
+        # has to be quoted — so send the % wildcard itself rather than *.
+        prefix = navme.pg_value(ptype + "%")
         q = urllib.parse.urlencode({"select": "poi_type,label,media_url,updated_at", "media_type": "eq.navmesh",
-                                     "is_active": "is.true", "poi_type": f"ilike.{base.upper()}*", "order": "updated_at.desc", "limit": "1"})
+                                     "is_active": "is.true", "poi_type": f"ilike.{prefix}",
+                                     "order": "updated_at.desc", "limit": "1"})
         try:
             found = _get(f"{cfg.supabase_url}/rest/v1/navme_media?{q}")
         except Exception:
@@ -994,7 +1042,8 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
     # ---- Categories: navme_categories (dashboard-curated POI category chips) ----
     categories = []
     try:
-        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order", "poi_type": f"ilike.{slug}",
+        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order",
+                                     "poi_type": f"ilike.{navme.pg_value(ptype)}",
                                      "order": "sort_order.asc,name.asc"})
         rows = _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}")
         categories = [{"id": r.get("id"), "name": r.get("name"), "icon_key": r.get("icon_key"),
@@ -1006,7 +1055,7 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
     db.commit()
     workspace.recompute_step_free(db, b)
     return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
-            "navmesh_synced": media_synced, "categories_synced": len(categories)}
+            "navmesh_synced": media_synced, "categories_synced": len(categories), "poi_type": ptype}
 
 
 @router.post("/buildings/{slug}/navmesh")

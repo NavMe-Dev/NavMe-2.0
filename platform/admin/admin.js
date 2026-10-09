@@ -12,6 +12,14 @@ const CAT_COLORS = { room: "#1a73e8", hall: "#9334e6", corridor: "#5f6368", entr
   parking: "#1967d2", outdoor: "#34a853", info: "#f9ab00", office: "#1a73e8", worship: "#9334e6", kitchen: "#c5221f", other: "#80868b" };
 const R = 6378137;
 
+async function readJson(r) {
+  const ct = r.headers.get("content-type") || "";
+  if (ct.includes("json")) {
+    try { return await r.json(); } catch { return { detail: "Server returned invalid JSON (" + r.status + ")" }; }
+  }
+  const text = (await r.text().catch(() => "")).trim();
+  return { detail: text ? (text.length > 200 ? text.slice(0, 200) + "…" : text) : ("HTTP " + r.status) };
+}
 async function api(path, opts = {}) {
   const h = Object.assign({}, opts.headers || {});
   if (store.token) h.Authorization = "Bearer " + store.token;
@@ -245,7 +253,7 @@ const Login = {
       busy.value = true; err.value = "";
       try {
         const r = await fetch(API + "/auth/login", { method: "POST", body: new URLSearchParams({ username: email.value, password: pw.value }) });
-        const j = await r.json(); if (!r.ok) throw new Error(j.detail || "login failed");
+        const j = await readJson(r); if (!r.ok) throw new Error(j.detail || "login failed");
         store.token = j.access_token; localStorage.setItem("wf_admin_token", j.access_token); go("/");
       } catch (e) { err.value = e.message; } busy.value = false;
     }
@@ -296,7 +304,7 @@ const Buildings = {
       try {
         const fd = new FormData(); fd.append("file", file);
         const r = await fetch(`${API}/admin/buildings/import-bundle`, { method: "POST", headers: { Authorization: "Bearer " + store.token }, body: fd });
-        const j = await r.json();
+        const j = await readJson(r);
         if (!r.ok) throw new Error(j.detail || r.statusText);
         importOk.value = `Imported ${j.slug} v${j.version} — ${j.floors} floors, ${j.pois} POIs, ${j.files} files. No MatterPak or pipeline run needed on this server.`;
         list.value = await api("/admin/buildings");
@@ -308,6 +316,51 @@ const Buildings = {
 };
 function stCls(s) { return { published: "ok", ready: "blue", failed: "bad", processing: "run", queued: "run" }[s] || ""; }
 function viewerUrl(b) { return (window.WF_VIEWER_URL || "/") + "?b=" + b.slug; }
+
+// ---- NavMe dashboard POI type -------------------------------------------------
+// navme_pois.poi_type is free text typed by whoever set the client up in the NavMe
+// dashboard — "Sparkhouse", "POI Navme", "Tacoma Mall - L1". Supabase matches it
+// byte-for-byte, so a value that was retyped (or slugified on its way through this
+// UI) just returns zero rows: no error, no POIs, no navmesh. Offer the real list
+// instead of trusting typing, and let it be verified before anything is saved.
+let _poiTypeCatalog = null;
+function loadPoiTypeCatalog(force) {
+  if (force) _poiTypeCatalog = null;
+  if (!_poiTypeCatalog) {
+    _poiTypeCatalog = api("/admin/navme/poi-types").then(j => j.poi_types || []).catch(() => []);
+  }
+  return _poiTypeCatalog;
+}
+// Compare the way a human would when they say "it's the same name" — the mismatches
+// that cause this bug are spacing, hyphens and case, nothing else.
+function poiTypeFold(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, ""); }
+function usePoiType(f, field) {
+  field = field || "navme_poi_type";
+  const poiTypeOptions = ref([]), poiTypeBusy = ref(false), poiTypeMsg = ref(""), poiTypeErr = ref(false);
+  loadPoiTypeCatalog().then(list => { poiTypeOptions.value = list; });
+  async function checkPoiType() {
+    const want = (f[field] || "").trim();
+    if (!want) return;
+    poiTypeBusy.value = true; poiTypeMsg.value = ""; poiTypeErr.value = false;
+    const list = await loadPoiTypeCatalog(true);
+    poiTypeOptions.value = list;
+    const hit = list.find(o => o.poi_type === want);
+    if (hit) {
+      poiTypeMsg.value = `Exact match in Supabase — ${hit.pois} POIs, ${hit.categories} categories, ${hit.media} media rows.`;
+    } else if (!list.length) {
+      poiTypeErr.value = true;
+      poiTypeMsg.value = "Couldn't read the dashboard's POI types (Supabase not configured here, or the tables are hidden from the anon key). The value will be sent exactly as typed.";
+    } else {
+      const near = list.filter(o => poiTypeFold(o.poi_type) === poiTypeFold(want));
+      poiTypeErr.value = true;
+      poiTypeMsg.value = near.length
+        ? `No exact match. Supabase spells it "${near[0].poi_type}" (${near[0].pois} POIs) — same letters, different spacing/case. Use that spelling exactly.`
+        : `No POI type "${want}" in Supabase. Pick one of the ${list.length} values from the dropdown.`;
+    }
+    poiTypeBusy.value = false;
+  }
+  return { poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType };
+}
 
 const Wizard = {
   template: `<div><h1>{{t("admin.addBuildingTitle")}}</h1>
@@ -333,6 +386,16 @@ const Wizard = {
       <h3 style="margin-top:0">Building details</h3>
       <label>Building name</label><input v-model="f.name" @input="autoslug" :disabled="created">
       <label>Slug (URL id)</label><input v-model="f.slug" @input="onSlugInput" pattern="[a-z0-9\-]+" :disabled="created">
+      <p class="muted small" style="margin:-4px 0 10px">Used in URLs and filenames, so it is forced to lowercase letters, digits and hyphens. It does <b>not</b> have to match the dashboard.</p>
+      <label>NavMe dashboard POI type <span class="muted small">(exact — spaces and capitals kept)</span></label>
+      <div class="row">
+        <input class="grow" v-model="f.navme_poi_type" list="navme-poi-types" spellcheck="false" autocapitalize="off" autocorrect="off"
+               :placeholder="f.slug || 'e.g. POI Navme'" style="width:auto;flex:1">
+        <button @click="checkPoiType" :disabled="!f.navme_poi_type||poiTypeBusy"><span v-if="poiTypeBusy" class="spinner"></span>{{poiTypeBusy ? 'Checking…' : 'Check'}}</button>
+      </div>
+      <datalist id="navme-poi-types"><option v-for="o in poiTypeOptions" :key="o.poi_type" :value="o.poi_type">{{o.pois}} POIs</option></datalist>
+      <p class="small" v-if="poiTypeMsg" :class="poiTypeErr ? 'err' : 'ok'" style="margin:4px 0 0">{{poiTypeMsg}}</p>
+      <p class="muted small" style="margin:4px 0 10px">The <code>poi_type</code> value in the dashboard's <code>navme_pois</code> table, copied character for character — Supabase matches it exactly, so <span class="mono">POI Navme</span> and <span class="mono">poi-navme</span> are different tenants. Leave blank only if it is identical to the slug.</p>
       <label>Venue / campus (optional slug – buildings sharing a venue appear on one map)</label><input v-model="f.venue_slug" placeholder="e.g. main-campus" :disabled="created">
       <label>Address</label><div class="row"><input class="grow" v-model="f.address" style="width:auto;flex:1" :disabled="created"><button @click="geocode" :disabled="!f.address||busy||created">Geocode</button></div>
       <div class="row"><div class="grow"><label>Latitude</label><input v-model.number="f.lat" type="number" step="any" :disabled="created"></div><div class="grow"><label>Longitude</label><input v-model.number="f.lon" type="number" step="any" :disabled="created"></div></div>
@@ -389,12 +452,16 @@ const Wizard = {
     const _preSid = /^[A-Za-z0-9]{6,64}$/.test(_rawSid) ? _rawSid : '';
     const _preSlug = _hq.get('slug') || '';
     const _anonKey = _hq.get('anon_key') || ''; // Supabase anon key for auto POI sync
-    const step = ref(0), f = reactive({ matterport_model_id: _preSid, name: _preSlug, slug: _preSlug, venue_slug: "", address: "", lat: null, lon: null, sdk_key_ref: "MATTERPORT_SDK_KEY", matterpak_path: "" });
+        // ?poi_type= carries the dashboard's exact value (spaces/capitals intact) when the
+    // wizard is opened from the NavMe dashboard; ?slug= is already URL-safe there.
+    const _prePoiType = _hq.get('poi_type') || '';
+    const step = ref(0), f = reactive({ matterport_model_id: _preSid, name: _preSlug, slug: _preSlug, navme_poi_type: _prePoiType, venue_slug: "", address: "", lat: null, lon: null, sdk_key_ref: "MATTERPORT_SDK_KEY", matterpak_path: "" });
     const mp = ref(null), err = ref(""), busy = ref(false), geo = ref(""), file = ref(null), progress = ref(""), jobId = ref(null), done = ref(""), filledFromMp = ref(false), fileTooBig = ref(false);
     const isLocalDev = isLocalDevHost(), serverPath = ref(""), pathSuggestions = ref([]);
     if (isLocalDev) { api("/admin/matterpak/suggestions").then(j => { pathSuggestions.value = j.paths || []; }).catch(() => {}); }
     const mpApiBusy = ref(false), mpApiChecked = ref(""), mpApiResolutions = ref([]), mpApiErr = ref("");
     const created = ref(false);
+    const { poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType } = usePoiType(f);
     const wrap = async (fn) => { busy.value = true; err.value = ""; try { await fn(); } catch (e) { err.value = e.message; } busy.value = false; };
     const normalizeModelId = (raw) => {
       const s = (raw || "").trim();
@@ -427,13 +494,21 @@ const Wizard = {
     // The slug field is also directly editable (e.g. pasting a POI-type value like
     // "Sparkhouse" straight from elsewhere) — sanitize it the same way autoslug()
     // does for the name field, so whatever case/characters come in, the slug sent
-    // to the API already matches its required pattern instead of 422ing.
-    const onSlugInput = () => { if (!created.value) f.slug = slugify(f.slug); };
+    // to the API already matches its required pattern instead of 422ing. The original
+    // text is kept as the dashboard POI type (if that field is still empty), because
+    // slugifying it is exactly what breaks the Supabase lookup.
+    const onSlugInput = () => {
+      if (created.value) return;
+      const raw = f.slug;
+      f.slug = slugify(raw);
+      if (!f.navme_poi_type && raw && raw !== f.slug) f.navme_poi_type = raw.trim();
+    };
     const geocode = () => wrap(async () => { const g = await api("/admin/geocode?q=" + encodeURIComponent(f.address)); f.lat = g.lat; f.lon = g.lon; geo.value = "Found: " + g.label; });
     const create = () => wrap(async () => {
       f.slug = slugify(f.slug);
       try {
-        await api("/admin/buildings", { method: "POST", json: { ...f, venue_slug: f.venue_slug || null, matterpak_path: null } });
+        await api("/admin/buildings", { method: "POST", json: { ...f, venue_slug: f.venue_slug || null, matterpak_path: null,
+          navme_poi_type: (f.navme_poi_type || "").trim() || null } });
       } catch (e) {
         if (/slug exists/i.test(e.message)) throw new Error(`Slug "${f.slug}" is already used by another building — change the Slug field above and try again.`);
         throw e;
@@ -443,7 +518,7 @@ const Wizard = {
       if (_anonKey && f.slug) {
         try {
           const origin = window.location.origin;
-          await fetch(`${origin}/api/v1/public/dashboard/buildings/${f.slug}/sync-pois`, {
+          await fetch(`${origin}/api/v1/public/dashboard/buildings/${encodeURIComponent(f.slug)}/sync-pois`, {
             method: "POST",
             headers: { "x-supabase-anon-key": _anonKey },
           });
@@ -529,7 +604,7 @@ const Wizard = {
     const wizardSteps = computed(() => { i18nTick.value; return [t("admin.wizardDetails"), t("admin.wizardProcess")]; });
     // Auto-fetch Matterport info when wizard opens with a pre-filled SID
     onMounted(() => { if (_preSid) lookup(); });
-    return { step, f, mp, err, busy, geo, file, progress, jobId, done, filledFromMp, fileTooBig, isLocalDev, serverPath, pathSuggestions, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, onSlugInput, geocode, create, onFile, upload, usePath, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps };
+    return { step, f, mp, err, busy, geo, file, progress, jobId, done, filledFromMp, fileTooBig, isLocalDev, serverPath, pathSuggestions, mpApiBusy, mpApiChecked, mpApiResolutions, mpApiErr, created, lookup, onModelChange, onPaste, autoslug, onSlugInput, geocode, create, onFile, upload, usePath, checkMpApi, fetchFromMatterport, run, t, i18nTick, wizardSteps, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType };
   }
 };
 
@@ -616,6 +691,17 @@ const Overview = {
       <div>Centre</div><div class="mono">{{mi.center ? mi.center.lat.toFixed(6)+', '+mi.center.lon.toFixed(6) : '—'}}</div></div></div>
     <div class="card"><h2 style="margin-top:0">NavMe Dashboard sync</h2>
       <p class="muted small">Pulls this building's POIs and navmesh from the NavMe Dashboard's Supabase project into this server's own existing <code>pois</code> table (source="supabase") and local disk — no new tables. The public viewer and admin route tester always read from here — never live from Supabase — so re-run this whenever POIs or the navmesh change in the dashboard.</p>
+      <label>Dashboard POI type <span class="muted small">(exact — spaces and capitals kept)</span></label>
+      <div class="row">
+        <input class="grow" v-model="pt.navme_poi_type" list="navme-poi-types-overview" spellcheck="false" autocapitalize="off" autocorrect="off"
+               :placeholder="b.slug" style="width:auto;flex:1">
+        <button class="sm" @click="checkPoiType" :disabled="!pt.navme_poi_type||poiTypeBusy"><span v-if="poiTypeBusy" class="spinner"></span>{{poiTypeBusy ? 'Checking…' : 'Check'}}</button>
+        <button class="sm" @click="savePoiType" :disabled="poiTypeSaving">{{poiTypeSaving ? 'Saving…' : 'Save POI type'}}</button>
+      </div>
+      <datalist id="navme-poi-types-overview"><option v-for="o in poiTypeOptions" :key="o.poi_type" :value="o.poi_type">{{o.pois}} POIs</option></datalist>
+      <p class="small" v-if="poiTypeMsg" :class="poiTypeErr ? 'err' : 'ok'" style="margin:4px 0 0">{{poiTypeMsg}}</p>
+      <p class="small ok" v-if="poiTypeSaved" style="margin:4px 0 0">Saved — sync now uses this value.</p>
+      <p class="muted small" style="margin:4px 0 10px">The <code>poi_type</code> in the dashboard's <code>navme_pois</code> table, character for character. Supabase matches it exactly, so <span class="mono">POI Navme</span> and <span class="mono">poi-navme</span> are different tenants. Blank falls back to the slug <span class="mono">{{b.slug}}</span>.</p>
       <button class="sm primary" @click="syncNavmeGmap" :disabled="gmapBusy"><span v-if="gmapBusy" class="spinner"></span>{{gmapBusy ? 'Syncing…' : 'Sync from NavMe Dashboard'}}</button>
       <p class="small" v-if="gmapMsg" :class="gmapErr ? 'err' : 'ok'" style="margin-top:8px">{{gmapMsg}}</p>
       <hr style="margin:14px 0;border:none;border-top:1px solid #e0e0e0">
@@ -833,6 +919,7 @@ const Overview = {
       e.enabled_languages = enabledFromBranding(nb.branding);
       e.pipeline = JSON.stringify(nb.pipeline_config || {}, null, 1);
       e.debug_override = debugOvFromPc(nb.pipeline_config);
+      pt.navme_poi_type = nb.navme_poi_type_set ? nb.navme_poi_type : "";
     });
     async function save() {
       err.value = ""; saved.value = false;
@@ -864,13 +951,29 @@ const Overview = {
       } catch (x) { delErr.value = x.message; }
       delBusy.value = false;
     }
+    // Blank until explicitly set: bjson falls back to the slug, and echoing that back
+    // into the field would silently persist the slug as a real poi_type.
+    const pt = reactive({ navme_poi_type: props.b.navme_poi_type_set ? props.b.navme_poi_type : "" });
+    const { poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType } = usePoiType(pt);
+    const poiTypeSaving = ref(false), poiTypeSaved = ref(false);
+    async function savePoiType() {
+      poiTypeSaving.value = true; poiTypeSaved.value = false; poiTypeErr.value = false;
+      try {
+        await api(`/admin/buildings/${props.b.slug}`, { method: "PATCH", json: { navme_poi_type: (pt.navme_poi_type || "").trim() || null } });
+        poiTypeSaved.value = true; emit("reload");
+      } catch (x) { poiTypeErr.value = true; poiTypeMsg.value = x.message; }
+      poiTypeSaving.value = false;
+    }
     const gmapBusy = ref(false), gmapMsg = ref(""), gmapErr = ref(false);
     async function syncNavmeGmap() {
       gmapBusy.value = true; gmapMsg.value = ""; gmapErr.value = false;
       try {
         const r = await api(`/admin/buildings/${props.b.slug}/navme-gmap/sync`, { method: "POST" });
         gmapMsg.value = `Synced ${r.pois_total} POIs (${r.pois_created} new, ${r.pois_updated} updated)` +
-          (r.navmesh_synced ? ", navmesh updated." : ", no active navmesh found.");
+          (r.navmesh_synced ? ", navmesh updated." : ", no active navmesh found.") +
+          (r.poi_type ? ` POI type: "${r.poi_type}".` : "") +
+          (r.pois_total === 0 ? " Zero rows usually means the POI type above doesn't match navme_pois.poi_type exactly — hit Check." : "");
+        gmapErr.value = r.pois_total === 0;
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }
@@ -893,14 +996,14 @@ const Overview = {
       try {
         const fd = new FormData(); fd.append("file", file);
         const r = await fetch(`${API}/admin/buildings/${props.b.slug}/navmesh`, { method: "POST", headers: { Authorization: "Bearer " + store.token }, body: fd });
-        const j = await r.json();
+        const j = await readJson(r);
         if (!r.ok) throw new Error(j.detail || r.statusText);
         navmeshMsg.value = `Uploaded ${(j.bytes/1e6).toFixed(2)} MB as the active navmesh.`;
         props.b.pipeline_config = { ...(props.b.pipeline_config||{}), navme_navmesh: j.navme_navmesh };
       } catch (x) { navmeshErr.value = true; navmeshMsg.value = x.message; }
       navmeshBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, pt, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType, poiTypeSaving, poiTypeSaved, savePoiType, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
   }
 };
 
@@ -2142,7 +2245,7 @@ const ScanPlan = {
         const r = await fetch(API + "/admin/scan-plans/" + props.id + "/upload", {
           method: "POST", headers: { Authorization: "Bearer " + store.token }, body: fd
         });
-        const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.statusText);
+        const j = await readJson(r); if (!r.ok) throw new Error(j.detail || r.statusText);
         meta.value = j; toast("Uploaded"); await loadImage();
       } catch (e) { err.value = e.message; }
       busy.value = false; ev.target.value = "";

@@ -26,6 +26,10 @@ class BuildingIn(BaseModel):
     matterpak_path: str | None = None
     pipeline_config: dict = {}
     branding: dict = {}
+    # NavMe Dashboard navme_pois.poi_type, verbatim — free text with spaces/capitals
+    # ("POI Navme"), deliberately NOT slug-validated. Stored in
+    # pipeline_config["navme_poi_type"]; see services/navme.py.
+    navme_poi_type: str | None = None
 
 
 class BuildingPatch(BaseModel):
@@ -39,6 +43,7 @@ class BuildingPatch(BaseModel):
     matterpak_path: str | None = None
     pipeline_config: dict | None = None
     branding: dict | None = None
+    navme_poi_type: str | None = None
 
 
 class FloorIn(BaseModel):

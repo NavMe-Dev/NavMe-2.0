@@ -15,8 +15,11 @@ async function wfFetch(baseUrl, path, opts = {}) {
   return fetch(`${baseUrl}${path}`, { ...opts, headers });
 }
 
-function openWizard(url, slug, sid) {
-  const params = new URLSearchParams({ slug, sid: sid || '', anon_key: getSupabaseAnonKey() });
+// The wayfinding slug is URL-safe; our poi_type is free text ("POI Navme") and is what
+// Supabase matches on. Hand both over so the wizard doesn't have to guess one from the
+// other — slugifying the poi_type is exactly what makes the POI sync come back empty.
+function openWizard(url, slug, sid, poiType) {
+  const params = new URLSearchParams({ slug, sid: sid || '', poi_type: poiType || '', anon_key: getSupabaseAnonKey() });
   window.open(`${url}/admin/#/new?${params}`, '_blank');
 }
 
@@ -210,7 +213,7 @@ export function createGmapPanel(slot) {
 
       if (!info) {
         // Building doesn't exist yet — open wizard
-        openWizard(base, slug, _mapCode);
+        openWizard(base, slug, _mapCode, String(poiType));
       }
     } catch (e) {
       setStatus(urlStatus, 'Error: ' + e.message, false);
@@ -229,7 +232,7 @@ export function createGmapPanel(slot) {
     if (ready) {
       window.open(`${url}/admin/#/b/${slug}/routes`, '_blank');
     } else {
-      openWizard(url, slug, b.matterport_sid || _mapCode);
+      openWizard(url, slug, b.matterport_sid || _mapCode, String(getPoiType() || ''));
     }
   });
 
@@ -247,7 +250,9 @@ export function createGmapPanel(slot) {
 
       const url = (b.wayfinding_admin_url || '').replace(/\/$/, '');
       if (url && b.slug) {
-        const r = await wfFetch(url, `/api/v1/public/dashboard/buildings/${b.slug}/sync-pois`, { method: 'POST' });
+        // slug addresses the building; poi_type is the verbatim Supabase filter key.
+        const r = await wfFetch(url, `/api/v1/public/dashboard/buildings/${encodeURIComponent(b.slug)}/sync-pois`
+          + `?poi_type=${encodeURIComponent(String(poiType))}`, { method: 'POST' });
         const j = await r.json().catch(() => ({}));
         if (r.ok) setStatus(manageStatus, `✓ ${j.created ?? 0} created, ${j.updated ?? 0} updated in wayfinding.`, true);
         else setStatus(manageStatus, `Supabase synced. Wayfinding: ${j.detail || r.status}`, false);
