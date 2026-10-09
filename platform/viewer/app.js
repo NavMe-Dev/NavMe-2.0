@@ -295,7 +295,7 @@ require([
         if (live) { window.wf.meshLiveColor = live; if (window.wf.onMeshLiveColor) window.wf.onMeshLiveColor(live); }
         status("3D · " + (window.wf.style && window.wf.style !== "satellite" ? (window.wf.styleLabel + " · indoor blocks + OSM buildings") : "Matterport mesh (" + key + ", glass)") + " · ground " + ground0.toFixed(1) + " m");
         window.wf.meshReady = true;
-        applyVisibility();   // re-evaluate shell3d's visibility now that meshReady flipped true
+        if (window.wf.onStyleFloor) window.wf.onStyleFloor();   // re-evaluate shell3d's visibility now that meshReady flipped true
         if (activeView === view3d) fit3DCamera({ animate: true, duration: 700 });
       }).catch(e => { status("mesh load failed: " + e.message); console.error(e); });
     }

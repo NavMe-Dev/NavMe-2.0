@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261009pickmap1">
+<link rel="stylesheet" href="ui.css?v=20261009chipall1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script src="vendor/ngraph.graph.min.js"></script>
 <script src="vendor/ngraph.path.min.js"></script>
@@ -70,7 +70,10 @@
       </div>
     </div>
     <ul id="acList" class="ac" role="listbox" aria-label="Suggestions" data-i18n-aria-label="viewer.suggestions" hidden></ul>
-    <div id="chips" class="chips" role="toolbar" aria-label="Filter places by category" data-i18n-aria-label="viewer.filterByCategory"></div>
+    <div id="chipsWrap" class="chips-wrap">
+      <div id="chips" class="chips" role="toolbar" aria-label="Filter places by category" data-i18n-aria-label="viewer.filterByCategory"></div>
+      <div id="chipsDropdown" class="chips-dropdown" role="listbox" aria-label="All categories" hidden></div>
+    </div>
   </header>
 
   <section id="sheet" class="sheet" aria-label="Details" data-i18n-aria-label="viewer.details" data-state="peek">
@@ -96,7 +99,11 @@
     <button id="btnLabels" class="fab" aria-pressed="false" aria-label="Show place labels" data-i18n-aria-label="viewer.toggleLabels" title="Labels"><span class="ms">label</span></button>
   </div>
   <div id="ctrls" class="ctrls cbot">
-    <div id="floorPicker" class="floorpicker" role="radiogroup" aria-label="Floor" data-i18n-aria-label="viewer.floor" hidden>
+    <div id="floorPicker" class="floorpicker" hidden>
+      <button type="button" id="floorToggle" class="fab floor-stack" aria-haspopup="true" aria-expanded="false" aria-label="Floors" data-i18n-aria-label="viewer.floor" title="Floors">
+        <span class="ms">layers</span><span id="floorToggleLabel" class="floor-stack-label"></span>
+      </button>
+      <div id="floorList" class="fp-list" role="radiogroup" aria-label="Floor" data-i18n-aria-label="viewer.floor"></div>
     </div>
     <button id="btnMe" class="fab me" aria-label="Your location" data-i18n-aria-label="viewer.yourLocation"><span class="ms">my_location</span></button>
     <div class="fabgroup zoomg">
@@ -304,14 +311,14 @@
 <script src="/locales/i18n.js"></script>
 <script src="wf-config.js"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
-<script src="wf-boot.js"></script>
+<script src="wf-boot.js?v=20261009stackmenu1"></script>
 <script src="wf_mesh_overlay.js?v=20261005overlay8"></script>
-<script src="app.js?v=20261009greyplan1"></script>
+<script src="app.js?v=20261009visfix1"></script>
 <script src="mp_preview.js?v=20261009pickmap1"></script>
 <script src="mp_background.js?v=20261009bootwait1"></script>
 <script src="threed_nav.js?v=20261005hybrid17"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261009bootwait1"></script>
+<script src="ui.js?v=20261009chipall1"></script>
 </body>
 </html>

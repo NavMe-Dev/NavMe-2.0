@@ -107,7 +107,12 @@ function wfDbg(level, source, message, meta) {
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));
     loadCampus();
     if (window.WFi18n) WFi18n.onChange(() => refreshI18nChrome());
-    fetch(WF.D(WF.cfg.files.thumbs)).then(r => r.json()).then(a => thumbs = new Set(a)).catch(() => { });
+    fetch(WF.D(WF.cfg.files.thumbs)).then(r => r.json()).then(a => {
+      thumbs = new Set(a);
+      // Thumbnails resolve after the building-home card may have already rendered with
+      // no gallery (thumbs was still empty at that point) — refresh it once they're in.
+      if (S.mode === "home") showBuildingHome();
+    }).catch(() => { });
     // map chrome: hide ArcGIS default widgets except attribution
     wf.view2d.ui.components = ["attribution"];
     wf.on3DCreated = (v) => { v.ui.components = ["attribution"]; };
@@ -511,18 +516,42 @@ function wfDbg(level, source, message, meta) {
   }
 
   // ---------------- chips ----------------
+  // Horizontal scrolling row of chip buttons (as before), an "All" chip pinned first,
+  // plus one trailing icon-only "more" pill that opens a dropdown with the complete
+  // category list laid out in full (no internal scroll) for buildings with more
+  // categories than comfortably fit in the row.
+  const ALL_CAT = "__all__";
+  function chipBtnHtml(c, l, icon, color) {
+    return `<button class="chip" data-cat="${c}" aria-pressed="false"><span class="ms" style="color:${color}">${icon}</span>${l}</button>`;
+  }
+  function allChipHtml() {
+    return chipBtnHtml(ALL_CAT, esc(t("viewer.allCategories") || "All"), "apps", "var(--txt2)");
+  }
   function buildChips() {
     const chips = CHIPS();
-    $("chips").innerHTML = chips.map(([c, l]) => `<button class="chip" data-cat="${c}" aria-pressed="false"><span class="ms" style="color:${rgb(CAT[c].color)}">${CAT[c].icon}</span>${l}</button>`).join("");
-    $("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
+    const chipsHtml = chips.map(([c, l]) => chipBtnHtml(c, l, CAT[c].icon, rgb(CAT[c].color))).join("");
+    $("chips").innerHTML = allChipHtml() + chipsHtml
+      + `<button type="button" id="chipsMore" class="chip chip-more" aria-haspopup="listbox" aria-expanded="false" aria-controls="chipsDropdown" aria-label="${esc(t("viewer.moreCategories") || "More categories")}"><span class="ms">expand_more</span></button>`;
+    $("chips").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
+    $("chipsDropdown").innerHTML = allChipHtml() + chipsHtml;
+    $("chipsDropdown").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
+    $("chipsMore").onclick = () => setChipsOpen($("chipsDropdown").hidden);
+  }
+  function setChipsOpen(open) {
+    $("chipsDropdown").hidden = !open;
+    $("chipsMore").setAttribute("aria-expanded", String(!!open));
   }
   function toggleChip(c) {
     S.filter = S.filter === c ? null : c;
-    $("chips").querySelectorAll(".chip").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
-    wf.poiFilter = S.filter ? new Set([S.filter]) : null; wf.redrawPOIs();
+    document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    $("chipsMore").classList.toggle("active", !!(S.filter && S.filter !== ALL_CAT));
+    setChipsOpen(false);
+    const showingAll = S.filter === ALL_CAT;
+    wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
     if (!S.filter) { showHome(); return; }
-    const items = POIS.filter(p => p.category === S.filter);
-    S.mode = "list"; setSheet(listHtml(items, (CHIPS().find(x => x[0] === c) || [, c])[1]), "half");
+    const items = showingAll ? POIS.slice() : POIS.filter(p => p.category === S.filter);
+    const title = showingAll ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === c) || [, c])[1];
+    S.mode = "list"; setSheet(listHtml(items, title), "half");
     bindList(items);
     if (items.length) {
       const fl = items.map(p => p.floor); const F = fl.includes(wf.currentFloor()) ? wf.currentFloor() : fl[0]; wf.setFloor(F);
@@ -741,25 +770,17 @@ function wfDbg(level, source, message, meta) {
   function showBuildingHome() {
     S.mode = "home"; document.body.classList.remove("dir");
     setUxMode("places");
-    const ents = wf.nav.nodes.filter(n => n.kind === "door" && n.exterior).length;
+    const galleryIds = Array.from(thumbs).slice(0, 14);
     setSheet(`
       <div style="display:flex;gap:12px;align-items:center"><span class="ms fill blue" style="font-size:36px">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
         <div style="flex:1"><h1 class="pname" style="font-size:1.2em;margin:0">${esc(WF.cfg.name || "")}</h1><div class="muted">${esc(WF.cfg.address || "")}</div></div></div>
-      <div class="segs" style="margin-top:12px">
-        <span class="seg"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: WF.cfg.floors.length }))}</span><span class="seg"><span class="ms">door_open</span>${esc(t("viewer.entrancesCount", { n: ents }))}</span>
-        <span class="seg"><span class="ms">place</span>${esc(t("viewer.placesCount", { n: POIS.length }))}</span><span class="seg"><span class="ms">view_in_ar</span>${esc(t("viewer.matterportScan"))}</span></div>
-      ${POIS.some(p => p.category === "entrance" && p.step_free_from_parking) ? `<div class="warn ok"><span class="ms">accessible</span><div>${esc(t("viewer.accessibilityOk"))}</div></div>`
-        : `<div class="warn"><span class="ms">accessible</span><div>${esc(t("viewer.accessibilityNo"))}</div></div>`}
-      <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}<button class="pill" id="hZoom"><span class="ms">zoom_in_map</span>${esc(t("viewer.zoomBuilding"))}</button><button class="pill" id="hMe"><span class="ms">my_location</span>${esc(t("viewer.setMyLocation"))}</button>
-        <button class="pill" id="hSwitch"><span class="ms">apartment</span>${esc(t("viewer.switchBuilding") || "All buildings")}</button></div>
+      ${galleryIds.length ? `<div class="photo-gallery" style="margin-top:12px">${galleryIds.map(id => `<img class="gallery-img" src="${thumbFor(id)}" alt="" loading="lazy">`).join("")}</div>` : ""}
+      <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}</div>
       <div class="pophead sm">${esc(t("viewer.explore"))}</div>
       <ul class="list">${exploreIds().map(id => { const p = byId[id], c = cat(p);
         return `<li data-id="${id}" tabindex="0" role="button"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)} · ${esc(wf.floorLabel(p.floor))}</div></div></li>`; }).join("")}</ul>`, "peek");
     bindList();
     if ($("hEnt")) $("hEnt").onclick = () => { S.to = mainEntrance(); S.from = wf.lastLoc ? "me" : arrivalPoi(); openDirections(); };
-    if ($("hZoom")) $("hZoom").onclick = () => zoomBuilding();
-    if ($("hMe")) $("hMe").onclick = () => startLocalize();
-    if ($("hSwitch")) $("hSwitch").onclick = () => showBuildingPicker();
   }
   function showHome() {
     // Mobile open: building gallery. Deep links / desk: places for current building.
@@ -1737,11 +1758,20 @@ function wfDbg(level, source, message, meta) {
         toast(t("viewer.showingLocation"), t("viewer.setNew"), () => startLocalize());
       } else startLocalize();
     };
-    $("floorPicker").querySelectorAll("button").forEach(b => b.onclick = () => {
+    $("floorList").querySelectorAll("button").forEach(b => b.onclick = () => {
       wf.setFloor(b.dataset.floor);
       // f=0 (see mp_preview.js showcaseUrl) hides Showcase's own floor explorer — these
       // buttons are the only way to change floor in mp mode, so drive it directly.
       if (isMpMode() && window.MpPreview && window.MpPreview.setFloor) window.MpPreview.setFloor(b.dataset.floor);
+      setFloorStack(false);   // picking a floor collapses the stack back
+    });
+    $("floorToggle").onclick = () => setFloorStack($("floorPicker").classList.contains("expanded") ? false : true);
+    document.addEventListener("pointerdown", (e) => {
+      const fp = $("floorPicker");
+      if (fp.classList.contains("expanded") && !fp.contains(e.target)) setFloorStack(false);
+    });
+    document.addEventListener("pointerdown", (e) => {
+      if (!$("chipsDropdown").hidden && !$("chipsWrap").contains(e.target)) setChipsOpen(false);
     });
     $("btnLayers").onclick = () => { const p = $("layersPop"); p.hidden = !p.hidden; if (!p.hidden) { syncLayers(); p.querySelector(".sty").focus(); } };
     $("btnLayersClose").onclick = closePop;
@@ -1810,8 +1840,17 @@ function wfDbg(level, source, message, meta) {
     const fp = $("floorPicker"); if (!wf) return;
     const show = isMpMode() || wf.is3D() || (wf.view2d.zoom >= 17.5);
     fp.hidden = !show;
-    fp.querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });
+    if (!show) setFloorStack(false);
+    $("floorList").querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });
+    const cur = $("floorList").querySelector(`button[data-floor="${wf.currentFloor()}"]`);
+    $("floorToggleLabel").textContent = cur ? cur.textContent : "";
     placeMe();
+  }
+  // Floor stack: collapsed by default, showing only the current-floor FAB — tapping it
+  // expands the full floor list; picking a floor (or tapping outside) collapses it again.
+  function setFloorStack(expanded) {
+    $("floorPicker").classList.toggle("expanded", !!expanded);
+    $("floorToggle").setAttribute("aria-expanded", String(!!expanded));
   }
 
   // ---------------- sheet (mobile bottom sheet / desktop panel) ----------------

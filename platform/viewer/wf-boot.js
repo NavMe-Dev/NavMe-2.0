@@ -59,7 +59,7 @@
     }
     // floor pickers (UI + dev panel) generated from config (top floor first in the vertical picker)
     const fl = cfg.floors.slice().sort((a, b) => a.ordinal - b.ordinal);
-    const fp = document.getElementById("floorPicker");
+    const fp = document.getElementById("floorList");
     if (fp) {
       const allBtn = fl.length > 1
         ? `<button data-floor="all" role="radio" aria-label="All floors" title="All floors">All</button>`

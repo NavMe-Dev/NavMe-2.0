@@ -969,10 +969,29 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         id_list = ",".join(urllib.parse.quote(sid, safe="") for sid, _, _ in staged)
         try:
             exp_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_pois?id=in.({id_list})"
-                             f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z")
+                             f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z,category_type")
             expected_by_id = {str(r.get("id")): r for r in exp_rows if r.get("id")}
         except Exception:
             pass
+
+    # ---- Categories: navme_categories (dashboard-curated POI category chips) ----
+    # Fetched before the POI loop below, because gmap_list_pois' own "category" field is
+    # a fixed generic placeholder ("General") on every row — the real per-POI category is
+    # navme_pois.category_type, a FK to navme_categories.id, not exposed by that RPC at all.
+    # So each POI's real category name has to be resolved here via this id->name map,
+    # fetched directly off navme_pois.category_type above (the viewer's own category
+    # dropdown/filter keys off this same navme_categories.name, lowercased).
+    categories = []
+    try:
+        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order",
+                                     "poi_type": f"ilike.{navme.pg_value(ptype)}",
+                                     "order": "sort_order.asc,name.asc"})
+        cat_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}")
+        categories = [{"id": r.get("id"), "name": r.get("name"), "icon_key": r.get("icon_key"),
+                       "sort_order": r.get("sort_order")} for r in (cat_rows or [])]
+    except Exception:
+        pass  # best-effort; categories are optional chrome, never block the rest of the sync
+    cat_name_by_id = {c["id"]: c["name"] for c in categories if c.get("id") and c.get("name")}
 
     # key is the full src_id (not truncated) so two POIs never collide on a shared prefix.
     poi_created = poi_updated = 0
@@ -989,7 +1008,8 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         else:
             poi_updated += 1
         existing.name = name
-        existing.category = str(r.get("category") or "room")
+        cat_name = cat_name_by_id.get(exp.get("category_type")) or r.get("category") or "room"
+        existing.category = str(cat_name).strip().lower()
         existing.floor = str(r.get("floor_id") or "F1")
         existing.model_x, existing.model_y, existing.model_z = x, y, z
         existing.geom = WKTElement(f"POINT({lon} {lat})", srid=4326)
@@ -1039,17 +1059,6 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         except Exception as e:
             raise HTTPException(502, f"navmesh download failed: {e}")
 
-    # ---- Categories: navme_categories (dashboard-curated POI category chips) ----
-    categories = []
-    try:
-        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order",
-                                     "poi_type": f"ilike.{navme.pg_value(ptype)}",
-                                     "order": "sort_order.asc,name.asc"})
-        rows = _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}")
-        categories = [{"id": r.get("id"), "name": r.get("name"), "icon_key": r.get("icon_key"),
-                       "sort_order": r.get("sort_order")} for r in (rows or [])]
-    except Exception:
-        pass  # best-effort; categories are optional chrome, never block the rest of the sync
     b.pipeline_config = {**(b.pipeline_config or {}), "navme_categories": categories}
 
     db.commit()
