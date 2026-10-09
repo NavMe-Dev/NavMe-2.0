@@ -1696,15 +1696,19 @@
 
   // ── Navigate from me: background camera -> VPS localize -> teleport + route ──
   // Stays entirely on the walkthrough screen: the camera runs as a hidden
-  // getUserMedia stream (no native camera app, no page navigation), capturing a
-  // frame every LOCATE_INTERVAL_MS and re-localizing so the route keeps updating
-  // to wherever the user actually is, without them ever leaving this view.
+  // getUserMedia stream (no native camera app, no page navigation). Re-localizes
+  // back-to-back for as long as it's active — not on a fixed clock: each cycle's
+  // next capture starts as soon as the previous one's route update has settled,
+  // so the pacing is however long the VPS match + a sweep transition actually
+  // take (network/CPU/device-bound), never an artificial added delay. A short
+  // backoff only kicks in after a FAILED cycle, to avoid spinning tight on a
+  // persistent camera/network error.
   var locateBusy = false;
   var locateActive = false;
   var locateStream = null;
   var locateTimer = null;
   var lastLocateSid = null;
-  var LOCATE_INTERVAL_MS = 12000; // VPS match itself takes ~7-11s on CPU; this is the gap AFTER each result
+  var LOCATE_RETRY_BACKOFF_MS = 1500; // only used after a failed cycle, never after a success
   var MIN_CONFIDENCE = 0.25; // below this, SuperPoint can still return a few inliers for a wrong spot
 
   function wfSlug() {
@@ -1806,25 +1810,33 @@
   /**
    * Capture one frame from the hidden background camera -> VPS localize
    * (SuperPoint + MegaLoc against this building's own scan, see
-   * platform/vps_prototype/) -> resolve the matched sweep -> on the FIRST fix,
-   * teleport there and start navigation to the SAME destination this session
-   * was already opened for (destPtMp, set once in open(), is untouched by
-   * this). On every fix AFTER that, if the matched sweep has changed (the user
-   * actually moved to a different scan point), silently regenerate the route
-   * from the new sweep to the same destination — no extra UI wait, the walk-
-   * through view never leaves this screen. Schedules itself again afterward
-   * while locateActive stays true.
+   * platform/vps_prototype/) -> resolve the matched sweep -> teleport there and
+   * (re)generate the route from wherever that scan point is to the SAME
+   * destination this session was already opened for (destPtMp, set once in
+   * open(), is untouched by this) — every single successful fix, first or not,
+   * so the displayed route always reflects "from here, right now" to the end
+   * destination, the same way it would if the user had just tapped that scan
+   * point directly. moveToSweep's transition is a no-op snap (not a fly) when
+   * the matched sweep is the same one already current, so repeating this on
+   * every cycle doesn't cause a visible jump while standing still. Chains
+   * straight into the next capture once this one fully settles — see
+   * LOCATE_RETRY_BACKOFF_MS above for the one exception (a failed cycle).
    *
    * The CV match genuinely takes a few seconds — CPU feature extraction, no
    * faster path exists without a GPU service — so "no lag" here means the UI
    * stays responsive throughout the wait, not that the match itself becomes
-   * instant.
+   * instant. All of the actual work (SuperPoint/MegaLoc) runs server-side, and
+   * the sweep transition reuses the exact same moveToSweep already used for
+   * normal walkthrough navigation — nothing here adds any per-frame cost, so a
+   * low-end device's FPS during ordinary navigation is unaffected regardless
+   * of how often this cycle repeats.
    */
   function runLocateCycle(first) {
     if (!locateActive || locateBusy) return Promise.resolve();
     locateBusy = true;
     if (first) setStatus("Locating you — analysing camera…");
     var t0 = Date.now();
+    var failed = false;
     return captureFrameBlob()
       .catch(function (e) { console.warn("[ThreeDNav] camera capture failed", e); return null; })
       .then(function (blob) {
@@ -1840,11 +1852,13 @@
         var j = res.body;
         console.info("[ThreeDNav] locate cycle (" + (Date.now() - t0) + "ms)", j);
         if (!res.ok || !j || !j.success) {
+          failed = true;
           if (first) setStatus((j && (j.detail || j.message)) || "Could not locate you — retrying…");
           return;
         }
         var conf = j.confidence || 0;
         if (conf < MIN_CONFIDENCE) {
+          failed = true;
           if (first) setStatus("Not confident enough (" + Math.round(conf * 100) + "%) — retrying…");
           return;
         }
@@ -1856,29 +1870,30 @@
           if (liveSw) here = liveSw.position;
         }
         if (!here) here = toMp({ x: j.x, y: j.y, z: j.z }); // fall back to the raw estimate
+        lastLocateSid = sid;
         if (first) {
-          lastLocateSid = sid;
           setStatus("Found you — " + Math.round(conf * 100) + "% match" + (j.floor ? ", " + j.floor : ""));
           return wait(1400).then(function () {
             setStatus("");
             return runNavigate(here);
           });
         }
-        // Background cycle: only reroute when the matched scan point actually
-        // changed — avoids re-solving/teleporting on every tick while standing still.
-        if (sid && sid !== lastLocateSid) {
-          lastLocateSid = sid;
-          return runNavigate(here);
-        }
+        // Every fix after the first regenerates the route too (not only when the
+        // sweep changed) — standing still just re-confirms the same route at no
+        // visible cost (see the moveToSweep no-op-snap note above).
+        return runNavigate(here);
       })
       .catch(function (e) {
+        failed = true;
         console.warn("[ThreeDNav] locate cycle failed", e);
         if (first) setStatus("Localization failed — " + ((e && e.message) || "network error"));
       })
       .then(function () {
         locateBusy = false;
         if (first) wait(1200).then(function () { if (locateActive) setStatus(""); });
-        if (locateActive) locateTimer = setTimeout(function () { runLocateCycle(false); }, LOCATE_INTERVAL_MS);
+        if (!locateActive) return;
+        if (failed) locateTimer = setTimeout(function () { runLocateCycle(false); }, LOCATE_RETRY_BACKOFF_MS);
+        else runLocateCycle(false);
       });
   }
 
