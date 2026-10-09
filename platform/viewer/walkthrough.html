@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>NavMe · Walkthrough</title>
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <style>
+    html, body { margin: 0; height: 100%; height: 100dvh; background: #000; overflow: hidden; }
+    #wtBoot { color: #eee; font: 15px/1.4 system-ui, sans-serif; padding: 24px; }
+  </style>
+</head>
+<body>
+  <div id="wtBoot">Loading walkthrough…</div>
+  <script src="wf-config.js"></script>
+  <script src="threed_nav.js?v=20261010handoff1"></script>
+  <script>
+  (function () {
+    window.__WF_NAV_WALKTHROUGH_PAGE = true;
+    const boot = document.getElementById("wtBoot");
+    function fail(msg) {
+      if (boot) boot.textContent = msg;
+    }
+    let payload = null;
+    try {
+      payload = JSON.parse(sessionStorage.getItem("wf_nav_walkthrough_v1") || "null");
+    } catch (e) {
+      fail("Could not read walkthrough data. Go back and tap Walkthrough Wayfinding again.");
+      return;
+    }
+    if (!payload || !payload.route) {
+      fail("No walkthrough data. Go back and tap Walkthrough Wayfinding again.");
+      return;
+    }
+    window.WF = window.WF || {};
+    window.WF.cfg = Object.assign({}, window.WF.cfg || {}, payload.cfg || {});
+    window.WF.building = payload.building || window.WF.building;
+    window.WF_CONFIG = Object.assign({}, window.WF_CONFIG || {}, payload.wfConfig || {});
+    window.wf = window.wf || {};
+
+    const _close = window.ThreeDNav && window.ThreeDNav.close;
+    window.ThreeDNav.close = function () {
+      try { if (_close) _close(); } catch (_) {}
+      const back = payload.returnUrl || "./";
+      location.href = back;
+    };
+
+    // "Navigate from me" (VPS localize) resolves a photo match's mp_index to a scan
+    // point id via window.wf.nav.nodes (see threed_nav.js's localizeFromImage) — on
+    // the full app page that comes from app.js's boot sequence, which doesn't run
+    // here, so fetch just that one file directly. Everything else the walkthrough
+    // needs (the route itself, the live Matterport sweep graph) is already in
+    // payload.route or read straight from the Matterport SDK once connected.
+    const slug = payload.cfg && payload.cfg.slug;
+    const apiBase = (payload.cfg && payload.cfg.apiBase) || "/api/v1/public/";
+    const navGraphP = slug
+      ? fetch(apiBase + "buildings/" + encodeURIComponent(slug) + "/data/nav_graph.json")
+          .then((r) => r.json()).catch(() => null)
+      : Promise.resolve(null);
+
+    navGraphP.then((navGraph) => {
+      window.wf.nav = { nodes: (navGraph && navGraph.nodes) || [] };
+      if (boot) boot.remove();
+      window.ThreeDNav.open(payload.route);
+    });
+  })();
+  </script>
+<script src="wf_debug.js?v=20260930debug1"></script>
+<script>try{var q=new URLSearchParams(location.search);if(window.WFDebug)WFDebug.init({building:q.get("b"),client:"walkthrough"});}catch(e){}</script>
+</body>
+</html>

@@ -1009,14 +1009,25 @@ require([
         try { view3d.destroy(); } catch (e) {}
         view3d = null;
       }
-      if (activeView !== view2d) {
-        view2d.container = "viewDiv";
-        activeView = view2d;
-      }
+      activeView = view2d;
+      // view2d is the view active by default (no 3D needed to hit this) — it was still
+      // being left fully attached and rendering its basemap + whatever layers are
+      // visible the entire time the walkthrough's own heavy Matterport WebGL context
+      // was open, which on its own was enough to repeat the same mobile GPU-ceiling
+      // reload this function was first written to fix (destroying view3d alone only
+      // covered the case where the user had actually switched to 3D first). Detaching
+      // (not destroying) view2d stops its render loop without discarding the object, so
+      // every watch()/goTo() call elsewhere in the app keeps working against the same
+      // instance once it's reattached on close.
+      try { view2d.container = null; } catch (e) {}
     };
     window.wf.exitHeavyOverlay = () => {
-      if (!heavyOverlayWas3D) return;
+      const restore3D = heavyOverlayWas3D;
       heavyOverlayWas3D = false;
+      if (!restore3D) {
+        try { view2d.container = "viewDiv"; } catch (e) {}
+        return;
+      }
       ensure3D().then(() => {
         view2d.container = null;
         view3d.container = "viewDiv";

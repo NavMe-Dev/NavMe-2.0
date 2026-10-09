@@ -235,8 +235,10 @@
       '</div>',
     ].join("");
     document.body.appendChild(ov);
-    $("n3dClose").addEventListener("click", close);
-    $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); close(); });
+    // Go through window.ThreeDNav.close (not the bare local close()) so walkthrough.html's
+    // monkey-patch (navigate back to the page that handed off to it on mobile) still fires.
+    $("n3dClose").addEventListener("click", function(){ window.ThreeDNav.close(); });
+    $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); window.ThreeDNav.close(); });
     $("n3dLocate").addEventListener("click", toggleLocateFromMe);
   }
 
@@ -1972,7 +1974,65 @@
   }
 
   // ── Public API ────────────────────────────────────────────────────────────────
+  // ── Mobile handoff: run the walkthrough on its own dedicated page ─────────────
+  // Same fix mp_preview.js's Tour interior already uses (see its handoffToTourPage) —
+  // "iOS Safari often leaves nested map-overlay iframes black," i.e. two heavy WebGL
+  // contexts (the host page's Esri map + this Matterport embed) sharing one mobile
+  // page can exceed the browser's GPU memory budget and silently reload the tab,
+  // which looked like the walkthrough "kicking the user out." Rather than juggling
+  // the Esri view's lifecycle in place (enterHeavyOverlay/exitHeavyOverlay below,
+  // kept as a desktop-path safety net), hand off to walkthrough.html on mobile: a
+  // page with no Esri map at all, so there is only ever one heavy context.
+  function isCoarseMobile() {
+    try {
+      return !!(window.matchMedia && (
+        window.matchMedia("(max-width: 900px)").matches ||
+        window.matchMedia("(pointer: coarse)").matches
+      ));
+    } catch (_) { return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || ""); }
+  }
+
+  function handoffToWalkthroughPage(route) {
+    var cfg = (window.WF && window.WF.cfg) || {};
+    var payload = {
+      v: 1,
+      route: {
+        sweep_ids: (route && route.sweep_ids) || [],
+        nodes: (route && route.nodes) || [],
+        total_m: (route && route.total_m != null) ? route.total_m : undefined,
+        links: (route && route.links) || undefined,
+        navPath: (route && route.navPath) || undefined,
+        smoothed: (route && route.smoothed) || undefined,
+        _destXYZ: (route && route._destXYZ) || undefined,
+        _destName: (route && route._destName) || undefined,
+        _fromName: (route && route._fromName) || undefined,
+      },
+      returnUrl: location.href,
+      cfg: {
+        slug: cfg.slug || (window.WF && window.WF.building && window.WF.building.slug) || null,
+        matterport_model_id: cfg.matterport_model_id || cfg.model_id || null,
+        mp_sdk_key: cfg.mp_sdk_key || cfg.applicationKey || null,
+        apiBase: (cfg.apiBase || (window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/"),
+      },
+      building: (window.WF && window.WF.building) || null,
+      wfConfig: window.WF_CONFIG || null,
+    };
+    try {
+      sessionStorage.setItem("wf_nav_walkthrough_v1", JSON.stringify(payload));
+    } catch (e) {
+      try { ensureOverlay(); setStatus("Could not save route for fullscreen page: " + (e && e.message || e)); }
+      catch (_) { alert("Could not save route for fullscreen page"); }
+      return false;
+    }
+    var dest = new URL("walkthrough.html", location.href);
+    location.assign(dest.href);
+    return true;
+  }
+
   async function open(route) {
+    if (!window.__WF_NAV_WALKTHROUGH_PAGE && isCoarseMobile()) {
+      if (handoffToWalkthroughPage(route || {})) return;
+    }
     var gen = ++openGen;
 
     // Teardown previous session
