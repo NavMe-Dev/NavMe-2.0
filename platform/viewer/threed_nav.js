@@ -1735,50 +1735,71 @@
       setStatus("Camera not available on this device/browser");
       return wait(2200).then(function () { setStatus(""); });
     }
-    setStatus("Starting camera…");
-    return navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false,
-    }).then(function (stream) {
-      locateStream = stream;
-      locateActive = true;
-      lastLocateSid = null;
-      setLocateButtonState(true);
-      var video = $("n3dLocateVideo");
-      video.srcObject = stream;
-      return video.play().catch(function () {});
-    }).then(function () {
-      return runLocateCycle(/*first=*/true);
-    }).catch(function (e) {
-      console.warn("[ThreeDNav] camera start failed", e);
-      setStatus("Could not access camera — " + ((e && e.message) || "permission denied"));
-      return wait(2200).then(function () { setStatus(""); });
-    });
+    locateActive = true;
+    lastLocateSid = null;
+    setLocateButtonState(true);
+    return runLocateCycle(/*first=*/true);
   }
 
   function stopLocateFromMe() {
     locateActive = false;
     if (locateTimer) { clearTimeout(locateTimer); locateTimer = null; }
+    releaseLocateStream();
+    setLocateButtonState(false);
+    setStatus("Live positioning stopped");
+    wait(1400).then(function () { setStatus(""); });
+  }
+
+  function releaseLocateStream() {
     if (locateStream) {
       locateStream.getTracks().forEach(function (t) { t.stop(); });
       locateStream = null;
     }
     var video = $("n3dLocateVideo");
     if (video) video.srcObject = null;
-    setLocateButtonState(false);
-    setStatus("Live positioning stopped");
-    wait(1400).then(function () { setStatus(""); });
   }
 
-  function captureVideoFrameBlob() {
-    var video = $("n3dLocateVideo");
-    if (!video || !video.videoWidth) return Promise.resolve(null);
-    var c = document.createElement("canvas");
-    c.width = video.videoWidth;
-    c.height = video.videoHeight;
-    c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+  function waitForVideoFrame(video, timeoutMs) {
+    if (video.videoWidth) return Promise.resolve();
     return new Promise(function (resolve) {
-      c.toBlob(function (blob) { resolve(blob); }, "image/jpeg", 0.85);
+      var done = false;
+      var finish = function () { if (done) return; done = true; resolve(); };
+      video.addEventListener("loadeddata", finish, { once: true });
+      setTimeout(finish, timeoutMs || 1500);
+    });
+  }
+
+  /**
+   * Acquire the camera, grab exactly one frame, then release it immediately —
+   * the camera is never live at the same time as a Matterport scene transition
+   * (sweep teleport/route-begin), which on some mobile GPUs was enough extra
+   * concurrent load (live camera decode + WebGL texture upload at once) to
+   * crash the tab right as the "found you" teleport played. Each relocalize
+   * cycle now re-opens the camera fresh for its brief capture and tears it
+   * back down before any navigation happens.
+   */
+  function captureFrameBlob() {
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    }).then(function (stream) {
+      locateStream = stream;
+      var video = $("n3dLocateVideo");
+      video.srcObject = stream;
+      return video.play().catch(function () {})
+        .then(function () { return waitForVideoFrame(video); })
+        .then(function () {
+          if (!video.videoWidth) return null;
+          var c = document.createElement("canvas");
+          c.width = video.videoWidth;
+          c.height = video.videoHeight;
+          c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+          return new Promise(function (resolve) {
+            c.toBlob(function (blob) { resolve(blob); }, "image/jpeg", 0.85);
+          });
+        })
+        .then(function (blob) { releaseLocateStream(); return blob; })
+        .catch(function (e) { releaseLocateStream(); throw e; });
     });
   }
 
@@ -1804,7 +1825,8 @@
     locateBusy = true;
     if (first) setStatus("Locating you — analysing camera…");
     var t0 = Date.now();
-    return captureVideoFrameBlob()
+    return captureFrameBlob()
+      .catch(function (e) { console.warn("[ThreeDNav] camera capture failed", e); return null; })
       .then(function (blob) {
         if (!blob) throw new Error("camera frame not ready");
         var fd = new FormData();
