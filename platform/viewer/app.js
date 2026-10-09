@@ -954,6 +954,45 @@ require([
     window.wf.modelZtoAbs = (z) => modelZtoAbs(z);
     window.wf.currentFloor = () => currentFloor;
     window.wf.is3D = () => activeView !== view2d;
+    // Walkthrough Wayfinding (threed_nav.js) embeds its own heavy WebGL context
+    // (Matterport Showcase). Leaving the Esri SceneView's WebGL context alive at
+    // the same time — even just detached/invisible via container=null — was
+    // enough to hit mobile Safari/Chrome's GPU memory ceiling and silently
+    // reload the whole tab, which looked like the walkthrough view "kicking the
+    // user out" back to the map. Fully destroying view3d (not just detaching
+    // it) before the overlay opens, then recreating it on close only if the
+    // user had actually been in 3D, keeps at most one heavy 3D context alive
+    // at any time.
+    let heavyOverlayWas3D = false;
+    window.wf.enterHeavyOverlay = () => {
+      heavyOverlayWas3D = (activeView === view3d);
+      if (view3d) {
+        try { view3d.container = null; } catch (e) {}
+        try { view3d.destroy(); } catch (e) {}
+        view3d = null;
+      }
+      if (activeView !== view2d) {
+        view2d.container = "viewDiv";
+        activeView = view2d;
+      }
+    };
+    window.wf.exitHeavyOverlay = () => {
+      if (!heavyOverlayWas3D) return;
+      heavyOverlayWas3D = false;
+      ensure3D().then(() => {
+        view2d.container = null;
+        view3d.container = "viewDiv";
+        activeView = view3d;
+        if (window.WFMeshOverlay) WFMeshOverlay.setMode("3d");
+        loadMesh();
+        if (window.wf.onStyleFloor) window.wf.onStyleFloor(currentFloor);
+        return view3d.when();
+      }).then(() => {
+        fit3DCamera({ animate: false });
+        const dimBtn = $("btnDim");
+        if (dimBtn) dimBtn.textContent = "Switch to 2D";
+      }).catch((e) => console.warn("[wf] exitHeavyOverlay: 3D restore failed", e));
+    };
     window.wf.floorsMeta = floorsMeta;
     window.wf.startLocalize = (on) => { localizing = on === undefined ? !localizing : on; $("btnLocalize").classList.toggle("on", localizing); return localizing; };
     window.wf.isLocalizing = () => localizing;

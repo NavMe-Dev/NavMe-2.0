@@ -1987,6 +1987,14 @@
     noProgressSid = null; noProgressCount = 0;
     navLocked = false; arrivedShown = false;
 
+    // Free the host page's Esri 3D WebGL context before standing up Matterport's —
+    // keeping both alive at once is what was causing mobile browsers to hit their
+    // GPU memory ceiling and silently reload the tab (looked like getting "kicked
+    // out" of the walkthrough). See window.wf.enterHeavyOverlay in app.js.
+    if (window.wf && window.wf.enterHeavyOverlay) {
+      try { window.wf.enterHeavyOverlay(); } catch (e) { console.warn("[ThreeDNav] enterHeavyOverlay failed", e); }
+    }
+
     ensureOverlay();
     resolveConfig();
 
@@ -2048,6 +2056,9 @@
     if (frame) frame.src = "about:blank";
     document.body.classList.remove("n3d-open");
     setStatus("");
+    if (window.wf && window.wf.exitHeavyOverlay) {
+      try { window.wf.exitHeavyOverlay(); } catch (e) { console.warn("[ThreeDNav] exitHeavyOverlay failed", e); }
+    }
   }
 
   // Diagnostics — read-only view of live state, for debugging from the console.
