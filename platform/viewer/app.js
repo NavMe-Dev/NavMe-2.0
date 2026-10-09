@@ -11,6 +11,15 @@ require([
 
   const $ = (id) => document.getElementById(id);
   const status = (t) => { $("status").textContent = t; };
+  // mp_background.js hides #viewDiv with display:none in this mode and runs the live
+  // Matterport embed as the permanent background instead — but CSS display:none doesn't
+  // stop the Esri view's own WebGL rendering underneath. Left unchecked, that meant a
+  // full satellite basemap + current floor's photo texture kept rendering, fully
+  // invisible, for the whole session, alongside the already-heavy Matterport context —
+  // on mobile, two simultaneous heavy WebGL contexts can exceed the browser's GPU memory
+  // budget and trigger a silent tab reload (surfaced as "selecting a destination kicks
+  // me out"). See the isMpMode() guards below that keep view2d's own layers stripped.
+  const isMpMode = () => new URLSearchParams(location.search).get("mp") === "1";
   // georef.rms_m/max_err_m are null by design for "fixed" mode (a manual transform has no
   // fitted residual to report) — this debug readout assumed every georef field is always
   // a number and crashed the first time a location got set against a fixed-mode building.
@@ -118,6 +127,19 @@ require([
     const map2d = new Map({ basemap, layers: [siteLayer, glassLayer, ...FIDS.map(f => floorLayers[f]).filter(Boolean), dotLayer] });
     const map3d = new Map({ basemap: new Basemap({ baseLayers: [new TileLayer({ url: imagery.url })] }), ground: "world-elevation",
                             layers: [meshLayer, dotLayer3D] });
+    // view2d is never shown in mp=1 mode (see isMpMode() above) — strip the only two
+    // continuously-rendering heavy pieces (the satellite raster basemap and whichever
+    // floor's photo texture would otherwise be visible by default) so the hidden view
+    // costs next to nothing to keep alive. applyVisibility()'s own early-return (below)
+    // keeps this from being re-enabled later by a floor/style change.
+    if (isMpMode()) {
+      // Basemap({baseLayers:[]}) turned out NOT to mean "nothing" — ArcGIS silently fell
+      // back to its own default vector basemap instead (confirmed live: basemap.baseLayers
+      // still had one "vector-tile" layer afterward). Hiding the real TileLayer directly
+      // avoids that default-fallback behaviour entirely.
+      imagery.visible = false;
+      Object.values(floorLayers).forEach((l) => { l.visible = false; });
+    }
 
     const oLL = [georef.model_origin_wgs84.lon, georef.model_origin_wgs84.lat];
     const BB = CFG.model_bbox || [-40, -30, 20, 25], BC = [(BB[0] + BB[2]) / 2, (BB[1] + BB[3]) / 2];
@@ -181,11 +203,17 @@ require([
     function setFloor(fid) {
       currentFloor = fid;
       document.querySelectorAll("button.floor").forEach(b => b.classList.toggle("active", b.dataset.floor === fid));
-      Object.entries(floorLayers).forEach(([k, l]) => {
-        if (fid === "all") l.visible = true;
-        else if (fid === "none") l.visible = false;
-        else l.visible = (k === fid);
-      });
+      // Leaves every floorLayer at the invisible state set right after map2d's
+      // construction — without this guard, the unconditional setFloor(defaultFloor)
+      // call a few lines down re-enables the default floor's photo texture on every
+      // boot, undoing that strip (see the isMpMode() block above map2d's construction).
+      if (!isMpMode()) {
+        Object.entries(floorLayers).forEach(([k, l]) => {
+          if (fid === "all") l.visible = true;
+          else if (fid === "none") l.visible = false;
+          else l.visible = (k === fid);
+        });
+      }
       if (view3d) loadMesh();
       if (lastLoc) localizeAt(lastLoc.lon, lastLoc.lat);   // re-evaluate Z on floor change
       if (window.wf && window.wf.onFloor) window.wf.onFloor(fid);
@@ -880,6 +908,10 @@ require([
         }
       }
       function applyVisibility() {
+        // view2d is permanently hidden in mp=1 mode (stripped to an empty basemap + no
+        // floor photos above) — skip recomputing/re-enabling any of its layers here so a
+        // floor or style change during mp mode can't undo that.
+        if (isMpMode()) return;
         const fid = currentFloor, blocks = style !== "satellite";
         // "All floors" stacks every floor's photo at once — each one's own unscanned
         // area renders as a big flat dark block (Matterport's colorplan fills gaps with
@@ -910,13 +942,19 @@ require([
       async function setStyle(s) {
         style = s; pal = palFor(s); await indoorP;
         let label = "Esri World Imagery (no API key)";
-        if (s === "satellite") { map2d.basemap = satellite2d; map3d.basemap = satellite3d; }
-        else {
-          if (!bmCache2d[s]) bmCache2d[s] = await makeBasemap(s);
-          map2d.basemap = bmCache2d[s].bm; label = bmCache2d[s].label;
-          if (!bmCache3d[s]) bmCache3d[s] = await makeBasemap(s);
-          map3d.basemap = bmCache3d[s].bm;
-          ensureIndoor(false); if (view3d) { build3DContext(); ensureIndoor(true); }
+        // view2d is permanently hidden + stripped in mp=1 mode (see the isMpMode() block
+        // above map2d's construction) — skip swapping in a real basemap or building out
+        // indoor GeoJSON layers here, since applyDeepLink() calls setStyle("map") on every
+        // boot regardless of mode and would otherwise silently undo that strip.
+        if (!isMpMode()) {
+          if (s === "satellite") { map2d.basemap = satellite2d; map3d.basemap = satellite3d; }
+          else {
+            if (!bmCache2d[s]) bmCache2d[s] = await makeBasemap(s);
+            map2d.basemap = bmCache2d[s].bm; label = bmCache2d[s].label;
+            if (!bmCache3d[s]) bmCache3d[s] = await makeBasemap(s);
+            map3d.basemap = bmCache3d[s].bm;
+            ensureIndoor(false); if (view3d) { build3DContext(); ensureIndoor(true); }
+          }
         }
         document.body.classList.toggle("dark", s === "dark");
         window.wf.styleLabel = label; window.wf.style = s;
