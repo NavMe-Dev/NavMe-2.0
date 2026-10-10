@@ -1930,10 +1930,14 @@
         currentSweepSid = routeSids[0];
         prevSweepSid = null;
         navLocked = false;
-        // Fire-and-forget: a walk leg's auto-fly can run for the rest of the
-        // journey (re-solving and continuing turn to turn), far longer than this
-        // "settled at start" log below should wait for.
-        beginLegNavigation();
+        // Awaited (not fire-and-forget): beginLegNavigation() -> faceNextPoint() is
+        // one bounded rotation call (refreshPose + a single Sweep.moveTo), not an
+        // open-ended walk animation — letting it actually finish before this
+        // function resolves is what makes the camera's heading visibly follow the
+        // navmesh route after a teleport, rather than sometimes being clobbered by
+        // whatever runs next (e.g. "Navigate from me"'s back-to-back relocalize
+        // cycles calling runNavigate() again before the previous heading settled).
+        return beginLegNavigation();
       })
       .then(function(){
         scheduleTrailDraw(); updateDistDisplay(); setStatus("");
