@@ -1326,12 +1326,25 @@ function wfDbg(level, source, message, meta) {
   /** mp mode only: recompute the "time/distance remaining" readout from the REAL route,
    *  anchored at the scan point the camera just landed on — called after every sweep hop
    *  in walkToIndex, so it ticks down per scan point instead of jumping once per instruction. */
+  // Baseline route-remaining-metres sampled the first time the current instruction's
+  // navBanner distance is shown — lets navDist count DOWN per sweep hop ("8 m" → "5 m" →
+  // "2 m" → "Now") instead of staying fixed at the instruction's starting distance for
+  // its whole leg, which read as broken/non-live.
+  let navLegBaselineI = -1;
+  let navLegBaselineRemM = null;
   function updateMpRemaining(info) {
     if (!info || info.remainingM == null || S.mode !== "nav") return;
     const remT = info.remainingM / 1.2 + (S.route.stairs_rise_m || 0) * 2 * (info.remainingM / Math.max(1, S.route.total_m));
     const eta = new Date(Date.now() + remT * 1000);
     $("navEta").textContent = fmtMin(remT);
     $("navRem").textContent = `${fmtDist(info.remainingM) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
+
+    const s = S.navSteps[S.navI];
+    if (!s) return;
+    if (navLegBaselineI !== S.navI) { navLegBaselineI = S.navI; navLegBaselineRemM = info.remainingM; }
+    const travelled = Math.max(0, (navLegBaselineRemM ?? info.remainingM) - info.remainingM);
+    const left = Math.max(0, (s.dist || 0) - travelled);
+    $("navDist").textContent = left > 0.5 ? fmtDist(left) : (s.type === "arrive" ? t("viewer.arrived") : t("viewer.now"));
   }
   function navGo(i) {
     const n = S.navSteps.length; i = Math.max(0, Math.min(n - 1, i)); S.navI = i;

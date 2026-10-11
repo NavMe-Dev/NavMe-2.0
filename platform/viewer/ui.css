@@ -12,7 +12,12 @@ body.large{--fs:17px}
 .blue{color:var(--blue)}
 .muted{color:var(--txt2);font-size:.86em}
 .ui button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
-.ui button:focus-visible,.ui input:focus-visible,.ui [tabindex]:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+.ui button:focus-visible,.ui [tabindex]:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+/* Text inputs get a subtle border tint instead of a hard outline box — the
+   outline above, applied to a .dfield's full-width input, read as a thick
+   blue rectangle slapped around the whole start/destination field. */
+.ui input:focus-visible{outline:0}
+.dfield:focus-within{box-shadow:0 0 0 2px rgba(138,180,248,.65)}
 .ib{width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--txt2)!important;flex:none;transition:background .15s}
 .ib:hover{background:rgba(60,64,67,.08)!important}.ib.blue{color:var(--blue)!important}.ib.sm{width:32px;height:32px}.ib.sm .ms{font-size:20px}
 .ib.round{background:var(--bg2)!important;width:48px;height:48px}.ib.blue-bg{background:var(--blue)!important;color:#fff!important}
@@ -392,12 +397,6 @@ body.mp-mobile .mp-panel{border-radius:0;max-width:none;overflow:visible;box-sha
 body.mp-mobile .mp-frame-wrap{min-height:0;flex:1 1 auto;height:auto}
 body.mp-mobile .mp-frame-wrap iframe{min-height:0;height:100%}
 
-/* Active From/To field when picking a place on the map / 3D model */
-#fromQ.dir-focus-input, #toQ.dir-focus-input {
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
-  background: #e8f0fe;
-}
 
 /* NavMe home / building picker */
 .navme-home{display:flex;align-items:center;gap:12px;margin:2px 0 14px}
