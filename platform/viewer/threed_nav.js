@@ -713,9 +713,26 @@
     return ids;
   }
 
+  /**
+   * Same stair/teleport repair solveRoute() already runs on its own Dijkstra
+   * output (insertSkippedSweeps -> repairTeleports -> applyStairChains) —
+   * applied here too, to whichever path backendPathFrom()/sweepsFromKeyNavPathPoints()/
+   * sweepsAlongNavPath() produced. Those three only ever pick ALREADY-REAL scan
+   * points and string them in order; none of them know a staircase needs to be
+   * walked one step at a time rather than jumped straight from the bottom
+   * landing to wherever the next kept point happens to be — repairTeleports is
+   * what turns "landing, then 6 steps up" into every one of those 6 steps.
+   * Only acts near a genuine teleport-sized or level-changing hop, so a normal
+   * flat walk sequence passes through unchanged.
+   */
+  function repairStairsAndGaps(ids) {
+    var byId = buildSweepMap();
+    return applyStairChains(repairTeleports(insertSkippedSweeps(ids, byId), byId), byId);
+  }
+
   function computeRouteSids(fromSweep, toSweep) {
     var backendPath = backendPathFrom(fromSweep, toSweep);
-    if (backendPath) return backendPath;
+    if (backendPath) return repairStairsAndGaps(backendPath);
     var pathIds = sweepsFromKeyNavPathPoints();
     if (pathIds.length < 2) pathIds = sweepsAlongNavPath(5);
     if (pathIds.length >= 2) {
@@ -754,7 +771,7 @@
       } else if (pathIds[pathIds.length - 1] !== toSweep.sid) {
         pathIds.push(toSweep.sid);
       }
-      return pathIds;
+      return repairStairsAndGaps(pathIds);
     }
     return solveRoute(fromSweep.sid, toSweep.sid);
   }
