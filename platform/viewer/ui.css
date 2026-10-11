@@ -279,6 +279,9 @@ body.nav .cbot{bottom:96px}
 }
 /* ---------- dark / high contrast ---------- */
 body.dark{--txt:#e8eaed;--txt2:#bdc1c6;--bg:#202124;--bg2:#303134;--line:#5f6368}
+body.dark .bcard{background:linear-gradient(160deg,#2a2b2e 0%,#232427 100%);border-color:rgba(255,255,255,.08);box-shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35)}
+body.dark .bcard.current{border-color:rgba(26,115,232,.55);box-shadow:0 0 0 2px rgba(26,115,232,.3),0 8px 24px rgba(0,0,0,.4)}
+body.dark .bcard .meta .tag{background:rgba(255,255,255,.08)}
 body.dark .mode.on,body.dark .chip.on,body.dark .badge.floor,body.dark .steps li:hover,body.dark .steps li.cur{background:#394457!important;color:#d2e3fc!important}
 body.dark .badge.sf{background:#1e3a2a;color:#81c995}body.dark .badge.st,body.dark .warn,body.dark .fcard{background:#3c3223;color:#fdd663}
 body.hc{--txt2:#3c4043;--line:#80868b}body.hc.dark{--txt2:#e8eaed;--line:#9aa0a6}

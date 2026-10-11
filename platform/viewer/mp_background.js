@@ -19,6 +19,11 @@
   });
 
   document.body.classList.add("mp-bg-mode");
+  // The search/directions/POI chrome (ui.js) is still ArcGIS-light-themed by default —
+  // over the always-black Matterport background that reads as mismatched white cards
+  // floating on black. Force the existing dark palette (ui.css body.dark vars) on for
+  // the whole mp=1 session rather than adding a second set of overrides.
+  document.body.classList.add("dark");
   const style = document.createElement("style");
   style.textContent = `
     body.mp-bg-mode #viewDiv { display:none !important; }
@@ -59,7 +64,7 @@
     /* ArcGIS-only map controls and the dev-only Map Layers panel (style/photo-plan/graph/
        mesh-debug toggles) — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels,
-    body.mp-bg-mode #layersPop { display:none !important; }
+    body.mp-bg-mode #layersPop, body.mp-bg-mode [data-act="dev"] { display:none !important; }
     /* Loading feedback while the Showcase iframe/SDK connect (mp_preview.js setStatus()
        mirrors its messages here since .mp-status is hidden above) — without this the
        background was a plain black screen with no indication anything was happening,
@@ -227,14 +232,20 @@
   else boot();
 
   // Fullscreen must be requested from a user gesture (browsers reject a bare
-  // programmatic call), so arm it on the very first tap/click anywhere on the
-  // page and disarm after one use.
+  // programmatic call). A single pointerdown listener turned out unreliable in
+  // practice (some browsers only treat click/touchend as a "real" activation,
+  // and a denied/ignored request shouldn't permanently disarm the attempt), so
+  // this listens on every common gesture type and keeps trying — each handler
+  // bails immediately once fullscreen is actually active.
+  function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function goFullscreen() {
-    document.removeEventListener("pointerdown", goFullscreen, true);
+    if (isFullscreen()) return;
     const el = document.documentElement;
-    if (document.fullscreenElement || document.webkitFullscreenElement) return;
     const req = el.requestFullscreen || el.webkitRequestFullscreen;
     if (req) req.call(el).catch(() => {});
   }
-  document.addEventListener("pointerdown", goFullscreen, true);
+  ["pointerdown", "click", "touchend"].forEach((evt) => document.addEventListener(evt, goFullscreen, true));
+  document.addEventListener("fullscreenchange", () => {
+    if (isFullscreen()) ["pointerdown", "click", "touchend"].forEach((evt) => document.removeEventListener(evt, goFullscreen, true));
+  });
 })();
