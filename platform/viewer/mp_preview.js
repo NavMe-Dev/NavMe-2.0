@@ -2677,27 +2677,71 @@ function wfDbg(level, source, message, meta) {
     return best;
   }
 
-  /** Walk (FLY + rotate, same as Tour's play()) from the current stop to sweep index
-   *  `targetIdx`, one hop at a time. Cancellable — a newer call supersedes an older one
-   *  still in flight (e.g. the user tapping Next again before the camera lands).
-   *  `onStep`, if given, fires after each landed hop with the real route distance still
-   *  remaining to the destination from THAT exact scan point (same calculation moveTo()
-   *  already uses for the arrow/distance HUD) — lets a caller (ui.js's nav banner) show a
-   *  remaining-distance readout that ticks down per scan point instead of per instruction. */
+  /**
+   * Walk (FLY + rotate) from the current stop to sweep index `targetIdx` in one FLY
+   * transition. Callers are expected to pass an ADJACENT index (stepI ± 1) — ui.js's
+   * Next/Prev now step through `sweepIds` one real scan point at a time, exactly like
+   * Tour interior's own play() loop (see moveTo(i) above), just driven by touch instead
+   * of autoplay. targetIdx is still accepted generically (and still a single FLY rather
+   * than a chain of hops) so a non-adjacent jump degrades gracefully instead of hopping
+   * through every index in between, but normal Next/Prev usage never asks for one.
+   *
+   * Cancellable — a newer call supersedes an older one still in flight (e.g. the user
+   * tapping Next again before the camera lands). `onStep`, if given, fires on an interval
+   * during the flight with the remaining distance interpolated by elapsed time (so a
+   * caller's distance readout still ticks down live instead of jumping once at the very
+   * end), plus once more with the exact value on arrival.
+   */
   async function walkToIndex(targetIdx, onStep) {
     if (!mpSdk || targetIdx < 0 || targetIdx >= sweepIds.length) return false;
     const gen = ++walkGen;
-    const dir = targetIdx >= stepI ? 1 : -1;
-    let i = stepI;
-    while (i !== targetIdx) {
-      if (gen !== walkGen) return false;
-      i += dir;
-      const ok = await moveTo(i);
-      if (gen !== walkGen) return false;
-      if (ok && typeof onStep === "function") {
-        try { onStep({ index: i, remainingM: remainingDistM(i), nextLegM: nextLegDistM(i) }); } catch (_) { /* ignore */ }
+    const fromIdx = stepI;
+    if (fromIdx === targetIdx) return true;
+    const id = sweepIds[targetIdx];
+    const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+    const lo = Math.min(fromIdx, targetIdx), hi = Math.max(fromIdx, targetIdx);
+    let hopM = 0;
+    for (let k = lo; k < hi; k++) { if (segDistM[k] != null) hopM += segDistM[k]; }
+    const isLastStop = targetIdx === sweepIds.length - 1;
+    let tFly = flyTransitionMs(hopM);
+    if (isLastStop && targetIdx > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500);
+    const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
+    const h = headingToward(targetIdx);
+    if (h != null && Number.isFinite(h)) opts.rotation = { x: 0, y: h };
+
+    const fromRemaining = remainingDistM(fromIdx);
+    const toRemaining = remainingDistM(targetIdx);
+    let tickTimer = null;
+    if (typeof onStep === "function" && fromRemaining != null && toRemaining != null) {
+      const start = Date.now();
+      tickTimer = setInterval(() => {
+        if (gen !== walkGen) { clearInterval(tickTimer); return; }
+        const frac = Math.min(1, (Date.now() - start) / Math.max(1, tFly));
+        const interp = fromRemaining + (toRemaining - fromRemaining) * frac;
+        try { onStep({ index: targetIdx, remainingM: interp, nextLegM: nextLegDistM(targetIdx) }); } catch (_) { /* ignore */ }
+      }, 120);
+    }
+    try {
+      try {
+        await mpSdk.Sweep.moveTo(id, opts);
+      } catch (e1) {
+        await mpSdk.Sweep.moveTo(id, { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly });
       }
-      if (!ok) break;
+    } catch (e2) {
+      if (tickTimer) clearInterval(tickTimer);
+      console.warn("Sweep.moveTo failed", id, e2);
+      return false;
+    }
+    if (tickTimer) clearInterval(tickTimer);
+    if (gen !== walkGen) return false;
+    try { await faceAlongRoute(targetIdx); } catch (_) { /* ignore */ }
+    stepI = targetIdx;
+    updateStep();
+    try { await updateDirArrow(targetIdx); } catch (_) { /* ignore */ }
+    try { updateDistHud(targetIdx); } catch (_) { /* ignore */ }
+    try { updateTourInstruction(sweepNodes[targetIdx], isLastStop); } catch (_) { /* ignore */ }
+    if (typeof onStep === "function") {
+      try { onStep({ index: targetIdx, remainingM: toRemaining, nextLegM: nextLegDistM(targetIdx) }); } catch (_) { /* ignore */ }
     }
     return true;
   }
@@ -2711,9 +2755,17 @@ function wfDbg(level, source, message, meta) {
   function currentSweepIndex() { return stepI; }
   function totalSweepStops() { return sweepIds.length; }
 
+  /** Model Z-up {x,y,z} of prepared sweep stop `i` — lets a caller match its own turn-by-turn
+   *  instruction text to wherever the camera actually lands after each one-scan-point step. */
+  function sweepPointAt(i) {
+    if (i < 0 || i >= sweepNodes.length) return null;
+    const n = sweepNodes[i];
+    return (n && n.x != null) ? { x: n.x, y: n.y, z: n.z } : null;
+  }
+
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView, toggleHomeView,
-    prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo,
-    currentSweepIndex, totalSweepStops, pickOnMap, getLiveConnection
+    prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo, moveTo,
+    currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection
   };
 })();

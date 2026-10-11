@@ -1279,12 +1279,46 @@ function wfDbg(level, source, message, meta) {
     const eye = turf.destination(turf.point(lonlat), TOUR_BACK_M / 1000, (hd + 180) % 360, { units: "kilometers" }).geometry.coordinates;
     return { position: { longitude: eye[0], latitude: eye[1], z: floorAbsZ + TOUR_UP_M }, heading: hd, tilt: TOUR_TILT };
   }
+  /** Nearest S.navSteps[] instruction (by its .pt) to a model Z-up point — lets mp mode's
+   *  per-scan-point camera stepping still drive the right turn-by-turn text/icon/distance. */
+  function nearestNavStepIndex(pt) {
+    let best = 0, bd = Infinity;
+    (S.navSteps || []).forEach((s, i) => {
+      if (!s || !s.pt || s.pt.x == null) return;
+      const d = Math.hypot(s.pt.x - pt.x, s.pt.y - pt.y);
+      if (d < bd) { bd = d; best = i; }
+    });
+    return best;
+  }
+  /** mp mode's Next/Prev: step the camera exactly one real scan point at a time — the
+   *  same sweep-by-sweep granularity and FLY/camera-angle Tour interior's play() loop
+   *  uses — instead of jumping straight to whichever scan point sits nearest the next
+   *  turn-by-turn instruction (that nearest-point search had no ordering guarantee,
+   *  which is why Next sometimes flew backward, and had no adjacency guarantee, which
+   *  is why a single click could skip over many real scan points at once). */
+  function mpNavStep(delta) {
+    if (!window.MpPreview || !window.MpPreview.totalSweepStops) return;
+    const total = window.MpPreview.totalSweepStops();
+    if (!total) { navGo(S.navI + delta); return; }
+    const cur = window.MpPreview.currentSweepIndex();
+    const target = Math.max(0, Math.min(total - 1, cur + delta));
+    if (target === cur) return;
+    const pt = window.MpPreview.sweepPointAt ? window.MpPreview.sweepPointAt(target) : null;
+    if (pt) updateNavBannerChrome(nearestNavStepIndex(pt));
+    $("navPrev").disabled = target <= 0;
+    $("navNext").disabled = target >= total - 1;
+    window.MpPreview.walkToIndex(target, updateMpRemaining);
+    if (target >= total - 1) {
+      $("navDist").textContent = t("viewer.arrived");
+      announceArrivalOnce();
+    }
+  }
   function bindNav() {
-    // Next/Prev jump straight to the next/previous TURN point (like Tour interior),
-    // flying through whatever real scan points lie between — not one scan point per
-    // click, which made reaching the next turn take many repeated taps.
-    $("navNext").onclick = () => navGo(S.navI + 1);
-    $("navPrev").onclick = () => navGo(S.navI - 1);
+    // mp mode: step the Matterport camera one real scan point per click (mpNavStep —
+    // same engine Tour interior's play() uses). Non-mp (2D/3D map) mode: advance by
+    // turn-by-turn instruction as before (navGo).
+    $("navNext").onclick = () => { if (isMpMode()) mpNavStep(1); else navGo(S.navI + 1); };
+    $("navPrev").onclick = () => { if (isMpMode()) mpNavStep(-1); else navGo(S.navI - 1); };
     $("navExit").onclick = exitNav;
     // Arrow-key shortcut for step navigation — skipped in mp mode, where the whole screen
     // is the Matterport embed and arrow keys are far more likely to be an incidental key
@@ -1297,12 +1331,26 @@ function wfDbg(level, source, message, meta) {
     S.mode = "nav"; document.body.classList.add("nav");
     $("navBanner").hidden = false; $("navBar").hidden = false; closePop();
     applyPadding();
-    // Prepare the same sweep-by-sweep walk engine Tour interior uses (FLY transitions,
-    // rotate-toward-next-waypoint, faceAlongRoute correction) before stepping through it.
-    if (isMpMode() && window.MpPreview && window.MpPreview.prepareWalk) {
-      try { await window.MpPreview.prepareWalk(mpRoutePayload()); } catch (_) { /* ignore */ }
-    }
     arrivedAnnounced = false;
+    // Prepare the same sweep-by-sweep walk engine Tour interior uses (FLY transitions,
+    // rotate-toward-next-waypoint, faceAlongRoute correction) before stepping through it,
+    // one real scan point per Next/Prev click (mpNavStep) — same granularity and camera
+    // handling Tour interior's own play() loop uses, just touch-driven instead of auto-play.
+    if (isMpMode() && window.MpPreview && window.MpPreview.prepareWalk) {
+      let total = 0;
+      try { total = await window.MpPreview.prepareWalk(mpRoutePayload()); } catch (_) { /* ignore */ }
+      if (total) {
+        const pt0 = window.MpPreview.sweepPointAt ? window.MpPreview.sweepPointAt(0) : null;
+        updateNavBannerChrome(pt0 ? nearestNavStepIndex(pt0) : 0);
+        $("navPrev").disabled = true;
+        $("navNext").disabled = total <= 1;
+        // Force the camera into the route's actual start sweep (mirrors Tour interior's
+        // play() loop, which always flies to sweepIds[0] first) — the mp=1 background's
+        // live camera is wherever it last was, not necessarily this route's start point.
+        if (window.MpPreview.moveTo) window.MpPreview.moveTo(0);
+        return;
+      }
+    }
     navGo(S.navSteps.length > 1 ? 1 : 0);
   }
   /** Fires the "Destination reached" toast exactly once per nav session. */
