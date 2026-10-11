@@ -176,18 +176,20 @@
       // pointer-events:auto, which overrides an ancestor's :none.
       "body.n3d-reuse-bg #n3dOverlay .n3d-stage{pointer-events:none}",
       "#n3dOverlay .n3d-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent}",
+      // No connecting bar/background strip — just the two floating circular-pill
+      // controls, matching the minimal "only this should show" look of Start
+      // Preview's own chrome (turn arrow + compass float directly over the scene,
+      // no top bar behind them either).
       "#n3dOverlay .n3d-bar{position:absolute;top:0;left:0;right:0;z-index:10;",
         "display:flex;align-items:center;gap:8px;padding:8px 12px;",
         "padding-top:calc(8px + env(safe-area-inset-top,0px));",
-        "background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);pointer-events:none}",
+        "background:transparent;pointer-events:none}",
       "#n3dOverlay .n3d-bar>*{pointer-events:auto}",
       "#n3dOverlay .n3d-close{display:inline-flex;align-items:center;gap:8px;height:40px;",
         "padding:0 14px 0 6px;border-radius:999px;border:0;",
         "background:rgba(255,255,255,.92);color:#111;cursor:pointer;font:inherit;",
         "font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18)}",
-      "#n3dOverlay .n3d-title{color:#fff;font-size:14px;font-weight:600;",
-        "font-family:-apple-system,system-ui,sans-serif;flex:1;padding-left:4px;",
-        "text-shadow:0 1px 3px rgba(0,0,0,.5)}",
+      "#n3dOverlay .n3d-title{display:none}",
       "#n3dOverlay .n3d-locate{display:inline-flex;align-items:center;gap:6px;height:40px;",
         "padding:0 14px;border-radius:999px;border:0;white-space:nowrap;",
         "background:#182858;color:#fff;cursor:pointer;font:inherit;",
@@ -203,17 +205,27 @@
         "font-size:13px;font-weight:500;white-space:nowrap;pointer-events:none;",
         "font-family:-apple-system,system-ui,sans-serif;z-index:11}",
       "#n3dOverlay .n3d-status[hidden]{display:none!important}",
-      "#n3dOverlay .n3d-dock{position:absolute;left:50%;transform:translateX(-50%);z-index:8;",
-        "bottom:calc(14px + env(safe-area-inset-bottom,0px));",
-        "width:min(400px,calc(100% - 24px));box-sizing:border-box;",
-        "display:flex;align-items:center;justify-content:center;gap:12px;",
-        "padding:10px 16px;border-radius:20px;",
-        "background:rgba(24,40,88,.9);color:#fff;",
-        "box-shadow:0 8px 28px rgba(0,0,0,.35)}",
+      // Same compact "ETA card" look as ui.js's own #navBar (Start Preview) —
+      // var(--bg)/var(--green)/var(--txt2) are the app's real theme tokens
+      // (defined on :root in ui.css), not local guesses, so this tracks light/
+      // dark/high-contrast exactly like the rest of the chrome.
+      "#n3dOverlay .n3d-dock{position:absolute;left:0;right:0;bottom:0;z-index:8;",
+        "box-sizing:border-box;",
+        "display:flex;align-items:center;gap:10px;",
+        "padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));",
+        "border-radius:16px 16px 0 0;",
+        "background:var(--bg,#fff);color:var(--txt,#202124);",
+        "box-shadow:0 -2px 10px rgba(60,64,67,.25)}",
       "#n3dOverlay .n3d-dock[hidden]{display:none!important}",
-      "#n3dOverlay .n3d-dist-v{font-size:22px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1}",
-      "#n3dOverlay .n3d-dist-u{font-size:13px;font-weight:600;opacity:.75;margin-left:3px}",
-      "#n3dOverlay .n3d-dist-lbl{font-size:11px;font-weight:600;opacity:.6;text-transform:uppercase;letter-spacing:.05em}",
+      "#n3dOverlay .n3d-dock-eta{flex:1;min-width:0}",
+      "#n3dOverlay .n3d-dist-v{font-size:1.5em;font-weight:500;line-height:1.1;",
+        "color:var(--green,#188038);font-variant-numeric:tabular-nums}",
+      "#n3dOverlay .n3d-dist-u{font-size:13px;font-weight:600;color:var(--green,#188038);margin-left:3px}",
+      "#n3dOverlay .n3d-dist-lbl{font-size:13px;color:var(--txt2,#5f6368)}",
+      "#n3dOverlay .n3d-exit{flex:0 0 auto;height:40px;padding:0 20px;border-radius:999px;",
+        "border:0;background:var(--red,#d93025);color:#fff;font:inherit;",
+        "font-size:14px;font-weight:700;cursor:pointer}",
+      "#n3dOverlay .n3d-exit:active{transform:scale(.97)}",
       // Arrival card — "Destination reached".
       "#n3dOverlay .n3d-arrived{position:absolute;inset:0;z-index:24;display:flex;",
         "align-items:center;justify-content:center;background:rgba(15,23,42,.45);",
@@ -251,8 +263,9 @@
         '<canvas class="n3d-canvas" id="n3dCanvas" hidden></canvas>',
         '<div class="n3d-status" id="n3dStatus" hidden></div>',
         '<div class="n3d-dock" id="n3dDock" hidden>',
-          '<div><div class="n3d-dist-lbl">Distance remaining</div>',
+          '<div class="n3d-dock-eta"><div class="n3d-dist-lbl">Distance remaining</div>',
           '<div><span class="n3d-dist-v" id="n3dDistV">—</span><span class="n3d-dist-u" id="n3dDistU">m</span></div></div>',
+          '<button class="n3d-exit" id="n3dExit" type="button">Exit</button>',
         '</div>',
         '<div class="n3d-arrived" id="n3dArrived" hidden role="alertdialog" aria-modal="false">',
           '<div class="n3d-arrived-card">',
@@ -268,6 +281,7 @@
     // Go through window.ThreeDNav.close (not the bare local close()) so walkthrough.html's
     // monkey-patch (navigate back to the page that handed off to it on mobile) still fires.
     $("n3dClose").addEventListener("click", function(){ window.ThreeDNav.close(); });
+    $("n3dExit").addEventListener("click", function(){ window.ThreeDNav.close(); });
     $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); window.ThreeDNav.close(); });
     $("n3dLocate").addEventListener("click", toggleLocateFromMe);
   }
@@ -281,9 +295,14 @@
   function updateDistDisplay() {
     var dock = $("n3dDock"), dv = $("n3dDistV"), du = $("n3dDistU");
     if (!dock) return;
-    var rem = remainingMetres();
-    if (rem === null || rem < 0.5) { dock.hidden = true; return; }
+    // Always reachable once navigation has started — this carries the only Exit
+    // control now that the top bar's title strip is gone, so it must stay up
+    // even before the first real distance is known, not just once remainingMetres()
+    // returns something.
     dock.hidden = false;
+    var rem = remainingMetres();
+    if (rem === null) { if (dv) dv.textContent = "—"; return; }
+    if (rem < 0.5) { if (dv) dv.textContent = "0"; return; }
     if (dv) {
       if (rem >= 1000) { dv.textContent = (rem/1000).toFixed(2); if (du) du.textContent = "km"; }
       else { dv.textContent = Math.round(rem).toString(); if (du) du.textContent = "m"; }
@@ -2316,6 +2335,14 @@
     ov.hidden = false;
     document.body.classList.add("n3d-open");
     document.body.classList.add("n3d-reuse-bg");
+    // Same body.nav CSS Start Preview's own navGo() uses (ui.css: body.nav .top,
+    // .sheet, #layersPop{display:none}) — hides the search bar/directions sheet
+    // behind the walkthrough, same "only this should show" look, with zero new
+    // CSS of our own and zero risk to ui.js's own nav-mode JS (that only reacts
+    // to its separate S.mode variable, never to this class).
+    document.body.classList.add("nav");
+    var dock0 = $("n3dDock");
+    if (dock0) dock0.hidden = false;
     if (destName) {
       var title = $("n3dTitle");
       if (title) title.textContent = "To: " + destName;
@@ -2413,6 +2440,9 @@
     var ov = $(OVERLAY_ID);
     ov.hidden = false;
     document.body.classList.add("n3d-open");
+    document.body.classList.add("nav");
+    var dock0 = $("n3dDock");
+    if (dock0) dock0.hidden = false;
     if (destName) {
       var title = $("n3dTitle");
       if (title) title.textContent = "To: " + destName;
@@ -2450,6 +2480,15 @@
     usingLiveConnection = false;
     document.body.classList.remove("n3d-open");
     document.body.classList.remove("n3d-reuse-bg");
+    // Only drop body.nav if ui.js's own Start Preview isn't ALSO relying on it
+    // right now (S.mode stays "nav" for the life of that separate feature) —
+    // nothing stops a user from having both open, and un-hiding the search
+    // sheet out from under a still-active Start Preview would be wrong.
+    try {
+      if (!(window.wfUI && window.wfUI.S && window.wfUI.S.mode === "nav")) {
+        document.body.classList.remove("nav");
+      }
+    } catch (e) { document.body.classList.remove("nav"); }
     setStatus("");
     if (window.wf && window.wf.exitHeavyOverlay) {
       try { window.wf.exitHeavyOverlay(); } catch (e) { console.warn("[ThreeDNav] exitHeavyOverlay failed", e); }
