@@ -41,10 +41,10 @@ body.dir #chipsMore{display:none}
 
 /* ---------- Locate me (From field) + Image camera modal ---------- */
 .dfield.from-field{gap:6px}
-.locate-me{display:inline-flex;align-items:center;gap:3px;flex:none;height:28px;padding:0 8px;border-radius:14px!important;background:#e8f0fe!important;color:var(--blue-d)!important;font-weight:500!important;font-size:.78em;white-space:nowrap}
+.locate-me{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:none;width:28px;height:28px;padding:0;border-radius:50%!important;background:var(--bg2)!important;color:var(--blue-d)!important;font-weight:500!important;font-size:.78em;white-space:nowrap}
 .locate-me .ms{font-size:16px;color:var(--blue)}
 .locate-me.busy{opacity:.55;pointer-events:none}
-.locate-me .locate-lbl{display:none}
+.locate-me .locate-lbl{display:none!important}
 .from-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:2px 0 0 34px;font-size:.8em;min-height:0}
 .acc-chip{display:inline-flex;align-items:center;gap:3px;background:#e8f0fe;color:var(--blue-d);border-radius:10px;padding:2px 8px;font-weight:500}
 .acc-chip::before{font-family:"Material Symbols Rounded";content:"my_location";font-size:14px}
@@ -59,7 +59,6 @@ body.dir #chipsMore{display:none}
 .loc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .loc-file{cursor:pointer}
 @media (max-width:767px){
-  .locate-me .locate-lbl{display:inline}
   .dfield.from-field{height:auto;min-height:40px;padding-top:6px;padding-bottom:6px}
   .modes{margin-left:8px}
   .loc-modal{align-items:flex-end}
