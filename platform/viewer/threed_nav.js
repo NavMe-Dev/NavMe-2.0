@@ -68,6 +68,18 @@
   let sweepCollection = null, unsubSweepData = null;
   let sweeps = [];                // {sid, position:{x,y,z}, neighbours:[sid], floor:n}
   let routeSids = [];             // solved route as sweep id sequence
+  // The backend's own ordered sweep_ids for this route (same data Tour interior/
+  // mp_preview.js follows directly) — set once in open(). computeRouteSids() prefers
+  // slicing from here (by finding fromSweep's own position in this known-good,
+  // already-connected list) over re-deriving a path by projecting navPathMp onto the
+  // live Matterport sweep graph: in areas where real captured scan points sit sparser
+  // than the sweepsAlongNavPath() corridor tolerance, that projection can skip a
+  // stretch entirely and jump straight to a much-later waypoint — exactly the gap
+  // Tour interior doesn't have, because it never re-derives the path, it just follows
+  // this list. Falls back to the navPath-projection/Dijkstra logic below when
+  // fromSweep isn't on this list at all (e.g. VPS localized to a sweep the backend's
+  // route never passes through).
+  let backendSweepIds = [];
   // Declared staircases (NavMe Dashboard's navme_stair_chains table), as ordered runs of
   // sweep ids, lowest step first. setStairChainRows() stores the raw {sweep_numbers}
   // rows as soon as they're fetched; resolveStairChains() turns the numbers (Sweep.data
@@ -581,17 +593,131 @@
     return bestT >= 0 ? { t: bestT, distSq: bestDSq } : null;
   }
 
+  function dedupeConsecutive(ids) {
+    var out = [];
+    for (var i = 0; i < (ids || []).length; i++) {
+      var id = ids[i];
+      if (!id) continue;
+      if (!out.length || out[out.length - 1] !== id) out.push(id);
+    }
+    return out;
+  }
+
   /**
-   * Solve a route from `fromSweep` to `toSweep` — same navPath-projection-first,
-   * Dijkstra-fallback logic runNavigate() uses for the very first solve, factored
-   * out so onReachedWalkStop() can call it again from wherever the camera actually
-   * is. When re-solving mid-route, points on navPathMp that fall BEHIND fromSweep's
-   * own position on the path are dropped first — otherwise re-projecting the whole
-   * path from scratch would walk the user backward through ground they already
-   * covered before heading on to the destination again.
+   * Prefer the backend's own ordered sweep_ids (the exact list Tour interior
+   * follows directly, see backendSweepIds above) when fromSweep actually sits on
+   * it — slice from its index onward, same "drop what's behind us" idea as the
+   * navPath-projection fallback below, but an exact index match instead of a
+   * distance-corridor heuristic, so a stretch where real scan points sit sparser
+   * than that corridor's tolerance can't be skipped. Returns null (not []) to
+   * mean "not usable here, fall through" — e.g. fromSweep is a VPS match that
+   * isn't on the backend's path at all.
    */
+  function backendPathFrom(fromSweep, toSweep) {
+    if (backendSweepIds.length < 2) return null;
+    var idx = backendSweepIds.indexOf(fromSweep.sid);
+    if (idx < 0) return null;
+    var pathIds = backendSweepIds.slice(idx);
+    var lastSid = pathIds[pathIds.length - 1];
+    if (lastSid === toSweep.sid) return pathIds;
+    // Backend list's tail doesn't land exactly on toSweep (e.g. toSweep itself is a
+    // VPS/nearest-sweep match near, not literally on, the destination end) — bridge
+    // the short remaining stretch the same way the projection path does.
+    var bridge = solveRoute(lastSid, toSweep.sid);
+    if (!bridge.length) return null;
+    if (bridge.length > 1) bridge.shift();
+    return pathIds.concat(bridge);
+  }
+
+  /**
+   * Solve a route from `fromSweep` to `toSweep` — backendPathFrom() first (see
+   * above), then the same navPath-projection-first, Dijkstra-fallback logic
+   * runNavigate() uses for the very first solve, factored out so
+   * onReachedWalkStop() can call it again from wherever the camera actually is.
+   * When re-solving mid-route via the projection fallback, points on navPathMp
+   * that fall BEHIND fromSweep's own position on the path are dropped first —
+   * otherwise re-projecting the whole path from scratch would walk the user
+   * backward through ground they already covered before heading on to the
+   * destination again.
+   */
+  /**
+   * Pick out the navPath's own turning points (ported from mp_preview.js's Tour
+   * interior, which already solves this same "navmesh route has no sweep_ids"
+   * problem and the user confirmed shows correct connectivity everywhere) —
+   * every sharp turn, plus a guide point at least every maxGapM of straight
+   * corridor, plus both endpoints, thinned evenly down to maxTotal if sampling
+   * overshot. pts are Matterport Y-up (navPathMp); the horizontal plane for
+   * turn-angle math is (x, z), since y is up here (mp_preview.js's own version
+   * of this works in NavMe Z-up, where the equivalent plane is (x, y) — same
+   * geometry, different axis names).
+   */
+  function sampleKeyNavPathPoints(pts, maxTurns, maxGapM, maxTotal) {
+    if (pts.length <= 2) return pts.slice();
+    var scored = [];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var prev = pts[i-1], cur = pts[i], next = pts[i+1];
+      var dx1 = cur.x-prev.x, dz1 = cur.z-prev.z;
+      var dx2 = next.x-cur.x, dz2 = next.z-cur.z;
+      var len1 = Math.sqrt(dx1*dx1+dz1*dz1), len2 = Math.sqrt(dx2*dx2+dz2*dz2);
+      if (len1 < 0.5 || len2 < 0.5) continue;
+      var dot = (dx1*dx2+dz1*dz2)/(len1*len2);
+      var sharpness = 1 - dot; // 0 = straight, 2 = U-turn
+      if (sharpness > 0.1) scored.push({ i: i, sharpness: sharpness });
+    }
+    scored.sort(function(a,b){ return b.sharpness - a.sharpness; });
+    var keptIdx = {};
+    for (var k = 0; k < Math.min(maxTurns, scored.length); k++) keptIdx[scored[k].i] = true;
+    keptIdx[0] = true; keptIdx[pts.length-1] = true;
+
+    if (maxGapM > 0) {
+      var acc = 0;
+      for (var j = 1; j < pts.length - 1; j++) {
+        var a = pts[j-1], b = pts[j];
+        acc += Math.sqrt((b.x-a.x)*(b.x-a.x) + (b.z-a.z)*(b.z-a.z) + (b.y-a.y)*(b.y-a.y));
+        if (keptIdx[j]) { acc = 0; continue; }
+        if (acc >= maxGapM) { keptIdx[j] = true; acc = 0; }
+      }
+    }
+    var orderedIdx = Object.keys(keptIdx).map(Number).sort(function(a,b){ return a-b; });
+    if (maxTotal && orderedIdx.length > maxTotal) {
+      var stride = (orderedIdx.length-1) / (maxTotal-1);
+      var thinnedSet = {};
+      for (var m = 0; m < maxTotal; m++) thinnedSet[orderedIdx[Math.round(m*stride)]] = true;
+      orderedIdx = Object.keys(thinnedSet).map(Number).sort(function(a,b){ return a-b; });
+    }
+    return orderedIdx.map(function(idx){ return pts[idx]; });
+  }
+
+  /**
+   * Build a walk path from navPathMp's own turning points, each snapped to the
+   * globally nearest real scan point via nearestSweep() (height-gated, but with
+   * NO plan-distance cap — see nearestSweepWithDistance). This is what actually
+   * fixes gaps sweepsAlongNavPath(corridorM) could leave behind: that function
+   * only keeps a REAL sweep if one happens to sit within corridorM of the path,
+   * so a stretch with no scan point that close gets dropped entirely and the
+   * route jumps straight to whatever the next kept sweep is, however far along.
+   * Sampling key points FROM the path and asking "what's nearest to THIS turn,
+   * no matter how far" instead guarantees every turn gets a stop — exactly the
+   * approach already proven out in mp_preview.js's Tour interior for this same
+   * "navmesh route, no sweep_ids" case.
+   */
+  function sweepsFromKeyNavPathPoints() {
+    var pts = navPathMp;
+    if (!pts || pts.length < 2 || !sweeps.length) return [];
+    var keyPts = sampleKeyNavPathPoints(pts, 22, 5, 40);
+    var ids = [];
+    for (var i = 0; i < keyPts.length; i++) {
+      var sw = nearestSweep(keyPts[i]);
+      if (sw && (!ids.length || ids[ids.length-1] !== sw.sid)) ids.push(sw.sid);
+    }
+    return ids;
+  }
+
   function computeRouteSids(fromSweep, toSweep) {
-    var pathIds = sweepsAlongNavPath(5);
+    var backendPath = backendPathFrom(fromSweep, toSweep);
+    if (backendPath) return backendPath;
+    var pathIds = sweepsFromKeyNavPathPoints();
+    if (pathIds.length < 2) pathIds = sweepsAlongNavPath(5);
     if (pathIds.length >= 2) {
       // Drop points behind fromSweep so a re-solve from mid-route doesn't walk
       // backward through ground already covered. Prefer fromSweep's own position
@@ -2083,7 +2209,7 @@
     if (drawRaf) { cancelAnimationFrame(drawRaf); drawRaf = 0; }
     mpSdk = null; lastPose = null; navPts = [];
     sweepCollection = null; sweeps = [];
-    routeSids = []; routeLegs = []; activeLeg = 0;
+    routeSids = []; routeLegs = []; activeLeg = 0; backendSweepIds = [];
     currentSweepSid = null; prevSweepSid = null; destSweepSid = null;
     noProgressSid = null; noProgressCount = 0;
     navLocked = false; arrivedShown = false;
@@ -2112,6 +2238,7 @@
     // Store the full path in Matterport Y-up so sweepsAlongNavPath can use it.
     navPathMp    = pts.map(toMp);
     computeNavPathTurns();
+    backendSweepIds = dedupeConsecutive(route.sweep_ids || []);
     // The viewer's route object does not carry the destination label on every
     // path, so fall back to the Directions "to" field the user actually typed —
     // without it the arrival card reads a bare "Destination reached".
@@ -2147,7 +2274,7 @@
     if (drawRaf) { cancelAnimationFrame(drawRaf); drawRaf = 0; }
     mpSdk = null; lastPose = null; navPts = []; navPathMp = []; navPathTurns = [];
     sweepCollection = null; sweeps = [];
-    routeSids = []; routeLegs = []; activeLeg = 0;
+    routeSids = []; routeLegs = []; activeLeg = 0; backendSweepIds = [];
     currentSweepSid = null; prevSweepSid = null; destSweepSid = null;
     noProgressSid = null; noProgressCount = 0;
     navLocked = false; arrivedShown = false;
