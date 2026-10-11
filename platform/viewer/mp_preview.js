@@ -1609,6 +1609,32 @@ function wfDbg(level, source, message, meta) {
   /** "Your location" has no GPS/map meaning in mp mode — repurposed as a home/reset button. */
   async function resetView() { return setFloor(null); }
 
+  // Toggle state for the repurposed "Locate me" button: first press remembers exactly
+  // where the camera was (its sweep) and flies out to the Dollhouse overview; second
+  // press flies straight back to that same sweep instead of leaving the user stranded
+  // in the overview with no way back to where they were.
+  let homeToggleSweep = null;
+  async function toggleHomeView() {
+    if (!mpSdk) return { active: false };
+    if (homeToggleSweep) {
+      const sid = homeToggleSweep;
+      homeToggleSweep = null;
+      try {
+        const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+        await mpSdk.Sweep.moveTo(sid, { transition: (tr && tr.FLY) || undefined });
+      } catch (e) { console.warn("[MpPreview] toggleHomeView restore failed", e); }
+      return { active: false };
+    }
+    let sid = null;
+    try {
+      const pose = mpSdk.Camera && typeof mpSdk.Camera.getPose === "function" ? await mpSdk.Camera.getPose() : null;
+      sid = pose ? (pose.sweepId || pose.sweep || null) : null;
+    } catch (_) { /* ignore */ }
+    await setFloor(null);
+    if (sid) homeToggleSweep = sid;
+    return { active: !!sid };
+  }
+
   async function alignSweepIds(sdk) {
     const known = await knownSweepIds(sdk);
     if (!known || !known.size || !sweepIds.length) return sweepIds;
@@ -2685,7 +2711,7 @@ function wfDbg(level, source, message, meta) {
   function totalSweepStops() { return sweepIds.length; }
 
   window.MpPreview = {
-    open, close, showBackground, focusAt, setFloor, zoomBy, resetView,
+    open, close, showBackground, focusAt, setFloor, zoomBy, resetView, toggleHomeView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo,
     currentSweepIndex, totalSweepStops, pickOnMap, getLiveConnection
   };

@@ -1762,8 +1762,19 @@ function wfDbg(level, source, message, meta) {
     }
     $("btnMe").onclick = () => {
       // No GPS/map concept applies to the Matterport-only background view — repurposed
-      // as a home button, resetting the Dollhouse camera to the default overview.
-      if (isMpMode() && window.MpPreview) { window.MpPreview.resetView(); return; }
+      // as a home button, flying out to the Dollhouse overview. A second press flies
+      // straight back to the sweep the camera was at before the first press, so the
+      // user is never stranded in the overview; the icon swaps to show which state
+      // the button is in.
+      if (isMpMode() && window.MpPreview) {
+        window.MpPreview.toggleHomeView().then(res => {
+          const btn = $("btnMe");
+          if (!btn) return;
+          btn.classList.toggle("on", !!(res && res.active));
+          btn.querySelector(".ms").textContent = (res && res.active) ? "arrow_back" : "my_location";
+        });
+        return;
+      }
       if (wf.lastLoc && !wf.isLocalizing()) {
         if (wf.lastLoc.floor !== wf.currentFloor()) wf.setFloor(wf.lastLoc.floor);
         wf.view().goTo({ center: [wf.lastLoc.lon, wf.lastLoc.lat], zoom: Math.max(wf.view().zoom, 20.5) }, { duration: 600 }).catch(() => { });
@@ -1850,7 +1861,9 @@ function wfDbg(level, source, message, meta) {
   }
   function updateFloorPicker() {
     const fp = $("floorPicker"); if (!wf) return;
-    const show = isMpMode() || wf.is3D() || (wf.view2d.zoom >= 17.5);
+    // Floor selection is hidden entirely — the app should decide the floor on its own,
+    // never ask the user to pick one.
+    const show = false;
     fp.hidden = !show;
     if (!show) setFloorStack(false);
     $("floorList").querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });
