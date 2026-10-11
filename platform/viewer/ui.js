@@ -1280,35 +1280,17 @@ function wfDbg(level, source, message, meta) {
     return { position: { longitude: eye[0], latitude: eye[1], z: floorAbsZ + TOUR_UP_M }, heading: hd, tilt: TOUR_TILT };
   }
   function bindNav() {
-    $("navNext").onclick = () => mpOrNavGo(1);
-    $("navPrev").onclick = () => mpOrNavGo(-1);
+    // Next/Prev jump straight to the next/previous TURN point (like Tour interior),
+    // flying through whatever real scan points lie between — not one scan point per
+    // click, which made reaching the next turn take many repeated taps.
+    $("navNext").onclick = () => navGo(S.navI + 1);
+    $("navPrev").onclick = () => navGo(S.navI - 1);
     $("navExit").onclick = exitNav;
     // Arrow-key shortcut for step navigation — skipped in mp mode, where the whole screen
     // is the Matterport embed and arrow keys are far more likely to be an incidental key
     // press (or an attempt to look around) than an intentional "next step", which read as
     // the route advancing on its own without clicking Next/Prev.
     document.addEventListener("keydown", (e) => { if (S.mode !== "nav" || isMpMode()) return; if (e.key === "ArrowRight") navGo(S.navI + 1); if (e.key === "ArrowLeft") navGo(S.navI - 1); });
-  }
-  // mp mode: Next/Prev must move exactly one real scan point per click — same as Tour
-  // interior's own stepping — never a multi-hop walk toward a (possibly several scan
-  // points away) turn-by-turn instruction. navGo()'s own nearestIndexForPoint+walkToIndex
-  // call (used once, by startNav()) stays as the "enter the walkthrough" jump; this is the
-  // separate per-click path used by the arrows after that.
-  function mpOrNavGo(delta) {
-    if (isMpMode() && window.MpPreview && window.MpPreview.walkToIndex) { mpArrowStep(delta); return; }
-    navGo(S.navI + delta);
-  }
-  async function mpArrowStep(delta) {
-    const mp = window.MpPreview;
-    const total = mp.totalSweepStops ? mp.totalSweepStops() : 0;
-    if (!total) return;
-    const cur = mp.currentSweepIndex ? mp.currentSweepIndex() : 0;
-    const next = cur + delta;
-    // Out of range — "or else it should not [move]": do nothing, except announce arrival
-    // once, the moment Next would have gone past the final scan point.
-    if (next < 0) return;
-    if (next >= total) { announceArrivalOnce(); return; }
-    await mp.walkToIndex(next, updateMpRemaining);
   }
   async function startNav() {
     if (!S.route) return;
@@ -1331,8 +1313,10 @@ function wfDbg(level, source, message, meta) {
     toast(t("viewer.destinationReached") || "Destination reached");
   }
   /** mp mode only: recompute the "time/distance remaining" readout from the REAL route,
-   *  anchored at the scan point the camera just landed on — called after every sweep hop
-   *  in walkToIndex, so it ticks down per scan point instead of jumping once per instruction. */
+   *  anchored at the scan point the camera just landed on — called after every real scan
+   *  point Next/Prev's flight passes through on its way to the next/previous turn, so the
+   *  banner's distance ticks down live during that flight instead of jumping once at the
+   *  end of it. */
   // Baseline route-remaining-metres sampled the first time the current instruction's
   // navBanner distance is shown — lets navDist count DOWN per sweep hop ("8 m" → "5 m" →
   // "2 m" → "Now") instead of staying fixed at the instruction's starting distance for
@@ -1352,20 +1336,11 @@ function wfDbg(level, source, message, meta) {
     const travelled = Math.max(0, (navLegBaselineRemM ?? info.remainingM) - info.remainingM);
     const left = Math.max(0, (s.dist || 0) - travelled);
     $("navDist").textContent = left > 0.5 ? fmtDist(left) : (s.type === "arrive" ? t("viewer.arrived") : t("viewer.now"));
-    // The instruction itself (icon/text — "Turn left", "Go straight"...) used to
-    // only change via the Prev/Next step list, never as a side effect of actually
-    // walking sweep-by-sweep — so it read as frozen on whatever instruction was
-    // showing when nav started, even while the live distance above it ticked down
-    // to zero. Advance it the moment this leg is walked, same threshold as "Now".
-    if (left <= 0.5) {
-      if (S.navI < S.navSteps.length - 1) updateNavBannerChrome(S.navI + 1);
-      else announceArrivalOnce();
-    }
+    // Advancing to the next instruction is the explicit Next click's job (navGo) — this
+    // only announces the one-time "Destination reached" once the final leg's flight lands.
+    if (left <= 0.5 && s.type === "arrive") announceArrivalOnce();
   }
-  /** Icon/text/thumb/ETA chrome only — no camera move, no S.sim, no walkToIndex.
-   *  Split out of navGo() so updateMpRemaining's auto-advance (the camera is
-   *  already mid-walk, driven by mpArrowStep's own walkToIndex loop) can move
-   *  the instruction forward without kicking off a second, conflicting walk. */
+  /** Icon/text/thumb/ETA chrome only — no camera move, no S.sim, no walkToIndex. */
   function updateNavBannerChrome(i) {
     const n = S.navSteps.length; i = Math.max(0, Math.min(n - 1, i)); S.navI = i;
     const s = S.navSteps[i];

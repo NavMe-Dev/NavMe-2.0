@@ -234,21 +234,11 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 
-  // Fullscreen must be requested from a user gesture (browsers reject a bare
-  // programmatic call). A single pointerdown listener turned out unreliable in
-  // practice (some browsers only treat click/touchend as a "real" activation,
-  // and a denied/ignored request shouldn't permanently disarm the attempt), so
-  // this listens on every common gesture type and keeps trying — each handler
-  // bails immediately once fullscreen is actually active.
-  function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
-  function goFullscreen() {
-    if (isFullscreen()) return;
-    const el = document.documentElement;
-    const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) req.call(el).catch(() => {});
-  }
-  ["pointerdown", "click", "touchend"].forEach((evt) => document.addEventListener(evt, goFullscreen, true));
-  document.addEventListener("fullscreenchange", () => {
-    if (isFullscreen()) ["pointerdown", "click", "touchend"].forEach((evt) => document.removeEventListener(evt, goFullscreen, true));
-  });
+  // Auto-requesting Fullscreen API on first tap was removed: on some Android
+  // devices it pushed the viewport under the front-camera/status-bar cutout
+  // instead of cleanly hiding chrome, which looked worse than just keeping the
+  // normal browser UI. The apple-mobile-web-app-capable meta tags in index.html
+  // still give a real, chrome-free fullscreen to anyone who explicitly adds this
+  // page to their home screen — that path is user-initiated per device, so it
+  // doesn't hit this same auto-trigger problem.
 })();
