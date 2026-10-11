@@ -73,12 +73,12 @@
       font:14px/1.4 Roboto,system-ui,-apple-system,sans-serif; text-align:center; padding:24px;
     }
     body.mp-bg-mode #mpBgLoading[hidden] { display:none !important; }
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoading {
-      inset:auto; bottom:18px; left:50%; transform:translateX(-50%); right:auto;
-      flex-direction:row; max-width:86%; width:auto; padding:9px 16px; gap:10px;
-      background:rgba(0,0,0,.72); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-      border-radius:20px; pointer-events:none;
-    }
+    /* Once the iframe has real content, drop the status pill entirely instead of shrinking
+       it into a bottom toast — "Connecting to digital twin…" / "Tap Enter…" etc. read as
+       noise once the scene itself is already visible underneath. The full-bleed splash
+       above (shown before .mp-frame-loaded) is untouched; this only removes what used to
+       replace it. */
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoading { display:none !important; }
     body.mp-bg-mode .mp-bg-spinner {
       width:36px; height:36px; border-radius:50%; border:3px solid rgba(255,255,255,.25);
       border-top-color:#8ab4f8; animation:mpBgSpin .8s linear infinite; flex-shrink:0;

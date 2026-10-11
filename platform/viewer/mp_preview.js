@@ -26,6 +26,12 @@ function wfDbg(level, source, message, meta) {
   let connectError = "";
   let sdkScriptPromise = null;
   let openGen = 0;
+  // True when this session is reusing mp_background.js's permanent mp=1 connection
+  // (see getLiveConnection/openUsingLiveConnection) instead of owning a dedicated
+  // mpSdk/#mpFrame/#mpOverlay of its own. close() must never disconnect the SDK, blank
+  // the iframe, or hide the overlay while this is true — that overlay/iframe/SDK IS the
+  // mp=1 background itself, not something this session is free to tear down.
+  let usingLiveConnection = false;
   let navPathTour = false; // when true: INSTANT transitions + zero dwell (computed from navPath)
   let tourNavSteps = [];  // same turn-by-turn instructions Start Preview shows (route._navSteps)
 
@@ -93,6 +99,21 @@ function wfDbg(level, source, message, meta) {
         else wrap.insertBefore(d, wrap.firstChild);
       }
     }
+    // Exit lives in a bottom dock (matching Start Preview's #navBar / Walkthrough
+    // Wayfinding's .n3d-dock) instead of a top-bar close icon — back-filled here for
+    // the same reason as the elements above: index.html's static #mpOverlay predates it.
+    const oldClose = $("mpClose");
+    if (oldClose) oldClose.remove();
+    if (!$("mpDock")) {
+      const wrap = ov.querySelector(".mp-frame-wrap");
+      if (wrap) {
+        const d = document.createElement("div");
+        d.className = "mp-dock"; d.id = "mpDock"; d.hidden = true;
+        d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl">Distance remaining</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
+          '<button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>';
+        wrap.appendChild(d);
+      }
+    }
   }
 
   function ensureOverlay() {
@@ -117,7 +138,6 @@ function wfDbg(level, source, message, meta) {
             <button type="button" class="mp-btn" id="mpPause" aria-label="Pause"><span class="ms">pause</span></button>
             <button type="button" class="mp-btn" id="mpStop" aria-label="Stop"><span class="ms">stop</span></button>
             <a class="mp-btn" id="mpOpenTab" href="#" target="_blank" rel="noopener" aria-label="Open in new tab"><span class="ms">open_in_new</span></a>
-            <button type="button" class="mp-btn mp-close" id="mpClose" aria-label="Close"><span class="ms">close</span></button>
           </div>
         </header>
         <div class="mp-status" id="mpStatus" hidden></div>
@@ -126,6 +146,13 @@ function wfDbg(level, source, message, meta) {
           <div id="mpBgLoading" class="mp-bg-loading" hidden><div class="mp-bg-spinner" aria-hidden="true"></div><div id="mpBgLoadingText"></div></div>
           <div id="mpDirArrow" class="mp-dir-arrow" hidden aria-hidden="true"><div class="mp-dir-arr" aria-hidden="true">➤</div></div>
           <div id="mpDistHud" class="mp-dist-hud" hidden aria-hidden="true"><span class="mp-dist-val" id="mpDistRem">—</span><span class="mp-dist-leg" id="mpDistLegRow" hidden><span class="mp-dist-sep" aria-hidden="true">·</span><span class="mp-dist-leg-val" id="mpDistLeg">—</span></span></div>
+          <div class="mp-dock" id="mpDock" hidden>
+            <div class="mp-dock-eta" id="mpDockEta" hidden>
+              <div class="mp-dock-lbl">Distance remaining</div>
+              <div class="mp-dock-val" id="mpDockDist">—</div>
+            </div>
+            <button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>
+          </div>
         </div>
       </div>`;
       document.body.appendChild(ov);
@@ -137,11 +164,11 @@ function wfDbg(level, source, message, meta) {
     ensureDistHudMount();
     ensureGlassHud();
     if (!overlayBound) {
-      const closeBtn = $("mpClose"), playBtn = $("mpPlay"), pauseBtn = $("mpPause"), stopBtn = $("mpStop");
+      const exitBtn = $("mpExit"), playBtn = $("mpPlay"), pauseBtn = $("mpPause"), stopBtn = $("mpStop");
       // Go through window.MpPreview.close (not the bare local close()) so tour.html's
       // override — which navigates back to returnUrl after closing — actually fires;
       // a direct call to the closed-over local function would bypass that monkey-patch.
-      if (closeBtn) closeBtn.onclick = () => window.MpPreview.close();
+      if (exitBtn) exitBtn.onclick = () => window.MpPreview.close();
       if (playBtn) playBtn.onclick = () => play();
       if (pauseBtn) pauseBtn.onclick = () => pause();
       if (stopBtn) stopBtn.onclick = () => stopWalk();
@@ -1155,6 +1182,8 @@ function wfDbg(level, source, message, meta) {
       el.setAttribute("aria-hidden", "true");
       el.classList.remove("visible");
     }
+    const dockEta = $("mpDockEta");
+    if (dockEta) dockEta.hidden = true;
   }
 
   function updateDistHud(i) {
@@ -1177,6 +1206,11 @@ function wfDbg(level, source, message, meta) {
     el.removeAttribute("hidden");
     el.setAttribute("aria-hidden", "false");
     el.classList.add("visible");
+    // Same "Distance remaining" readout Start Preview's #navBar and Walkthrough
+    // Wayfinding's .n3d-dock show in their bottom bar.
+    const dockEta = $("mpDockEta"), dockVal = $("mpDockDist");
+    if (dockVal) dockVal.textContent = fmtMeters(rem);
+    if (dockEta) dockEta.hidden = false;
   }
 
   async function getPoseYaw() {
@@ -2169,10 +2203,13 @@ function wfDbg(level, source, message, meta) {
    */
   async function openUsingLiveConnection(route, live) {
     const gen = ++openGen;
+    usingLiveConnection = true;
     destName = (route && route._destName) || null;
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     mpSdk = live.sdk;
     document.body.classList.add("mp-open");
+    document.body.classList.add("nav"); // hide search/top chrome — see ui.css body.nav rule
+    { const d = $("mpDock"); if (d) d.hidden = false; }
     setStatus("");
     const ids = prepareRoute(route || {});
     updateStep();
@@ -2209,6 +2246,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   async function open(route) {
+    usingLiveConnection = false;
     const live = getLiveConnection();
     if (live) return openUsingLiveConnection(route, live);
     // iOS Safari often leaves nested map-overlay iframes black; run the walk on a dedicated page.
@@ -2222,6 +2260,8 @@ function wfDbg(level, source, message, meta) {
     const ov = $("mpOverlay");
     ov.hidden = false;
     document.body.classList.add("mp-open");
+    document.body.classList.add("nav"); // hide search/top chrome — see ui.css body.nav rule
+    { const d = $("mpDock"); if (d) d.hidden = false; }
     try {
       const mobile = window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
       document.body.classList.toggle("mp-mobile", !!mobile);
@@ -2236,7 +2276,11 @@ function wfDbg(level, source, message, meta) {
       const msg = (e && e.message) || "Digital twin unavailable";
       toast(msg);
       setStatus(msg, true);
-      try { ov.hidden = true; document.body.classList.remove("mp-open"); } catch (_) {}
+      try {
+        ov.hidden = true;
+        document.body.classList.remove("mp-open", "nav");
+        const d = $("mpDock"); if (d) d.hidden = true;
+      } catch (_) {}
       return;
     }
     if (gen !== openGen) return;
@@ -2386,6 +2430,25 @@ function wfDbg(level, source, message, meta) {
     clearMediaTags();
     tourNavSteps = [];
     { const el = $("mpInstr"); if (el) el.hidden = true; }
+    { const d = $("mpDock"); if (d) d.hidden = true; }
+    // Only drop body.nav if ui.js's own Start Preview isn't ALSO relying on it right
+    // now (S.mode stays "nav" for the life of that separate feature) — same guard
+    // threed_nav.js's close() uses, since both overlays can hide the search chrome.
+    try {
+      if (!(window.wfUI && window.wfUI.S && window.wfUI.S.mode === "nav")) {
+        document.body.classList.remove("nav");
+      }
+    } catch (e) { document.body.classList.remove("nav"); }
+    if (usingLiveConnection) {
+      // This session never owned mpSdk/#mpFrame/#mpOverlay — they're mp_background.js's
+      // permanent mp=1 connection (see openUsingLiveConnection). Disconnecting the SDK,
+      // blanking the iframe, or hiding the overlay here would kill the live background
+      // out from under the whole page, not just this Tour interior session.
+      usingLiveConnection = false;
+      document.body.classList.remove("mp-open", "mp-mobile");
+      setStatus("");
+      return;
+    }
     try { if (mpSdk && mpSdk.disconnect) mpSdk.disconnect(); } catch (_) { /* ignore */ }
     mpSdk = null;
     const iframe = $("mpFrame");

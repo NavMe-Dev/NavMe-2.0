@@ -9,6 +9,13 @@
   const OVERLAY_ID   = "n3dOverlay";
   const CROP_TOP_PX  = 56;
 
+  // Camera outline — SVG only, no emoji, for the "Locate" (Navigate from me) button.
+  const LOCATE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M4 7h3l1.6-2h6.8L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/>' +
+    '<circle cx="12" cy="13" r="3.4"/>' +
+    '</svg>';
+
   // Trail constants
   const EYE_HEIGHT_M   = 1.5;
   const DOT_SPACING_M  = 0.55;
@@ -169,12 +176,17 @@
       // z-index 2000 vs this overlay's 9000) should show through.
       "body.n3d-reuse-bg #n3dOverlay{background:transparent}",
       "body.n3d-reuse-bg #n3dOverlay iframe{display:none}",
-      // Let clicks/drags on the (now just transparent) stage reach the real
-      // #mpFrame underneath so the user can still look around / tap scan points
-      // directly in Matterport — the bar/dock/locate controls stay clickable
+      // Let clicks/drags reach the real #mpFrame underneath so the user can still
+      // look around / tap scan points directly in Matterport. This has to be on
+      // #n3dOverlay ITSELF, not just .n3d-stage — the overlay is a position:fixed,
+      // full-viewport div, and a pointer-events:none DESCENDANT does not stop the
+      // ancestor from still being the element actually hit-tested at that point
+      // (confirmed live: elementFromPoint() at a click inside the stage returned
+      // #n3dOverlay itself, not whatever was supposedly underneath it — nothing
+      // was reaching #mpFrame at all). The bar/dock/locate controls stay clickable
       // regardless, since they already default to (or explicitly set) their own
       // pointer-events:auto, which overrides an ancestor's :none.
-      "body.n3d-reuse-bg #n3dOverlay .n3d-stage{pointer-events:none}",
+      "body.n3d-reuse-bg #n3dOverlay{pointer-events:none}",
       "#n3dOverlay .n3d-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent}",
       // No connecting bar/background strip — just the two floating circular-pill
       // controls, matching the minimal "only this should show" look of Start
@@ -185,15 +197,15 @@
         "padding-top:calc(8px + env(safe-area-inset-top,0px));",
         "background:transparent;pointer-events:none}",
       "#n3dOverlay .n3d-bar>*{pointer-events:auto}",
-      "#n3dOverlay .n3d-close{display:inline-flex;align-items:center;gap:8px;height:40px;",
-        "padding:0 14px 0 6px;border-radius:999px;border:0;",
-        "background:rgba(255,255,255,.92);color:#111;cursor:pointer;font:inherit;",
-        "font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18)}",
       "#n3dOverlay .n3d-title{display:none}",
-      "#n3dOverlay .n3d-locate{display:inline-flex;align-items:center;gap:6px;height:40px;",
+      // "Locate" — short label + SVG icon only (no emoji). The one remaining
+      // top-bar control since the Back button was dropped in favour of the
+      // bottom dock's Exit pill being the sole way out.
+      "#n3dOverlay .n3d-locate{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:40px;",
         "padding:0 14px;border-radius:999px;border:0;white-space:nowrap;",
         "background:#182858;color:#fff;cursor:pointer;font:inherit;",
         "font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}",
+      "#n3dOverlay .n3d-locate svg{width:18px;height:18px;flex:0 0 auto;display:block}",
       "#n3dOverlay .n3d-locate:disabled{opacity:.55;cursor:default}",
       "#n3dOverlay .n3d-locate.n3d-locate-active{background:#b91c1c}",
       "#n3dOverlay .n3d-locate-dot{width:8px;height:8px;border-radius:999px;background:#ef4444;",
@@ -209,7 +221,14 @@
       // var(--bg)/var(--green)/var(--txt2) are the app's real theme tokens
       // (defined on :root in ui.css), not local guesses, so this tracks light/
       // dark/high-contrast exactly like the rest of the chrome.
+      // pointer-events:auto here is load-bearing, not decorative: .n3d-dock lives
+      // inside .n3d-stage, and body.n3d-reuse-bg sets .n3d-stage{pointer-events:none}
+      // so clicks fall through to the live Matterport frame underneath — without this,
+      // the dock (ETA text AND the Exit button) silently inherited that `none` in mp=1
+      // reuse mode and swallowed no clicks at all, passing them through to whatever
+      // sits behind the dock instead of registering on Exit.
       "#n3dOverlay .n3d-dock{position:absolute;left:0;right:0;bottom:0;z-index:8;",
+        "pointer-events:auto;",
         "box-sizing:border-box;",
         "display:flex;align-items:center;gap:10px;",
         "padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));",
@@ -253,9 +272,8 @@
     ov.innerHTML = [
       '<div class="n3d-stage">',
         '<div class="n3d-bar">',
-          '<button class="n3d-close" id="n3dClose" aria-label="Close">&#x2715; Back</button>',
           '<span class="n3d-title" id="n3dTitle">Walkthrough Navigation</span>',
-          '<button class="n3d-locate" id="n3dLocate" aria-label="Navigate from me" title="Navigate from me">&#x1F4F7; Navigate from me</button>',
+          '<button class="n3d-locate" id="n3dLocate" aria-label="Locate" title="Locate">' + LOCATE_ICON_SVG + '<span>Locate</span></button>',
           '<video id="n3dLocateVideo" autoplay playsinline muted ',
             'style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></video>',
         '</div>',
@@ -280,7 +298,7 @@
     document.body.appendChild(ov);
     // Go through window.ThreeDNav.close (not the bare local close()) so walkthrough.html's
     // monkey-patch (navigate back to the page that handed off to it on mobile) still fires.
-    $("n3dClose").addEventListener("click", function(){ window.ThreeDNav.close(); });
+    // Exit (bottom dock) is the only way out now — no separate top-bar Back button.
     $("n3dExit").addEventListener("click", function(){ window.ThreeDNav.close(); });
     $("n3dArrivedDone").addEventListener("click", function(){ hideArrived(); window.ThreeDNav.close(); });
     $("n3dLocate").addEventListener("click", toggleLocateFromMe);
@@ -1420,8 +1438,21 @@
 
   function iframeSize() {
     var f = $("n3dFrame");
-    return { w: Math.max(1, f ? f.clientWidth : window.innerWidth),
-             h: Math.max(1, (f ? f.clientHeight : window.innerHeight) + CROP_TOP_PX + 64) };
+    // In live-connection-reuse mode (mp=1) #n3dFrame is deliberately `display:none` —
+    // the real, visible, on-screen frame is mp_preview.js's #mpFrame underneath. A
+    // display:none element still exists in the DOM (truthy here) but reports 0 for
+    // both client dimensions, which used to collapse every trail-dot projection to a
+    // near-zero-width box — the dots all bunched up near the left edge of the screen.
+    // mpFrame already carries its OWN crop overscan baked into its CSS height, so its
+    // clientHeight is used as-is (no extra CROP_TOP_PX/+64 added on top of it).
+    if (f && f.clientWidth > 0 && f.clientHeight > 0) {
+      return { w: Math.max(1, f.clientWidth), h: Math.max(1, f.clientHeight + CROP_TOP_PX + 64) };
+    }
+    var mpf = document.getElementById("mpFrame");
+    if (mpf && mpf.clientWidth > 0 && mpf.clientHeight > 0) {
+      return { w: Math.max(1, mpf.clientWidth), h: Math.max(1, mpf.clientHeight) };
+    }
+    return { w: window.innerWidth, h: window.innerHeight };
   }
 
   function projectManually(p, pose, size) {
@@ -1935,8 +1966,8 @@
     if (!btn) return;
     btn.classList.toggle("n3d-locate-active", !!active);
     btn.innerHTML = active
-      ? '<span class="n3d-locate-dot"></span> Stop live positioning'
-      : "&#x1F4F7; Navigate from me";
+      ? '<span class="n3d-locate-dot"></span><span>Stop</span>'
+      : LOCATE_ICON_SVG + "<span>Locate</span>";
   }
 
   function toggleLocateFromMe() {

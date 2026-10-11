@@ -631,7 +631,6 @@ function wfDbg(level, source, message, meta) {
       <div class="prow"><span>${esc(c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
       <div class="actions">
         <button class="pill primary" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
-        <button class="pill" id="pStart"><span class="ms fill">navigation</span>${esc(t("viewer.start"))}</button>
         <button class="pill" id="pShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
         <button class="pill" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
       </div>
@@ -646,7 +645,6 @@ function wfDbg(level, source, message, meta) {
         ${p.description || p.note ? `<li><span class="ms">info</span><div>${esc(p.description || p.note)}</div></li>` : ""}
       </ul>`, o.sheet || "half");
     $("pDir").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(); };
-    $("pStart").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(true); };
     $("pShare").onclick = share;
     // ArcGIS's 3D fly-to needs the map view, which MP mode hides entirely (mp_background.js)
     // — the button used to silently no-op there. Real AR is a future feature, not reachable
@@ -785,9 +783,9 @@ function wfDbg(level, source, message, meta) {
     setSheet(`
       <div style="display:flex;gap:12px;align-items:center"><span class="ms fill blue" style="font-size:36px">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
         <div style="flex:1"><h1 class="pname" style="font-size:1.2em;margin:0">${esc(WF.cfg.name || "")}</h1><div class="muted">${esc(WF.cfg.address || "")}</div></div></div>
+      <div class="pophead sm">${esc(t("viewer.explore"))}</div>
       ${galleryIds.length ? `<div class="photo-gallery" style="margin-top:12px">${galleryIds.map(id => `<img class="gallery-img" src="${thumbFor(id)}" alt="" loading="lazy">`).join("")}</div>` : ""}
       <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}</div>
-      <div class="pophead sm">${esc(t("viewer.explore"))}</div>
       <ul class="list">${exploreIds().map(id => { const p = byId[id], c = cat(p);
         return `<li data-id="${id}" tabindex="0" role="button"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)} · ${esc(wf.floorLabel(p.floor))}</div></div></li>`; }).join("")}</ul>`, "peek");
     bindList();
@@ -839,6 +837,7 @@ function wfDbg(level, source, message, meta) {
     const meOpt = () => [{ me: true, icon: "my_location", color: "#1a73e8", label: t("viewer.yourLocation"), sub: wf.lastLoc ? t("viewer.yourLocationSub", { floor: wf.floorLabel(wf.lastLoc.floor) }) : t("viewer.tapMapSet") }];
     acKeys($("fromQ"), meOpt); acKeys($("toQ"), meOpt);
     $("btnDirBack").onclick = closeDirections;
+    if ($("btnDirX")) $("btnDirX").onclick = closeDirections;
     $("btnSwap").onclick = () => { const tmp = S.from; S.from = S.to; S.to = tmp; if (S.from !== "me") S.locMeta = null; syncDirFields(); computeRoute(); };
     document.querySelectorAll(".mode").forEach(b => b.onclick = () => { S.stepFree = b.dataset.mode === "stepfree"; syncDirFields(); computeRoute(); });
     if ($("btnLocateMe")) $("btnLocateMe").onclick = (e) => { e.preventDefault(); e.stopPropagation(); openLocateChooser(); };
@@ -1168,16 +1167,18 @@ function wfDbg(level, source, message, meta) {
         ${floors.length > 1 ? `<span class="badge floor"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: floors.length }))}</span>` : ""}</div>
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
       <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
+      <div class="actions actions-row1">
+        <button class="pill primary pill-sm" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
+        ${isMpMode() ? "" : `<button class="pill pill-sm" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
+        ${isMpMode() ? `<button class="pill pill-sm" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
+        <button class="pill pill-sm pill-icon" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
+      </div>
       <div class="actions">
-        <button class="pill primary" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
-        ${isMpMode() ? "" : `<button class="pill" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
-        ${isMpMode() ? `<button class="pill" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
         <button class="pill" id="dStartAr" hidden><span class="ms">view_in_ar</span>${esc(t("viewer.startAr"))}</button>
-        <button class="pill" id="dShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
         ${isMpMode() ? "" : `<button class="pill" id="dJson" title="Ordered Matterport sweep ids + XYZ"><span class="ms">data_object</span>${esc(t("viewer.export"))}</button>`}
       </div>
       <ol class="steps" aria-label="${esc(t("viewer.steps"))}">${steps}</ol>`, "half");

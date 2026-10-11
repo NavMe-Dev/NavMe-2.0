@@ -25,6 +25,11 @@ body.large{--fs:17px}
 .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
 .dirbox{background:var(--bg);border-radius:16px;box-shadow:var(--sh2);padding:8px 8px 6px}
 .dirrow{display:flex;align-items:center;gap:4px}.dirfields{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dir-side-btns{display:flex;flex-direction:column;gap:4px}
+/* The category "more" chip (chipsMore) has no row to sit next to once .chips itself
+   hides on the directions page (see body.dir .chips below) — without this it was
+   left floating on its own, looking like an orphaned dropdown control. */
+body.dir #chipsMore{display:none}
 .dfield{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:8px;height:40px;padding:0 10px}
 .dfield input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;color:var(--txt)}
 .dfield .ms{font-size:18px}.dot-o{color:var(--txt2)}.pin-d{color:var(--red)}
@@ -129,6 +134,15 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 .prow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--txt2);margin:4px 0 10px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
 .pill{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px!important;border-radius:18px!important;border:1px solid var(--line)!important;color:var(--blue-d)!important;font-weight:500!important;white-space:nowrap;flex:none}
+/* Start Preview / View in AR / Share row — smaller, always on one line. */
+.actions-row1{flex-wrap:nowrap!important}
+.pill-sm{height:30px;padding:0 12px!important;font-size:13px}
+.pill-sm .ms{font-size:16px}
+.pill-icon{padding:0!important;width:30px;justify-content:center}
+/* Step-free condition/routing is untouched — only its visible label is hidden. */
+.badge.sf{display:none!important}
+/* "Walking" travel-mode pill below the start/end fields. */
+.modes{display:none!important}
 .pill .ms{font-size:18px}.pill.primary{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important}
 .pill.red{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important}
 .photo{width:100%;aspect-ratio:5/3;object-fit:cover;border-radius:12px;background:var(--bg2);display:block;margin:4px 0 10px}
@@ -286,10 +300,18 @@ body.dir .ctop{top:182px}
 .mp-btn{appearance:none;border:0;background:transparent;color:#e8eaed;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
 .mp-btn:hover{background:rgba(255,255,255,.1)}
 .mp-btn .ms{font-size:22px}
-.mp-close:hover{background:rgba(234,67,53,.25);color:#f28b82}
 .mp-status{padding:8px 14px;font-size:13px;background:#2a2a2a;color:#e8eaed;border-bottom:1px solid #333}
 .mp-status.err{background:#3c1f1f;color:#fdd663}
 .mp-frame-wrap{flex:1;min-height:min(70vh,560px);height:100%;position:relative;background:#000;overflow:visible;-webkit-overflow-scrolling:touch}
+/* Bottom dock — same pattern as Start Preview's #navBar and Walkthrough Wayfinding's
+   .n3d-dock: exit lives here only, not as a top-bar close icon. */
+.mp-dock{position:absolute;left:0;right:0;bottom:0;z-index:5;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:var(--bg,#fff);box-shadow:0 -2px 10px rgba(60,64,67,.25)}
+.mp-dock-eta{flex:1;min-width:0}
+.mp-dock-eta[hidden]{display:none!important}
+.mp-dock-val{font-size:1.5em;font-weight:500;line-height:1.1;color:var(--green,#188038);font-variant-numeric:tabular-nums}
+.mp-dock-lbl{font-size:13px;color:var(--txt2,#5f6368)}
+.mp-exit{flex:0 0 auto;height:40px;padding:0 20px;border-radius:999px;border:0;background:var(--red,#d93025);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.mp-exit:active{transform:scale(.97)}
 .mp-frame-wrap iframe,.mp-frame-wrap #mpFrame{position:absolute;inset:0;width:100%;height:100%;min-height:70vh;border:0;background:#000;transform:translateZ(0);-webkit-transform:translateZ(0)}
 /* 1A Tour interior — nav pointer (GMaps-style) over iframe; Embed-safe */
 /* iframe translateZ creates a compositor layer that can paint above siblings — pin z-index */
