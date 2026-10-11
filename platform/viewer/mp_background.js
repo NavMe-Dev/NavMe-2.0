@@ -56,8 +56,10 @@
       top:-56px !important; height:calc(100% + 128px) !important; min-height:0 !important;
       width:100% !important; left:0 !important; border:0 !important;
     }
-    /* ArcGIS-only map controls — meaningless once the map itself is hidden. */
-    body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels { display:none !important; }
+    /* ArcGIS-only map controls and the dev-only Map Layers panel (style/photo-plan/graph/
+       mesh-debug toggles) — meaningless once the map itself is hidden. */
+    body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels,
+    body.mp-bg-mode #layersPop { display:none !important; }
     /* Loading feedback while the Showcase iframe/SDK connect (mp_preview.js setStatus()
        mirrors its messages here since .mp-status is hidden above) — without this the
        background was a plain black screen with no indication anything was happening,
@@ -223,4 +225,16 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
+
+  // Fullscreen must be requested from a user gesture (browsers reject a bare
+  // programmatic call), so arm it on the very first tap/click anywhere on the
+  // page and disarm after one use.
+  function goFullscreen() {
+    document.removeEventListener("pointerdown", goFullscreen, true);
+    const el = document.documentElement;
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el).catch(() => {});
+  }
+  document.addEventListener("pointerdown", goFullscreen, true);
 })();

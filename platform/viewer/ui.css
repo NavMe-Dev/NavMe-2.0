@@ -139,6 +139,11 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 .pill-sm{height:30px;padding:0 12px!important;font-size:13px}
 .pill-sm .ms{font-size:16px}
 .pill-icon{padding:0!important;width:30px;justify-content:center}
+/* In mp=1 mode, Directions/View in AR/Share should match the size of the other
+   round controls (.fab, 44px) rather than the compact map-mode sizing. */
+body.mp-bg-mode .actions-row1 .pill-sm{height:44px;padding:0 18px!important;font-size:15px}
+body.mp-bg-mode .actions-row1 .pill-sm .ms{font-size:20px}
+body.mp-bg-mode .actions-row1 .pill-icon{width:44px}
 /* Step-free condition/routing is untouched — only its visible label is hidden. */
 .badge.sf{display:none!important}
 .badge.st{display:none!important}
