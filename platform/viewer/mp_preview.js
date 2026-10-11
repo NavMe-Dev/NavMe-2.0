@@ -2145,7 +2145,72 @@ function wfDbg(level, source, message, meta) {
   }
 
 
+  /**
+   * The already-connected sdk+iframe from showBackground() (?mp=1 mode's permanent
+   * background), if one is live right now. Letting open() reuse this instead of
+   * reconnecting is what removes a full second "load digital twin / connect SDK /
+   * wait for ready" cycle every time Tour interior is opened on top of a background
+   * that is, from the user's point of view, already showing the exact same space.
+   */
+  function getLiveConnection() {
+    if (!mpSdk) return null;
+    if (!document.body.classList.contains("mp-bg-mode")) return null;
+    const iframe = $("mpFrame");
+    if (!iframe) return null;
+    return { sdk: mpSdk, iframe };
+  }
+
+  /**
+   * Fast path: reuse the live mp=1 background connection instead of disconnecting
+   * and reconnecting the same iframe from scratch. No page handoff either — there is
+   * nothing to protect it from (no second Esri context exists in mp=1 mode, see
+   * app.js's isMpMode() guard around its own 3D view), so there is no reason left to
+   * ever leave this page for Tour interior here.
+   */
+  async function openUsingLiveConnection(route, live) {
+    const gen = ++openGen;
+    destName = (route && route._destName) || null;
+    tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
+    mpSdk = live.sdk;
+    document.body.classList.add("mp-open");
+    setStatus("");
+    const ids = prepareRoute(route || {});
+    updateStep();
+    updateDest();
+    if (!ids.length) {
+      setStatus("No indoor sweeps on this route — outdoor-only segments are skipped.", true);
+    }
+    if (!sweepIds.length && route && (route.navPath || route.smoothed || route.nodes)) {
+      await fillSweepIdsFromNavPath(mpSdk, route);
+      if (gen !== openGen) return;
+    }
+    const aligned = await alignSweepIds(mpSdk);
+    if (gen !== openGen) return;
+    updateStep();
+    if (!aligned.length) {
+      setStatus(ids.length
+        ? "Route sweeps do not match this model. Explore manually."
+        : "No sweep path on this route.");
+      return;
+    }
+    const h0 = headingToward(0);
+    try {
+      const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+      const entryOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: Math.round(2000 * tourPaceScale) };
+      if (h0 != null && Number.isFinite(h0)) entryOpts.rotation = { x: 0, y: h0 };
+      await mpSdk.Sweep.moveTo(aligned[0], entryOpts);
+    } catch (_) { /* ignore — play() covers it */ }
+    if (gen !== openGen) return;
+    try { await faceAlongRoute(0); } catch (_) { /* ignore */ }
+    if (gen !== openGen) return;
+    stepI = 1;
+    updateStep();
+    await play();
+  }
+
   async function open(route) {
+    const live = getLiveConnection();
+    if (live) return openUsingLiveConnection(route, live);
     // iOS Safari often leaves nested map-overlay iframes black; run the walk on a dedicated page.
     if (!window.__WF_MP_TOUR_PAGE && isCoarseMobile()) {
       if (handoffToTourPage(route || {})) return;
@@ -2559,6 +2624,6 @@ function wfDbg(level, source, message, meta) {
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo,
-    currentSweepIndex, totalSweepStops, pickOnMap
+    currentSweepIndex, totalSweepStops, pickOnMap, getLiveConnection
   };
 })();

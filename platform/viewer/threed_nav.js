@@ -65,6 +65,11 @@
 
   // Module state
   let mpSdk = null, sdkPromise = null, openGen = 0;
+  // True for the lifetime of a session opened via openUsingLiveConnection() (see
+  // below) — mpSdk/the iframe it's driving belong to mp_preview.js's permanent
+  // mp=1 background connection in that case, not to this module, so close() must
+  // never disconnect/blank them the way it does for a normally-opened session.
+  let usingLiveConnection = false;
   let sweepCollection = null, unsubSweepData = null;
   let sweeps = [];                // {sid, position:{x,y,z}, neighbours:[sid], floor:n}
   let routeSids = [];             // solved route as sweep id sequence
@@ -157,6 +162,19 @@
       "#n3dOverlay iframe{position:absolute;left:0;width:100%;",
         "top:calc(-1 * " + CROP_TOP_PX + "px);",
         "height:calc(100% + " + CROP_TOP_PX + "px + 64px);border:none}",
+      // Reused mp=1 background connection (openUsingLiveConnection): this overlay
+      // never gets its own iframe/src, so its background must go transparent and
+      // its (empty) iframe must get out of the way — otherwise there would be
+      // nothing but black where the already-live #mpFrame (sitting underneath,
+      // z-index 2000 vs this overlay's 9000) should show through.
+      "body.n3d-reuse-bg #n3dOverlay{background:transparent}",
+      "body.n3d-reuse-bg #n3dOverlay iframe{display:none}",
+      // Let clicks/drags on the (now just transparent) stage reach the real
+      // #mpFrame underneath so the user can still look around / tap scan points
+      // directly in Matterport — the bar/dock/locate controls stay clickable
+      // regardless, since they already default to (or explicitly set) their own
+      // pointer-events:auto, which overrides an ancestor's :none.
+      "body.n3d-reuse-bg #n3dOverlay .n3d-stage{pointer-events:none}",
       "#n3dOverlay .n3d-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:transparent}",
       "#n3dOverlay .n3d-bar{position:absolute;top:0;left:0;right:0;z-index:10;",
         "display:flex;align-items:center;gap:8px;padding:8px 12px;",
@@ -333,6 +351,37 @@
   }
 
   // ── Parse sweep data into our graph format ───────────────────────────────────
+  function parseSweepEntries(entries) {
+    var out = [];
+    for (var i = 0; i < entries.length; i++) {
+      var sw = entries[i];
+      if (!sw || sw.enabled === false) continue;
+      var sid = String(sw.id || sw.sid || sw.uuid || "");
+      var pose = sw.pose;
+      var pos = sw.position || (pose && pose.position) || sw.location;
+      if (!sid || !pos) continue;
+      var x = Number(pos.x), y = Number(pos.y), z = Number(pos.z);
+      if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
+      var nbRaw = sw.neighbors || sw.neighbours || [];
+      var neighbours = [];
+      if (Array.isArray(nbRaw)) {
+        for (var j = 0; j < nbRaw.length; j++) {
+          var n = nbRaw[j];
+          var nid = typeof n === "string" ? n : String((n && (n.id || n.sid)) || "");
+          if (nid) neighbours.push(nid);
+        }
+      }
+      var floorInfo = sw.floorInfo;
+      out.push({
+        sid: sid,
+        position: { x: x, y: y, z: z },
+        neighbours: neighbours,
+        floor: Number((floorInfo && floorInfo.id) || sw.floorId || sw.floor || 0) || 0
+      });
+    }
+    return out;
+  }
+
   function readSweeps() {
     return awaitSweepCollection(12000).then(function(col) {
       var entries = collectionEntries(col);
@@ -340,34 +389,27 @@
         console.warn("[ThreeDNav] Sweep.data timed out — routing will not work");
         return [];
       }
-      var out = [];
-      for (var i = 0; i < entries.length; i++) {
-        var sw = entries[i];
-        if (!sw || sw.enabled === false) continue;
-        var sid = String(sw.id || sw.sid || sw.uuid || "");
-        var pose = sw.pose;
-        var pos = sw.position || (pose && pose.position) || sw.location;
-        if (!sid || !pos) continue;
-        var x = Number(pos.x), y = Number(pos.y), z = Number(pos.z);
-        if (!isFinite(x) || !isFinite(y) || !isFinite(z)) continue;
-        var nbRaw = sw.neighbors || sw.neighbours || [];
-        var neighbours = [];
-        if (Array.isArray(nbRaw)) {
-          for (var j = 0; j < nbRaw.length; j++) {
-            var n = nbRaw[j];
-            var nid = typeof n === "string" ? n : String((n && (n.id || n.sid)) || "");
-            if (nid) neighbours.push(nid);
-          }
-        }
-        var floorInfo = sw.floorInfo;
-        out.push({
-          sid: sid,
-          position: { x: x, y: y, z: z },
-          neighbours: neighbours,
-          floor: Number((floorInfo && floorInfo.id) || sw.floorId || sw.floor || 0) || 0
-        });
-      }
-      return out;
+      return parseSweepEntries(entries);
+    });
+  }
+
+  /**
+   * Sweep graph via Model.getData() instead of the Sweep.data subscription —
+   * used only for openUsingLiveConnection(), where mpSdk is a connection this
+   * module subscribed to late (mp_preview.js's background connection, already
+   * established before this ever ran). Sweep.data's collection reliably emits
+   * only once, early in a connection's life — mp_preview.js's own testing found
+   * subscribing to it after the fact never fires at all. Model.getData() has no
+   * such timing requirement: it's a plain on-demand read, callable any time.
+   */
+  function readSweepsViaModelData(sdk) {
+    return Promise.resolve().then(function () {
+      return sdk && sdk.Model && sdk.Model.getData ? sdk.Model.getData() : null;
+    }).then(function (d) {
+      return parseSweepEntries((d && d.sweeps) || []);
+    }).catch(function (e) {
+      console.warn("[ThreeDNav] Model.getData failed", e);
+      return [];
     });
   }
 
@@ -1404,8 +1446,15 @@
     drawRaf = requestAnimationFrame(function(){
       drawRaf = 0;
       drawTrail();
-      // Arrival only — distance is refreshed on sweep land, not every frame.
-      if (navPts.length && hasArrived()) showArrived();
+      // Arrival only — distance is refreshed on sweep land, not every frame. Gated
+      // on !navLocked: applyRouteLegs() (inside runNavigate()) populates navPts
+      // BEFORE the teleport to the route's start actually happens, so a pose event
+      // landing in that gap still reflects wherever the camera was a moment ago —
+      // normally Matterport's own default view, but on a reused mp=1 connection
+      // (openUsingLiveConnection) that's wherever the PREVIOUS session (Tour
+      // interior, an earlier Walkthrough) left it, which can coincidentally already
+      // be near the new destination. navLocked covers exactly this window.
+      if (!navLocked && navPts.length && hasArrived()) showArrived();
     });
   }
 
@@ -2213,11 +2262,104 @@
     return true;
   }
 
+  /**
+   * Fast path: Walkthrough opened while mp=1's background Matterport connection is
+   * already live (see mp_preview.js's getLiveConnection()). Reuses that sdk/iframe
+   * directly instead of creating a second iframe and running a full connect — the
+   * same "why load Matterport again" the mobile page-handoff below exists to dodge
+   * in the other direction, except this removes the wait entirely rather than just
+   * moving it off this page. n3d-reuse-bg (CSS) makes #n3dOverlay's own background
+   * transparent and hides the (unused, never-given-a-src) #n3dFrame, so the ALREADY
+   * on-screen #mpFrame shows through underneath this module's chrome (bar/dock/nav
+   * dots) — same z-index relationship (#n3dOverlay sits above #mpOverlay) that
+   * already made Walkthrough draw on top of everything else.
+   */
+  function openUsingLiveConnection(route, live) {
+    var gen = ++openGen;
+    usingLiveConnection = true;
+
+    if (unsubPose) { unsubPose(); unsubPose = null; }
+    if (unsubSweep) { unsubSweep(); unsubSweep = null; }
+    if (unsubSweepData) { unsubSweepData(); unsubSweepData = null; }
+    if (drawRaf) { cancelAnimationFrame(drawRaf); drawRaf = 0; }
+    mpSdk = null; lastPose = null; navPts = [];
+    sweepCollection = null; sweeps = [];
+    routeSids = []; routeLegs = []; activeLeg = 0; backendSweepIds = [];
+    currentSweepSid = null; prevSweepSid = null; destSweepSid = null;
+    noProgressSid = null; noProgressCount = 0;
+    navLocked = false; arrivedShown = false;
+
+    ensureOverlay();
+    resolveConfig();
+
+    var pts = route.navPath || route.smoothed || route.nodes || [];
+    pts = pts.filter(function(p){ return isFinite(p.x) && isFinite(p.y); });
+    if (pts.length < 2) {
+      console.warn("[ThreeDNav] route has fewer than 2 points");
+      return Promise.resolve();
+    }
+
+    var fromPtMp = toMp(pts[0]);
+    destPtMp     = toMp(pts[pts.length-1]);
+    navPathMp    = pts.map(toMp);
+    computeNavPathTurns();
+    backendSweepIds = dedupeConsecutive(route.sweep_ids || []);
+    destName = (route.to && (route.to.name || route.to.title)) ||
+               (route.dest && (route.dest.name || route.dest.title)) ||
+               (route.toName || route.destinationName) || "";
+    if (!destName) {
+      var toEl = document.getElementById("toQ");
+      destName = (toEl && toEl.value || "").trim();
+    }
+
+    var ov = $(OVERLAY_ID);
+    ov.hidden = false;
+    document.body.classList.add("n3d-open");
+    document.body.classList.add("n3d-reuse-bg");
+    if (destName) {
+      var title = $("n3dTitle");
+      if (title) title.textContent = "To: " + destName;
+    }
+
+    mpSdk = live.sdk;
+
+    if (mpSdk.Camera && mpSdk.Camera.pose && mpSdk.Camera.pose.subscribe) {
+      var sub = mpSdk.Camera.pose.subscribe(function(pose) {
+        if (!pose || gen !== openGen) return;
+        lastPose = pose;
+        var sid = pose.sweepId || pose.sweep;
+        if (sid) currentSweepSid = sid;
+        if (navPts.length) scheduleTrailDraw();
+      });
+      unsubPose = function(){ try{ if(typeof sub==="function")sub(); else if(sub.cancel)sub.cancel(); }catch(_){} };
+    }
+
+    setStatus("Reading scan points…");
+    return readSweepsViaModelData(mpSdk).then(function (result) {
+      if (gen !== openGen) return;
+      sweeps = result;
+      resolveStairChains();
+      var edges = sweeps.reduce(function(n,sw){ return n+sw.neighbours.length; }, 0);
+      console.info("[ThreeDNav] (reused mp=1 connection) " + sweeps.length + " sweeps, " + edges + " links");
+      if (!sweeps.length) { setStatus("3D scan loaded but no scan points available"); return; }
+      watchSweepChanges();
+      setStatus("");
+      return runNavigate(fromPtMp);
+    }).catch(function (e) {
+      if (gen !== openGen) return;
+      console.warn("[ThreeDNav] reuse-connection error:", e);
+      setStatus("3D scan overlay unavailable");
+    });
+  }
+
   async function open(route) {
+    var live = window.MpPreview && window.MpPreview.getLiveConnection && window.MpPreview.getLiveConnection();
+    if (live) return openUsingLiveConnection(route, live);
     if (!window.__WF_NAV_WALKTHROUGH_PAGE && isCoarseMobile()) {
       if (handoffToWalkthroughPage(route || {})) return;
     }
     var gen = ++openGen;
+    usingLiveConnection = false;
 
     // Teardown previous session
     if (unsubPose) { unsubPose(); unsubPose = null; }
@@ -2297,9 +2439,17 @@
     navLocked = false; arrivedShown = false;
     var ov = $(OVERLAY_ID);
     if (ov) ov.hidden = true;
-    var frame = $("n3dFrame");
-    if (frame) frame.src = "about:blank";
+    // Only touch #n3dFrame when this session actually owns it — a live-connection
+    // session (see openUsingLiveConnection) never gave it a src, and the real
+    // iframe showing the scene is mp_preview.js's #mpFrame, which must keep
+    // running as the mp=1 permanent background after this overlay closes.
+    if (!usingLiveConnection) {
+      var frame = $("n3dFrame");
+      if (frame) frame.src = "about:blank";
+    }
+    usingLiveConnection = false;
     document.body.classList.remove("n3d-open");
+    document.body.classList.remove("n3d-reuse-bg");
     setStatus("");
     if (window.wf && window.wf.exitHeavyOverlay) {
       try { window.wf.exitHeavyOverlay(); } catch (e) { console.warn("[ThreeDNav] exitHeavyOverlay failed", e); }
