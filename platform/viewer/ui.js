@@ -1307,9 +1307,8 @@ function wfDbg(level, source, message, meta) {
     // Out of range — "or else it should not [move]": do nothing, except announce arrival
     // once, the moment Next would have gone past the final scan point.
     if (next < 0) return;
-    if (next >= total) { toast(t("viewer.destinationReached") || "Destination reached"); return; }
-    const ok = await mp.walkToIndex(next, updateMpRemaining);
-    if (ok && next === total - 1) toast(t("viewer.destinationReached") || "Destination reached");
+    if (next >= total) { announceArrivalOnce(); return; }
+    await mp.walkToIndex(next, updateMpRemaining);
   }
   async function startNav() {
     if (!S.route) return;
@@ -1321,7 +1320,15 @@ function wfDbg(level, source, message, meta) {
     if (isMpMode() && window.MpPreview && window.MpPreview.prepareWalk) {
       try { await window.MpPreview.prepareWalk(mpRoutePayload()); } catch (_) { /* ignore */ }
     }
+    arrivedAnnounced = false;
     navGo(S.navSteps.length > 1 ? 1 : 0);
+  }
+  /** Fires the "Destination reached" toast exactly once per nav session. */
+  let arrivedAnnounced = false;
+  function announceArrivalOnce() {
+    if (arrivedAnnounced) return;
+    arrivedAnnounced = true;
+    toast(t("viewer.destinationReached") || "Destination reached");
   }
   /** mp mode only: recompute the "time/distance remaining" readout from the REAL route,
    *  anchored at the scan point the camera just landed on — called after every sweep hop
@@ -1345,10 +1352,23 @@ function wfDbg(level, source, message, meta) {
     const travelled = Math.max(0, (navLegBaselineRemM ?? info.remainingM) - info.remainingM);
     const left = Math.max(0, (s.dist || 0) - travelled);
     $("navDist").textContent = left > 0.5 ? fmtDist(left) : (s.type === "arrive" ? t("viewer.arrived") : t("viewer.now"));
+    // The instruction itself (icon/text — "Turn left", "Go straight"...) used to
+    // only change via the Prev/Next step list, never as a side effect of actually
+    // walking sweep-by-sweep — so it read as frozen on whatever instruction was
+    // showing when nav started, even while the live distance above it ticked down
+    // to zero. Advance it the moment this leg is walked, same threshold as "Now".
+    if (left <= 0.5) {
+      if (S.navI < S.navSteps.length - 1) updateNavBannerChrome(S.navI + 1);
+      else announceArrivalOnce();
+    }
   }
-  function navGo(i) {
+  /** Icon/text/thumb/ETA chrome only — no camera move, no S.sim, no walkToIndex.
+   *  Split out of navGo() so updateMpRemaining's auto-advance (the camera is
+   *  already mid-walk, driven by mpArrowStep's own walkToIndex loop) can move
+   *  the instruction forward without kicking off a second, conflicting walk. */
+  function updateNavBannerChrome(i) {
     const n = S.navSteps.length; i = Math.max(0, Math.min(n - 1, i)); S.navI = i;
-    const s = S.navSteps[i], prev = S.navSteps[Math.max(0, i - 1)];
+    const s = S.navSteps[i];
     $("navIcon").textContent = s.icon;
     $("navDist").textContent = s.dist > 0.5 ? fmtDist(s.dist) : (s.type === "arrive" ? t("viewer.arrived") : t("viewer.now"));
     $("navText").textContent = s.text;
@@ -1363,6 +1383,15 @@ function wfDbg(level, source, message, meta) {
     $("navEta").textContent = fmtMin(remT);
     $("navRem").textContent = `${fmtDist(rem) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
     $("navPrev").disabled = i <= 0; $("navNext").disabled = i >= n - 1;
+    // Non-mp mode keeps its own existing "You have arrived at X" toast at the end
+    // of navGo() below — this one is specifically for mp mode's auto-advance,
+    // which never goes through that code path.
+    if (s.type === "arrive" && isMpMode()) announceArrivalOnce();
+  }
+  function navGo(i) {
+    updateNavBannerChrome(i);
+    const n = S.navSteps.length; i = S.navI;
+    const s = S.navSteps[i], prev = S.navSteps[Math.max(0, i - 1)];
     // simulated position = previous action point; heading toward the next action
     const at = prev && prev.pt ? prev.pt : s.pt;
     if (at) {
