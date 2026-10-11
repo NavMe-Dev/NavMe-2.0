@@ -629,10 +629,10 @@ function wfDbg(level, source, message, meta) {
     setSheet(`
       <h1 class="pname">${esc(p.name)}</h1>
       <div class="prow"><span>${esc(c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
-      <div class="actions">
-        <button class="pill primary" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
-        <button class="pill" id="pShare"><span class="ms">share</span>${esc(t("viewer.share"))}</button>
-        <button class="pill" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
+      <div class="actions actions-row1">
+        <button class="pill primary pill-sm" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
+        <button class="pill pill-sm" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
+        <button class="pill pill-sm pill-icon" id="pShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
       ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">`
         : galleryUrls.length > 1 ? `<div class="photo-gallery">${galleryUrls.map(u => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">`).join("")}</div>`
