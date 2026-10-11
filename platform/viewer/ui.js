@@ -1849,7 +1849,9 @@ function wfDbg(level, source, message, meta) {
   function syncLayers() { document.querySelectorAll(".sty").forEach(b => { const on = b.dataset.style === wf.style; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); }); $("togPhoto").checked = $("photoPlan").checked; $("togGraph").checked = $("showGraph").checked; }
   async function setStyle(s) {
     await wf.setStyle(s);
-    document.body.classList.toggle("dark", s === "dark");
+    // mp=1 forces dark permanently (see mp_background.js) — never let the map-style
+    // switcher (irrelevant once the map itself is hidden) strip it back off.
+    if (!isMpMode()) document.body.classList.toggle("dark", s === "dark");
     syncLayers(); placeMe();
   }
   async function toggle3D(on) {

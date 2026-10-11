@@ -956,7 +956,10 @@ require([
             ensureIndoor(false); if (view3d) { build3DContext(); ensureIndoor(true); }
           }
         }
-        document.body.classList.toggle("dark", s === "dark");
+        // In mp=1 mode dark is forced on permanently by mp_background.js (the background
+        // is always the black Matterport twin, never this map style) — don't let a
+        // non-"dark" map style strip it back off.
+        if (!isMpMode()) document.body.classList.toggle("dark", s === "dark");
         window.wf.styleLabel = label; window.wf.style = s;
         applyVisibility(); if (window.wf.onFloor) window.wf.onFloor(currentFloor);
         status((activeView === view2d ? "2D · " : "3D · ") + label + (s !== "satellite" ? " · indoor: Matterport rooms/walls (vector)" : ""));

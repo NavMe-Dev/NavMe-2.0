@@ -432,6 +432,7 @@ body.mp-mobile .mp-frame-wrap iframe{min-height:0;height:100%}
 .searchbox[data-ux="places"] #q{font-size:1em}
 @media (max-width:700px){
   .searchbox{height:52px;border-radius:26px;padding:0 6px;backdrop-filter:saturate(1.2) blur(8px);background:rgba(255,255,255,.92)}
+  body.dark .searchbox{background:rgba(32,33,36,.92)}
   .searchbox[data-ux="buildings"] .brand-mark img{width:36px;height:36px}
   .bldg-chip{max-width:38%}
   .bldg-chip .chip-name{max-width:96px}
@@ -462,6 +463,7 @@ body.ux-buildings #ctrlsTop{opacity:.55}
 body.ux-buildings #btnLabels{opacity:1}
 body.ux-buildings .sheet{border-radius:22px 22px 0 0}
 .searchbox[data-ux="places"] #q::placeholder{color:#5f6368}
+body.dark .searchbox #q::placeholder{color:var(--txt2)}
 @media (max-width:700px){
   body.ux-places .searchbox #q{font-size:1.05em}
   .navme-hero{margin-bottom:18px}
