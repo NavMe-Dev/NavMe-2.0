@@ -141,6 +141,7 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 .pill-icon{padding:0!important;width:30px;justify-content:center}
 /* Step-free condition/routing is untouched — only its visible label is hidden. */
 .badge.sf{display:none!important}
+.badge.st{display:none!important}
 /* "Walking" travel-mode pill below the start/end fields. */
 .modes{display:none!important}
 .pill .ms{font-size:18px}.pill.primary{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important}

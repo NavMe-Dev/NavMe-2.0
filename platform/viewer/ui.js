@@ -216,6 +216,7 @@ function wfDbg(level, source, message, meta) {
     const P = u.searchParams;
     if (cur.get("venue")) P.set("venue", cur.get("venue"));
     if (cur.get("b")) P.set("b", cur.get("b"));
+    if (cur.get("mp")) P.set("mp", cur.get("mp"));
     if (kind === "dir") {
       if (to && to !== "me") P.set("to", to.id);
       if (from) P.set("from", from === "me" ? "me" : from.id);
@@ -643,7 +644,7 @@ function wfDbg(level, source, message, meta) {
         ${p.area_m2 ? `<li><span class="ms">square_foot</span><div>${Math.round(p.area_m2)} m² <span class="muted">(${Math.round(p.area_m2 * 10.764)} ft²)</span></div></li>` : ""}
         ${p.hours ? `<li><span class="ms">schedule</span><div>${esc(p.hours)}</div></li>` : ""}
         ${p.description || p.note ? `<li><span class="ms">info</span><div>${esc(p.description || p.note)}</div></li>` : ""}
-      </ul>`, o.sheet || "half");
+      </ul>`, o.sheet || (isMpMode() ? "placeMp" : "half"));
     $("pDir").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(); };
     $("pShare").onclick = share;
     // ArcGIS's 3D fly-to needs the map view, which MP mode hides entirely (mp_background.js)
@@ -1879,7 +1880,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   // ---------------- sheet (mobile bottom sheet / desktop panel) ----------------
-  const SHEET = { peek: 168, half: 0.5, full: 0.88 };
+  const SHEET = { peek: 168, half: 0.5, full: 0.88, placeMp: 0.4 };
   function sheetPx(state) { const v = SHEET[state]; return v > 1 ? v : Math.round(window.innerHeight * v); }
   function setSheet(html, state) {
     $("sheetBody").innerHTML = html; $("sheetBody").scrollTop = 0;
