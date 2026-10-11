@@ -133,8 +133,8 @@ function wfDbg(level, source, message, meta) {
     // prefs
     if (localStorage.getItem("wf_large") === "1") { $("togLarge").checked = true; document.body.classList.add("large"); }
     // Light/dark theme (decoupled from the 2D map's own style swatches): explicit user
-    // choice always wins; absent one, mp=1 defaults dark (see mp_background.js) and the
-    // map view defaults light, matching prior behaviour.
+    // choice always wins; absent one, light is the default everywhere (see
+    // mp_background.js for the mp=1 default).
     const savedTheme = localStorage.getItem("wf_theme");
     if (savedTheme) {
       const light = savedTheme === "light";

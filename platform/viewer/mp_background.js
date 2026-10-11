@@ -19,14 +19,11 @@
   });
 
   document.body.classList.add("mp-bg-mode");
-  // The search/directions/POI chrome (ui.js) is still ArcGIS-light-themed by default —
-  // over the always-black Matterport background that reads as mismatched white cards
-  // floating on black. Default to the existing dark palette (ui.css body.dark vars) for
-  // mp=1, but respect an explicit saved choice from ui.js's Light theme toggle — this
-  // is only a default, not a lock.
+  // Light is the default theme; dark only applies if the user explicitly picked it
+  // via ui.js's Light theme toggle (localStorage wf_theme).
   try {
-    if (localStorage.getItem("wf_theme") !== "light") document.body.classList.add("dark");
-  } catch (_) { document.body.classList.add("dark"); }
+    if (localStorage.getItem("wf_theme") === "dark") document.body.classList.add("dark");
+  } catch (_) { /* default stays light */ }
   const style = document.createElement("style");
   style.textContent = `
     body.mp-bg-mode #viewDiv { display:none !important; }
@@ -147,7 +144,7 @@
     { match: /waiting for twin to be ready/i, pct: 75 },
     { match: /tap enter/i, pct: 92, sub: "Tap inside the window below to continue" },
   ];
-  const DEFAULT_TITLE = "Loading NavMe Wayfinding";
+  const DEFAULT_TITLE = "Loading Wayfinding";
 
   /** Re-skin #mpBgLoading once, the first time it exists — see the CSS block above. */
   function enhanceBgLoading(el) {
