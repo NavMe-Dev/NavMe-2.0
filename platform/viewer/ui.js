@@ -31,9 +31,10 @@ function wfDbg(level, source, message, meta) {
   }});
   const CHIP_KEYS = [["room", "viewer.rooms"], ["hall", "viewer.halls"], ["entrance", "viewer.entrances"], ["stairs", "viewer.stairs"], ["elevator", "viewer.elevators"], ["restroom", "viewer.restrooms"], ["parking", "viewer.parking"]];
   const CHIPS = () => CHIP_KEYS.map(([c, k]) => [c, t(k)]);
-  // Matterport public viewer (?mp=1): category chips come from the NavMe Dashboard's own
-  // navme_categories (name + Lucide icon_key) for this poi_type instead of the viewer's
-  // fixed built-in set — see wf.categories (app.js) / navme-gmap/sync (admin.py).
+  // Category chips come from the NavMe Dashboard's own navme_categories (name + Lucide
+  // icon_key) when the building has any, instead of the viewer's fixed built-in set —
+  // see wf.categories (app.js) / navme-gmap/sync (admin.py). Applies in every mode, not
+  // just ?mp=1 — a building's categories shouldn't change depending on the URL.
   // t(labelKey) already falls back to returning the key string unchanged when it's not a
   // real i18n key, so a plain category name works as a "labelKey" with zero other changes.
   const LUCIDE_TO_MS = {
@@ -48,7 +49,7 @@ function wfDbg(level, source, message, meta) {
   };
   const CHIP_PALETTE = [[26, 115, 232], [161, 66, 244], [24, 128, 56], [227, 116, 0], [66, 133, 244], [0, 137, 123], [25, 103, 210], [194, 24, 91]];
   function applyDynamicCategories() {
-    if (!isMpMode() || !wf.categories || !wf.categories.length) return;
+    if (!wf.categories || !wf.categories.length) return;
     const sorted = wf.categories.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.name).localeCompare(String(b.name)));
     Object.keys(CAT_BASE).forEach(k => delete CAT_BASE[k]);
     CHIP_KEYS.length = 0;

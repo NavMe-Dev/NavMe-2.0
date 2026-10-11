@@ -39,7 +39,7 @@ require([
       // holds pipeline-detected entrances. Null on failure so the viewer still loads.
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-pois").catch(() => null),
       // NavMe Dashboard's curated category chips (name/icon_key/sort_order) — used by
-      // ui.js only in Matterport mode (?mp=1) to replace the viewer's fixed chip set.
+      // ui.js to replace the viewer's fixed chip set whenever the building has any.
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-categories").catch(() => []),
       // NavMe Dashboard's declared staircases (Sweep.data indices) — fed to
       // threed_nav.js's Walkthrough Wayfinding router. Empty array (not an error) for

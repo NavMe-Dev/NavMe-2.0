@@ -109,7 +109,7 @@ function wfDbg(level, source, message, meta) {
       if (wrap) {
         const d = document.createElement("div");
         d.className = "mp-dock"; d.id = "mpDock"; d.hidden = true;
-        d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl">Distance remaining</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
+        d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
           '<button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>';
         wrap.appendChild(d);
       }
@@ -148,7 +148,7 @@ function wfDbg(level, source, message, meta) {
           <div id="mpDistHud" class="mp-dist-hud" hidden aria-hidden="true"><span class="mp-dist-val" id="mpDistRem">—</span><span class="mp-dist-leg" id="mpDistLegRow" hidden><span class="mp-dist-sep" aria-hidden="true">·</span><span class="mp-dist-leg-val" id="mpDistLeg">—</span></span></div>
           <div class="mp-dock" id="mpDock" hidden>
             <div class="mp-dock-eta" id="mpDockEta" hidden>
-              <div class="mp-dock-lbl">Distance remaining</div>
+              <div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div>
               <div class="mp-dock-val" id="mpDockDist">—</div>
             </div>
             <button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>
@@ -1208,8 +1208,9 @@ function wfDbg(level, source, message, meta) {
     el.classList.add("visible");
     // Same "Distance remaining" readout Start Preview's #navBar and Walkthrough
     // Wayfinding's .n3d-dock show in their bottom bar.
-    const dockEta = $("mpDockEta"), dockVal = $("mpDockDist");
+    const dockEta = $("mpDockEta"), dockVal = $("mpDockDist"), dockLbl = $("mpDockLbl");
     if (dockVal) dockVal.textContent = fmtMeters(rem);
+    if (dockLbl) dockLbl.textContent = destName ? ("To " + destName) : "Distance remaining";
     if (dockEta) dockEta.hidden = false;
   }
 

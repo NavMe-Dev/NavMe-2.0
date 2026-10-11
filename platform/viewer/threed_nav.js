@@ -281,7 +281,7 @@
         '<canvas class="n3d-canvas" id="n3dCanvas" hidden></canvas>',
         '<div class="n3d-status" id="n3dStatus" hidden></div>',
         '<div class="n3d-dock" id="n3dDock" hidden>',
-          '<div class="n3d-dock-eta"><div class="n3d-dist-lbl">Distance remaining</div>',
+          '<div class="n3d-dock-eta"><div class="n3d-dist-lbl" id="n3dDistLbl">Distance remaining</div>',
           '<div><span class="n3d-dist-v" id="n3dDistV">—</span><span class="n3d-dist-u" id="n3dDistU">m</span></div></div>',
           '<button class="n3d-exit" id="n3dExit" type="button">Exit</button>',
         '</div>',
@@ -311,13 +311,14 @@
   }
 
   function updateDistDisplay() {
-    var dock = $("n3dDock"), dv = $("n3dDistV"), du = $("n3dDistU");
+    var dock = $("n3dDock"), dv = $("n3dDistV"), du = $("n3dDistU"), lbl = $("n3dDistLbl");
     if (!dock) return;
     // Always reachable once navigation has started — this carries the only Exit
     // control now that the top bar's title strip is gone, so it must stay up
     // even before the first real distance is known, not just once remainingMetres()
     // returns something.
     dock.hidden = false;
+    if (lbl) lbl.textContent = destName ? ("To " + destName) : "Distance remaining";
     var rem = remainingMetres();
     if (rem === null) { if (dv) dv.textContent = "—"; return; }
     if (rem < 0.5) { if (dv) dv.textContent = "0"; return; }
