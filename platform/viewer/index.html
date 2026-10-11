@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1a73e8">
+<!-- iOS Safari does not support Element.requestFullscreen() for ordinary pages (WebKit
+     restricts it to <video>) — there is no JS-only fix for that. These tags make "Add to
+     Home Screen" launch with zero browser chrome (status bar only), which is the only way
+     to get a true full-screen experience on iPhone. Android Chrome gets real fullscreen
+     from mp_background.js's requestFullscreen() call instead; these tags are harmless
+     no-ops there. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>NavMe</title>
 <link rel="icon" type="image/png" href="img/favicon.png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
@@ -158,7 +167,7 @@
     <button class="ditem" data-act="building"><span class="ms">apartment</span><span data-i18n="viewer.buildingInfo">Building info</span></button>
     <button class="ditem" data-act="recent"><span class="ms">history</span><span data-i18n="viewer.recentSearches">Recent searches</span></button>
     <label class="ditem tog"><span class="ms">text_increase</span><span data-i18n="viewer.largeText">Large text</span><input type="checkbox" id="togLarge"><i></i></label>
-    <label class="ditem tog"><span class="ms">contrast</span><span data-i18n="viewer.highContrast">High contrast</span><input type="checkbox" id="togHC"><i></i></label>
+    <label class="ditem tog"><span class="ms">light_mode</span><span data-i18n="viewer.highContrast">Light theme</span><input type="checkbox" id="togHC"><i></i></label>
     <button class="ditem" data-act="share"><span class="ms">share</span><span data-i18n="viewer.shareView">Share this view</span></button>
     <div class="ditem lang-row" id="langSwitcher" hidden></div>
     <hr>
@@ -326,10 +335,10 @@
 <script src="wf_mesh_overlay.js?v=20261005overlay8"></script>
 <script src="app.js?v=20261011dark1"></script>
 <script src="mp_preview.js?v=20261011destname1"></script>
-<script src="mp_background.js?v=20261011fullscreen2"></script>
+<script src="mp_background.js?v=20261011fullscreen3"></script>
 <script src="threed_nav.js?v=20261011destname1"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261011dark1"></script>
+<script src="ui.js?v=20261011theme1"></script>
 </body>
 </html>

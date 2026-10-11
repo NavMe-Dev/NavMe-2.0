@@ -132,7 +132,17 @@ function wfDbg(level, source, message, meta) {
     });
     // prefs
     if (localStorage.getItem("wf_large") === "1") { $("togLarge").checked = true; document.body.classList.add("large"); }
-    if (localStorage.getItem("wf_hc") === "1") { $("togHC").checked = true; document.body.classList.add("hc"); }
+    // Light/dark theme (decoupled from the 2D map's own style swatches): explicit user
+    // choice always wins; absent one, mp=1 defaults dark (see mp_background.js) and the
+    // map view defaults light, matching prior behaviour.
+    const savedTheme = localStorage.getItem("wf_theme");
+    if (savedTheme) {
+      const light = savedTheme === "light";
+      $("togHC").checked = light;
+      document.body.classList.toggle("dark", !light);
+    } else {
+      $("togHC").checked = !document.body.classList.contains("dark");
+    }
     const ready = (window.WF && WF.i18nReady) ? WF.i18nReady : Promise.resolve();
     // MP mode: wait for mp_background.js's Matterport connect to actually finish (or fail)
     // before revealing the chrome — otherwise the search bar/chips/directions button fade
@@ -1927,7 +1937,11 @@ function wfDbg(level, source, message, meta) {
     const dh = document.querySelector(".drawhead");
     if (dh) dh.onclick = () => { closeDrawer(); showBuildingPicker(); try { $("q").focus(); } catch (e) {} };
     $("togLarge").onchange = () => { document.body.classList.toggle("large", $("togLarge").checked); localStorage.setItem("wf_large", $("togLarge").checked ? "1" : "0"); };
-    $("togHC").onchange = () => { const on = $("togHC").checked; document.body.classList.toggle("hc", on); localStorage.setItem("wf_hc", on ? "1" : "0"); setStyle(on ? "dark" : "map"); };
+    $("togHC").onchange = () => {
+      const light = $("togHC").checked;
+      document.body.classList.toggle("dark", !light);
+      localStorage.setItem("wf_theme", light ? "light" : "dark");
+    };
     $("drawer").querySelectorAll("button.ditem").forEach(b => b.onclick = () => {
       const a = b.dataset.act; closeDrawer();
       if (a === "building") { closeDirectionsIfOpen(); showHome(); zoomBuilding(); setSheetState("half"); }
