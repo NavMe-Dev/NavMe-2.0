@@ -1905,6 +1905,10 @@ function wfDbg(level, source, message, meta) {
   // ---------------- drawer / menu ----------------
   function bindDrawer() {
     $("btnMenu").onclick = openDrawer; $("scrim").onclick = closeDrawer;
+    // Switch-building entry point now that the chip is gone from the search bar —
+    // same action #btnBrand/the old #bldgChip already triggered.
+    const dh = document.querySelector(".drawhead");
+    if (dh) dh.onclick = () => { closeDrawer(); showBuildingPicker(); try { $("q").focus(); } catch (e) {} };
     $("togLarge").onchange = () => { document.body.classList.toggle("large", $("togLarge").checked); localStorage.setItem("wf_large", $("togLarge").checked ? "1" : "0"); };
     $("togHC").onchange = () => { const on = $("togHC").checked; document.body.classList.toggle("hc", on); localStorage.setItem("wf_hc", on ? "1" : "0"); setStyle(on ? "dark" : "map"); };
     $("drawer").querySelectorAll("button.ditem").forEach(b => b.onclick = () => {

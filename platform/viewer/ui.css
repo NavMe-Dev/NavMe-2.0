@@ -411,7 +411,11 @@ body.mp-mobile .mp-frame-wrap iframe{min-height:0;height:100%}
 .bldg-chip .chip-name{font-size:.78em;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
 .bldg-chip .chip-sub{font-size:.65em;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
 .bldg-chip .chip-chev{font-size:18px;color:var(--txt2)}
-.searchbox[data-ux="places"] .bldg-chip{display:inline-flex}
+/* Building name/floor-count chip moved out of the search bar entirely — the drawer's
+   own .drawhead (logo + building name, already always shown there) is now the only
+   place it appears, so the search input gets the freed-up width. */
+.searchbox[data-ux="places"] .bldg-chip{display:none}
+.drawhead{cursor:pointer}
 .searchbox[data-ux="buildings"] .brand-mark{margin-right:2px}
 .searchbox[data-ux="buildings"]{padding-left:2px}
 .searchbox[data-ux="places"] #q{font-size:1em}
