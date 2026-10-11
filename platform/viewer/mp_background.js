@@ -88,11 +88,129 @@
     body.mp-bg-mode #mpBgLoading.err { color:#f28b82; }
     @keyframes mpBgSpin { to { transform:rotate(360deg); } }
     @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .mp-bg-spinner { animation:none; } }
+    /* NavMe-branded splash — see enhanceBgLoading() below. mp_preview.js's setStatus()
+       keeps writing its raw status string into #mpBgLoadingText exactly as before (Tour
+       interior, which shares that function, is completely untouched); this only re-skins
+       the mp-bg-mode presentation of it. Hidden once Showcase has real content so its own
+       "tap to enter" gate (if any) is visible/tappable — the original small spinner+text
+       pill takes back over at that point, unchanged from before this existed. */
+    body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > .mp-bg-spinner,
+    body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > #mpBgLoadingText {
+      display:none !important;
+    }
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoading .navme-bg-splash { display:none !important; }
+    body.mp-bg-mode .navme-bg-splash {
+      display:flex; flex-direction:column; align-items:center; gap:16px;
+    }
+    body.mp-bg-mode .navme-bg-splash-logo {
+      width:72px; height:72px; border-radius:18px; object-fit:contain;
+      background:rgba(255,255,255,.06); padding:10px; box-sizing:border-box;
+    }
+    body.mp-bg-mode .navme-bg-splash-title {
+      font-size:16px; font-weight:600; color:#f1f3f4;
+    }
+    body.mp-bg-mode .navme-bg-splash-spinner {
+      width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,.22);
+      border-top-color:#8ab4f8; animation:mpBgSpin .8s linear infinite;
+    }
+    body.mp-bg-mode .navme-bg-splash-pct {
+      font-size:22px; font-weight:700; color:#8ab4f8; font-variant-numeric:tabular-nums;
+      letter-spacing:.02em;
+    }
+    body.mp-bg-mode .navme-bg-splash-sub {
+      font-size:12.5px; color:rgba(232,234,237,.65); min-height:1.4em;
+    }
+    body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-spinner,
+    body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-pct { display:none; }
+    body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-title { color:#f28b82; }
+    @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .navme-bg-splash-spinner { animation:none; } }
   `;
   document.head.appendChild(style);
 
+  // Known connect-sequence milestones (see mp_preview.js's showBackground()) mapped to a
+  // rough completion percentage — Matterport gives no real byte-level progress for the
+  // iframe, so this is an honest best-effort indicator of "how far through the known
+  // steps", not a measured download percentage.
+  const STATUS_MILESTONES = [
+    { match: /loading digital twin/i, pct: 12 },
+    { match: /connecting to digital twin/i, pct: 45 },
+    { match: /waiting for twin to be ready/i, pct: 75 },
+    { match: /tap enter/i, pct: 92, sub: "Tap inside the window below to continue" },
+  ];
+  const DEFAULT_TITLE = "Loading NavMe Wayfinding";
+
+  /** Re-skin #mpBgLoading once, the first time it exists — see the CSS block above. */
+  function enhanceBgLoading(el) {
+    if (!el || el.dataset.navmeEnhanced) return;
+    el.dataset.navmeEnhanced = "1";
+    const textEl = el.querySelector("#mpBgLoadingText");
+    const shell = document.createElement("div");
+    shell.className = "navme-bg-splash";
+    shell.innerHTML =
+      '<img class="navme-bg-splash-logo" src="img/navme-logo.png" alt="" />' +
+      '<div class="navme-bg-splash-title">' + DEFAULT_TITLE + "</div>" +
+      '<div class="navme-bg-splash-spinner" aria-hidden="true"></div>' +
+      '<div class="navme-bg-splash-pct">0%</div>' +
+      '<div class="navme-bg-splash-sub"></div>';
+    el.insertBefore(shell, el.firstChild);
+
+    const titleEl = shell.querySelector(".navme-bg-splash-title");
+    const pctEl = shell.querySelector(".navme-bg-splash-pct");
+    const subEl = shell.querySelector(".navme-bg-splash-sub");
+    let shownPct = 0;
+    let creepTimer = null;
+
+    function stepToward(target) {
+      clearInterval(creepTimer);
+      creepTimer = setInterval(() => {
+        // Ease toward the target, never reaching it on its own — the next real
+        // status (or completion) always supplies the actual jump, same spirit
+        // as a classic "creep to 90%, snap to 100% on finish" progress bar.
+        const cap = Math.max(0, target - 2);
+        if (shownPct >= cap) { clearInterval(creepTimer); return; }
+        shownPct += (cap - shownPct) * 0.12 + 0.4;
+        pctEl.textContent = Math.round(Math.min(shownPct, cap)) + "%";
+      }, 180);
+    }
+
+    function syncFromText() {
+      const msg = (textEl && textEl.textContent) || "";
+      const isErr = el.classList.contains("err");
+      shell.classList.toggle("is-err", isErr);
+      if (isErr) {
+        titleEl.textContent = "Could not load the digital twin";
+        subEl.textContent = msg;
+        return;
+      }
+      const hit = STATUS_MILESTONES.filter((m) => m.match.test(msg))[0];
+      const target = hit ? hit.pct : Math.max(shownPct, 30);
+      titleEl.textContent = DEFAULT_TITLE;
+      subEl.textContent = (hit && hit.sub) || "";
+      if (target > shownPct) {
+        shownPct = Math.min(shownPct, target - 2 < 0 ? 0 : target - 2);
+        pctEl.textContent = Math.round(shownPct) + "%";
+        stepToward(target);
+      }
+    }
+    syncFromText();
+    const mo = new MutationObserver(syncFromText);
+    if (textEl) mo.observe(textEl, { childList: true, characterData: true, subtree: true });
+    mo.observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  function watchForBgLoading() {
+    const existing = document.getElementById("mpBgLoading");
+    if (existing) { enhanceBgLoading(existing); return; }
+    const mo = new MutationObserver(() => {
+      const el = document.getElementById("mpBgLoading");
+      if (el) { enhanceBgLoading(el); mo.disconnect(); }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+
   function boot() {
     if (!window.MpPreview || !window.MpPreview.showBackground) { setTimeout(boot, 150); return; }
+    watchForBgLoading();
     // ui.js's boot sequence waits on this (see mpBackgroundReady()) so the NavMe chrome
     // (search bar, chips, directions...) doesn't fade in over a still-loading/blank
     // Matterport scene — it was previously timed off i18n+deep-link only, unrelated to

@@ -1048,8 +1048,15 @@ require([
     window.wf.dotLayer = dotLayer;
     window.wf.ready = true;
     if (window.wf.onReady) window.wf.onReady();
-    // Default to 3D view
-    setTimeout(() => { if ($("btnDim")) $("btnDim").click(); }, 800);
+    // Default to 3D view — skipped entirely in mp=1 mode, where #viewDiv is
+    // permanently hidden behind the live Matterport background (see the
+    // isMpMode() strip above map2d's construction). Clicking this there used
+    // to create a full Esri SceneView (terrain + mesh + OSM layers) that was
+    // never shown to anyone — a third real GPU allocation sitting alongside
+    // the Matterport iframe's own, for zero visible benefit, that measurably
+    // shrank the headroom before a lower-end phone's GPU process gets
+    // reclaimed (e.g. the moment screen recording adds its own overhead).
+    if (!isMpMode()) setTimeout(() => { if ($("btnDim")) $("btnDim").click(); }, 800);
     window.wf.modelToScreen = (x, y) => { const ll = modelToLL(x, y); const p = activeView.toScreen(new Point({ longitude: ll[0], latitude: ll[1] })); return [p.x, p.y]; };
   }
 });
