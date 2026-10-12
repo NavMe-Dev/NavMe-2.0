@@ -47,11 +47,17 @@ require([
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-stair-chains").catch(() => []),
       // Shop profiles (menu/hours/photos/rating) for POIs the dashboard has turned into
       // a "shop" — keyed by poi_id, which matches navme-pois' own "id" field above.
-      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/shops").catch(() => [])]); })
-    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops]) => {
+      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/shops").catch(() => []),
+      // Compact Zappar experience ref (pasted into the NavMe Dashboard's Access Control
+      // page) for this building's published AR experience — null for buildings with none
+      // yet. Used to build share.navme.space "View in AR" deep links (see ui.js's
+      // arShareUrlFor); null keeps those buttons on the old "AR is temporarily locked" toast.
+      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/ar-experience-ref").catch(() => ({ experience_ref: null }))]); })
+    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops, arRef]) => {
       pois._navme = navmePois;
       window.WF.shopsByPoiId = {};
       (navmeShops || []).forEach(s => { if (s && s.poi_id) window.WF.shopsByPoiId[String(s.poi_id)] = s; });
+      window.WF.arExperienceRef = (arRef && arRef.experience_ref) || null;
       if (window.ThreeDNav && window.ThreeDNav.setStairChainRows) window.ThreeDNav.setStairChainRows(navmeStairChains);
       // platform config -> fields the prototype engine expects
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));

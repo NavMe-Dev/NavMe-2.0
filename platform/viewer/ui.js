@@ -740,6 +740,25 @@ function wfDbg(level, source, message, meta) {
       };
     });
   }
+  // AR share deep-links into the Mattercraft/Zappar AR experience (share.navme.space),
+  // mirroring the AR project's own navmePois.ts slugifyPoiShareName/buildPoiShareUrl
+  // exactly (slug?p=<poiId>&x=<experienceRef>) so a link generated here opens the same
+  // POI there. The experience ref itself is fetched live from the NavMe Dashboard's
+  // navme_project_features.experience_ref (see app.js's window.WF.arExperienceRef,
+  // populated from GET /api/v1/public/buildings/{slug}/ar-experience-ref) — null for
+  // buildings with no published AR experience yet.
+  function slugifyPoiShareName(name) {
+    return (String(name || "")
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+      .slice(0, 64)) || "place";
+  }
+  function arShareUrlFor(poi) {
+    if (!poi || poi.id == null) return null;
+    const ref = window.WF && WF.arExperienceRef;
+    if (!ref) return null;
+    return `https://share.navme.space/${slugifyPoiShareName(poi.name)}?p=${encodeURIComponent(poi.id)}&x=${encodeURIComponent(ref)}`;
+  }
   function selectPlace(p, o = {}) {
     S.place = p; S.mode = "place"; document.body.classList.remove("dir");
     $("q").value = p.name; $("btnClearQ").hidden = false;
@@ -770,10 +789,15 @@ function wfDbg(level, source, message, meta) {
     $("pShare").onclick = share;
     if (shop) bindShopTabs($("sheetBody"));
     // ArcGIS's 3D fly-to needs the map view, which MP mode hides entirely (mp_background.js)
-    // — the button used to silently no-op there. Real AR is a future feature, not reachable
-    // from MP mode today, so say so instead of pretending to do something.
+    // — the button used to silently no-op there. In MP mode, open the real Zappar/
+    // Mattercraft AR experience for this POI instead (see arShareUrlFor) — falls back
+    // to the old "locked" toast only for buildings with no published AR experience yet.
     $("p3d").onclick = isMpMode()
-      ? () => toast(t("viewer.arLocked") || "AR is temporarily locked")
+      ? () => {
+          const url = arShareUrlFor(p);
+          if (url) window.open(url, "_blank", "noopener");
+          else toast(t("viewer.arLocked") || "AR is temporarily locked");
+        }
       : async () => { await toggle3D(true); flyTo3D(p); };
     // mp mode hides the ArcGIS view entirely (see mp_background.js) and POIs here carry
     // flat x/y/z, not the .model the ArcGIS 3D fly needs — flyTo3D would throw and abort
@@ -1307,7 +1331,14 @@ function wfDbg(level, source, message, meta) {
       <ol class="steps" aria-label="${esc(t("viewer.steps"))}">${steps}</ol>`, "half");
     $("dStart").onclick = () => startNav();
     if ($("dPrev3d")) $("dPrev3d").onclick = () => preview3D();
-    if ($("dViewAr")) $("dViewAr").onclick = () => toast(t("viewer.arLocked") || "AR is temporarily locked");
+    // Directions' "View in AR" shares the DESTINATION only (not the route/start point) —
+    // the AR experience opens straight at where you're headed, same as tapping a POI
+    // directly and hitting View in AR.
+    if ($("dViewAr")) $("dViewAr").onclick = () => {
+      const url = (S.to && S.to !== "me") ? arShareUrlFor(S.to) : null;
+      if (url) window.open(url, "_blank", "noopener");
+      else toast(t("viewer.arLocked") || "AR is temporarily locked");
+    };
     if ($("dTourMp")) $("dTourMp").onclick = () => {
       if (!S.route) return;
       const acc = accessFlags();
