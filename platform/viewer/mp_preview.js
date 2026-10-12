@@ -1345,11 +1345,22 @@ function wfDbg(level, source, message, meta) {
     if (yaw == null) return;
 
     // moveTo() already set this same look-ahead heading as the in-flight rotation target,
-    // so the camera should already be facing here — skip if close to avoid any perceptible
-    // residual snap on arrival (this call is now just a safety net, not the primary turn).
+    // so the camera should already be facing here on fast devices — skip if close to avoid
+    // any perceptible residual snap on arrival (this call is now just a safety net, not the
+    // primary turn). On some Android/lower-powered renderers, the FLY transition's in-flight
+    // rotation hasn't actually finished settling by the time Sweep.moveTo's promise resolves
+    // — a single immediate pose read can look "close enough" while the camera is still
+    // mid-rotation, which skipped the correction below and left it facing the wrong way.
+    // Confirm with a second read a beat later before trusting the skip; only bail out if
+    // BOTH agree. This never changes behaviour where the first read was already correct
+    // (iOS/desktop today) — it only catches the case where it wasn't really done yet.
     try {
-      const got = await getPoseYaw();
-      if (got != null && Math.abs(normDeltaDeg(yaw - got)) < 6) return;
+      const got1 = await getPoseYaw();
+      if (got1 != null && Math.abs(normDeltaDeg(yaw - got1)) < 6) {
+        await new Promise(r => setTimeout(r, 180));
+        const got2 = await getPoseYaw();
+        if (got2 == null || Math.abs(normDeltaDeg(yaw - got2)) < 6) return;
+      }
     } catch (_) { /* ignore */ }
     const target = { x: to.x, y: from.y, z: to.z }; // level pitch
 
