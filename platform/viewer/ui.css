@@ -161,6 +161,45 @@ body.mp-bg-mode .actions-row1 .pill-icon{width:44px}
 .facts{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .facts li{display:flex;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .facts li .ms{color:var(--blue);font-size:22px}
+
+/* Google-Maps-style shop block (POIs the NavMe Dashboard added to navme_shop). */
+.shop{margin:2px 0 10px}
+.shop-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:.92em;color:var(--txt2)}
+.shop-rating{color:var(--txt);font-weight:500}
+.shop-dot{color:var(--line)}
+.shop-status{font-weight:500}
+.shop-status.open{color:var(--green)}
+.shop-status.closed{color:var(--red)}
+.shop-tagline{margin-top:4px;color:var(--txt2);font-size:.92em}
+.shop-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip-tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:12px;background:var(--bg2);color:var(--txt2);font-size:.8em;font-weight:500;white-space:nowrap}
+.shop-tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid var(--line)}
+.shop-tab{flex:none;background:none!important;border:0!important;padding:10px 6px 10px!important;margin-right:16px;font:inherit;font-weight:500!important;color:var(--txt2)!important;cursor:pointer;border-bottom:2px solid transparent;border-radius:0!important}
+.shop-tab.active{color:var(--blue-d)!important;border-bottom-color:var(--blue)}
+.shop-tabpanel{padding-top:12px}
+.shop-desc{margin:0 0 10px;color:var(--txt);font-size:.94em;line-height:1.4}
+.shop-hours{display:flex;flex-direction:column;gap:2px}
+.shop-hours-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;color:var(--txt2);font-size:.92em}
+.shop-hours-row.today{color:var(--txt);font-weight:500}
+.shop-phone{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--txt);font-size:.92em}
+.shop-phone .ms{color:var(--blue);font-size:18px}
+.shop-empty{margin:4px 0}
+.menu-group{margin-bottom:14px}
+.menu-group-title{font-weight:500;font-size:.9em;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.menu-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.menu-item:last-child{border-bottom:0}
+.menu-item-img{width:52px;height:52px;flex:none;object-fit:cover;border-radius:8px;background:var(--bg2)}
+.menu-item-body{flex:1;min-width:0}
+.menu-item-name{display:flex;align-items:center;gap:6px;font-weight:500;color:var(--txt)}
+.menu-item-desc{margin-top:2px;font-size:.84em}
+.menu-item-price{flex:none;font-weight:500;color:var(--txt)}
+.veg-dot{width:10px;height:10px;flex:none;border-radius:2px;border:1.5px solid var(--green)}
+.veg-dot::after{content:"";display:block;width:4px;height:4px;margin:1.5px auto 0;border-radius:50%;background:var(--green)}
+.veg-dot.nonveg{border-color:var(--red)}
+.veg-dot.nonveg::after{background:var(--red)}
+body.dark .chip-tag{background:#303134}
+body.dark .shop-status.open{color:#81c995}
+body.dark .shop-status.closed{color:#f28b82}
 .card2{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}
 .list{list-style:none;margin:0;padding:0}
 .list li{display:flex;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}

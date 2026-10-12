@@ -632,15 +632,124 @@ function wfDbg(level, source, message, meta) {
     }
     return out.slice(0, limit);
   }
+  /** 09:00 -> "9:00 AM". Falsy input (e.g. a closed day's null open/close) -> "". */
+  function fmtHm(hm) {
+    if (!hm) return "";
+    const [h, m] = hm.split(":").map(Number);
+    const ap = h >= 12 ? "PM" : "AM"; let hh = h % 12; if (hh === 0) hh = 12;
+    return hh + (m ? ":" + String(m).padStart(2, "0") : "") + " " + ap;
+  }
+  const SHOP_DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  /** Open/closed right now from a shop's weekly `hours` array, honoring a manual
+   *  is_open_override if the admin set one. Null if there is no hours data at all. */
+  function shopOpenStatus(shop) {
+    if (!shop) return null;
+    if (shop.is_open_override === true) return { open: true, label: t("viewer.openNow") || "Open" };
+    if (shop.is_open_override === false) return { open: false, label: t("viewer.closedNow") || "Closed" };
+    if (!Array.isArray(shop.hours) || !shop.hours.length) return null;
+    const byDay = {}; shop.hours.forEach(h => { if (h && h.day) byDay[h.day] = h; });
+    const toMin = (s) => { if (!s) return null; const [h, m] = s.split(":").map(Number); return h * 60 + (m || 0); };
+    const now = new Date(), todayIdx = now.getDay(), nowMin = now.getHours() * 60 + now.getMinutes();
+    const today = byDay[SHOP_DOW[todayIdx]];
+    if (today && !today.closed) {
+      const o = toMin(today.open), c = toMin(today.close);
+      if (o != null && c != null && nowMin >= o && nowMin < c) {
+        return { open: true, label: (t("viewer.closesAt") || "Closes") + " " + fmtHm(today.close) };
+      }
+      if (o != null && nowMin < o) {
+        return { open: false, label: (t("viewer.opensAt") || "Opens") + " " + fmtHm(today.open) };
+      }
+    }
+    for (let i = 1; i <= 7; i++) {
+      const d = byDay[SHOP_DOW[(todayIdx + i) % 7]];
+      if (d && !d.closed && d.open) {
+        const when = i === 1 ? (t("viewer.tomorrow") || "tomorrow") : SHOP_DOW[(todayIdx + i) % 7];
+        return { open: false, label: (t("viewer.opens") || "Opens") + " " + when + " " + fmtHm(d.open) };
+      }
+    }
+    return { open: false, label: t("viewer.closedNow") || "Closed" };
+  }
+  /** Menu items grouped into Google-Maps-style sections by their own `category`. */
+  function shopMenuHtml(menu) {
+    if (!Array.isArray(menu) || !menu.length) return `<p class="muted shop-empty">${esc(t("viewer.menuUnavailable") || "Menu not available yet.")}</p>`;
+    const groups = [], byName = {};
+    menu.forEach(m => {
+      if (!m) return;
+      const cat = m.category || (t("viewer.shopMenu") || "Menu");
+      if (!byName[cat]) { byName[cat] = []; groups.push(cat); }
+      byName[cat].push(m);
+    });
+    return groups.map(cat => `
+      <div class="menu-group">
+        <div class="menu-group-title">${esc(cat)}</div>
+        ${byName[cat].map(m => `
+          <div class="menu-item">
+            ${m.image_url ? `<img class="menu-item-img" src="${esc(m.image_url)}" alt="${esc(m.name || "")}" loading="lazy">` : ""}
+            <div class="menu-item-body">
+              <div class="menu-item-name">${m.veg === true ? '<span class="veg-dot veg" title="Veg"></span>' : m.veg === false ? '<span class="veg-dot nonveg" title="Non-veg"></span>' : ""}${esc(m.name || "")}</div>
+              ${m.description ? `<div class="menu-item-desc muted">${esc(m.description)}</div>` : ""}
+            </div>
+            ${m.price != null ? `<div class="menu-item-price">₹${esc(String(m.price))}</div>` : ""}
+          </div>`).join("")}
+      </div>`).join("");
+  }
+  /** Weekly hours table for the Overview tab, today's row highlighted. */
+  function shopHoursHtml(hours) {
+    if (!Array.isArray(hours) || !hours.length) return "";
+    const todayAbbr = SHOP_DOW[new Date().getDay()];
+    return `<div class="shop-hours">${hours.map(h => `
+      <div class="shop-hours-row${h.day === todayAbbr ? " today" : ""}">
+        <span>${esc(h.day)}</span>
+        <span>${h.closed ? esc(t("viewer.closed") || "Closed") : esc(fmtHm(h.open)) + " – " + esc(fmtHm(h.close))}</span>
+      </div>`).join("")}</div>`;
+  }
+  /** Google-Maps-style shop block: rating/price/open-status row, tags, Overview/Menu
+   *  tabs — rendered below the photo section for any POI the dashboard added to
+   *  navme_shop (see app.js's window.WF.shopsByPoiId, populated from
+   *  GET /api/v1/public/buildings/{slug}/shops). */
+  function shopSectionHtml(shop) {
+    const status = shopOpenStatus(shop);
+    const tags = Array.isArray(shop.tags) ? shop.tags : [];
+    return `
+      <div class="shop">
+        <div class="shop-meta">
+          ${shop.rating != null ? `<span class="shop-rating">★ ${esc(String(shop.rating))}${shop.rating_count ? ` <span class="muted">(${esc(String(shop.rating_count))})</span>` : ""}</span>` : ""}
+          ${shop.price_range ? `<span class="shop-dot">·</span><span>${esc(shop.price_range)}</span>` : ""}
+          ${status ? `<span class="shop-dot">·</span><span class="shop-status ${status.open ? "open" : "closed"}">${status.open ? (t("viewer.openNow") || "Open") : (t("viewer.closedNow") || "Closed")} · ${esc(status.label)}</span>` : ""}
+        </div>
+        ${shop.tagline ? `<div class="shop-tagline">${esc(shop.tagline)}</div>` : ""}
+        ${tags.length ? `<div class="shop-tags">${tags.map(tg => `<span class="chip-tag">${esc(tg)}</span>`).join("")}</div>` : ""}
+        <div class="shop-tabs" role="tablist">
+          <button type="button" class="shop-tab active" data-tab="overview" role="tab" aria-selected="true">${esc(t("viewer.overview") || "Overview")}</button>
+          <button type="button" class="shop-tab" data-tab="menu" role="tab" aria-selected="false">${esc(t("viewer.shopMenu") || "Menu")}</button>
+        </div>
+        <div class="shop-tabpanel" data-panel="overview">
+          ${shop.description ? `<p class="shop-desc">${esc(shop.description)}</p>` : ""}
+          ${shopHoursHtml(shop.hours)}
+          ${shop.phone ? `<div class="shop-phone"><span class="ms">call</span>${esc(shop.phone)}</div>` : ""}
+        </div>
+        <div class="shop-tabpanel" data-panel="menu" hidden>${shopMenuHtml(shop.menu)}</div>
+      </div>`;
+  }
+  function bindShopTabs(root) {
+    const tabs = root.querySelectorAll(".shop-tab");
+    tabs.forEach(btn => {
+      btn.onclick = () => {
+        tabs.forEach(b => { b.classList.toggle("active", b === btn); b.setAttribute("aria-selected", b === btn ? "true" : "false"); });
+        root.querySelectorAll(".shop-tabpanel").forEach(p => { p.hidden = p.dataset.panel !== btn.dataset.tab; });
+      };
+    });
+  }
   function selectPlace(p, o = {}) {
     S.place = p; S.mode = "place"; document.body.classList.remove("dir");
     $("q").value = p.name; $("btnClearQ").hidden = false;
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
     markPlace(p);
     const c = cat(p), galleryUrls = nearbyThumbs(p, 6);
+    const shop = (window.WF.shopsByPoiId || {})[String(p.id)] || null;
     setSheet(`
-      <h1 class="pname">${esc(p.name)}</h1>
-      <div class="prow"><span>${esc(c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
+      <h1 class="pname">${esc(shop ? shop.name : p.name)}</h1>
+      <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
       <div class="actions actions-row1">
         <button class="pill primary pill-sm" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
         <button class="pill pill-sm" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
@@ -649,15 +758,17 @@ function wfDbg(level, source, message, meta) {
       ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">`
         : galleryUrls.length > 1 ? `<div class="photo-gallery">${galleryUrls.map(u => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">`).join("")}</div>`
         : galleryUrls.length === 1 ? `<img class="photo" src="${esc(galleryUrls[0])}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">` : ""}
+      ${shop ? shopSectionHtml(shop) : ""}
       <ul class="facts">
         <li><span class="ms">location_on</span><div>${esc(wf.floorLabel(p.floor))}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
         <li><span class="ms">accessible</span><div>${p.step_free_from_parking ? esc(t("viewer.reachableStepFree")) : esc(t("viewer.routesIncludeSteps"))}<div class="muted">${esc(t("viewer.basedOnScan"))}</div></div></li>
         ${p.area_m2 ? `<li><span class="ms">square_foot</span><div>${Math.round(p.area_m2)} m² <span class="muted">(${Math.round(p.area_m2 * 10.764)} ft²)</span></div></li>` : ""}
-        ${p.hours ? `<li><span class="ms">schedule</span><div>${esc(p.hours)}</div></li>` : ""}
-        ${p.description || p.note ? `<li><span class="ms">info</span><div>${esc(p.description || p.note)}</div></li>` : ""}
+        ${!shop && p.hours ? `<li><span class="ms">schedule</span><div>${esc(p.hours)}</div></li>` : ""}
+        ${!shop && (p.description || p.note) ? `<li><span class="ms">info</span><div>${esc(p.description || p.note)}</div></li>` : ""}
       </ul>`, o.sheet || (isMpMode() ? "placeMp" : "half"));
     $("pDir").onclick = () => { S.to = p; S.from = wf.lastLoc ? "me" : defaultFrom(p); openDirections(); };
     $("pShare").onclick = share;
+    if (shop) bindShopTabs($("sheetBody"));
     // ArcGIS's 3D fly-to needs the map view, which MP mode hides entirely (mp_background.js)
     // — the button used to silently no-op there. Real AR is a future feature, not reachable
     // from MP mode today, so say so instead of pretending to do something.
@@ -731,8 +842,8 @@ function wfDbg(level, source, message, meta) {
     if (dirBtn) dirBtn.hidden = S.uxMode !== "places";
     if (q) {
       if (S.uxMode === "buildings") {
-        q.placeholder = t("viewer.chooseBuilding") || "Choose a building";
-        q.setAttribute("aria-label", t("viewer.chooseBuilding") || "Choose a building");
+        q.placeholder = t("viewer.searchPlacesOrVenues") || "Search places or venues";
+        q.setAttribute("aria-label", t("viewer.searchPlacesOrVenues") || "Search places or venues");
         if (!opts.keepQuery) q.value = "";
       } else {
         q.placeholder = (isMobileUx() ? (t("viewer.searchDestPlaceholder") || t("viewer.searchPlaceholder") || "Where to?") : (t("viewer.searchPlaceholder") || "Search rooms, halls, entrances…"));

@@ -44,9 +44,14 @@ require([
       // NavMe Dashboard's declared staircases (Sweep.data indices) — fed to
       // threed_nav.js's Walkthrough Wayfinding router. Empty array (not an error) for
       // a building with none; that router falls back to its geometric stair planner.
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-stair-chains").catch(() => [])]); })
-    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains]) => {
+      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-stair-chains").catch(() => []),
+      // Shop profiles (menu/hours/photos/rating) for POIs the dashboard has turned into
+      // a "shop" — keyed by poi_id, which matches navme-pois' own "id" field above.
+      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/shops").catch(() => [])]); })
+    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops]) => {
       pois._navme = navmePois;
+      window.WF.shopsByPoiId = {};
+      (navmeShops || []).forEach(s => { if (s && s.poi_id) window.WF.shopsByPoiId[String(s.poi_id)] = s; });
       if (window.ThreeDNav && window.ThreeDNav.setStairChainRows) window.ThreeDNav.setStairChainRows(navmeStairChains);
       // platform config -> fields the prototype engine expects
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));

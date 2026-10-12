@@ -610,6 +610,68 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
     return pois
 
 
+@router.get("/buildings/{slug}/shops")
+def building_shops(slug: str, db: Session = Depends(get_db)):
+    """Shop profiles (menu, hours, photos, rating) for POIs the NavMe Dashboard has added
+    to navme_shop. Queried live from Supabase — small, admin-edited dataset, so there is
+    no publish/sync step yet (unlike navme-pois above, which is mirrored into this
+    server's own `pois` table). Keyed by poi_id, which matches the `id` field
+    /dashboard/buildings/{slug}/navme-pois returns for the same POI (both ultimately come
+    from navme_pois.id — see services/navme.py's module docstring for why poi_type, not
+    the wayfinding slug, is the correct Supabase scoping key).
+
+    Unauthenticated, like navme-pois: the public viewer has no Supabase credential of
+    its own and renders this same shop set."""
+    import urllib.request, urllib.parse, urllib.error
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return []
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        return []
+    # ilike, not eq: navme.poi_type(b) falls back to the wayfinding slug ("gcu") for
+    # buildings onboarded before navme_poi_type existed, while navme_pois/navme_shop
+    # store the dashboard's own casing ("GCU") — same case-insensitive match
+    # navme-gmap/sync already uses for navme_categories, for the same reason.
+    ptype = navme.poi_type(b)
+    q = urllib.parse.urlencode({
+        "select": "*", "is_active": "is.true",
+        "poi_type": f"ilike.{navme.pg_value(ptype)}",
+    })
+    url = f"{cfg.supabase_url}/rest/v1/navme_shop?{q}"
+    req = urllib.request.Request(url, headers={
+        "apikey": cfg.supabase_anon_key,
+        "Authorization": f"Bearer {cfg.supabase_anon_key}",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+    except Exception:
+        return []
+    out = []
+    for row in rows or []:
+        out.append({
+            "poi_id": row.get("poi_id"),
+            "name": row.get("shop_name"),
+            "category": row.get("shop_category"),
+            "tagline": row.get("tagline"),
+            "description": row.get("description"),
+            "logo_url": row.get("logo_url"),
+            "cover_image_url": row.get("cover_image_url"),
+            "gallery_images": row.get("gallery_images") or [],
+            "rating": row.get("rating"),
+            "rating_count": row.get("rating_count"),
+            "price_range": row.get("price_range"),
+            "phone": row.get("phone"),
+            "website_url": row.get("website_url"),
+            "tags": row.get("tags") or [],
+            "hours": row.get("hours") or [],
+            "is_open_override": row.get("is_open_override"),
+            "menu": row.get("menu") or [],
+        })
+    return out
+
+
 class _RouteByCoords(_BM):
     from_x: float; from_z: float; from_floor: str = "F1"
     to_x: float; to_z: float; to_floor: str = "F1"

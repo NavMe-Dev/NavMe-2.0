@@ -218,7 +218,7 @@
     "floorsShort": "{{n}} floors",
     "productName": "NavMe",
     "appName": "NavMe",
-    "chooseBuilding": "Choose a building",
+    "chooseBuilding": "Explore NavMe locations",
     "chooseBuildingHint": "All buildings available in NavMe",
     "currentBuildingDetails": "This building",
     "openBuilding": "Open",
@@ -244,7 +244,18 @@
     "bundleScene": "Bundle scene",
     "bundleUnavailable": "Bundle Scene not configured (need self-hosted Showcase Bundle URL in Tour settings)",
     "meshTourUnavailable": "Mesh tour unavailable (enable in Tour settings and publish a GLB)",
-    "bundleDollhouseOnly": "Bundle free camera is Dollhouse-only (Matterport docs). INSIDE continuous walk is not available."
+    "bundleDollhouseOnly": "Bundle free camera is Dollhouse-only (Matterport docs). INSIDE continuous walk is not available.",
+    "overview": "Overview",
+    "shopMenu": "Menu",
+    "openNow": "Open",
+    "closedNow": "Closed",
+    "closesAt": "Closes",
+    "opensAt": "Opens",
+    "opens": "Opens",
+    "tomorrow": "tomorrow",
+    "closed": "Closed",
+    "menuUnavailable": "Menu not available yet.",
+    "searchPlacesOrVenues": "Search places or venues"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",
