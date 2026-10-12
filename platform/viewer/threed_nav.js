@@ -124,6 +124,7 @@
   let modelId = "", appKey = "";
   let destPtMp = null;            // destination in MP Y-up (for pin drawing)
   let destName = "";
+  let fromName = "";              // origin POI name, for the shared arrival card's route feedback
   /** True once the arrival card has been shown for the current route. */
   let arrivedShown = false;
   /**
@@ -1403,15 +1404,29 @@
 
   function showArrived() {
     if (arrivedShown) return;
+    arrivedShown = true;
+    // Shared "Destination reached" card (window.wfShowArrivalCard, ui.js) — same visual
+    // design this file used to render on its own, now with thumbs up/down route
+    // feedback and reused by Tour interior / Start Preview too, instead of 3 separate
+    // near-identical implementations.
+    if (window.wfShowArrivalCard) {
+      window.wfShowArrivalCard({
+        name: destName || "", context: "walkthrough_wayfinding",
+        fromName: fromName || "", toName: destName || "",
+        onDone: function () { window.ThreeDNav.close(); },
+      });
+      return;
+    }
+    // Fallback: the original bespoke card, if ui.js hasn't loaded for some reason.
     var card = $("n3dArrived");
     if (!card) return;
-    arrivedShown = true;
     var nameEl = $("n3dArrivedName");
     if (nameEl) nameEl.textContent = destName ? "You have arrived at " + destName + "." : "";
     card.hidden = false;
   }
 
   function hideArrived() {
+    if (window.wfHideArrivalCard) window.wfHideArrivalCard();
     var card = $("n3dArrived");
     if (card) card.hidden = true;
     arrivedShown = false;
@@ -2373,6 +2388,13 @@
       var toEl = document.getElementById("toQ");
       destName = (toEl && toEl.value || "").trim();
     }
+    fromName = (route.from && route.from !== "me" && (route.from.name || route.from.title)) ||
+               (route.from === "me" ? "Your Location" : "") ||
+               (route.fromName || "") || "";
+    if (!fromName) {
+      var fromEl = document.getElementById("fromQ");
+      fromName = (fromEl && fromEl.value || "").trim();
+    }
 
     var ov = $(OVERLAY_ID);
     ov.hidden = false;
@@ -2477,6 +2499,13 @@
     if (!destName) {
       var toEl = document.getElementById("toQ");
       destName = (toEl && toEl.value || "").trim();
+    }
+    fromName = (route.from && route.from !== "me" && (route.from.name || route.from.title)) ||
+               (route.from === "me" ? "Your Location" : "") ||
+               (route.fromName || "") || "";
+    if (!fromName) {
+      var fromEl = document.getElementById("fromQ");
+      fromName = (fromEl && fromEl.value || "").trim();
     }
 
     // Show overlay

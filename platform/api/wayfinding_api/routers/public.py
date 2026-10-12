@@ -715,6 +715,77 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
     return {"experience_ref": ref}
 
 
+class _FeedbackIn(_BM):
+    rating: str  # "up" | "down"
+    context: str  # "walkthrough_wayfinding" | "tour_interior" | "start_preview"
+    route_from: str | None = None
+    route_to: str | None = None
+    comment: str | None = None
+
+
+@router.post("/buildings/{slug}/feedback")
+def submit_route_feedback(slug: str, body: _FeedbackIn, db: Session = Depends(get_db)):
+    """Thumbs up/down on a completed route, from the "Destination reached" card shown in
+    Walkthrough Wayfinding / Tour interior / Start Preview. Stored in the same
+    navme_feedback table the NavMe Dashboard's general free-text feedback form already
+    uses (see the extend_navme_feedback_for_route_ratings migration) — this building's
+    own wayfinding-data Supabase project (cfg.supabase_url), not the dashboard/CMS one
+    ar-experience-ref above reads from."""
+    import urllib.request, urllib.parse, urllib.error
+    cfg = get_settings()
+    if body.rating not in ("up", "down"):
+        raise HTTPException(400, "rating must be 'up' or 'down'")
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        raise HTTPException(503, "Feedback storage not configured")
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        raise HTTPException(404, "unknown building")
+    ptype = navme.poi_type(b)
+
+    headers = {
+        "apikey": cfg.supabase_anon_key,
+        "Authorization": f"Bearer {cfg.supabase_anon_key}",
+    }
+    # navme_feedback.organization_id is NOT NULL — resolve it from any navme_pois row
+    # for this building's tenant, the same way navme_shop rows carry their org id.
+    org_id = None
+    try:
+        q = urllib.parse.urlencode({
+            "select": "organization_id", "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
+        })
+        req = urllib.request.Request(f"{cfg.supabase_url}/rest/v1/navme_pois?{q}", headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+        org_id = rows[0].get("organization_id") if rows else None
+    except Exception:
+        pass
+    if not org_id:
+        raise HTTPException(502, "Could not resolve organization for this building")
+
+    payload = {
+        "organization_id": org_id,
+        "rating": body.rating,
+        "context": body.context,
+        "route_from": body.route_from or None,
+        "route_to": body.route_to or None,
+        "poi_type": ptype,
+        "building_slug": slug,
+        "feedback": body.comment or None,
+    }
+    try:
+        req = urllib.request.Request(
+            f"{cfg.supabase_url}/rest/v1/navme_feedback",
+            data=json.dumps(payload).encode(),
+            method="POST",
+            headers={**headers, "Content-Type": "application/json", "Prefer": "return=minimal"},
+        )
+        with urllib.request.urlopen(req, timeout=10):
+            pass
+    except urllib.error.HTTPError as e:
+        raise HTTPException(502, f"Could not save feedback: {e.read().decode()[:200]}")
+    return {"ok": True}
+
+
 class _RouteByCoords(_BM):
     from_x: float; from_z: float; from_floor: str = "F1"
     to_x: float; to_z: float; to_floor: str = "F1"

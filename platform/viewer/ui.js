@@ -1495,12 +1495,23 @@ function wfDbg(level, source, message, meta) {
     }
     navGo(S.navSteps.length > 1 ? 1 : 0);
   }
-  /** Fires the "Destination reached" toast exactly once per nav session. */
+  /** Fires the shared "Destination reached" card (with thumbs up/down route feedback)
+   *  exactly once per nav session — mp-mode (Start Preview) only; see call sites. Same
+   *  card Walkthrough Wayfinding and Tour interior show, for a consistent arrival
+   *  moment everywhere. */
   let arrivedAnnounced = false;
   function announceArrivalOnce() {
     if (arrivedAnnounced) return;
     arrivedAnnounced = true;
-    toast(t("viewer.destinationReached") || "Destination reached");
+    if (window.wfShowArrivalCard) {
+      window.wfShowArrivalCard({
+        name: nameOf(S.to), context: "start_preview",
+        fromName: nameOf(S.from), toName: nameOf(S.to),
+        onDone: () => exitNav(),
+      });
+    } else {
+      toast(t("viewer.destinationReached") || "Destination reached");
+    }
   }
   /** mp mode only: recompute the "time/distance remaining" readout from the REAL route,
    *  anchored at the scan point the camera just landed on — called after every real scan
@@ -2178,6 +2189,76 @@ function wfDbg(level, source, message, meta) {
     clearTimeout(toastT); if (!action) toastT = setTimeout(hideToast, 2600);
   }
   function hideToast() { $("toast").hidden = true; }
+
+  // ---------------- "Destination reached" card (thumbs feedback) ----------------
+  // Shared across Walkthrough Wayfinding, Tour interior, and Start Preview so the
+  // arrival moment and route feedback look and behave identically everywhere,
+  // regardless of which feature's own overlay happens to be on screen — this renders
+  // in its own fixed, top-level overlay above all of them.
+  let arrivalFeedbackGiven = false;
+  function submitRouteFeedback(rating, meta) {
+    try {
+      const slug = (window.WF && WF.building && WF.building.slug)
+        || (new URLSearchParams(location.search).get("b")) || (window.WF && WF.cfg && WF.cfg.slug) || "";
+      if (!slug) return;
+      fetch(`/api/v1/public/buildings/${encodeURIComponent(slug)}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating, context: (meta && meta.context) || "",
+          route_from: (meta && meta.fromName) || null, route_to: (meta && meta.toName) || null,
+        }),
+      }).catch(() => { /* best-effort — never surface a failure to the user */ });
+    } catch (_) { /* ignore */ }
+  }
+  function hideArrivalCard() {
+    const el = $("wfArrivedCard");
+    if (el) el.remove();
+  }
+  /** opts: { name, context, fromName, toName, onDone } */
+  function showArrivalCard(opts) {
+    opts = opts || {};
+    hideArrivalCard();
+    arrivalFeedbackGiven = false;
+    const el = document.createElement("div");
+    el.id = "wfArrivedCard";
+    el.className = "wf-arrived";
+    el.setAttribute("role", "alertdialog");
+    el.setAttribute("aria-modal", "false");
+    el.innerHTML = `
+      <div class="wf-arrived-card">
+        <div class="wf-arrived-ic" aria-hidden="true">&#x2713;</div>
+        <strong class="wf-arrived-title">${esc(t("viewer.destinationReached") || "Destination reached")}</strong>
+        <span class="wf-arrived-name">${opts.name ? esc(t("viewer.youArrived", { name: opts.name }) || ("You have arrived at " + opts.name + ".")) : ""}</span>
+        <div class="wf-arrived-feedback">
+          <span class="wf-arrived-feedback-lbl">${esc(t("viewer.howWasRoute") || "How was this route?")}</span>
+          <div class="wf-arrived-thumbs">
+            <button type="button" class="wf-thumb" data-rating="up" aria-label="${esc(t("viewer.thumbsUp") || "Good route")}"><span class="ms">thumb_up</span></button>
+            <button type="button" class="wf-thumb" data-rating="down" aria-label="${esc(t("viewer.thumbsDown") || "Bad route")}"><span class="ms">thumb_down</span></button>
+          </div>
+        </div>
+        <button class="wf-arrived-done" type="button">${esc(t("viewer.done") || "Done")}</button>
+      </div>`;
+    document.body.appendChild(el);
+    el.querySelectorAll(".wf-thumb").forEach(btn => {
+      btn.onclick = () => {
+        if (arrivalFeedbackGiven) return;
+        arrivalFeedbackGiven = true;
+        el.querySelectorAll(".wf-thumb").forEach(b => { b.disabled = true; });
+        btn.classList.add("picked");
+        submitRouteFeedback(btn.dataset.rating, opts);
+        const lbl = el.querySelector(".wf-arrived-feedback-lbl");
+        if (lbl) lbl.textContent = t("viewer.thanksForFeedback") || "Thanks for the feedback!";
+      };
+    });
+    const doneBtn = el.querySelector(".wf-arrived-done");
+    if (doneBtn) doneBtn.onclick = () => {
+      hideArrivalCard();
+      if (typeof opts.onDone === "function") opts.onDone();
+    };
+  }
+  window.wfShowArrivalCard = showArrivalCard;
+  window.wfHideArrivalCard = hideArrivalCard;
 
   window.wfUI = { S, selectPlace: (id) => { const p = byId[id]; if (!p) { toast("Place not on this map"); return; } selectPlace(p, { fly: true }); }, openDirections: (from, to, stepFree) => { const dest = byId[to]; if (!dest) { toast("Place not on this map"); return; } S.from = from === "me" ? "me" : (from ? byId[from] : null); S.to = dest; S.stepFree = !!stepFree; openDirections(); },
     startNav: () => startNav(), navGo: (i) => navGo(i), exitNav: () => exitNav(), toggle3D, setStyle, share: (opts) => shareUrl(opts), toggleChip, renderAc: () => { $("q").focus(); }, preview3D, showHome, focusStep, setSheetState, toast };

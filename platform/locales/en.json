@@ -255,7 +255,12 @@
     "tomorrow": "tomorrow",
     "closed": "Closed",
     "menuUnavailable": "Menu not available yet.",
-    "searchPlacesOrVenues": "Search places or venues"
+    "searchPlacesOrVenues": "Search places or venues",
+    "done": "Done",
+    "thumbsUp": "Good route",
+    "thumbsDown": "Bad route",
+    "howWasRoute": "How was this route?",
+    "thanksForFeedback": "Thanks for the feedback!"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

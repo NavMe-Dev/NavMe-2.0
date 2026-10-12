@@ -20,6 +20,7 @@ function wfDbg(level, source, message, meta) {
   let sweepNodes = []; // {id,x,y,z} ordered, kind===sweep
   let routeDest = null; // final look target (last path node)
   let destName = null;  // destination POI name for display
+  let fromName = null;  // origin POI name, for the shared arrival card's route feedback
   let modelId = DEFAULT_MODEL;
   let applicationKey = "";
   let accessToken = "";  // X-WF-Access / ?access= for twin=pin
@@ -1822,6 +1823,16 @@ function wfDbg(level, source, message, meta) {
         setStatus("Tour finished with " + failed + " skipped stop(s).");
       } else {
         setStatus("Tour complete.");
+        // Shared "Destination reached" card (window.wfShowArrivalCard, ui.js) — same
+        // card and thumbs up/down route feedback Walkthrough Wayfinding and Start
+        // Preview show, so the arrival moment is identical everywhere.
+        if (window.wfShowArrivalCard) {
+          window.wfShowArrivalCard({
+            name: destName || "", context: "tour_interior",
+            fromName: fromName || "", toName: destName || "",
+            onDone: function () { window.MpPreview.close(); },
+          });
+        }
       }
     }
   }
@@ -2272,6 +2283,7 @@ function wfDbg(level, source, message, meta) {
     const gen = ++openGen;
     usingLiveConnection = true;
     destName = (route && route._destName) || null;
+    fromName = (route && route._fromName) || null;
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     mpSdk = live.sdk;
     document.body.classList.add("mp-open");
@@ -2322,6 +2334,7 @@ function wfDbg(level, source, message, meta) {
     }
     const gen = ++openGen;
     destName = (route && route._destName) || null;
+    fromName = (route && route._fromName) || null;
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     ensureOverlay();
     const ov = $("mpOverlay");
@@ -2698,6 +2711,7 @@ function wfDbg(level, source, message, meta) {
   async function prepareWalk(route) {
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     destName = (route && route._destName) || null;
+    fromName = (route && route._fromName) || null;
     const ids = prepareRoute(route || {});
     if (!ids.length && mpSdk && route && (route.navPath || route.smoothed || route.nodes)) {
       try { await fillSweepIdsFromNavPath(mpSdk, route); } catch (_) { /* ignore */ }
