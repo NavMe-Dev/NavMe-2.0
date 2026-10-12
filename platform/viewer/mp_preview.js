@@ -1560,6 +1560,35 @@ function wfDbg(level, source, message, meta) {
       const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
       await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
     }
+    await frameWholeBuilding(mpSdk);
+  }
+
+  /**
+   * Re-centre the Dollhouse camera on the whole building's bounding-box centre instead
+   * of leaving Showcase's own default framing, which here lands off-centre (the model
+   * pushed to one side of frame, a lot of empty space on the other) rather than zoomed
+   * out enough to show the whole footprint. Dollhouse has no SDK zoom API at all —
+   * Camera.zoomTo/zoomBy both reject live with "Zoom controls are currently only
+   * supported in Panorama mode" (verified directly against this model) — so re-centring
+   * via Camera.lookAt (which DOES work in Dollhouse, confirmed live) is the only lever
+   * available; Showcase itself still picks the final framing distance for that point.
+   * Best-effort: swallows failures so a slow/missing sweep list never blocks entry.
+   */
+  async function frameWholeBuilding(sdk) {
+    if (!sdk || !sdk.Camera) return;
+    try {
+      const sweeps = await rtReadSweeps(sdk);
+      if (!sweeps.length) return;
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      for (const s of sweeps) {
+        const p = s.position;
+        if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+        if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
+      }
+      const center = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, z: (minZ + maxZ) / 2 };
+      await sdk.Camera.lookAt(center);
+    } catch (e) { console.warn("[MpBackground] frameWholeBuilding failed", e && (e.message || e)); }
   }
 
   /** floorId: one of WF.cfg.floors[].id (e.g. "F1"), or "all"/falsy to reset to the default,
@@ -2536,6 +2565,7 @@ function wfDbg(level, source, message, meta) {
         await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
       }
     } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && (e.message || e)); }
+    await frameWholeBuilding(sdk);
     if (gen !== openGen) return false;
     setStatus("");
     return true;
