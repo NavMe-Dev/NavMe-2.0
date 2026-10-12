@@ -2596,6 +2596,11 @@ function wfDbg(level, source, message, meta) {
       console.warn("[MpBackground] focusAt moveTo failed", sw.sid, e && (e.message || e));
       return false;
     }
+    // Matterport's default Inside/Panorama zoom (~1.0-1.1) lands too tight/close-up for a
+    // POI preview — Camera.zoomTo DOES work in this mode (unlike Dollhouse, where it
+    // rejects live with "Zoom controls are currently only supported in Panorama mode").
+    // Best-effort/fire-and-forget: a rejection here should never block the POI focus.
+    try { if (mpSdk.Camera && mpSdk.Camera.zoomTo) mpSdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
     return true;
   }
 

@@ -1637,6 +1637,17 @@
     return T.INTERPOLATE || T.FADEOUT || T.MOVEFADE || T.INSTANT || undefined;
   }
 
+  // Matterport's default Inside/Panorama zoom (~1.0-1.1) reads as too tight/close-up for
+  // walking navigation — Camera.zoomTo DOES work in this mode (unlike Dollhouse, where it
+  // rejects with "Zoom controls are currently only supported in Panorama mode", verified
+  // live). Widening it once is enough: zoom level is sticky across subsequent Sweep.moveTo
+  // calls (also verified live), so this doesn't need to re-run on every single step — kept
+  // best-effort/fire-and-forget so a rejection never blocks navigation.
+  var ZOOM_OUT_LEVEL = 0.7;
+  function zoomOutView() {
+    try { if (mpSdk && mpSdk.Camera && mpSdk.Camera.zoomTo) mpSdk.Camera.zoomTo(ZOOM_OUT_LEVEL).catch(function(){}); }
+    catch (e) {}
+  }
   function moveToSweep(sid, lookAt, instant) {
     var move = mpSdk && mpSdk.Sweep && mpSdk.Sweep.moveTo;
     if (!move) return Promise.resolve();
@@ -1648,8 +1659,8 @@
       var from = sw ? sw.position : (lastPose && lastPose.position);
       if (from) opts.rotation = rotationLookingAt(from, lookAt, FACE_SCREEN_BIAS_DEG);
     }
-    return move(String(sid), opts).then(function(){ currentSweepSid=String(sid); }).catch(function(){
-      return move(String(sid)).then(function(){ currentSweepSid=String(sid); }).catch(function(){});
+    return move(String(sid), opts).then(function(){ currentSweepSid=String(sid); zoomOutView(); }).catch(function(){
+      return move(String(sid)).then(function(){ currentSweepSid=String(sid); zoomOutView(); }).catch(function(){});
     });
   }
 
