@@ -272,7 +272,8 @@
     "dirSharpRight": "ತೀಕ್ಷ್ಣ ಬಲ ತಿರುವು",
     "dirSharpLeft": "ತೀಕ್ಷ್ಣ ಎಡ ತಿರುವು",
     "dirTurnAround": "ಹಿಂತಿರುಗಿ",
-    "startAt": "{{name}} ನಿಂದ ಪ್ರಾರಂಭಿಸಿ"
+    "startAt": "{{name}} ನಿಂದ ಪ್ರಾರಂಭಿಸಿ",
+    "arriveAtPlace": "{{name}} ತಲುಪಲಾಗಿದೆ ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

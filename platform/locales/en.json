@@ -272,7 +272,8 @@
     "dirSharpRight": "Sharp right",
     "dirSharpLeft": "Sharp left",
     "dirTurnAround": "Turn around",
-    "startAt": "Start at {{name}}"
+    "startAt": "Start at {{name}}",
+    "arriveAtPlace": "Arrive at {{name}} ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

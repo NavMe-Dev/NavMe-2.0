@@ -272,7 +272,8 @@
     "dirSharpRight": "তীব্র ডানে ঘুরুন",
     "dirSharpLeft": "তীব্র বামে ঘুরুন",
     "dirTurnAround": "উল্টো দিকে ঘুরুন",
-    "startAt": "{{name}}-এ শুরু করুন"
+    "startAt": "{{name}}-এ শুরু করুন",
+    "arriveAtPlace": "{{name}} এ পৌঁছেছেন ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

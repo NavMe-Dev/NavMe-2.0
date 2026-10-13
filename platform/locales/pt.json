@@ -272,7 +272,8 @@
     "dirSharpRight": "Curva fechada à direita",
     "dirSharpLeft": "Curva fechada à esquerda",
     "dirTurnAround": "Faça o retorno",
-    "startAt": "Comece em {{name}}"
+    "startAt": "Comece em {{name}}",
+    "arriveAtPlace": "Chegada a {{name}} ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

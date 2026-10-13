@@ -272,7 +272,8 @@
     "dirSharpRight": "急右转",
     "dirSharpLeft": "急左转",
     "dirTurnAround": "掉头",
-    "startAt": "从{{name}}出发"
+    "startAt": "从{{name}}出发",
+    "arriveAtPlace": "到达{{name}}（{{floor}}）"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

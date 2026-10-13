@@ -15,6 +15,8 @@
 (function (global) {
   "use strict";
 
+  function t(key) { return (global.WFi18n && global.WFi18n.t) ? global.WFi18n.t(key) : key; }
+
   var RT = null;        // the bundled recast runtime (window.NavMeshRT)
   var navMesh = null;   // imported mesh for the current building
   var navKey = "";      // which building/url the loaded mesh belongs to
@@ -95,9 +97,9 @@
   function turnWord(deg) {
     var a = Math.abs(deg);
     if (a < 20) return null;                      // not a real turn, just drift
-    if (a < 50) return deg > 0 ? "Bear right" : "Bear left";
-    if (a < 120) return deg > 0 ? "Turn right" : "Turn left";
-    return deg > 0 ? "Sharp right" : "Sharp left";
+    if (a < 50) return deg > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
+    if (a < 120) return deg > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
+    return deg > 0 ? t("viewer.dirSharpRight") : t("viewer.dirSharpLeft");
   }
 
   /** Floor whose elevation is closest to y. floors: [{id,label,elevation}] */
@@ -255,9 +257,9 @@
     function turnWordFor(d) {
       var m = Math.abs(d);
       if (m < MIN_TURN_DEG) return null;
-      if (m < 60) return d > 0 ? "Bear right" : "Bear left";
-      if (m < 120) return d > 0 ? "Turn right" : "Turn left";
-      return d > 0 ? "Sharp right" : "Sharp left";
+      if (m < 60) return d > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
+      if (m < 120) return d > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
+      return d > 0 ? t("viewer.dirSharpRight") : t("viewer.dirSharpLeft");
     }
 
     for (var s2 = 0; s2 < segs.length; s2++) {

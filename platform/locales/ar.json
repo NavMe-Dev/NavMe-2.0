@@ -272,7 +272,8 @@
     "dirSharpRight": "انعطاف حاد يمينًا",
     "dirSharpLeft": "انعطاف حاد يسارًا",
     "dirTurnAround": "عد أدراجك",
-    "startAt": "ابدأ من {{name}}"
+    "startAt": "ابدأ من {{name}}",
+    "arriveAtPlace": "الوصول إلى {{name}} ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

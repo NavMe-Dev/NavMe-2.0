@@ -769,8 +769,9 @@ require([
           pt: s2.point ? { x: s2.point.x, y: -s2.point.z, z: s2.point.y, floor: s2.floor } : null,
           icon: s2.arrow, dist: s2.dist_m || 0 }));
         if (r.instructions.length) {
-          r.instructions[0].text = `Start at ${fromName}`;
-          r.instructions[r.instructions.length - 1].text = `Arrive at ${to.name} (${floorLabel(to.floor)})`;
+          r.instructions[0].text = i18nt("viewer.startAt", { name: fromName }) || `Start at ${fromName}`;
+          r.instructions[r.instructions.length - 1].text =
+            i18nt("viewer.arriveAtPlace", { name: to.name, floor: floorLabel(to.floor) }) || `Arrive at ${to.name} (${floorLabel(to.floor)})`;
         }
         lastRoute = r; window.wf.lastRoute = r; lastRouteArgs = { fromKey, toPoiId, opts };
         drawRoute(); renderSteps(r);

@@ -272,7 +272,8 @@
     "dirSharpRight": "കുത്തനെ വലത്തോട്ട്",
     "dirSharpLeft": "കുത്തനെ ഇടത്തോട്ട്",
     "dirTurnAround": "തിരിഞ്ഞു പോകുക",
-    "startAt": "{{name}}-ൽ തുടങ്ങുക"
+    "startAt": "{{name}}-ൽ തുടങ്ങുക",
+    "arriveAtPlace": "{{name}} ൽ എത്തി ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

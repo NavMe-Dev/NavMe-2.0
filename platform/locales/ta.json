@@ -272,7 +272,8 @@
     "dirSharpRight": "கடுமையாக வலம் திரும்பு",
     "dirSharpLeft": "கடுமையாக இடம் திரும்பு",
     "dirTurnAround": "பின் திரும்பு",
-    "startAt": "{{name}} இல் தொடங்கு"
+    "startAt": "{{name}} இல் தொடங்கு",
+    "arriveAtPlace": "{{name}} வந்தடைந்தீர்கள் ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

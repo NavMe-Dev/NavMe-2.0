@@ -272,7 +272,8 @@
     "dirSharpRight": "Giro cerrado a la derecha",
     "dirSharpLeft": "Giro cerrado a la izquierda",
     "dirTurnAround": "Da la vuelta",
-    "startAt": "Empieza en {{name}}"
+    "startAt": "Empieza en {{name}}",
+    "arriveAtPlace": "Llegada a {{name}} ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

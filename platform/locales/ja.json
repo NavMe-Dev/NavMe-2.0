@@ -272,7 +272,8 @@
     "dirSharpRight": "急な右折",
     "dirSharpLeft": "急な左折",
     "dirTurnAround": "引き返します",
-    "startAt": "{{name}}から出発"
+    "startAt": "{{name}}から出発",
+    "arriveAtPlace": "{{name}}に到着（{{floor}}）"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

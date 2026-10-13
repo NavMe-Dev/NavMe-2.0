@@ -272,7 +272,8 @@
     "dirSharpRight": "तीखा दाईं ओर मोड़",
     "dirSharpLeft": "तीखा बाईं ओर मोड़",
     "dirTurnAround": "वापस मुड़ें",
-    "startAt": "{{name}} से शुरू करें"
+    "startAt": "{{name}} से शुरू करें",
+    "arriveAtPlace": "{{name}} पहुँच गए ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

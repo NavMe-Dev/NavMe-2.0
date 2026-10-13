@@ -272,7 +272,8 @@
     "dirSharpRight": "Virage serré à droite",
     "dirSharpLeft": "Virage serré à gauche",
     "dirTurnAround": "Faites demi-tour",
-    "startAt": "Départ de {{name}}"
+    "startAt": "Départ de {{name}}",
+    "arriveAtPlace": "Arrivée à {{name}} ({{floor}})"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

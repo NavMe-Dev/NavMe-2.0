@@ -1,6 +1,7 @@
 function wfDbg(level, source, message, meta) {
   try { if (window.WFDebug && WFDebug.isEnabled()) WFDebug.log(level, source, message, meta); } catch (_) {}
 }
+const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, vars) : key;
 /* Hybrid routing: Matterport sweep graph (pruned) + doors + stairs + elevators + OSM footways.
    A* via ngraph.path (MIT) on an ngraph.graph (BSD-3); bearings via turf (MIT).
    Output keeps ordered Matterport sweep ids + XYZ for Showcase Sweep.moveTo.
@@ -322,7 +323,11 @@ function wfDbg(level, source, message, meta) {
         if (at >= 25) {
           if (acc > 0.5) out.push({ type: 'walk', text: `Walk ${Math.round(acc)} m`, dist: acc }); acc = 0;
           const side = t > 0 ? 'right' : 'left';
-          out.push({ type: 'turn', text: at > 150 ? 'Turn around' : (at < 60 ? `Bear ${side}` : `Turn ${side}`), dir: at > 150 ? 'uturn' : (at < 60 ? 'slight-' + side : side), pt: { x: p.x, y: p.y, z: p.z, floor: p.floor } });
+          const turnText = at > 150 ? wfRoutingT('viewer.dirTurnAround')
+            : wfRoutingT(side === 'right'
+              ? (at < 60 ? 'viewer.dirBearRight' : 'viewer.dirTurnRight')
+              : (at < 60 ? 'viewer.dirBearLeft' : 'viewer.dirTurnLeft'));
+          out.push({ type: 'turn', text: turnText, dir: at > 150 ? 'uturn' : (at < 60 ? 'slight-' + side : side), pt: { x: p.x, y: p.y, z: p.z, floor: p.floor } });
         }
       }
       // Interior doors that rode on LOS-smoothed path but were dropped from Tour geometry.
