@@ -5,6 +5,41 @@
   const q = new URLSearchParams(location.search);
   const J = (u) => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + " " + u); return r.json(); });
   const join = (a, b) => a.replace(/\/?$/, "/") + b.replace(/^\//, "");
+
+  // Smart start-mode redirect: a building's NavMe Dashboard "Walkthrough Mode" setting
+  // (walkthrough_first / ar_first / hybrid) decides whether landing on this viewer sends
+  // the visitor straight into the AR app (project_url) or the wayfinding walkthrough
+  // (walkthrough_url, e.g. this same viewer with &mp=1) — hybrid picks by device (iOS ->
+  // AR, everything else -> walkthrough). Runs alongside the main boot sequence below,
+  // never blocking it: most buildings have none of this configured, so this is a no-op
+  // fire-and-forget check for them. Guarded on ?mp=1 already being present so the
+  // walkthrough_url redirect target (which itself carries &mp=1) is never re-redirected
+  // into a loop, and so a direct/explicit mp=1 link always wins over this check.
+  (async function smartStartModeRedirect() {
+    if (q.get("mp") === "1") return;
+    const slug = q.get("b") || C.building;
+    if (!slug) return;
+    let info;
+    try {
+      const apiBase = (C.apiBase || "/api/v1/public/").replace(/\/?$/, "/");
+      const r = await fetch(apiBase + "buildings/" + encodeURIComponent(slug) + "/ar-experience-ref");
+      if (!r.ok) return;
+      info = await r.json();
+    } catch (_) { return; }
+    const mode = info && info.walkthrough_mode;
+    const arUrl = info && info.ar_url;
+    const wtUrl = info && info.walkthrough_url;
+    let target = null;
+    if (mode === "ar_first") target = arUrl;
+    else if (mode === "walkthrough_first") target = wtUrl;
+    else if (mode === "hybrid") {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS 13+ desktop UA
+      target = isIOS ? arUrl : wtUrl;
+    }
+    if (target) location.replace(target);
+  })();
+
   window.WF = { ready: null, base: "", cfg: null, manifest: null, others: [] };
   window.WF.ready = (async () => {
     let base, manifest = null;

@@ -690,16 +690,25 @@ _DASHBOARD_SUPABASE_ANON_KEY = (
 
 @router.get("/buildings/{slug}/ar-experience-ref")
 def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
-    """The Zappar `x` ref for this building's published AR experience, if any — used to
-    build share.navme.space AR deep links client-side (see ui.js's arShareUrlFor).
-    Returns {"experience_ref": null} for buildings with nothing configured yet."""
+    """Start-mode info for this building from navme_project_features:
+      - experience_ref: the Zappar `x` ref for AR share.navme.space deep links
+        (see ui.js's arShareUrlFor)
+      - walkthrough_mode: "walkthrough_first" | "ar_first" | "hybrid" | null
+      - ar_url: the AR app entry point (project_url) — where "ar_first"/hybrid-iOS goes
+      - walkthrough_url: this project's own wayfinding viewer URL (e.g.
+        https://wayfinding.navme.space/?b=gcu&mp=1) — where "walkthrough_first"/
+        hybrid-non-iOS goes
+    wf-boot.js's smart start-mode redirect reads all four in one request. Buildings
+    with nothing configured get every field back as null — no redirect happens."""
     import urllib.request, urllib.parse, urllib.error
     b = db.query(models.Building).filter_by(slug=slug).first()
+    empty = {"experience_ref": None, "walkthrough_mode": None, "ar_url": None, "walkthrough_url": None}
     if not b:
-        return {"experience_ref": None}
+        return empty
     ptype = navme.poi_type(b)
     q = urllib.parse.urlencode({
-        "select": "experience_ref", "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
+        "select": "experience_ref,walkthrough_mode,project_url,walkthrough_url",
+        "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
     })
     url = f"{_DASHBOARD_SUPABASE_URL}/rest/v1/navme_project_features?{q}"
     req = urllib.request.Request(url, headers={
@@ -710,9 +719,14 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
         with urllib.request.urlopen(req, timeout=10) as r:
             rows = json.loads(r.read())
     except Exception:
-        return {"experience_ref": None}
-    ref = (rows[0].get("experience_ref") if rows else None) or None
-    return {"experience_ref": ref}
+        return empty
+    row = rows[0] if rows else {}
+    return {
+        "experience_ref": row.get("experience_ref") or None,
+        "walkthrough_mode": row.get("walkthrough_mode") or None,
+        "ar_url": row.get("project_url") or None,
+        "walkthrough_url": row.get("walkthrough_url") or None,
+    }
 
 
 class _FeedbackIn(_BM):
