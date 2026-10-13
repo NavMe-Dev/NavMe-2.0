@@ -10,9 +10,16 @@
     { code: "es", native: "Español" },
     { code: "fr", native: "Français" },
     { code: "de", native: "Deutsch" },
+    { code: "pt", native: "Português" },
+    { code: "ar", native: "العربية" },
     { code: "hi", native: "हिन्दी" },
     { code: "kn", native: "ಕನ್ನಡ" },
-    { code: "ar", native: "العربية" }
+    { code: "ta", native: "தமிழ்" },
+    { code: "ml", native: "മലയാളം" },
+    { code: "te", native: "తెలుగు" },
+    { code: "bn", native: "বাংলা" },
+    { code: "zh", native: "中文" },
+    { code: "ja", native: "日本語" }
   ];
   const CACHE = {};
   let dict = {};

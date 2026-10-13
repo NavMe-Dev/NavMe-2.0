@@ -1091,6 +1091,88 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
             "stair_chains_synced": len(stair_chains), "poi_type": ptype}
 
 
+_WALKTHROUGH_MODES = {"walkthrough_first", "ar_first", "hybrid"}
+
+
+@router.get("/buildings/{slug}/walkthrough-mode")
+def get_walkthrough_mode(slug: str, db: Session = Depends(get_db)):
+    """This building's navme_project_features row (navme_dev, same Supabase project
+    everything else now reads from) — the fields wf-boot.js's smart start-mode redirect
+    reads at /api/v1/public/buildings/{slug}/ar-experience-ref. Shown here read-only
+    alongside the walkthrough_mode toggle below so this admin surfaces the full picture
+    without needing the separate NavMe Dashboard CMS."""
+    import urllib.request, urllib.parse
+    cfg = get_settings()
+    empty = {"walkthrough_mode": None, "project_url": None, "walkthrough_url": None, "experience_ref": None}
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return empty
+    b = B(db, slug)
+    ptype = navme.poi_type(b)
+    q = urllib.parse.urlencode({
+        "select": "walkthrough_mode,project_url,walkthrough_url,experience_ref",
+        "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
+    })
+    req = urllib.request.Request(f"{cfg.supabase_url}/rest/v1/navme_project_features?{q}", headers={
+        "apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+    except Exception:
+        return empty
+    row = rows[0] if rows else {}
+    return {
+        "walkthrough_mode": row.get("walkthrough_mode") or None,
+        "project_url": row.get("project_url") or None,
+        "walkthrough_url": row.get("walkthrough_url") or None,
+        "experience_ref": row.get("experience_ref") or None,
+    }
+
+
+class _WalkthroughModeIn(BaseModel):
+    walkthrough_mode: str
+
+
+@router.patch("/buildings/{slug}/walkthrough-mode")
+def set_walkthrough_mode(slug: str, body: _WalkthroughModeIn, db: Session = Depends(get_db)):
+    """Upserts navme_project_features.walkthrough_mode for this building's poi_type, using
+    the service role key (this column has no anon UPDATE grant, same as everywhere else
+    this app writes to navme_dev) — walkthrough_first | ar_first | hybrid, see wf-boot.js's
+    smart start-mode redirect for what each does. This is the ONLY one of the four
+    experience fields (the other three are project_url/whitelabeled_url/experience_ref,
+    still only editable from the NavMe Dashboard CMS) this admin can write, since it's the
+    one field site operators actually need to flip without touching Supabase or asking for
+    the Dashboard's superadmin password."""
+    import urllib.request, urllib.error
+    if body.walkthrough_mode not in _WALKTHROUGH_MODES:
+        raise HTTPException(400, f"walkthrough_mode must be one of {sorted(_WALKTHROUGH_MODES)}")
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_service_role_key:
+        raise HTTPException(400, "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not configured")
+    b = B(db, slug)
+    ptype = navme.poi_type(b)
+    payload = json.dumps({"poi_type": ptype, "walkthrough_mode": body.walkthrough_mode}).encode()
+    req = urllib.request.Request(
+        f"{cfg.supabase_url}/rest/v1/navme_project_features?on_conflict=poi_type",
+        data=payload, method="POST",
+        headers={
+            "apikey": cfg.supabase_service_role_key,
+            "Authorization": f"Bearer {cfg.supabase_service_role_key}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates,return=representation",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        raise HTTPException(502, f"Supabase error {e.code}: {e.read().decode()}")
+    except Exception as e:
+        raise HTTPException(502, f"Supabase unreachable: {e}")
+    row = rows[0] if rows else {}
+    return {"walkthrough_mode": row.get("walkthrough_mode") or body.walkthrough_mode}
+
+
 @router.post("/buildings/{slug}/navmesh")
 async def upload_navmesh(slug: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
     """Manually attach a Recast navmesh (.navmesh, binary) without going through the

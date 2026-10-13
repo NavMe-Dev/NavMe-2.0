@@ -264,7 +264,15 @@
     "floorN": "ಮಹಡಿ {{n}}",
     "allFloors": "ಎಲ್ಲಾ ಮಹಡಿಗಳು",
     "floorOff": "ಆಫ್",
-    "floorAllShort": "ಎಲ್ಲಾ"
+    "floorAllShort": "ಎಲ್ಲಾ",
+    "dirBearRight": "ಸ್ವಲ್ಪ ಬಲಕ್ಕೆ ತಿರುಗಿ",
+    "dirBearLeft": "ಸ್ವಲ್ಪ ಎಡಕ್ಕೆ ತಿರುಗಿ",
+    "dirTurnRight": "ಬಲಕ್ಕೆ ತಿರುಗಿ",
+    "dirTurnLeft": "ಎಡಕ್ಕೆ ತಿರುಗಿ",
+    "dirSharpRight": "ತೀಕ್ಷ್ಣ ಬಲ ತಿರುವು",
+    "dirSharpLeft": "ತೀಕ್ಷ್ಣ ಎಡ ತಿರುವು",
+    "dirTurnAround": "ಹಿಂತಿರುಗಿ",
+    "startAt": "{{name}} ನಿಂದ ಪ್ರಾರಂಭಿಸಿ"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

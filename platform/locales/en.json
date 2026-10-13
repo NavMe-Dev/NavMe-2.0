@@ -264,7 +264,15 @@
     "floorN": "Floor {{n}}",
     "allFloors": "All floors",
     "floorOff": "Off",
-    "floorAllShort": "All"
+    "floorAllShort": "All",
+    "dirBearRight": "Bear right",
+    "dirBearLeft": "Bear left",
+    "dirTurnRight": "Turn right",
+    "dirTurnLeft": "Turn left",
+    "dirSharpRight": "Sharp right",
+    "dirSharpLeft": "Sharp left",
+    "dirTurnAround": "Turn around",
+    "startAt": "Start at {{name}}"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

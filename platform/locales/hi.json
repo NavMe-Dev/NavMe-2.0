@@ -264,7 +264,15 @@
     "floorN": "फ़्लोर {{n}}",
     "allFloors": "सभी फ़्लोर",
     "floorOff": "बंद",
-    "floorAllShort": "सभी"
+    "floorAllShort": "सभी",
+    "dirBearRight": "थोड़ा दाईं ओर मुड़ें",
+    "dirBearLeft": "थोड़ा बाईं ओर मुड़ें",
+    "dirTurnRight": "दाईं ओर मुड़ें",
+    "dirTurnLeft": "बाईं ओर मुड़ें",
+    "dirSharpRight": "तीखा दाईं ओर मोड़",
+    "dirSharpLeft": "तीखा बाईं ओर मोड़",
+    "dirTurnAround": "वापस मुड़ें",
+    "startAt": "{{name}} से शुरू करें"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

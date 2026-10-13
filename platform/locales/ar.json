@@ -264,7 +264,15 @@
     "floorN": "الطابق {{n}}",
     "allFloors": "كل الطوابق",
     "floorOff": "إيقاف",
-    "floorAllShort": "الكل"
+    "floorAllShort": "الكل",
+    "dirBearRight": "انحرف يمينًا قليلاً",
+    "dirBearLeft": "انحرف يسارًا قليلاً",
+    "dirTurnRight": "انعطف يمينًا",
+    "dirTurnLeft": "انعطف يسارًا",
+    "dirSharpRight": "انعطاف حاد يمينًا",
+    "dirSharpLeft": "انعطاف حاد يسارًا",
+    "dirTurnAround": "عد أدراجك",
+    "startAt": "ابدأ من {{name}}"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

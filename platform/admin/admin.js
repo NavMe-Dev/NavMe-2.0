@@ -51,7 +51,10 @@ function toast(msg) { store.toast = msg; clearTimeout(toast._t); toast._t = setT
 // ---- i18n (shared /locales) ----
 const I18N_CATALOG = (window.WFi18n && WFi18n.catalog) || [
   { code: "en", native: "English" }, { code: "es", native: "Español" }, { code: "fr", native: "Français" },
-  { code: "de", native: "Deutsch" }, { code: "hi", native: "हिन्दी" }, { code: "kn", native: "ಕನ್ನಡ" }, { code: "ar", native: "العربية" }
+  { code: "de", native: "Deutsch" }, { code: "pt", native: "Português" }, { code: "ar", native: "العربية" },
+  { code: "hi", native: "हिन्दी" }, { code: "kn", native: "ಕನ್ನಡ" }, { code: "ta", native: "தமிழ்" },
+  { code: "ml", native: "മലയാളം" }, { code: "te", native: "తెలుగు" }, { code: "bn", native: "বাংলা" },
+  { code: "zh", native: "中文" }, { code: "ja", native: "日本語" }
 ];
 const i18nTick = ref(0);
 function t(key, vars) { i18nTick.value; return (window.WFi18n && WFi18n.t) ? WFi18n.t(key, vars) : key; }
@@ -711,6 +714,22 @@ const Overview = {
       <button class="sm" @click="$refs.navmeshInput.click()" :disabled="navmeshBusy"><span v-if="navmeshBusy" class="spinner"></span>{{navmeshBusy ? 'Uploading…' : 'Upload navmesh file'}}</button>
       <p class="small" v-if="navmeshMsg" :class="navmeshErr ? 'err' : 'ok'" style="margin-top:8px">{{navmeshMsg}}</p>
     </div>
+    <div class="card"><h2 style="margin-top:0">Start mode (AR vs. Walkthrough)</h2>
+      <p class="muted small">What a visitor lands on when they open this building's wayfinding URL. Reads/writes <code>navme_project_features.walkthrough_mode</code> straight in navme_dev (the same Supabase project everything else here reads from) — no NavMe Dashboard superadmin password needed for this one field.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button v-for="m in WALKTHROUGH_MODES" :key="m.value" class="sm" :class="{primary: wtInfo.walkthrough_mode===m.value}" :disabled="wtBusy" @click="setWalkthroughMode(m.value)">
+          <span v-if="wtBusy && wtInfo.walkthrough_mode!==m.value" class="spinner"></span>{{m.label}}{{wtInfo.walkthrough_mode===m.value ? ' ✓' : ''}}
+        </button>
+      </div>
+      <p class="small" v-if="wtMsg" :class="wtErr ? 'err' : 'ok'" style="margin-top:8px">{{wtMsg}}</p>
+      <p class="muted small" v-if="!wtInfo.walkthrough_mode" style="margin-top:8px">Not set yet for this building's POI type — pick one above.</p>
+      <div class="kv small" style="margin-top:10px">
+        <div>AR app URL</div><div class="mono">{{wtInfo.project_url || '—'}}</div>
+        <div>Walkthrough URL</div><div class="mono">{{wtInfo.walkthrough_url || '—'}}</div>
+        <div>AR share ref</div><div class="mono">{{wtInfo.experience_ref || '—'}}</div>
+      </div>
+      <p class="muted small" style="margin-top:8px">These three are still only editable from the NavMe Dashboard CMS's Access Control page (they're per-experience, not something this admin manages) — shown here read-only so the full picture is in one place.</p>
+    </div>
     <div class="card"><h2 style="margin-top:0">Onboard for image localization ("Use image")</h2>
       <p class="muted small">Builds the real reference database (SuperPoint keypoints + MegaLoc global descriptors, ray-cast onto the building mesh — see <code>platform/vps_prototype/</code>) that lets a visitor's photo be matched to a position in the building. Needs the <code>mesh</code> and <code>georef</code> pipeline steps already run. Local-machine-only for now — the heavy ML dependencies this needs aren't part of the hosted server image.</p>
       <template v-if="vpsAvailable===false">
@@ -977,6 +996,24 @@ const Overview = {
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }
+    const WALKTHROUGH_MODES = [
+      { value: "walkthrough_first", label: "Walkthrough first" },
+      { value: "ar_first", label: "AR first" },
+      { value: "hybrid", label: "Hybrid (iOS → AR, else → Walkthrough)" },
+    ];
+    const wtInfo = ref({ walkthrough_mode: null, project_url: null, walkthrough_url: null, experience_ref: null });
+    const wtBusy = ref(false), wtMsg = ref(""), wtErr = ref(false);
+    api(`/admin/buildings/${props.b.slug}/walkthrough-mode`).then(r => { wtInfo.value = r; }).catch(() => {});
+    async function setWalkthroughMode(mode) {
+      if (wtBusy.value || wtInfo.value.walkthrough_mode === mode) return;
+      wtBusy.value = true; wtMsg.value = ""; wtErr.value = false;
+      try {
+        const r = await api(`/admin/buildings/${props.b.slug}/walkthrough-mode`, { method: "PATCH", json: { walkthrough_mode: mode } });
+        wtInfo.value = { ...wtInfo.value, walkthrough_mode: r.walkthrough_mode };
+        wtMsg.value = "Saved.";
+      } catch (x) { wtErr.value = true; wtMsg.value = x.message; }
+      wtBusy.value = false;
+    }
     const vpsAvailable = ref(null), vpsReason = ref(""), vpsBusy = ref(false), vpsJobId = ref(null);
     api("/admin/vps/available").then(r => { vpsAvailable.value = r.available; vpsReason.value = r.reason || ""; }).catch(() => { vpsAvailable.value = false; vpsReason.value = "could not reach server"; });
     async function startVpsBuild() {
@@ -1003,7 +1040,7 @@ const Overview = {
       } catch (x) { navmeshErr.value = true; navmeshMsg.value = x.message; }
       navmeshBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, pt, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType, poiTypeSaving, poiTypeSaved, savePoiType, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
+    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, pt, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType, poiTypeSaving, poiTypeSaved, savePoiType, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, WALKTHROUGH_MODES, wtInfo, wtBusy, wtMsg, wtErr, setWalkthroughMode, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
   }
 };
 

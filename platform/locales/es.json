@@ -264,7 +264,15 @@
     "floorN": "Planta {{n}}",
     "allFloors": "Todas las plantas",
     "floorOff": "Desactivado",
-    "floorAllShort": "Todas"
+    "floorAllShort": "Todas",
+    "dirBearRight": "Mantente a la derecha",
+    "dirBearLeft": "Mantente a la izquierda",
+    "dirTurnRight": "Gira a la derecha",
+    "dirTurnLeft": "Gira a la izquierda",
+    "dirSharpRight": "Giro cerrado a la derecha",
+    "dirSharpLeft": "Giro cerrado a la izquierda",
+    "dirTurnAround": "Da la vuelta",
+    "startAt": "Empieza en {{name}}"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

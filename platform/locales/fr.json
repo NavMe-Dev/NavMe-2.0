@@ -264,7 +264,15 @@
     "floorN": "Étage {{n}}",
     "allFloors": "Tous les étages",
     "floorOff": "Désactivé",
-    "floorAllShort": "Tous"
+    "floorAllShort": "Tous",
+    "dirBearRight": "Serrez à droite",
+    "dirBearLeft": "Serrez à gauche",
+    "dirTurnRight": "Tournez à droite",
+    "dirTurnLeft": "Tournez à gauche",
+    "dirSharpRight": "Virage serré à droite",
+    "dirSharpLeft": "Virage serré à gauche",
+    "dirTurnAround": "Faites demi-tour",
+    "startAt": "Départ de {{name}}"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",
