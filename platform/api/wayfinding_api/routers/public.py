@@ -718,6 +718,55 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/buildings/{slug}/translations")
+def building_translations(slug: str, db: Session = Depends(get_db)):
+    """Per-language POI and category names for this building, read live from navme_dev's
+    navme_pois.poi_names / navme_categories.category_names jsonb columns (each already
+    populated with every language the Dashboard supports). These aren't baked into the
+    published bundle (pois.json only ever carries one English name) and aren't cached in
+    the local `pois`/pipeline_config mirror either (dashboard_navme_pois/navme-categories),
+    so this hits Supabase on every call — same trade-off as ar-experience-ref — keeping the
+    viewer's language switcher correct even right after a translation is added in the
+    Dashboard, with no re-sync step. Keyed by the same ids navme-pois/navme-categories
+    already return (navme_pois.id, navme_categories.id), so the viewer can join by id with
+    zero extra lookups. Buildings with nothing configured get back empty maps."""
+    import urllib.request, urllib.parse
+    cfg = get_settings()
+    empty = {"poi_names": {}, "category_names": {}}
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return empty
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        return empty
+    ptype = navme.poi_type(b)
+    headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
+
+    def _get(url):
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read())
+
+    poi_names = {}
+    try:
+        q = urllib.parse.urlencode({"select": "id,poi_names", "poi_type": f"ilike.{navme.pg_value(ptype)}"})
+        for row in _get(f"{cfg.supabase_url}/rest/v1/navme_pois?{q}") or []:
+            if row.get("id") and row.get("poi_names"):
+                poi_names[str(row["id"])] = row["poi_names"]
+    except Exception:
+        pass
+
+    category_names = {}
+    try:
+        q = urllib.parse.urlencode({"select": "id,category_names", "poi_type": f"ilike.{navme.pg_value(ptype)}"})
+        for row in _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}") or []:
+            if row.get("id") and row.get("category_names"):
+                category_names[str(row["id"])] = row["category_names"]
+    except Exception:
+        pass
+
+    return {"poi_names": poi_names, "category_names": category_names}
+
+
 class _FeedbackIn(_BM):
     rating: str  # "up" | "down"
     context: str  # "walkthrough_wayfinding" | "tour_interior" | "start_preview"

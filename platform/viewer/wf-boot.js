@@ -79,13 +79,19 @@
     window.WF.branding = br;
     if (window.WFi18n) {
       window.WF.i18nReady = window.WFi18n.init({ enabled }).then(() => {
-        const slot = document.getElementById("langSwitcher");
-        if (slot) {
-          const list = window.WFi18n.getEnabled();
-          if (list.length > 1) {
-            slot.hidden = false;
-            window.WFi18n.mountSwitcher(slot, { className: "wf-lang-switch" });
-          } else slot.hidden = true;
+        // The drawer's "Language" row itself (click -> language-picker sheet) is owned by
+        // ui.js's bindDrawer()/showLanguageSheet(); this just shows/hides the row and keeps
+        // its current-language sub-label in sync, since ui.js loads after this resolves.
+        const btn = document.getElementById("langSwitcher");
+        if (btn) {
+          const refreshLabel = () => {
+            const cur = window.WFi18n.enabledCatalog().find(c => c.code === window.WFi18n.getLocale());
+            const lab = document.getElementById("langCurrentLabel");
+            if (lab) lab.textContent = cur ? cur.native : "";
+          };
+          btn.hidden = window.WFi18n.getEnabled().length < 2;
+          refreshLabel();
+          window.WFi18n.onChange(refreshLabel);
         }
         return window.WFi18n;
       }).catch(e => console.warn("i18n init failed", e));

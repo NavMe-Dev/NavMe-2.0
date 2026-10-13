@@ -260,7 +260,11 @@
     "thumbsUp": "Good route",
     "thumbsDown": "Bad route",
     "howWasRoute": "How was this route?",
-    "thanksForFeedback": "Thanks for the feedback!"
+    "thanksForFeedback": "Thanks for the feedback!",
+    "floorN": "Floor {{n}}",
+    "allFloors": "All floors",
+    "floorOff": "Off",
+    "floorAllShort": "All"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

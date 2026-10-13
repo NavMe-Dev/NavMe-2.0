@@ -414,10 +414,12 @@ body.mp-open{overflow:hidden}
   .mp-panel{border-radius:0;max-width:none}
 }
 
-/* i18n language switcher (drawer) + RTL chrome */
-.lang-row{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:default}
-.lang-row label.wf-lang-label,.lang-row .wf-lang-label{display:flex;align-items:center;gap:10px;width:100%;font:inherit;color:inherit}
-.lang-row .wf-lang-switch{flex:1;font:inherit;border:1px solid var(--line,#dadce0);border-radius:8px;padding:6px 10px;background:#fff;color:var(--txt,#202124)}
+/* i18n language picker (drawer button -> sheet list) + RTL chrome */
+button.lang-row{cursor:pointer}
+.ditem-sub{margin-left:auto;color:var(--txt2);font-size:13px}
+.lang-list{border-top:none}
+.lang-pick{justify-content:space-between;border-radius:10px;cursor:pointer;background:none;border:0;font:inherit;color:inherit}
+.lang-pick .ms{color:var(--blue)}
 [dir=rtl] .ui .searchbox,[dir=rtl] .ui .dirbox,[dir=rtl] .ui .drawer,[dir=rtl] .ui .sheet,[dir=rtl] .ui .navbanner,[dir=rtl] .ui .navbar{direction:rtl}
 [dir=rtl] .ui .ctrls.ctop,[dir=rtl] .ui .ctrls.cbot{left:auto;right:12px}
 [dir=rtl] .ui .drawer{left:auto;right:0;transform:translateX(105%)}

@@ -9,6 +9,15 @@ function wfDbg(level, source, message, meta) {
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const t = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, vars) : key;
+  // Resolves a navme_pois.poi_names / navme_categories.category_names jsonb blob (one key
+  // per language, e.g. {en:"...", hi:"...", kn:"..."}) to the current UI language, falling
+  // back to English, then to whatever plain-string name was passed in (the POI/category's
+  // original un-translated name) if there's no data for this id at all.
+  const localized = (names, fallback) => {
+    if (!names) return fallback;
+    const loc = (window.WFi18n && WFi18n.getLocale) ? WFi18n.getLocale() : "en";
+    return names[loc] || names.en || fallback;
+  };
   const CAT_BASE = {
     room: { icon: "meeting_room", color: [26, 115, 232], labelKey: "viewer.catRoom" },
     hall: { icon: "groups", color: [161, 66, 244], labelKey: "viewer.catHall" },
@@ -25,12 +34,13 @@ function wfDbg(level, source, message, meta) {
     const b = tg[prop];
     if (!b) {
       const fb = tg.room;
-      return fb ? { icon: fb.icon, color: fb.color, label: t(fb.labelKey) } : undefined;
+      return fb ? { icon: fb.icon, color: fb.color, label: fb.names ? localized(fb.names, t(fb.labelKey)) : t(fb.labelKey) } : undefined;
     }
-    return { icon: b.icon, color: b.color, label: t(b.labelKey) };
+    return { icon: b.icon, color: b.color, label: b.names ? localized(b.names, t(b.labelKey)) : t(b.labelKey) };
   }});
   const CHIP_KEYS = [["room", "viewer.rooms"], ["hall", "viewer.halls"], ["entrance", "viewer.entrances"], ["stairs", "viewer.stairs"], ["elevator", "viewer.elevators"], ["restroom", "viewer.restrooms"], ["parking", "viewer.parking"]];
-  const CHIPS = () => CHIP_KEYS.map(([c, k]) => [c, t(k)]);
+  let catNamesByKey = {};
+  const CHIPS = () => CHIP_KEYS.map(([c, k]) => [c, catNamesByKey[c] ? localized(catNamesByKey[c], k) : t(k)]);
   // Category chips come from the NavMe Dashboard's own navme_categories (name + Lucide
   // icon_key) when the building has any, instead of the viewer's fixed built-in set —
   // see wf.categories (app.js) / navme-gmap/sync (admin.py). Applies in every mode, not
@@ -53,10 +63,12 @@ function wfDbg(level, source, message, meta) {
     const sorted = wf.categories.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.name).localeCompare(String(b.name)));
     Object.keys(CAT_BASE).forEach(k => delete CAT_BASE[k]);
     CHIP_KEYS.length = 0;
+    catNamesByKey = {};
     sorted.forEach((c, i) => {
       const key = String(c.name || "").trim().toLowerCase();
       if (!key) return;
-      CAT_BASE[key] = { icon: LUCIDE_TO_MS[c.icon_key] || "place", color: CHIP_PALETTE[i % CHIP_PALETTE.length], labelKey: c.name };
+      CAT_BASE[key] = { icon: LUCIDE_TO_MS[c.icon_key] || "place", color: CHIP_PALETTE[i % CHIP_PALETTE.length], labelKey: c.name, names: c.names || null };
+      catNamesByKey[key] = c.names || null;
       CHIP_KEYS.push([key, c.name]);
     });
     // CAT's Proxy fallback (unmatched POI category) always reads CAT_BASE.room — keep a
@@ -68,6 +80,9 @@ function wfDbg(level, source, message, meta) {
   const cat = (p) => CAT[p.category] || CAT.room;
   const isDesk = () => window.matchMedia("(min-width:768px)").matches;
   let wf, POIS = [], byId = {}, fuse, thumbs = new Set();
+  function buildSearchIndex() {
+    fuse = new Fuse(POIS, { keys: [{ name: "name", weight: 0.6 }, { name: "code", weight: 0.2 }, { name: "category", weight: 0.1 }, { name: "tagsText", weight: 0.1 }], threshold: 0.4, ignoreLocation: true, includeMatches: false });
+  }
   const S = { mode: "home",
     uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, previewing: false, locMeta: null };
 
@@ -104,7 +119,7 @@ function wfDbg(level, source, message, meta) {
       }
     };
     wf.catColor = (c) => (CAT[c] || CAT.room).color;
-    fuse = new Fuse(POIS, { keys: [{ name: "name", weight: 0.6 }, { name: "code", weight: 0.2 }, { name: "category", weight: 0.1 }, { name: "tagsText", weight: 0.1 }], threshold: 0.4, ignoreLocation: true, includeMatches: false });
+    buildSearchIndex();
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));
     loadCampus();
     if (window.WFi18n) WFi18n.onChange(() => refreshI18nChrome());
@@ -177,8 +192,30 @@ function wfDbg(level, source, message, meta) {
 
   function refreshI18nChrome() {
     if (window.WFi18n) WFi18n.applyDom();
+    // POIs whose Supabase row has translated names (p.names, from navme_pois.poi_names)
+    // get their display name swapped to the current language; POIs with none (p.names is
+    // null — not synced through the dashboard's gmap flow) keep whatever name they had.
+    POIS.forEach(p => { if (p.names) p.name = localized(p.names, p.name); });
+    buildSearchIndex();
+    if (wf && wf.redrawPOIs) try { wf.redrawPOIs(); } catch (_) {}
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));
     buildChips();
+    // Floor picker: real-floor buttons show a language-agnostic digit (wf.floorLabel's
+    // translation lives in each button's aria-label instead), only the "All" button's
+    // visible text and every button's aria-label need updating here.
+    const flList = $("floorList");
+    if (flList) {
+      flList.querySelectorAll("button[data-floor]").forEach(b => {
+        const lab = wf.floorLabel(b.dataset.floor === "all" ? "all" : b.dataset.floor);
+        if (b.dataset.floor === "all") b.textContent = t("viewer.floorAllShort");
+        b.setAttribute("aria-label", lab);
+      });
+      updateFloorPicker();
+    }
+    const devFl = $("devFloors");
+    if (devFl) devFl.querySelectorAll("button[data-floor]").forEach(b => {
+      b.textContent = wf.floorLabel(b.dataset.floor);
+    });
     const on3d = wf && wf.is3D && wf.is3D();
     if ($("btn3D")) { $("btn3D").textContent = on3d ? "2D" : "3D"; $("btn3D").setAttribute("aria-label", on3d ? t("viewer.switch2d") : t("viewer.switch3d")); }
     if (S.mode === "home") showHome();
@@ -190,6 +227,7 @@ function wfDbg(level, source, message, meta) {
       setSheet(listHtml(items, title), $("sheet").dataset.state || "half");
       bindList(items);
     } else if (S.mode === "about") about();
+    else if (S.mode === "language") showLanguageSheet();
     if (S.mode === "dir" || S.mode === "nav") syncDirFields();
   }
 
@@ -2165,6 +2203,7 @@ function wfDbg(level, source, message, meta) {
       if (a === "building") { closeDirectionsIfOpen(); showHome(); zoomBuilding(); setSheetState("half"); }
       if (a === "recent") { $("q").focus(); }
       if (a === "share") share();
+      if (a === "language") showLanguageSheet();
       if (a === "dev") { const d = $("devWrap"); d.hidden = !d.hidden; toast(d.hidden ? t("viewer.devHidden") : t("viewer.devShown")); }
       if (a === "about") { closeDirectionsIfOpen(); about(); }
     });
@@ -2179,6 +2218,17 @@ function wfDbg(level, source, message, meta) {
       <li><span class="ms">route</span><div>Routing: ngraph.path (MIT), turf.js (MIT), networkx + shapely (BSD) · OSM footways (ODbL)</div></li>
       <li><span class="ms">search</span><div>Search: Fuse.js (Apache-2.0) · Icons: Material Symbols (Apache-2.0) · Font: Roboto (Apache-2.0)</div></li>
       <li><span class="ms">keyboard</span><div>Keyboard: <b>/</b> search · <b>↑↓ Enter</b> pick · <b>Esc</b> close · <b>← →</b> steps while navigating</div></li></ul>`, "half");
+  }
+  function showLanguageSheet() {
+    if (!window.WFi18n) return;
+    S.mode = "language";
+    const cur = WFi18n.getLocale();
+    const rows = WFi18n.enabledCatalog().map(c => `
+      <li><button class="ditem lang-pick" data-lang="${esc(c.code)}" aria-pressed="${c.code === cur}">
+        <span>${esc(c.native)}</span>${c.code === cur ? '<span class="ms">check</span>' : ""}
+      </button></li>`).join("");
+    setSheet(`<h1 class="pname">${esc(t("common.language"))}</h1><ul class="facts lang-list">${rows}</ul>`, "half");
+    $("sheetBody").querySelectorAll(".lang-pick").forEach(b => b.onclick = () => WFi18n.setLocale(b.dataset.lang));
   }
 
   // ---------------- toast ----------------

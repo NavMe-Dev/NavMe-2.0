@@ -52,9 +52,16 @@ require([
       // page) for this building's published AR experience — null for buildings with none
       // yet. Used to build share.navme.space "View in AR" deep links (see ui.js's
       // arShareUrlFor); null keeps those buttons on the old "AR is temporarily locked" toast.
-      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/ar-experience-ref").catch(() => ({ experience_ref: null }))]); })
-    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops, arRef]) => {
+      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/ar-experience-ref").catch(() => ({ experience_ref: null })),
+      // Per-language POI/category names straight off navme_pois.poi_names /
+      // navme_categories.category_names (jsonb, every language already populated by the
+      // Dashboard) — keyed by the same ids navme-pois/navme-categories return above, so
+      // ui.js's language switcher can resolve a real human translation instead of just
+      // swapping UI chrome text.
+      J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))]); })
+    .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops, arRef, navmeTranslations]) => {
       pois._navme = navmePois;
+      pois._navmeTranslations = navmeTranslations || { poi_names: {}, category_names: {} };
       window.WF.shopsByPoiId = {};
       (navmeShops || []).forEach(s => { if (s && s.poi_id) window.WF.shopsByPoiId[String(s.poi_id)] = s; });
       window.WF.arExperienceRef = (arRef && arRef.experience_ref) || null;
@@ -62,7 +69,7 @@ require([
       // platform config -> fields the prototype engine expects
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));
       floorsData.floors.forEach(f => { if (!/^(https?:|\/|data:)/.test(f.image)) f.image = D(f.image); });
-      init(georef, floorsData, { nav, walkgrid, pois, rawGraph, navmesh, navmeCategories }); })
+      init(georef, floorsData, { nav, walkgrid, pois, rawGraph, navmesh, navmeCategories, navmeTranslations }); })
     .catch(e => { status("Failed to load data: " + e); console.error(e); });
 
   function init(georef, floorsData, R2) {
@@ -455,9 +462,10 @@ require([
           for (const f of fl) { const d = Math.abs(mz - f.elevation); if (d < bd2) { bd2 = d; best = f; } }
           return best.id;
         };
+        const poiNamesById = (R2.navmeTranslations && R2.navmeTranslations.poi_names) || {};
         const conv = pois._navme.map((p) => {
           const x = p.x, y = -p.z, z = p.y;                 // SDK -> model
-          const o = { id: String(p.id), name: p.name, category: p.category || "room",
+          const o = { id: String(p.id), name: p.name, names: poiNamesById[String(p.id)] || null, category: p.category || "room",
                       x: x, y: y, z: z, floor: floorFor(z), sdk: { x: p.x, y: p.y, z: p.z } };
           // expected_pos_* is a separate curated "look here" anchor, same SDK -> model
           // conversion as the main position. Not every POI has one.
@@ -509,7 +517,19 @@ require([
         }).catch(e => console.warn("[navmesh] not available:", e.message || e));
       }
       const poiById = {}; pois.pois.forEach(p => poiById[p.id] = p);
-      const floorLabel = F => F === "all" ? "All floors" : F === "none" ? "Off" : ((nav.floors[F] || {}).label || F);
+      // Floor labels come from Building.floors.label (platform's own Postgres, plain text —
+      // not a Supabase translation column like poi_names/category_names). Almost every
+      // building uses the plain "Floor N" convention though, so that one pattern gets
+      // translated via i18n's "viewer.floorN"; anything else (a custom label like "Ground
+      // Floor" or "Mezzanine") has no translation source and is shown as entered.
+      const i18nt = (k, v) => (window.WFi18n && WFi18n.t) ? WFi18n.t(k, v) : null;
+      const floorLabel = F => {
+        if (F === "all") return i18nt("viewer.allFloors") || "All floors";
+        if (F === "none") return i18nt("viewer.floorOff") || "Off";
+        const label = (nav.floors[F] || {}).label || F;
+        const m = /^floor\s+(\d+)$/i.exec(label);
+        return (m && i18nt("viewer.floorN", { n: m[1] })) || label;
+      };
 
       const graphLayer = new GraphicsLayer({ title: "Sweep graph (debug)", visible: false });
       const navmeshLayer = new GraphicsLayer({ title: "Navmesh (debug)", visible: false });
@@ -778,7 +798,8 @@ require([
       window.wf.route = (fromKey, toPoiId, opts) => doRoute(fromKey, toPoiId, opts || {});
       window.wf.showGraph = (on) => { $("showGraph").checked = on; graphLayer.visible = on; drawGraph(); };
       window.wf.pois = pois.pois;
-      window.wf.categories = (R2 && R2.navmeCategories) || [];
+      { const catNamesById = (R2 && R2.navmeTranslations && R2.navmeTranslations.category_names) || {};
+        window.wf.categories = ((R2 && R2.navmeCategories) || []).map(c => ({ ...c, names: catNamesById[String(c.id)] || null })); }
       window.wf.redrawPOIs = drawPOIs;
       if (window.wf.showLabels == null) {
         try { window.wf.showLabels = localStorage.getItem("wf_showLabels") === "1"; }
