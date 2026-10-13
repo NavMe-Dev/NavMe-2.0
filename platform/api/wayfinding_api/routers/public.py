@@ -672,25 +672,11 @@ def building_shops(slug: str, db: Session = Depends(get_db)):
     return out
 
 
-# NavMe Dashboard CMS's own Supabase project — a DIFFERENT project from cfg.supabase_url
-# (which is this deployment's wayfinding-data project; see services/navme.py's module
-# docstring). navme_project_features.{project_url,whitelabeled_url,experience_ref} are
-# pasted in by a superadmin through the dashboard's Access Control page — experience_ref
-# is the compact Zappar ref ("host.spaceId") used as the `x` param in share.navme.space
-# AR deep links. The anon key below is the same public, intentionally-client-embedded
-# key already shipped in dashboard/render.yaml and the Mattercraft AR project's own
-# behaviors.ts — not a secret, safe to ship here too.
-_DASHBOARD_SUPABASE_URL = "https://znfwcohrpkiccibqcfpn.supabase.co"
-_DASHBOARD_SUPABASE_ANON_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZndjb2hycGtp"
-    "Y2NpYnFjZnBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDUzNDMsImV4cCI6MjA4Njg4MTM0M30."
-    "owUVIY-uz7Cr4p83ZQ88QbsgrUfuZqKRiC7HZFIfoec"
-)
-
-
 @router.get("/buildings/{slug}/ar-experience-ref")
 def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
-    """Start-mode info for this building from navme_project_features:
+    """Start-mode info for this building from navme_project_features (cfg.supabase_url —
+    the single navme_dev Supabase project this whole app reads from; navme_project_features
+    is mirrored here from the NavMe Dashboard CMS's own project, same as navme_pois):
       - experience_ref: the Zappar `x` ref for AR share.navme.space deep links
         (see ui.js's arShareUrlFor)
       - walkthrough_mode: "walkthrough_first" | "ar_first" | "hybrid" | null
@@ -701,8 +687,11 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
     wf-boot.js's smart start-mode redirect reads all four in one request. Buildings
     with nothing configured get every field back as null — no redirect happens."""
     import urllib.request, urllib.parse, urllib.error
-    b = db.query(models.Building).filter_by(slug=slug).first()
+    cfg = get_settings()
     empty = {"experience_ref": None, "walkthrough_mode": None, "ar_url": None, "walkthrough_url": None}
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return empty
+    b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         return empty
     ptype = navme.poi_type(b)
@@ -710,10 +699,10 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
         "select": "experience_ref,walkthrough_mode,project_url,walkthrough_url",
         "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
     })
-    url = f"{_DASHBOARD_SUPABASE_URL}/rest/v1/navme_project_features?{q}"
+    url = f"{cfg.supabase_url}/rest/v1/navme_project_features?{q}"
     req = urllib.request.Request(url, headers={
-        "apikey": _DASHBOARD_SUPABASE_ANON_KEY,
-        "Authorization": f"Bearer {_DASHBOARD_SUPABASE_ANON_KEY}",
+        "apikey": cfg.supabase_anon_key,
+        "Authorization": f"Bearer {cfg.supabase_anon_key}",
     })
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
