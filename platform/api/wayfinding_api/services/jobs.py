@@ -34,14 +34,19 @@ def run_job(job_id: int):
     try:
         b.status = "processing"; db.commit()
         cfg = pipeline_config(db, b)
+        ctx = Context(ws_dir(b), cfg, log_cb=cb); ctxh.append(ctx)
         # Browser uploads are stored privately in Supabase Storage on hosted installs.
         # The pipeline still needs a local path, so stream a job-local copy just before it runs.
         from . import bundle_storage
         source = str(cfg.get("matterpak") or "")
         if source.startswith("supabase://"):
             suffix = Path(source).suffix or ".zip"
-            cfg["matterpak"] = str(bundle_storage.stage_source_file(source, ws_dir(b) / "source" / f"matterpak{suffix}"))
-        ctx = Context(ws_dir(b), cfg, log_cb=cb); ctxh.append(ctx)
+            staged = bundle_storage.stage_source_file(source, ws_dir(b) / "source" / f"matterpak{suffix}")
+            if not staged.is_file() or not staged.stat().st_size:
+                raise FileNotFoundError(f"MatterPak staging failed: {staged}")
+            # Matterport's API returns one bare OBJ. Ingest accepts that as a
+            # MatterPak directory, while uploads remain .zip/.e57 files.
+            ctx.cfg["matterpak"] = str(staged.parent if suffix.lower() == ".obj" else staged)
         p = j.params or {}
         summ = runner.run(ctx, steps=p.get("steps"), force=p.get("force", False), from_step=p.get("from_step"), force_steps=p.get("force_steps", []))
         flush(True)
