@@ -44,6 +44,7 @@ Q = 'query($id:ID!){model(id:$id){locations{id pano{skyboxes{resolution status u
 
 RETRIES = 3
 RETRY_DELAY_S = 1.5
+DOWNLOAD_BATCH_SIZE = 400  # Keep signed Matterport URLs fresh during multi-hour indexes.
 # Cubemap face order is Matterport's own convention (0:front 1:right 2:back 3:left 4:top 5:bottom
 # in practice, verified against thumbs.py already using face "1"); skip top/bottom (4,5) since
 # floor/ceiling images rarely have enough distinctive texture to match against.
@@ -78,11 +79,45 @@ def _fetch_face(url_template, face):
             if im.shape[0] != IMG_SIDE or im.shape[1] != IMG_SIDE:
                 im = cv2.resize(im, (IMG_SIDE, IMG_SIDE), interpolation=cv2.INTER_AREA)
             return im
+        except urllib.error.HTTPError as e:
+            # A Matterport CDN 410 means this signed URL has expired. Retrying the
+            # same URL only wastes time; the caller will refresh the GraphQL data.
+            if e.code == 410:
+                raise
+            last_err = e
+            if attempt < RETRIES - 1:
+                time.sleep(RETRY_DELAY_S * (attempt + 1))
         except Exception as e:
             last_err = e
             if attempt < RETRIES - 1:
                 time.sleep(RETRY_DELAY_S * (attempt + 1))
     raise last_err
+
+
+def _fetch_skyboxes(model_id):
+    try:
+        d = json.load(urllib.request.urlopen(
+            urllib.request.Request(
+                "https://my.matterport.com/api/mp/models/graph",
+                data=json.dumps({"query": Q, "variables": {"id": model_id}}).encode(),
+                headers={"Content-Type": "application/json", "User-Agent": "wayfinding-platform/0.1"},
+            ),
+            timeout=90,
+        ))
+    except Exception as e:
+        raise RuntimeError(f"skybox query failed: {e}") from e
+    if d.get("errors") and not (d.get("data") or {}).get("model"):
+        raise RuntimeError(f"skybox query errors: {json.dumps(d['errors'])[:500]}")
+    locs = ((d.get("data") or {}).get("model") or {}).get("locations") or []
+    return {loc["id"]: loc for loc in locs}
+
+
+def _available_template(loc):
+    skyboxes = (loc.get("pano") or {}).get("skyboxes") or [] if loc else []
+    available = [s for s in skyboxes if s.get("status") == "available" and s.get("urlTemplate")]
+    preferred = {"high": 0, "2k": 1, "low": 2, "512": 3}
+    selected = sorted(available, key=lambda s: preferred.get(str(s.get("resolution")), 4))
+    return selected[0]["urlTemplate"] if selected else None
 
 
 def run(ctx):
@@ -97,19 +132,8 @@ def run(ctx):
         _save_empty(ctx)
         return {"sweeps": 0, "images": 0, "descriptors": 0}
 
-    try:
-        d = json.load(urllib.request.urlopen(
-            urllib.request.Request(
-                "https://my.matterport.com/api/mp/models/graph",
-                data=json.dumps({"query": Q, "variables": {"id": ctx.cfg["matterport_model_id"]}}).encode(),
-                headers={"Content-Type": "application/json", "User-Agent": "wayfinding-platform/0.1"},
-            ),
-            timeout=90,
-        ))
-    except Exception as e:
-        raise RuntimeError(f"skybox query failed: {e}")
-    locs = (d.get("data") or {}).get("model", {}).get("locations") or []
-    by_id = {l["id"]: l for l in locs}
+    model_id = ctx.cfg["matterport_model_id"]
+    by_id = _fetch_skyboxes(model_id)
 
     ref_dir = ctx.o("vps_refs")
     ref_dir.mkdir(exist_ok=True)
@@ -123,32 +147,46 @@ def run(ctx):
     failed_no_skybox = []
     for sweep_id in sweeps:
         loc = by_id.get(sweep_id)
-        skyboxes = [s for s in (loc.get("pano") or {}).get("skyboxes") or []] if loc else []
-        if not skyboxes:
-            failed_no_skybox.append(sweep_id)
-            continue
-        s = sorted(skyboxes, key=lambda s: {"512": 0, "high": 1, "2k": 2}.get(str(s["resolution"]), 3))[0]
-        if not s.get("urlTemplate"):
+        if not _available_template(loc):
             failed_no_skybox.append(sweep_id)
             continue
         for face in FACES:
             cache_path = ref_dir / f"{sweep_id}_{face}.jpg"
             if not cache_path.is_file():
-                jobs.append((sweep_id, face, s["urlTemplate"], cache_path))
+                jobs.append((sweep_id, face, cache_path))
 
     def _download_one(job):
-        sweep_id, face, url_template, cache_path = job
+        sweep_id, face, cache_path = job
+        url_template = _available_template(by_id.get(sweep_id))
+        if not url_template:
+            return job, "missing"
         try:
             im = _fetch_face(url_template, face)
             cv2.imwrite(str(cache_path), im, [cv2.IMWRITE_JPEG_QUALITY, 90])
-            return True
+            return job, None
+        except urllib.error.HTTPError as e:
+            if e.code == 410:
+                return job, "expired"
+            ctx.warn(f"vps ref {sweep_id} face {face}: HTTP {e.code}")
+            return job, "failed"
         except Exception as e:
             ctx.warn(f"vps ref {sweep_id} face {face}: {e}")
-            return False
+            return job, "failed"
 
     if jobs:
-        with ThreadPoolExecutor(max_workers=12) as pool:
-            list(pool.map(_download_one, jobs))
+        for start in range(0, len(jobs), DOWNLOAD_BATCH_SIZE):
+            # Matterport CDN URLs are signed and can expire during a large building.
+            # Refresh before every bounded batch instead of holding one URL set for hours.
+            by_id = _fetch_skyboxes(model_id)
+            batch = jobs[start:start + DOWNLOAD_BATCH_SIZE]
+            with ThreadPoolExecutor(max_workers=12) as pool:
+                results = list(pool.map(_download_one, batch))
+            expired = [job for job, reason in results if reason == "expired"]
+            if expired:
+                ctx.warn(f"refreshing Matterport URLs for {len(expired)} expired VPS images")
+                by_id = _fetch_skyboxes(model_id)
+                with ThreadPoolExecutor(max_workers=12) as pool:
+                    list(pool.map(_download_one, expired))
 
     # ORB extraction is CPU-bound and fast per image (milliseconds) — single-threaded
     # is fine here, unlike the network fetch above.
