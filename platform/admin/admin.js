@@ -615,7 +615,7 @@ const Wizard = {
 const JobLog = {
   props: ["jobId"], emits: ["done"],
   template: `<div style="margin-top:12px"><div class="row"><b>Job #{{jobId}}</b><span class="badge" :class="stCls(st.status==='succeeded'?'published':st.status==='failed'?'failed':'processing')">{{st.status}}</span>
-    <span class="muted" v-if="st.step">step: {{st.step}}</span></div><pre class="log" ref="pre">{{log}}</pre><div class="err" v-if="st.error">{{st.error}}</div></div>`,
+    <span class="muted" v-if="st.step">step: {{st.step}}</span></div><pre class="log" ref="pre">{{log}}</pre><div class="err" v-if="st.error && !log.includes(st.error)">{{st.error}}</div></div>`,
   setup(props, { emit }) {
     const log = ref(""), st = reactive({ status: "queued", step: null, error: null }), pre = ref(null); let off = 0, t = null;
     async function poll() {
