@@ -909,7 +909,11 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
                     pass
         if local_nm.exists():
             nb = db.query(models.Building).filter_by(slug=slug).first()
-            return {"url": f"{base_url}/{slug}_navmesh.navmesh",
+            # Keep same-origin assets relative. Render terminates TLS before forwarding
+            # to the service, so request.base_url can incorrectly be http:// even when
+            # the public viewer is HTTPS. An absolute HTTP URL is blocked by browsers as
+            # mixed content, leaving WFNav unready and silently selecting graph fallback.
+            return {"url": f"/{slug}_navmesh.navmesh",
                     "label": "local-override", "poi_type": navme.poi_type(nb) if nb else slug,
                     "updated_at": None}
 
