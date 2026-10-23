@@ -1360,7 +1360,7 @@ function wfDbg(level, source, message, meta) {
       </div>
       <div class="actions">
         ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">play_circle</span>${esc(t("viewer.tourInterior") || "Watch Route Preview")}</button>` : ""}
-        ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
+        ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>${esc(t("viewer.walkthroughWayfinding") || "Walkthrough Wayfinding")}</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
         <button class="pill" id="dStartAr" hidden><span class="ms">view_in_ar</span>${esc(t("viewer.startAr"))}</button>
