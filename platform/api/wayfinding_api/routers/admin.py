@@ -189,8 +189,7 @@ async def upload_matterpak(slug: str, file: UploadFile = File(...), db: Session 
     if name_l.endswith(".e57"):
         if size < 64:
             fn.unlink(missing_ok=True); raise HTTPException(400, "e57 file is empty/truncated")
-        b.matterpak_path = str(fn); db.commit()
-        return {"path": str(fn), "bytes": size, "format": "e57"}
+        return _save_uploaded_source(b, fn, size, "e57", db)
     import zipfile
     try:
         names = zipfile.ZipFile(fn).namelist()
@@ -199,15 +198,24 @@ async def upload_matterpak(slug: str, file: UploadFile = File(...), db: Session 
     has_obj = any(n.lower().endswith(".obj") for n in names)
     has_e57 = any(n.lower().endswith(".e57") for n in names)
     if has_obj:
-        b.matterpak_path = str(fn); db.commit()
-        return {"path": str(fn), "bytes": size, "format": "matterpak", "files": len(names),
-                "colorplans": sum(1 for n in names if "colorplan" in n.lower())}
+        return _save_uploaded_source(b, fn, size, "matterpak", db, files=len(names),
+                                     colorplans=sum(1 for n in names if "colorplan" in n.lower()))
     if has_e57:
-        b.matterpak_path = str(fn); db.commit()
-        return {"path": str(fn), "bytes": size, "format": "e57", "files": len(names),
-                "e57_files": [Path(n).name for n in names if n.lower().endswith(".e57")]}
+        return _save_uploaded_source(b, fn, size, "e57", db, files=len(names),
+                                     e57_files=[Path(n).name for n in names if n.lower().endswith(".e57")])
     fn.unlink()
     raise HTTPException(400, "zip contains neither .obj (MatterPak) nor .e57 (point cloud)")
+
+
+def _save_uploaded_source(b, fn: Path, size: int, fmt: str, db: Session, **extra):
+    """Persist browser uploads in private Storage when configured, with local fallback."""
+    from ..services import bundle_storage
+    durable = bundle_storage.store_source_file(b.slug, fn)
+    b.matterpak_path = durable or str(fn)
+    db.commit()
+    if durable:
+        fn.unlink(missing_ok=True)
+    return {"path": b.matterpak_path, "bytes": size, "format": fmt, **extra}
 
 
 @router.post("/buildings/{slug}/matterpak/path")

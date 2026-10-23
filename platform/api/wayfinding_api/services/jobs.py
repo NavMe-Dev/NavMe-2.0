@@ -3,6 +3,7 @@ jobs with SELECT … FOR UPDATE SKIP LOCKED, runs the wfpipe steps in the buildi
 log into the row and imports the outputs into the DB."""
 import threading, time, traceback
 from datetime import datetime, timezone
+from pathlib import Path
 from sqlalchemy import text
 from ..db import SessionLocal
 from .. import models
@@ -33,6 +34,13 @@ def run_job(job_id: int):
     try:
         b.status = "processing"; db.commit()
         cfg = pipeline_config(db, b)
+        # Browser uploads are stored privately in Supabase Storage on hosted installs.
+        # The pipeline still needs a local path, so stream a job-local copy just before it runs.
+        from . import bundle_storage
+        source = str(cfg.get("matterpak") or "")
+        if source.startswith("supabase://"):
+            suffix = Path(source).suffix or ".zip"
+            cfg["matterpak"] = str(bundle_storage.stage_source_file(source, ws_dir(b) / "source" / f"matterpak{suffix}"))
         ctx = Context(ws_dir(b), cfg, log_cb=cb); ctxh.append(ctx)
         p = j.params or {}
         summ = runner.run(ctx, steps=p.get("steps"), force=p.get("force", False), from_step=p.get("from_step"), force_steps=p.get("force_steps", []))

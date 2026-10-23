@@ -27,6 +27,11 @@ def is_enabled() -> bool:
     return bool(s.supabase_url and s.supabase_service_role_key and s.supabase_storage_bucket)
 
 
+def is_source_enabled() -> bool:
+    s = get_settings()
+    return bool(s.supabase_url and s.supabase_service_role_key and s.supabase_source_bucket)
+
+
 def _object_path(slug: str, version: int, relpath: str) -> str:
     return f"published/{slug}/v{version}/{relpath}"
 
@@ -35,6 +40,11 @@ def _headers() -> dict:
     s = get_settings()
     key = s.supabase_service_role_key
     return {"Authorization": f"Bearer {key}", "apikey": key}
+
+
+def _private_object_url(object_path: str, bucket: str | None = None) -> str:
+    s = get_settings()
+    return f"{s.supabase_url}/storage/v1/object/{bucket or s.supabase_storage_bucket}/{object_path}"
 
 
 # Supabase Storage's standard upload endpoint rejects anything over ~50MB regardless of
@@ -81,6 +91,75 @@ def _get_chunked(base: str) -> bytes | None:
         return b"".join(parts)
     except (httpx.HTTPError, ValueError):
         return None
+
+
+def _put_file_chunked(object_path: str, local_path: Path, content_type: str, bucket: str) -> bool:
+    """Upload a source file without loading a MatterPak into process memory."""
+    try:
+        with httpx.Client(timeout=300) as client:
+            size = local_path.stat().st_size
+            if size <= _CHUNK_THRESHOLD:
+                with local_path.open("rb") as f:
+                    r = client.put(_private_object_url(object_path, bucket), content=f,
+                                   headers={**_headers(), "Content-Type": content_type, "x-upsert": "true"})
+                return r.status_code < 300
+            parts = (size + _CHUNK_SIZE - 1) // _CHUNK_SIZE
+            with local_path.open("rb") as f:
+                for i in range(parts):
+                    chunk = f.read(_CHUNK_SIZE)
+                    r = client.put(f"{_private_object_url(object_path, bucket)}.part{i}", content=chunk,
+                                   headers={**_headers(), "Content-Type": "application/octet-stream", "x-upsert": "true"})
+                    if r.status_code >= 300:
+                        return False
+            r = client.put(f"{_private_object_url(object_path, bucket)}.chunks", content=str(parts).encode(),
+                           headers={**_headers(), "Content-Type": "text/plain", "x-upsert": "true"})
+            return r.status_code < 300
+    except (httpx.HTTPError, OSError):
+        return False
+
+
+def store_source_file(slug: str, local_path: Path) -> str | None:
+    """Store an uploaded MatterPak/E57 privately and return a durable reference."""
+    if not is_source_enabled() or not local_path.is_file():
+        return None
+    s = get_settings()
+    safe_name = "".join(c if c.isalnum() or c in ".-_" else "_" for c in local_path.name)
+    obj = f"uploads/{slug}/{safe_name}"
+    content_type = mimetypes.guess_type(local_path.name)[0] or "application/octet-stream"
+    return f"supabase://{obj}" if _put_file_chunked(obj, local_path, content_type, s.supabase_source_bucket) else None
+
+
+def stage_source_file(reference: str, destination: Path) -> Path:
+    """Resolve a local or private Supabase MatterPak reference to a local job file."""
+    if not reference.startswith("supabase://"):
+        return Path(reference)
+    if not is_source_enabled():
+        raise FileNotFoundError("Supabase Storage is not configured for this MatterPak")
+    obj = reference.removeprefix("supabase://")
+    bucket = get_settings().supabase_source_bucket
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with httpx.stream("GET", _private_object_url(obj, bucket), headers=_headers(), timeout=300) as r:
+            if r.status_code < 300:
+                with destination.open("wb") as f:
+                    for chunk in r.iter_bytes():
+                        f.write(chunk)
+                return destination
+        # Large sources are stored as parts. Read each private part directly to disk.
+        manifest = httpx.get(f"{_private_object_url(obj, bucket)}.chunks", headers=_headers(), timeout=30)
+        if manifest.status_code >= 300:
+            raise FileNotFoundError(f"MatterPak not found in Supabase Storage: {obj}")
+        parts = int(manifest.text.strip())
+        with destination.open("wb") as f:
+            for i in range(parts):
+                with httpx.stream("GET", f"{_private_object_url(obj, bucket)}.part{i}", headers=_headers(), timeout=300) as part:
+                    if part.status_code >= 300:
+                        raise FileNotFoundError(f"MatterPak part {i} not found in Supabase Storage: {obj}")
+                    for chunk in part.iter_bytes():
+                        f.write(chunk)
+        return destination
+    except httpx.HTTPError as e:
+        raise FileNotFoundError(f"Could not download MatterPak from Supabase Storage: {obj}") from e
 
 
 def upload_dir(slug: str, version: int, local_dir: Path, max_workers: int = 16) -> int:

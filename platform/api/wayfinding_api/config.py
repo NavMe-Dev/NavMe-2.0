@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # only), which is what local dev always uses.
     supabase_service_role_key: str = ""
     supabase_storage_bucket: str = "wayfinding-bundles"
+    # Private, durable source uploads (MatterPak/E57). Published viewer bundles use
+    # the separate, public supabase_storage_bucket above.
+    supabase_source_bucket: str = "wayfinding-sources"
     # One-time HTTP admin bootstrap for hosts with no Shell access (e.g. Render free
     # plan) — see routers/auth.py:bootstrap_admin. Empty disables the endpoint.
     bootstrap_secret: str = ""
