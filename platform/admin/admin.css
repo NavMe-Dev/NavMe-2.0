@@ -185,3 +185,11 @@ iframe.showcase{min-height:280px}
 .progress-bar{position:relative;height:4px;border-radius:2px;background:#e8eaed;overflow:hidden;margin-top:8px}
 .progress-bar .bar{position:absolute;top:0;left:-40%;width:40%;height:100%;background:var(--blue);border-radius:2px;animation:wf-indet 1.1s ease-in-out infinite}
 @keyframes wf-indet{0%{left:-40%}50%{left:60%}100%{left:100%}}
+.jobs-card{overflow-x:auto}
+.jobs-card table{min-width:980px}
+.job-progress-cell{min-width:170px}
+.job-progress-row{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px}
+.job-progress{height:7px;border-radius:999px;background:#e8eaed;overflow:hidden}
+.job-progress span{display:block;height:100%;min-width:0;border-radius:inherit;background:var(--blue);transition:width .35s ease}
+.job-progress span.succeeded{background:#188038}
+.job-progress span.failed,.job-progress span.cancelled{background:#d93025}

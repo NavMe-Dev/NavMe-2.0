@@ -1952,14 +1952,76 @@ const Publish = {
   }
 };
 
+
+const ONBOARD_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "vps_index", "export"];
+
+function jobPlan(j) {
+  if (j.kind === "vps_build") return ["prepare", "features", "pairs", "matching", "reconstruction", "export"];
+  const p = j.params || {};
+  if (p.from_step && ONBOARD_STEPS.includes(p.from_step)) return ONBOARD_STEPS.slice(ONBOARD_STEPS.indexOf(p.from_step));
+  if (Array.isArray(p.steps) && p.steps.length) return ONBOARD_STEPS.filter(s => p.steps.includes(s));
+  return ONBOARD_STEPS;
+}
+
+function jobProgress(j) {
+  if (j.status === "succeeded") return 100;
+  if (j.status === "queued" || j.status === "cancelled") return 0;
+  const plan = jobPlan(j);
+  const i = j.step ? plan.indexOf(j.step) : -1;
+  if (i < 0) return j.status === "failed" ? 0 : 1;
+  // Count half of the active step so the bar visibly advances when a step starts.
+  return Math.max(1, Math.min(99, Math.round(((i + 0.5) / plan.length) * 100)));
+}
+
+function compactTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "—";
+  seconds = Math.round(seconds);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60), mins = minutes % 60;
+  return `${hours}h ${mins}m`;
+}
+
 const Jobs = {
   props: ["b"],
-  template: `<div class="split"><div class="card"><h2 style="margin-top:0">Jobs</h2><table><tr><th>#</th><th>Kind</th><th>Status</th><th>Params</th><th>Created</th><th>Duration</th></tr>
+  template: `<div class="split"><div class="card jobs-card"><h2 style="margin-top:0">Jobs</h2><table><tr><th>#</th><th>Kind</th><th>Status</th><th>Progress</th><th>Time</th><th>Params</th><th>Created</th><th>Duration</th></tr>
       <tr v-for="j in jobs" :key="j.id" @click="sel=j.id" style="cursor:pointer" :style="{background: sel===j.id ? '#e8f0fe' : ''}"><td>{{j.id}}</td><td>{{j.kind}}</td><td><span class="badge" :class="stCls(j.status==='succeeded'?'published':j.status==='failed'?'failed':'processing')">{{j.status}}</span></td>
+        <td class="job-progress-cell"><div class="job-progress-row"><span>{{progress(j)}}%</span><span class="muted small">{{j.step || statusLabel(j)}}</span></div><div class="job-progress"><span :style="{width:progress(j)+'%'}" :class="j.status"></span></div></td>
+        <td class="small"><b v-if="j.status==='running'">{{eta(j)}} left</b><span v-else>{{statusLabel(j)}}</span></td>
         <td class="mono small">{{j.params.from_step ? 'from '+j.params.from_step : (j.params.steps||[]).join(',') || 'all'}}{{j.params.force?' (force)':''}}</td><td>{{new Date(j.created_at).toLocaleString()}}</td>
-        <td>{{j.finished_at && j.started_at ? Math.round((new Date(j.finished_at)-new Date(j.started_at))/1000)+' s' : ''}}</td></tr></table></div>
+        <td>{{duration(j)}}</td></tr></table></div>
     <div><job-log v-if="sel" :job-id="sel"></job-log></div></div>`,
-  setup(props) { const jobs = ref([]), sel = ref(null); onMounted(async () => { jobs.value = await api(`/admin/jobs?building=${props.b.slug}`); if (jobs.value.length) sel.value = jobs.value[0].id; }); return { jobs, sel, stCls }; }
+  setup(props) {
+    const jobs = ref([]), sel = ref(null), clock = ref(Date.now());
+    let pollTimer = null, clockTimer = null;
+    async function load() {
+      try {
+        jobs.value = await api(`/admin/jobs?building=${props.b.slug}`);
+        if (!sel.value && jobs.value.length) sel.value = jobs.value[0].id;
+      } finally {
+        pollTimer = setTimeout(load, 3000);
+      }
+    }
+    function progress(j) { clock.value; return jobProgress(j); }
+    function elapsed(j) {
+      if (!j.started_at) return 0;
+      const end = j.finished_at ? new Date(j.finished_at).getTime() : clock.value;
+      return Math.max(0, (end - new Date(j.started_at).getTime()) / 1000);
+    }
+    function eta(j) {
+      const pct = progress(j);
+      if (j.status !== "running" || pct <= 1) return "calculating…";
+      return `~${compactTime(elapsed(j) * (100 - pct) / pct)}`;
+    }
+    function duration(j) { return j.started_at ? compactTime(elapsed(j)) : "—"; }
+    function statusLabel(j) {
+      return ({ queued: "Waiting", succeeded: "Complete", failed: "Stopped", cancelled: "Cancelled" })[j.status] || "Starting";
+    }
+    onMounted(() => { load(); clockTimer = setInterval(() => { clock.value = Date.now(); }, 1000); });
+    onBeforeUnmount(() => { clearTimeout(pollTimer); clearInterval(clockTimer); });
+    return { jobs, sel, stCls, progress, eta, duration, statusLabel };
+  }
 };
 
 
