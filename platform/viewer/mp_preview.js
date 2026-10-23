@@ -128,11 +128,11 @@ function wfDbg(level, source, message, meta) {
       ov.hidden = true;
       ov.setAttribute("role", "dialog");
       ov.setAttribute("aria-modal", "true");
-      ov.setAttribute("aria-label", "Watch Route Preview");
+      ov.setAttribute("aria-label", "Preview");
       ov.innerHTML = `
       <div class="mp-panel">
         <header class="mp-bar">
-          <div class="mp-title"><span class="ms">play_circle</span><span>Watch Route Preview</span></div>
+          <div class="mp-title"><span class="ms">play_circle</span><span>Preview</span></div>
           <div class="mp-dest-label" id="mpDest" hidden></div>
           <div class="mp-dest-label mp-instr" id="mpInstr" hidden></div>
           <div class="mp-step" id="mpStep">—</div>

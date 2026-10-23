@@ -27,11 +27,11 @@
     try {
       payload = JSON.parse(sessionStorage.getItem("wf_nav_walkthrough_v1") || "null");
     } catch (e) {
-      fail("Could not read walkthrough data. Go back and tap Walkthrough Wayfinding again.");
+      fail("Could not read wayfinding data. Go back and tap Wayfinding again.");
       return;
     }
     if (!payload || !payload.route) {
-      fail("No walkthrough data. Go back and tap Walkthrough Wayfinding again.");
+      fail("No wayfinding data. Go back and tap Wayfinding again.");
       return;
     }
     window.WF = window.WF || {};
