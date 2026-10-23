@@ -1985,10 +1985,9 @@ function compactTime(seconds) {
 
 const Jobs = {
   props: ["b"],
-  template: `<div class="split"><div class="card jobs-card"><h2 style="margin-top:0">Jobs</h2><table><tr><th>#</th><th>Kind</th><th>Status</th><th>Progress</th><th>Time</th><th>Params</th><th>Created</th><th>Duration</th></tr>
+  template: `<div class="split"><div class="card jobs-card"><h2 style="margin-top:0">Jobs</h2><table><tr><th>#</th><th>Kind</th><th>Status</th><th>Progress</th><th>Params</th><th>Created</th><th>Elapsed</th></tr>
       <tr v-for="j in jobs" :key="j.id" @click="sel=j.id" style="cursor:pointer" :style="{background: sel===j.id ? '#e8f0fe' : ''}"><td>{{j.id}}</td><td>{{j.kind}}</td><td><span class="badge" :class="stCls(j.status==='succeeded'?'published':j.status==='failed'?'failed':'processing')">{{j.status}}</span></td>
         <td class="job-progress-cell"><div class="job-progress-row"><span>{{progress(j)}}%</span><span class="muted small">{{j.step || statusLabel(j)}}</span></div><div class="job-progress"><span :style="{width:progress(j)+'%'}" :class="j.status"></span></div></td>
-        <td class="small"><b v-if="j.status==='running'">{{eta(j)}} left</b><span v-else>{{statusLabel(j)}}</span></td>
         <td class="mono small">{{j.params.from_step ? 'from '+j.params.from_step : (j.params.steps||[]).join(',') || 'all'}}{{j.params.force?' (force)':''}}</td><td>{{new Date(j.created_at).toLocaleString()}}</td>
         <td>{{duration(j)}}</td></tr></table></div>
     <div><job-log v-if="sel" :job-id="sel"></job-log></div></div>`,
@@ -2009,18 +2008,13 @@ const Jobs = {
       const end = j.finished_at ? new Date(j.finished_at).getTime() : clock.value;
       return Math.max(0, (end - new Date(j.started_at).getTime()) / 1000);
     }
-    function eta(j) {
-      const pct = progress(j);
-      if (j.status !== "running" || pct <= 1) return "calculating…";
-      return `~${compactTime(elapsed(j) * (100 - pct) / pct)}`;
-    }
     function duration(j) { return j.started_at ? compactTime(elapsed(j)) : "—"; }
     function statusLabel(j) {
       return ({ queued: "Waiting", succeeded: "Complete", failed: "Stopped", cancelled: "Cancelled" })[j.status] || "Starting";
     }
     onMounted(() => { load(); clockTimer = setInterval(() => { clock.value = Date.now(); }, 1000); });
     onBeforeUnmount(() => { clearTimeout(pollTimer); clearInterval(clockTimer); });
-    return { jobs, sel, stCls, progress, eta, duration, statusLabel };
+    return { jobs, sel, stCls, progress, duration, statusLabel };
   }
 };
 
