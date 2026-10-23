@@ -440,8 +440,9 @@ const Wizard = {
     </div>
     <div class="card" v-if="step===1">
       <p>Matterport model: <span class="mono">{{f.matterport_model_id || '—'}}</span><br>MatterPak: <span class="mono">{{f.matterpak_path || '—'}}</span></p>
-      <div class="err small" v-if="!f.matterport_model_id || !f.matterpak_path" style="margin-bottom:10px">Onboarding needs both a Matterport model id and a MatterPak source — go back and fill in whichever is missing.</div>
-      <div class="row"><button @click="step=0">Back</button><button class="primary" @click="run" :disabled="busy||jobId||!f.matterport_model_id||!f.matterpak_path">Run onboarding pipeline</button>
+      <div class="err small" v-if="!f.matterport_model_id" style="margin-bottom:10px">Onboarding needs a Matterport model id.</div>
+      <div class="muted small" v-else-if="!f.matterpak_path" style="margin-bottom:10px">No MatterPak uploaded. Starting onboarding will fetch the available OBJ mesh from Matterport automatically.</div>
+      <div class="row"><button @click="step=0">Back</button><button class="primary" @click="run" :disabled="busy||jobId||!f.matterport_model_id">Run onboarding pipeline</button>
         <a class="btn" :href="'#/b/'+f.slug" v-if="jobId">Open building →</a></div>
       <job-log v-if="jobId" :job-id="jobId" @done="d=>done=d"></job-log>
       <div v-if="done==='succeeded'" class="ok" style="margin-top:10px">Done. Review the georeference, edit POIs, then publish.</div>

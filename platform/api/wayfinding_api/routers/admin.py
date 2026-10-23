@@ -310,9 +310,11 @@ def fetch_matterpak_from_matterport(slug: str, db: Session = Depends(get_db)):
 
     info = _inspect_matterpak_path(str(dest_dir))
     info["textured"] = False
-    b.matterpak_path = info["path"]
+    from ..services import bundle_storage
+    durable = bundle_storage.store_source_file(b.slug, fn)
+    b.matterpak_path = durable or info["path"]
     db.commit()
-    return {**info, "resolution": best.get("resolution"), "source": "matterport-api"}
+    return {**info, "path": b.matterpak_path, "resolution": best.get("resolution"), "source": "matterport-api"}
 
 
 @router.get("/matterpak/suggestions")
@@ -637,7 +639,9 @@ def showcase(slug: str, sweep: str | None = None, sdk: int = 0, db: Session = De
 @router.post("/buildings/{slug}/jobs")
 def start_job(slug: str, j: schemas.JobIn, db: Session = Depends(get_db), u: models.User = Depends(current_admin)):
     b = B(db, slug)
-    if not b.matterpak_path or not b.matterport_model_id: raise HTTPException(400, "set Matterport model id and upload a MatterPak first")
+    if not b.matterport_model_id: raise HTTPException(400, "set a Matterport model id first")
+    if not b.matterpak_path:
+        fetch_matterpak_from_matterport(slug, db)
     if j.steps and any(s not in PIPE_STEPS for s in j.steps): raise HTTPException(400, f"unknown step; valid: {PIPE_STEPS}")
     if db.query(models.Job).filter(models.Job.building_id == b.id, models.Job.status.in_(["queued", "running"])).first():
         raise HTTPException(409, "a job is already queued/running for this building")
