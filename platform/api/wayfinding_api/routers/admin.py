@@ -398,11 +398,17 @@ async def import_bundle(file: UploadFile = File(...), db: Session = Depends(get_
     skips ingest/mesh/colorplan/georef/etc. entirely, so the heavy MatterPak never needs to
     reach this (typically smaller / hosted free-tier) environment."""
     import zipfile
-    raw = await file.read()
-    if len(raw) > get_settings().max_upload_mb << 20:
+    # UploadFile spools large uploads to a temporary file.  Opening that file
+    # directly keeps imported publish bundles out of process memory; an import
+    # can otherwise OOM a small hosted API before it even reaches extraction.
+    await file.seek(0)
+    file.file.seek(0, 2)
+    size = file.file.tell()
+    file.file.seek(0)
+    if size > get_settings().max_upload_mb << 20:
         raise HTTPException(413, "bundle too large")
     try:
-        z = zipfile.ZipFile(io.BytesIO(raw))
+        z = zipfile.ZipFile(file.file)
     except zipfile.BadZipFile:
         raise HTTPException(400, "not a valid zip")
     try:
