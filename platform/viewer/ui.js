@@ -1353,13 +1353,13 @@ function wfDbg(level, source, message, meta) {
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
       <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
       <div class="actions actions-row1">
-        <button class="pill primary pill-sm" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Start Preview") : t("viewer.start"))}</button>
+        <button class="pill primary pill-sm" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Preview Route") : t("viewer.start"))}</button>
         ${isMpMode() ? "" : `<button class="pill pill-sm" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
         ${isMpMode() ? `<button class="pill pill-sm" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
         <button class="pill pill-sm pill-icon" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
       <div class="actions">
-        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">view_in_ar</span>${esc(t("viewer.tourInterior"))}</button>` : ""}
+        ${tm.embed_showcase ? `<button class="pill" id="dTourMp"><span class="ms">play_circle</span>${esc(t("viewer.tourInterior") || "Watch Route Preview")}</button>` : ""}
         ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>Walkthrough Wayfinding</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
