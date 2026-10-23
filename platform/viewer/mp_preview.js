@@ -43,6 +43,8 @@ function wfDbg(level, source, message, meta) {
   let cumDistM = [];                  // cumDistM[i] = meters along sweep path from start to sweep i
   let segDistM = [];                  // segDistM[i] = meters from sweep i → i+1 (last = to dest if any)
   let tourPaceScale = 1;              // multiplies FLY/dwell timing: >1 slower (small route), <1 faster (big route)
+  let countdownTimer = null;
+  let countdownDeadline = 0;
 
   function $(id) { return document.getElementById(id); }
 
@@ -1070,6 +1072,11 @@ function wfDbg(level, source, message, meta) {
     return Math.round(m) + " m";
   }
 
+  function fmtSeconds(seconds) {
+    const value = Math.max(0, Math.ceil(seconds || 0));
+    return value + (value === 1 ? " sec" : " secs");
+  }
+
   // MatterPak / nav graph: Z-up, horizontal x,y. Showcase Camera: Y-up (x, y-up, z≈-y).
 
   function modelToSdk(p) {
@@ -1187,6 +1194,41 @@ function wfDbg(level, source, message, meta) {
     if (dockEta) dockEta.hidden = true;
   }
 
+  function stopCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    countdownDeadline = 0;
+  }
+
+  function estimatedTourMs(fromIndex) {
+    let total = 0;
+    const dwellScale = Math.max(0.5, Math.min(1.6, tourPaceScale));
+    for (let i = Math.max(0, fromIndex || 0); i < sweepIds.length; i++) {
+      const hopM = (i > 0 && segDistM[i - 1] != null) ? +segDistM[i - 1] : 0;
+      let flyMs = i === 0 ? Math.round(1000 * tourPaceScale) : flyTransitionMs(hopM);
+      if (i === sweepIds.length - 1 && i > 0) flyMs = Math.min(Math.round(flyMs * 1.5), 4500);
+      total += flyMs + Math.round((i < 2 ? 400 : 220) * dwellScale);
+    }
+    return total;
+  }
+
+  function renderCountdown() {
+    if (!countdownDeadline) return;
+    const seconds = Math.max(0, Math.ceil((countdownDeadline - Date.now()) / 1000));
+    const rem = remainingDistM(stepI);
+    const value = fmtSeconds(seconds) + " · " + fmtMeters(rem);
+    const remEl = $("mpDistRem"), dockVal = $("mpDockDist");
+    if (remEl) remEl.textContent = value;
+    if (dockVal) dockVal.textContent = value;
+  }
+
+  function startCountdown(fromIndex) {
+    stopCountdown();
+    countdownDeadline = Date.now() + estimatedTourMs(fromIndex);
+    renderCountdown();
+    countdownTimer = setInterval(renderCountdown, 250);
+  }
+
   function updateDistHud(i) {
     const el = ensureDistHudMount();
     if (!el) return;
@@ -1200,7 +1242,7 @@ function wfDbg(level, source, message, meta) {
     const remEl = $("mpDistRem");
     const legEl = $("mpDistLeg");
     const legRow = $("mpDistLegRow");
-    if (remEl) remEl.textContent = fmtMeters(rem);
+    if (remEl) remEl.textContent = countdownDeadline ? (fmtSeconds(Math.ceil((countdownDeadline - Date.now()) / 1000)) + " · " + fmtMeters(rem)) : fmtMeters(rem);
     if (legEl) legEl.textContent = leg != null ? fmtMeters(leg) : "";
     if (legRow) legRow.hidden = leg == null;
     el.hidden = false;
@@ -1210,7 +1252,7 @@ function wfDbg(level, source, message, meta) {
     // Same "Distance remaining" readout Start Preview's #navBar and Walkthrough
     // Wayfinding's .n3d-dock show in their bottom bar.
     const dockEta = $("mpDockEta"), dockVal = $("mpDockDist"), dockLbl = $("mpDockLbl");
-    if (dockVal) dockVal.textContent = fmtMeters(rem);
+    if (dockVal) dockVal.textContent = countdownDeadline ? (fmtSeconds(Math.ceil((countdownDeadline - Date.now()) / 1000)) + " · " + fmtMeters(rem)) : fmtMeters(rem);
     if (dockLbl) dockLbl.textContent = destName ? ("To " + destName) : "Distance remaining";
     if (dockEta) dockEta.hidden = false;
   }
@@ -1796,6 +1838,7 @@ function wfDbg(level, source, message, meta) {
     playing = true;
     stopped = false;
     setStatus("Touring interior…");
+    startCountdown(stepI);
     try { await updateDirArrow(stepI); } catch (_) { /* ignore */ }
     try { updateDistHud(stepI); } catch (_) { /* ignore */ }
     let moved = 0, failed = 0;
@@ -1815,6 +1858,7 @@ function wfDbg(level, source, message, meta) {
     }
     if (playing && !stopped) {
       playing = false;
+      stopCountdown();
       hideDirArrow();
       hideDistHud();
       if (!moved && failed) {
@@ -1839,6 +1883,7 @@ function wfDbg(level, source, message, meta) {
 
   function pause() {
     playing = false;
+    stopCountdown();
     hideDirArrow();
     hideDistHud();
     setStatus("Paused.");
@@ -1847,6 +1892,7 @@ function wfDbg(level, source, message, meta) {
   function stopWalk() {
     playing = false;
     stopped = true;
+    stopCountdown();
     stepI = 0;
     updateStep();
     hideDirArrow();
@@ -2505,6 +2551,7 @@ function wfDbg(level, source, message, meta) {
     openGen++;
     playing = false;
     stopped = true;
+    stopCountdown();
     hideDirArrow();
     hideDistHud();
     clearMediaTags();
