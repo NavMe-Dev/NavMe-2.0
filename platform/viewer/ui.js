@@ -2270,6 +2270,10 @@ function wfDbg(level, source, message, meta) {
     opts = opts || {};
     hideArrivalCard();
     arrivalFeedbackGiven = false;
+    const isRoutePreview = opts.context === "tour_interior";
+    const arrivalTitle = isRoutePreview
+      ? (t("viewer.routePreviewEnded") || "Route Preview Ended")
+      : (t("viewer.destinationReached") || "Destination reached");
     const el = document.createElement("div");
     el.id = "wfArrivedCard";
     el.className = "wf-arrived";
@@ -2278,7 +2282,7 @@ function wfDbg(level, source, message, meta) {
     el.innerHTML = `
       <div class="wf-arrived-card">
         <div class="wf-arrived-ic" aria-hidden="true">&#x2713;</div>
-        <strong class="wf-arrived-title">${esc(t("viewer.destinationReached") || "Destination reached")}</strong>
+        <strong class="wf-arrived-title">${esc(arrivalTitle)}</strong>
         <span class="wf-arrived-name">${opts.name ? esc(t("viewer.youArrived", { name: opts.name }) || ("You have arrived at " + opts.name + ".")) : ""}</span>
         <div class="wf-arrived-feedback">
           <span class="wf-arrived-feedback-lbl">${esc(t("viewer.howWasRoute") || "How was this route?")}</span>
