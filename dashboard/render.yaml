@@ -37,12 +37,12 @@ services:
       - key: NODE_VERSION
         value: '20'
       - key: VITE_SUPABASE_URL
-        value: https://znfwcohrpkiccibqcfpn.supabase.co
+        value: https://kzpvhzyefdtrtidrbuxb.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZndjb2hycGtpY2NpYnFjZnBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDUzNDMsImV4cCI6MjA4Njg4MTM0M30.owUVIY-uz7Cr4p83ZQ88QbsgrUfuZqKRiC7HZFIfoec
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6cHZoenllZmR0cnRpZHJidXhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNjMxNDgsImV4cCI6MjEwNzYzOTE0OH0.ys2Jq14Y_70KgvKT8HY3IbsvsPrN3mGpNp-4MOrOb3c
       - key: VITE_MATTERPORT_SDK_KEY
         value: 762iznhy6un3iztccf6bpc48a
       - key: VITE_NAVME_STANDALONE
         value: 'true'
       - key: VITE_MULTISET_PROXY_URL
-        value: https://znfwcohrpkiccibqcfpn.supabase.co/functions/v1/multiset-proxy
+        value: https://kzpvhzyefdtrtidrbuxb.supabase.co/functions/v1/multiset-proxy

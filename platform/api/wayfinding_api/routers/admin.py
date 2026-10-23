@@ -655,6 +655,27 @@ def start_job(slug: str, j: schemas.JobIn, db: Session = Depends(get_db), u: mod
     db.add(row); b.status = "queued"; db.commit(); return {"id": row.id, "status": row.status}
 
 
+@router.post("/buildings/{slug}/jobs/refresh")
+def refresh_onboarding_job(slug: str, db: Session = Depends(get_db), u: models.User = Depends(current_admin)):
+    """Attach to an active job, or queue a fresh full onboarding run."""
+    b = B(db, slug)
+    active = (db.query(models.Job)
+              .filter(models.Job.building_id == b.id, models.Job.status.in_(["queued", "running"]))
+              .order_by(models.Job.id.desc()).first())
+    if active:
+        return {"id": active.id, "status": active.status, "reused": True}
+    if not b.matterport_model_id:
+        raise HTTPException(400, "set a Matterport model id first")
+    if not b.matterpak_path:
+        fetch_matterpak_from_matterport(slug, db)
+    params = schemas.JobIn(force=True).model_dump()
+    row = models.Job(building_id=b.id, kind="onboard", params=params, created_by=u.email)
+    db.add(row)
+    b.status = "queued"
+    db.commit()
+    return {"id": row.id, "status": row.status, "reused": False}
+
+
 @router.get("/vps/available")
 def vps_available_check():
     """Whether this server has the local vps_prototype venv set up at all — local-machine-

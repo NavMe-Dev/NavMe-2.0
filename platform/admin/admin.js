@@ -788,9 +788,12 @@ const Overview = {
       <div class="ok" v-if="mpOk" style="margin-top:6px">{{mpOk}}</div>
       <div class="err" v-if="mpErr" style="margin-top:6px">{{mpErr}}</div>
     <div class="card"><h2 style="margin-top:0">{{t("admin.pipeline")}}</h2>
-      <div class="row"><button class="primary" @click="run({})">{{t("admin.runUpdate")}}</button>
+      <p class="muted small" style="margin-top:0">Refresh onboarding runs the complete pipeline again using this building's current MatterPak path or Matterport API source.</p>
+      <div class="row"><button class="primary" @click="refreshOnboarding" :disabled="refreshBusy">{{refreshBusy ? 'Refreshing…' : 'Refresh onboarding'}}</button>
+        <button @click="run({})">{{t("admin.runUpdate")}}</button>
         <select v-model="from" style="width:auto"><option value="">{{t("admin.rebuildFrom")}}</option><option v-for="s in steps" :value="s">{{s}}</option></select>
         <button @click="run({from_step: from, force: true})" :disabled="!from">{{t("admin.rebuild")}}</button></div>
+      <div class="muted small" v-if="refreshMsg" style="margin-top:8px">{{refreshMsg}}</div>
       <job-log v-if="jobId" :job-id="jobId" @done="$emit('reload')"></job-log></div>
     <div class="card" style="border-color:#d93025">
       <h2 style="margin-top:0;color:#d93025">Danger zone</h2>
@@ -959,6 +962,16 @@ const Overview = {
       } catch (x) { err.value = x.message; }
     }
     async function run(p) { try { const j = await api(`/admin/buildings/${props.b.slug}/jobs`, { method: "POST", json: p }); jobId.value = j.id; } catch (x) { toast(x.message); } }
+    const refreshBusy = ref(false), refreshMsg = ref("");
+    async function refreshOnboarding() {
+      refreshBusy.value = true; refreshMsg.value = "";
+      try {
+        const j = await api(`/admin/buildings/${props.b.slug}/jobs/refresh`, { method: "POST" });
+        jobId.value = j.id;
+        refreshMsg.value = j.reused ? `Opened active job #${j.id}.` : `Started new onboarding job #${j.id}.`;
+      } catch (x) { toast(x.message); }
+      refreshBusy.value = false;
+    }
     const delFiles = ref(true), delBusy = ref(false), delErr = ref("");
     async function deleteBuilding() {
       const typed = prompt(`Type the slug "${props.b.slug}" to permanently delete this building. This cannot be undone.`);
@@ -1041,7 +1054,7 @@ const Overview = {
       } catch (x) { navmeshErr.value = true; navmeshMsg.value = x.message; }
       navmeshBusy.value = false;
     }
-    return { mi, st, e, saved, err, save, run, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, pt, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType, poiTypeSaving, poiTypeSaved, savePoiType, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, WALKTHROUGH_MODES, wtInfo, wtBusy, wtMsg, wtErr, setWalkthroughMode, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
+    return { mi, st, e, saved, err, save, run, refreshOnboarding, refreshBusy, refreshMsg, jobId, from, steps, sc, scBusy, scErr, viewMode, mapStyle, mapEl, reloadTwin, closeTwin, fileUrl, t, i18nTick, localeCatalog, isLocalDev, mpPath, mpSuggestions, mpBusy, setMpPath, mpOk, mpErr, mpFile, mpFileTooBig, mpUpBusy, mpUpProgress, onMpFile, uploadMp, delFiles, delBusy, delErr, deleteBuilding, gmapBusy, gmapMsg, gmapErr, syncNavmeGmap, pt, poiTypeOptions, poiTypeBusy, poiTypeMsg, poiTypeErr, checkPoiType, poiTypeSaving, poiTypeSaved, savePoiType, navmeshBusy, navmeshMsg, navmeshErr, onNavmeshFile, WALKTHROUGH_MODES, wtInfo, wtBusy, wtMsg, wtErr, setWalkthroughMode, vpsAvailable, vpsReason, vpsBusy, vpsJobId, startVpsBuild, onVpsJobDone };
   }
 };
 

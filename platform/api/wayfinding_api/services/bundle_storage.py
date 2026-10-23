@@ -10,8 +10,8 @@ the "building has no pipeline output" / 404 errors this module exists to fix.
 
 Local disk is still the fast path and is always tried first — this only exists
 to recover when local disk has been wiped, and to make freshly published/
-imported bundles durable going forward. Entirely inert (is_enabled() is False)
-unless SUPABASE_SERVICE_ROLE_KEY is configured, so local dev is unaffected.
+imported bundles durable going forward. Public reads need only the project URL
+and bucket; writes additionally require SUPABASE_SERVICE_ROLE_KEY.
 """
 import mimetypes
 from concurrent.futures import ThreadPoolExecutor
@@ -25,6 +25,11 @@ from ..config import get_settings
 def is_enabled() -> bool:
     s = get_settings()
     return bool(s.supabase_url and s.supabase_service_role_key and s.supabase_storage_bucket)
+
+
+def is_read_enabled() -> bool:
+    s = get_settings()
+    return bool(s.supabase_url and s.supabase_storage_bucket)
 
 
 def is_source_enabled() -> bool:
@@ -198,7 +203,7 @@ def fetch_bytes(slug: str, version: int, relpath: str) -> bytes | None:
     is needed (and none is sent) for these GETs. Reassembles chunked uploads
     (see upload_dir) transparently if a direct fetch 404s and a ".chunks"
     manifest exists alongside it."""
-    if not is_enabled():
+    if not is_read_enabled():
         return None
     s = get_settings()
     base = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/{_object_path(slug, version, relpath)}"
@@ -234,7 +239,7 @@ def upload_vps_dir(model_id: str, local_dir: Path, max_workers: int = 8) -> int:
 
 
 def fetch_vps_bytes(model_id: str, relpath: str) -> bytes | None:
-    if not is_enabled():
+    if not is_read_enabled():
         return None
     s = get_settings()
     base = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/vps/{model_id}/{relpath}"
@@ -261,7 +266,7 @@ def upload_navmesh(slug: str, local_path: Path) -> bool:
 
 
 def fetch_navmesh_bytes(slug: str) -> bytes | None:
-    if not is_enabled():
+    if not is_read_enabled():
         return None
     s = get_settings()
     url = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/navmesh/{slug}.navmesh"
