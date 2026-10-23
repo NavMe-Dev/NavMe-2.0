@@ -132,6 +132,9 @@ body.dir #chipsMore{display:none}
 body.ac-open .top{z-index:32}
 .handle{padding:8px 0 4px;display:flex;justify-content:center;cursor:grab;flex:none}
 .handle span{width:36px;height:4px;border-radius:2px;background:var(--line)}
+.sheet-close{position:absolute;top:8px;right:10px;z-index:2;width:40px;height:40px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--bg);color:var(--txt2);box-shadow:var(--sh1);cursor:pointer}
+.sheet-close .ms{font-size:24px}
+.sheet-close:active{transform:scale(.94)}
 .sheetbody{overflow:auto;padding:4px 16px 20px;flex:1;touch-action:pan-y;overscroll-behavior:contain}
 .sheet[hidden]{display:none}
 h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
@@ -303,6 +306,7 @@ body.nav .cbot{bottom:96px}
 /* mobile: attribution sits above the sheet */
 @media (max-width:767px){
   body.dir .chips{display:none}
+  .sheetbody>:first-child{margin-right:46px}
 }
 /* ---------- desktop ---------- */
 @media (min-width:768px){
@@ -311,6 +315,7 @@ body.nav .cbot{bottom:96px}
   .sheet{left:12px;top:124px;bottom:auto;width:var(--panelW);height:auto!important;max-height:calc(100% - 150px);border-radius:16px;box-shadow:var(--sh2)}
   body.dir .sheet{top:170px;max-height:calc(100% - 196px)}
   .handle{display:none}
+  .sheet-close{display:none}
   .sheetbody{padding:12px 20px 20px}
   .ctrls{bottom:36px;right:12px}
   .pop{bottom:36px;right:66px}

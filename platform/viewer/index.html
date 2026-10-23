@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261013lang1">
+<link rel="stylesheet" href="ui.css?v=20261023sheet-close1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script src="vendor/ngraph.graph.min.js"></script>
 <script src="vendor/ngraph.path.min.js"></script>
@@ -93,6 +93,7 @@
 
   <section id="sheet" class="sheet" aria-label="Details" data-i18n-aria-label="viewer.details" data-state="peek">
     <div id="sheetHandle" class="handle" role="button" tabindex="0" aria-label="Expand or collapse panel" data-i18n-aria-label="viewer.expandCollapse"><span></span></div>
+    <button type="button" id="sheetClose" class="sheet-close" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button>
     <div id="sheetBody" class="sheetbody"></div>
   </section>
 
@@ -339,6 +340,6 @@
 <script src="threed_nav.js?v=20261012arrival1"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261023route-ended1"></script>
+<script src="ui.js?v=20261023sheet-close1"></script>
 </body>
 </html>

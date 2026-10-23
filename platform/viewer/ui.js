@@ -2175,13 +2175,21 @@ function wfDbg(level, source, message, meta) {
       else { const nh = sh.getBoundingClientRect().height; let best = "peek", bd = 1e9; order.forEach(s => { const d = Math.abs(sheetPx(s) - nh); if (d < bd) { bd = d; best = s; } }); setSheetState(best); }
     });
     h.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const cur = order.indexOf(sh.dataset.state); setSheetState(order[(cur + 1) % 3]); } });
-    window.addEventListener("resize", () => setSheetState(sh.dataset.state || "peek"));
+    $("sheetClose").onclick = closeSheet;
+    window.addEventListener("resize", () => { if (!sh.hidden) setSheetState(sh.dataset.state || "peek"); });
+  }
+  function closeSheet() {
+    const sh = $("sheet");
+    sh.hidden = true;
+    sh.style.height = "";
+    document.documentElement.style.setProperty("--sheetH", "0px");
+    applyPadding();
   }
   function applyPadding() {
     if (!wf) return;
     const desk = isDesk(); const nav = S.mode === "nav";
     const pad = desk ? { left: nav ? 470 : (12 + 408 + 12), top: 0, right: 60, bottom: 0 }
-      : { left: 0, right: 56, top: nav ? 120 : (S.mode === "dir" ? 150 : 110), bottom: nav ? 90 : sheetPx($("sheet").dataset.state || "peek") };
+      : { left: 0, right: 56, top: nav ? 120 : (S.mode === "dir" ? 150 : 110), bottom: nav ? 90 : ($("sheet").hidden ? 0 : sheetPx($("sheet").dataset.state || "peek")) };
     wf.view2d.padding = pad; const v3 = wf.getView3d(); if (v3) v3.padding = pad;
   }
 
