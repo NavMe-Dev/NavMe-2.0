@@ -116,9 +116,15 @@
   })();
   window.WF.ready.catch(e => {
     console.error(e);
+    if (window.WFStartup) { window.WFStartup.fail(); return; }
     const d = document.createElement("div");
     d.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:16px Roboto,Arial;background:#fff;z-index:999;padding:24px;text-align:center";
-    const msg = (window.WFi18n && WFi18n.t) ? WFi18n.t("viewer.loadError", { msg: e.message }) : ("Could not load map data: " + e.message);
-    d.textContent = msg; document.body.appendChild(d);
+    const msg = (window.WFi18n && WFi18n.t) ? WFi18n.t("viewer.loadError") : "We couldn't load the map right now. Please try again.";
+    d.style.flexDirection = "column";
+    const heading = document.createElement("h2"); heading.textContent = "Map unavailable";
+    const description = document.createElement("p"); description.textContent = msg;
+    const retry = document.createElement("button"); retry.textContent = "Try Again";
+    retry.onclick = () => location.reload();
+    d.append(heading, description, retry); document.body.appendChild(d);
   });
 })();

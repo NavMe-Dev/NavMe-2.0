@@ -65,27 +65,34 @@
        mesh-debug toggles) — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels,
     body.mp-bg-mode #layersPop, body.mp-bg-mode [data-act="dev"] { display:none !important; }
-    /* Loading feedback while the Showcase iframe/SDK connect (mp_preview.js setStatus()
-       mirrors its messages here since .mp-status is hidden above) — without this the
-       background was a plain black screen with no indication anything was happening,
-       which read as "stuck" rather than "loading", especially over slower mobile networks.
-       Before the iframe has loaded there's nothing underneath to see, so this covers it
-       fully opaque. Once mp_preview.js adds .mp-frame-loaded (iframe has real content —
-       which can include Matterport's own "tap to enter" gate), it must stop covering/
-       blocking the iframe or that gate becomes impossible to see or tap; it shrinks to a
-       small, click-through status pill instead. */
+    /* Reuse the branded surface until the SDK and existing dollhouse framing
+       are ready. Then show only a centered, transparent preparation indicator
+       over the live iframe while NavMe's search/navigation UI finishes. */
     body.mp-bg-mode #mpBgLoading {
       position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:14px; background:#000; color:#e8eaed;
       font:14px/1.4 Roboto,system-ui,-apple-system,sans-serif; text-align:center; padding:24px;
     }
     body.mp-bg-mode #mpBgLoading[hidden] { display:none !important; }
-    /* Once the iframe has real content, drop the status pill entirely instead of shrinking
-       it into a bottom toast — "Connecting to digital twin…" / "Tap Enter…" etc. read as
-       noise once the scene itself is already visible underneath. The full-bleed splash
-       above (shown before .mp-frame-loaded) is untouched; this only removes what used to
-       replace it. */
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoading { display:none !important; }
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoading {
+      background:transparent; pointer-events:none;
+    }
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoadingText {
+      padding:6px 12px; border-radius:12px; background:rgba(0,0,0,.25);
+      text-shadow:0 1px 4px rgba(0,0,0,.7); max-width:calc(100vw - 48px);
+    }
+    body.mp-bg-mode #mpBgLoading { box-sizing:border-box; opacity:1; transition:opacity .2s ease; }
+    body.mp-bg-mode.mp-startup-complete #mpBgLoading { opacity:0; pointer-events:none; }
+    body.mp-bg-mode #mpBgLoading.err { pointer-events:auto; background:rgba(0,0,0,.75); }
+    body.mp-bg-mode #mpBgLoading.err .navme-bg-splash { display:flex !important; }
+    body.mp-bg-mode #mpBgLoading.err > #mpBgLoadingText { display:none !important; }
+    body.mp-bg-mode #mpStartupRetry {
+      font:inherit; padding:10px 18px; border-radius:20px; border:0; cursor:pointer;
+      background:#8ab4f8; color:#17243a;
+    }
+    @media (prefers-reduced-motion:reduce) {
+      body.mp-bg-mode #mpBgLoading, body.mp-bg-mode .ui { transition:none; }
+    }
     body.mp-bg-mode .mp-bg-spinner {
       width:36px; height:36px; border-radius:50%; border:3px solid rgba(255,255,255,.25);
       border-top-color:#8ab4f8; animation:mpBgSpin .8s linear infinite; flex-shrink:0;
@@ -95,17 +102,13 @@
     body.mp-bg-mode #mpBgLoading.err { color:#f28b82; }
     @keyframes mpBgSpin { to { transform:rotate(360deg); } }
     @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .mp-bg-spinner { animation:none; } }
-    /* NavMe-branded splash — see enhanceBgLoading() below. mp_preview.js's setStatus()
-       keeps writing its raw status string into #mpBgLoadingText exactly as before (Tour
-       interior, which shares that function, is completely untouched); this only re-skins
-       the mp-bg-mode presentation of it. Hidden once Showcase has real content so its own
-       "tap to enter" gate (if any) is visible/tappable — the original small spinner+text
-       pill takes back over at that point, unchanged from before this existed. */
+    /* Preserve the existing logo, spinner, and milestone-based percentage.
+       Only a usable dollhouse replaces this surface with the preparation text. */
     body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > .mp-bg-spinner,
     body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > #mpBgLoadingText {
       display:none !important;
     }
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoading .navme-bg-splash { display:none !important; }
+    body.mp-bg-mode.mp-frame-loaded #mpBgLoading:not(.err) .navme-bg-splash { display:none !important; }
     body.mp-bg-mode .navme-bg-splash {
       display:flex; flex-direction:column; align-items:center; gap:16px;
     }
@@ -181,14 +184,17 @@
     }
 
     function syncFromText() {
+      if (document.body.classList.contains("mp-frame-loaded") || el.hidden) clearInterval(creepTimer);
       const msg = (textEl && textEl.textContent) || "";
       const isErr = el.classList.contains("err");
       shell.classList.toggle("is-err", isErr);
       if (isErr) {
-        titleEl.textContent = "Could not load the digital twin";
-        subEl.textContent = msg;
+        clearInterval(creepTimer);
+        titleEl.textContent = "Unable to load NavMe";
+        subEl.textContent = "We couldn't load your navigation experience. Please try again.";
         return;
       }
+      if (document.body.classList.contains("mp-frame-loaded") || el.hidden) return;
       const hit = STATUS_MILESTONES.filter((m) => m.match.test(msg))[0];
       const target = hit ? hit.pct : Math.max(shownPct, 30);
       titleEl.textContent = DEFAULT_TITLE;
@@ -202,7 +208,8 @@
     syncFromText();
     const mo = new MutationObserver(syncFromText);
     if (textEl) mo.observe(textEl, { childList: true, characterData: true, subtree: true });
-    mo.observe(el, { attributes: true, attributeFilter: ["class"] });
+    mo.observe(el, { attributes: true, attributeFilter: ["class", "hidden"] });
+    mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
 
   function watchForBgLoading() {
@@ -215,18 +222,106 @@
     mo.observe(document.body, { childList: true, subtree: true });
   }
 
+  // Own the existing loader until BOTH the live model and NavMe chrome are ready.
+  // iframe.load and percentage milestones intentionally never advance this state.
+  function createStartup() {
+    let generation = 0, modelReady = false, chromeReady = false, failed = false, complete = false;
+    let watchdog = null, lastStatus = "Loading digital twin…";
+    const preparing = "Preparing your experience…";
+    function render() {
+      const el = document.getElementById("mpBgLoading");
+      if (!el) return;
+      enhanceBgLoading(el);
+      el.setAttribute("role", failed ? "alert" : "status");
+      el.setAttribute("aria-live", "polite");
+      el.setAttribute("aria-busy", String(!failed && !complete));
+      el.classList.toggle("err", failed);
+      const text = document.getElementById("mpBgLoadingText");
+      if (text) text.textContent = failed
+        ? "We couldn't load your navigation experience. Please try again."
+        : (modelReady ? preparing : lastStatus);
+      el.hidden = false;
+      if (failed && !document.getElementById("mpStartupRetry")) {
+        const retry = document.createElement("button");
+        retry.id = "mpStartupRetry"; retry.type = "button"; retry.textContent = "Try Again";
+        retry.onclick = () => location.reload(); // Keep the complete QR/shared URL intact.
+        const shell = el.querySelector(".navme-bg-splash");
+        (shell || el).appendChild(retry);
+      }
+      if (modelReady && chromeReady && !failed && !complete) {
+        complete = true;
+        clearTimeout(watchdog);
+        document.body.classList.add("mp-startup-complete");
+        document.body.classList.remove("booting");
+        const finish = () => {
+          if (complete && !failed) el.hidden = true;
+        };
+        el.addEventListener("transitionend", finish, { once: true });
+        // In reduced-motion mode no transition event is emitted. The class still
+        // makes the loader transparent immediately if transition events are absent.
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) finish();
+      }
+    }
+    const state = {
+      get generation() { return generation; },
+      get pending() { return !complete; },
+      begin(gen) {
+        // A required-data failure may arrive before DOMContentLoaded starts the model.
+        if (failed && generation === 0) { generation = gen; render(); return; }
+        generation = gen; modelReady = false; chromeReady = false; failed = false; complete = false;
+        window.__mpBackgroundReady = false;
+        lastStatus = "Loading digital twin…";
+        document.body.classList.add("booting");
+        document.body.classList.remove("mp-frame-loaded", "mp-startup-complete");
+        const retry = document.getElementById("mpStartupRetry"); if (retry) retry.remove();
+        clearTimeout(watchdog);
+        // A deadline reports failure; it never pretends that the model is ready.
+        watchdog = setTimeout(() => state.fail(gen), 120000);
+        render();
+      },
+      isCurrent(gen) { return generation === gen && !failed; },
+      status(msg, isErr) {
+        if (complete) return;
+        if (isErr) { state.fail(generation); return; }
+        if (msg) lastStatus = msg;
+        render();
+      },
+      modelReady(gen) {
+        if (!state.isCurrent(gen)) return;
+        modelReady = true;
+        document.body.classList.add("mp-frame-loaded");
+        render();
+      },
+      uiReady(gen) {
+        if (!state.isCurrent(gen)) return;
+        chromeReady = true; render();
+      },
+      fail(gen) {
+        if (gen !== undefined && gen !== generation) return;
+        if (complete || failed) return;
+        failed = true; clearTimeout(watchdog);
+        render();
+      },
+    };
+    return state;
+  }
+  window.WFStartup = createStartup();
+  let resolveBackground;
+  window.__mpBackgroundPromise = new Promise(resolve => { resolveBackground = resolve; });
+
   function boot() {
-    if (!window.MpPreview || !window.MpPreview.showBackground) { setTimeout(boot, 150); return; }
     watchForBgLoading();
-    // ui.js's boot sequence waits on this (see mpBackgroundReady()) so the NavMe chrome
-    // (search bar, chips, directions...) doesn't fade in over a still-loading/blank
-    // Matterport scene — it was previously timed off i18n+deep-link only, unrelated to
-    // whether the twin had actually finished connecting. Resolves either way (true or
-    // false) — a connect failure shouldn't leave the rest of the UI hidden forever.
-    window.MpPreview.showBackground().finally(() => {
+    if (!window.MpPreview || !window.MpPreview.showBackground) {
+      window.WFStartup.fail(); resolveBackground(false); return;
+    }
+    const attempt = window.MpPreview.showBackground();
+    const generation = window.WFStartup.generation;
+    attempt.then((ok) => {
+      if (!ok || !window.WFStartup.isCurrent(generation)) return false;
       window.__mpBackgroundReady = true;
       window.dispatchEvent(new Event("mp-background-ready"));
-    });
+      return true;
+    }).catch(() => { window.WFStartup.fail(generation); return false; }).then(resolveBackground);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();

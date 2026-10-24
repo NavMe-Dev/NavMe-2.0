@@ -55,7 +55,7 @@ function wfDbg(level, source, message, meta) {
     t.innerHTML = `<span>${esc(msg)}</span>`;
     t.hidden = false;
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => { t.hidden = true; }, 2800);
+    toast._t = setTimeout(() => { t.hidden = true; }, Math.max(5000, String(msg).length * 65));
   }
 
   function esc(s) {
@@ -192,6 +192,10 @@ function wfDbg(level, source, message, meta) {
     // scoped to mp-bg-mode only so normal Tour interior (which still has .mp-status) is
     // unaffected.
     if (document.body.classList.contains("mp-bg-mode")) {
+      if (window.WFStartup && window.WFStartup.pending) {
+        window.WFStartup.status(msg, isErr);
+        return;
+      }
       const bg = $("mpBgLoading"), bgText = $("mpBgLoadingText");
       if (bg && bgText) {
         if (!msg) { bg.hidden = true; }
@@ -1698,12 +1702,12 @@ function wfDbg(level, source, message, meta) {
     sweepIds = mapped;
     sweepNodes = sweepIds.map((id, i) => Object.assign({}, sweepNodes[i] || {}, { id }));
     if (stillBad.length === sweepIds.length) {
-      setStatus("Route sweep IDs do not match this Matterport model (" + modelId + "). Twin is open for manual look-around.", true);
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.", true);
       return [];
     }
     if (stillBad.length) {
       sweepIds = mapped.filter(id => known.has(id));
-      setStatus("Some route sweeps are missing in this model — touring " + sweepIds.length + " matched stops.", false);
+      setStatus("Some tour stops aren't available. You can explore the remaining " + sweepIds.length + (sweepIds.length === 1 ? " stop." : " stops."), false);
     }
     updateStep();
     return sweepIds;
@@ -1787,13 +1791,12 @@ function wfDbg(level, source, message, meta) {
 
   async function play() {
     if (!mpSdk) {
-      setStatus(applicationKey
-        ? (connectError || "SDK not connected — open Showcase manually or whitelist this domain in Matterport.")
-        : "SDK key not configured — Showcase is open for manual exploration (no auto-walk).", true);
+      console.warn("[MpPreview] tour connection unavailable", { configured: !!applicationKey });
+      setStatus("The indoor tour isn't available right now. Please try again later.", true);
       return;
     }
     if (!sweepIds.length) {
-      setStatus("This route has no indoor Matterport sweeps to tour.", true);
+      setStatus("The indoor tour isn't available right now. Please try again later.", true);
       return;
     }
     const Ph = phaseConsts(mpSdk);
@@ -1829,9 +1832,9 @@ function wfDbg(level, source, message, meta) {
       hideDirArrow();
       hideDistHud();
       if (!moved && failed) {
-        setStatus("Could not move the camera along the route (Sweep.moveTo failed). Check that this domain is whitelisted for the SDK key and the model matches the building.", true);
+        setStatus("The indoor tour isn't available right now. Please try again later.", true);
       } else if (failed) {
-        setStatus("Tour finished with " + failed + " skipped stop(s).");
+        setStatus("Your tour is complete, but " + failed + (failed === 1 ? " stop" : " stops") + " couldn't be shown. You can explore the available stops again.");
       } else {
         setStatus("Tour complete.");
         // Shared "Destination reached" card (window.wfShowArrivalCard, ui.js) — same
@@ -1903,7 +1906,7 @@ function wfDbg(level, source, message, meta) {
     try {
       sessionStorage.setItem("wf_mp_tour_v1", JSON.stringify(payload));
     } catch (e) {
-      try { ensureOverlay(); setStatus("Could not save tour for fullscreen page: " + (e && e.message || e), true); }
+      try { ensureOverlay(); setStatus("We couldn't load the virtual tour. Please go back and try opening it again.", true); }
       catch (_) { alert("Could not save tour for fullscreen page"); }
       return false;
     }
@@ -2307,7 +2310,7 @@ function wfDbg(level, source, message, meta) {
     updateStep();
     updateDest();
     if (!ids.length) {
-      setStatus("No indoor sweeps on this route — outdoor-only segments are skipped.", true);
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.", true);
     }
     if (!sweepIds.length && route && (route.navPath || route.smoothed || route.nodes)) {
       await fillSweepIdsFromNavPath(mpSdk, route);
@@ -2317,9 +2320,7 @@ function wfDbg(level, source, message, meta) {
     if (gen !== openGen) return;
     updateStep();
     if (!aligned.length) {
-      setStatus(ids.length
-        ? "Route sweeps do not match this model. Explore manually."
-        : "No sweep path on this route.");
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.");
       return;
     }
     const h0 = headingToward(0);
@@ -2366,7 +2367,8 @@ function wfDbg(level, source, message, meta) {
     try {
       await resolveConfig();
     } catch (e) {
-      const msg = (e && e.message) || "Digital twin unavailable";
+      console.warn("[MpPreview] configuration failed", e && e.code);
+      const msg = "We couldn't open the 3D view right now. You can continue using the regular map.";
       toast(msg);
       setStatus(msg, true);
       try {
@@ -2384,7 +2386,7 @@ function wfDbg(level, source, message, meta) {
     if (startedOutdoors) toast("Starting at building entrance");
 
     if (!ids.length) {
-      setStatus("No indoor sweeps on this route — outdoor-only segments are skipped. Showcase is open for manual look-around.", true);
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.", true);
     }
 
     // No starting sweep on the MAIN iframe load — Matterport's own default with no ss=
@@ -2415,7 +2417,7 @@ function wfDbg(level, source, message, meta) {
     if (gen !== openGen) return;
 
     if (!applicationKey) {
-      setStatus("Matterport SDK key not found (data/sdk_config.json). Showcase opened without SDK — explore manually; auto-walk disabled.", true);
+      setStatus("The indoor tour isn't available right now. Please try again later.", true);
       return;
     }
 
@@ -2424,8 +2426,7 @@ function wfDbg(level, source, message, meta) {
     if (gen !== openGen) return;
     if (!sdk) {
       setStatus(
-        "Could not connect Matterport SDK (" + (connectError || "unknown") + "). " +
-        "Add this site’s host (localhost and your trycloudflare.com tunnel) under Matterport → Account Settings → Developer Tools → SDK key domains. Showcase remains usable manually.",
+        "We couldn't open the 3D view right now. You can continue using the regular map.",
         true
       );
       return;
@@ -2444,7 +2445,7 @@ function wfDbg(level, source, message, meta) {
     if (gen !== openGen) return;
     if (!ready) {
       setStatus(
-        "Still on the Matterport launch screen (" + (connectError || "timeout") + "). Tap Enter in the Matterport view, then press Play here.",
+        "Tap Enter in the 3D view, then press Play here to start your tour.",
         true
       );
       return;
@@ -2472,9 +2473,7 @@ function wfDbg(level, source, message, meta) {
     updateStep();
 
     if (!aligned.length) {
-      setStatus(ids.length
-        ? "Connected, but route sweeps do not match model " + modelId + ". Explore manually."
-        : "Connected. No sweep path on this route.");
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.");
       return;
     }
 
@@ -2566,45 +2565,63 @@ function wfDbg(level, source, message, meta) {
     ov.hidden = false;
     document.body.classList.add("mp-open");
     document.body.classList.remove("mp-frame-loaded");
+    const startup = window.WFStartup;
+    if (startup) startup.begin(gen);
+    const current = () => gen === openGen && (!startup || startup.isCurrent(gen));
+    const fail = () => { if (gen === openGen && startup) startup.fail(gen); return false; };
     setStatus("Loading digital twin…");
     try {
+      if (window.WF && window.WF.ready) await window.WF.ready;
+      if (!current()) return false;
       await resolveConfig();
     } catch (e) {
-      setStatus((e && e.message) || "Digital twin unavailable", true);
-      return false;
+      if (!current()) return false;
+      console.warn("[MpPreview] configuration failed", e && e.code);
+      setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true);
+      return fail();
     }
-    if (gen !== openGen) return false;
+    if (!current()) return false;
     const url = showcaseUrl(applicationKey, null);
     const iframe = $("mpFrame");
     mpSdk = null;
     const loadP = waitIframeLoad(iframe, gen);
     await resetFrameIfNeeded(iframe);
-    if (gen !== openGen) return false;
+    if (!current()) return false;
     iframe.src = url;
     await loadP;
-    if (gen !== openGen) return false;
-    // From here on the iframe is rendering Matterport's own UI, which can include its
-    // branded "tap to enter" gate — the loading overlay must stop covering/blocking it
-    // (see the mp-frame-loaded CSS in mp_background.js) or that gate becomes untappable.
-    document.body.classList.add("mp-frame-loaded");
-    if (!applicationKey) { setStatus("Matterport SDK key not found (data/sdk_config.json).", true); return false; }
+    if (!current()) return false;
+    // iframe.load only means its document loaded, not that a model frame exists.
+    // Keep the branded surface until PLAYING and the existing camera setup finish.
+    if (!applicationKey) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
     setStatus("Connecting to digital twin…");
     const sdk = await connectSdk(iframe);
-    if (gen !== openGen) return false;
-    if (!sdk) { setStatus("Could not connect Matterport SDK (" + (connectError || "unknown") + ").", true); return false; }
+    if (!current()) return false;
+    if (!sdk) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
     setStatus("Waiting for twin to be ready…");
-    const ready = await waitPlaying(sdk, 90000, () => setStatus("Tap Enter inside the Matterport window to continue."));
-    if (gen !== openGen) return false;
-    if (!ready) { setStatus("Still on the Matterport launch screen (" + (connectError || "timeout") + "). Tap Enter, then try again.", true); return false; }
+    const ready = await waitPlaying(sdk, 90000, (phase) => {
+      // Quick-start normally bypasses the Enter gate. If it is genuinely required,
+      // fail with a working retry rather than expose an unrendered canvas.
+      if (current() && phase === phaseConsts(sdk).WAITING) setStatus("Waiting for twin to be ready…");
+    });
+    if (!current()) return false;
+    if (!ready) { setStatus("Tap Enter in the 3D view, then try again.", true); return fail(); }
     try {
       const Mode = sdk.Mode;
+      if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
       if (Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
         await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
       }
-    } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && (e.message || e)); }
+    } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
     await frameWholeBuilding(sdk);
-    if (gen !== openGen) return false;
+    if (!current()) return false;
+    // PLAYING is the SDK's interactive-state signal. The awaited mode/camera
+    // operations above preserve the existing framing; compositor frames allow
+    // that live iframe surface to paint before the opaque brand surface leaves.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (!current()) return false;
+    if (startup) startup.modelReady(gen);
+    else document.body.classList.add("mp-frame-loaded");
     setStatus("");
     return true;
   }

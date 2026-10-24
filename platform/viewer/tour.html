@@ -28,17 +28,24 @@
     window.__WF_MP_TOUR_PAGE = true;
     const boot = document.getElementById("tourBoot");
     function fail(msg) {
-      if (boot) boot.textContent = msg;
+      if (!boot) return;
+      boot.textContent = "";
+      const heading = document.createElement("h2"); heading.textContent = "Couldn't open the tour";
+      const description = document.createElement("p"); description.textContent = msg;
+      const back = document.createElement("a"); back.textContent = "Go Back"; back.href = "./";
+      back.style.color = "#8ab4f8";
+      back.onclick = function (event) { if (history.length > 1) { event.preventDefault(); history.back(); } };
+      boot.append(heading, description, back);
     }
     let payload = null;
     try {
       payload = JSON.parse(sessionStorage.getItem("wf_mp_tour_v1") || "null");
     } catch (e) {
-      fail("Could not read tour data. Go back and tap Tour interior again.");
+      fail("We couldn't load the virtual tour. Please go back and try opening it again.");
       return;
     }
     if (!payload || !payload.route) {
-      fail("No tour data. Go back and tap Tour interior again.");
+      fail("We couldn't load the virtual tour. Please go back and try opening it again.");
       return;
     }
     window.WF = window.WF || {};

@@ -21,17 +21,24 @@
     window.__WF_NAV_WALKTHROUGH_PAGE = true;
     const boot = document.getElementById("wtBoot");
     function fail(msg) {
-      if (boot) boot.textContent = msg;
+      if (!boot) return;
+      boot.textContent = "";
+      const heading = document.createElement("h2"); heading.textContent = "Couldn't open directions";
+      const description = document.createElement("p"); description.textContent = msg;
+      const back = document.createElement("a"); back.textContent = "Go Back"; back.href = "./";
+      back.style.color = "#8ab4f8";
+      back.onclick = function (event) { if (history.length > 1) { event.preventDefault(); history.back(); } };
+      boot.append(heading, description, back);
     }
     let payload = null;
     try {
       payload = JSON.parse(sessionStorage.getItem("wf_nav_walkthrough_v1") || "null");
     } catch (e) {
-      fail("Could not read wayfinding data. Go back and tap Wayfinding again.");
+      fail("We couldn't load your navigation view. Please go back and try opening directions again.");
       return;
     }
     if (!payload || !payload.route) {
-      fail("No wayfinding data. Go back and tap Wayfinding again.");
+      fail("We couldn't load your navigation view. Please go back and try opening directions again.");
       return;
     }
     window.WF = window.WF || {};

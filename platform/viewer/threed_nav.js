@@ -215,7 +215,7 @@
         "70%{box-shadow:0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}",
       "#n3dOverlay .n3d-status{position:absolute;top:72px;left:50%;transform:translateX(-50%);",
         "background:rgba(0,0,0,.7);color:#fff;border-radius:8px;padding:8px 16px;",
-        "font-size:13px;font-weight:500;white-space:nowrap;pointer-events:none;",
+        "font-size:13px;font-weight:500;white-space:normal;overflow-wrap:anywhere;max-width:90vw;width:max-content;box-sizing:border-box;pointer-events:none;",
         "font-family:-apple-system,system-ui,sans-serif;z-index:11}",
       "#n3dOverlay .n3d-status[hidden]{display:none!important}",
       // Same compact "ETA card" look as ui.js's own #navBar (Start Preview) —
@@ -2005,8 +2005,8 @@
   function startLocateFromMe() {
     if (locateActive) return;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setStatus("Camera not available on this device/browser");
-      return wait(2200).then(function () { setStatus(""); });
+      setStatus("We couldn't access your camera. Check your device or browser settings, or choose your location on the map.");
+      return Promise.resolve();
     }
     locateActive = true;
     lastLocateSid = null;
@@ -2107,9 +2107,14 @@
     var t0 = Date.now();
     var failed = false;
     return captureFrameBlob()
-      .catch(function (e) { console.warn("[ThreeDNav] camera capture failed", e); return null; })
+      .catch(function (e) {
+        console.warn("[ThreeDNav] camera capture failed", e && e.name);
+        stopLocateFromMe(); // Stop automatic retries, especially after permission denial.
+        setStatus("We couldn't access your camera. Check your device or browser settings, or choose your location on the map.");
+        return null;
+      })
       .then(function (blob) {
-        if (!blob) throw new Error("camera frame not ready");
+        if (!blob) { var error = new Error("camera frame not ready"); error.cameraUnavailable = true; throw error; }
         var fd = new FormData();
         fd.append("image", blob, "locate.jpg");
         fd.append("building", wfSlug());
@@ -2119,16 +2124,16 @@
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
       .then(function (res) {
         var j = res.body;
-        console.info("[ThreeDNav] locate cycle (" + (Date.now() - t0) + "ms)", j);
+        console.info("[ThreeDNav] locate cycle (" + (Date.now() - t0) + "ms)", { ok: res.ok, confidence: j && j.confidence });
         if (!res.ok || !j || !j.success) {
           failed = true;
-          if (first) setStatus((j && (j.detail || j.message)) || "Could not locate you — retrying…");
+          if (first) setStatus("We couldn't identify your location from this photo. Try taking a clearer photo of a nearby sign, wall, or doorway.");
           return;
         }
         var conf = j.confidence || 0;
         if (conf < MIN_CONFIDENCE) {
           failed = true;
-          if (first) setStatus("Not confident enough (" + Math.round(conf * 100) + "%) — retrying…");
+          if (first) setStatus("We're not fully sure about your position. Check the blue dot on the map or try another photo.");
           return;
         }
         var navNodes = (window.wf && window.wf.nav && window.wf.nav.nodes) || [];
@@ -2155,11 +2160,11 @@
       .catch(function (e) {
         failed = true;
         console.warn("[ThreeDNav] locate cycle failed", e);
-        if (first) setStatus("Localization failed — " + ((e && e.message) || "network error"));
+        if (first) setStatus(e.cameraUnavailable ? "We couldn't access your camera. Check your device or browser settings, or choose your location on the map." : "We couldn't identify your location from this photo. Try taking a clearer photo of a nearby sign, wall, or doorway.");
       })
       .then(function () {
         locateBusy = false;
-        if (first) wait(1200).then(function () { if (locateActive) setStatus(""); });
+        if (first && !failed) wait(1200).then(function () { if (locateActive) setStatus(""); });
         if (!locateActive) return;
         if (failed) locateTimer = setTimeout(function () { runLocateCycle(false); }, LOCATE_RETRY_BACKOFF_MS);
         else runLocateCycle(false);
@@ -2172,7 +2177,7 @@
     var fromSweep = nearestSweep(fromPtMp);
     var toSweep   = nearestSweep(destPtMp);
     if (!fromSweep || !toSweep) {
-      setStatus("Could not find scan points — routing unavailable");
+      setStatus("We couldn't find the information needed to guide you through this building. Please try again later.");
       return Promise.resolve();
     }
     console.info("[ThreeDNav] FROM", fromPtMp, "→ sweep", fromSweep.sid, fromSweep.position);
@@ -2185,7 +2190,7 @@
     console.info("[ThreeDNav] route sids (" + routeSids.length + ")", routeSids);
     if (!routeSids.length) {
       navLocked = false;
-      setStatus("No route found"); return Promise.resolve();
+      setStatus("We couldn't find a route to your destination. Try choosing another starting point or destination."); return Promise.resolve();
     }
     applyRouteLegs();
     console.info("[ThreeDNav] legs = " + routeLegs.length, routeLegs.map(function(l){return l.kind+":"+l.points.length;}));
@@ -2263,7 +2268,7 @@
       var edges = sweeps.reduce(function(n,sw){ return n+sw.neighbours.length; }, 0);
       console.info("[ThreeDNav] " + sweeps.length + " sweeps, " + edges + " links; worldToScreen=" + (sdk.Conversion&&sdk.Conversion.worldToScreen?"sdk":"local"));
 
-      if (!sweeps.length) { setStatus("3D scan loaded but no scan points available"); return; }
+      if (!sweeps.length) { setStatus("We couldn't find the information needed to guide you through this building. Please try again later."); return; }
 
       // Hook sweep-change watcher before navigating
       watchSweepChanges();
@@ -2276,9 +2281,9 @@
       if (gen !== openGen) return;
       console.warn("[ThreeDNav] error:", e);
       if (String(e&&e.message).indexOf("Key")>=0 || String(e&&e.message).indexOf("referrer")>=0) {
-        setStatus("(Matterport key needs deployed domain — works on production)");
+        setStatus("We couldn't open the 3D view right now. You can continue using the regular map.");
       } else {
-        setStatus("3D scan overlay unavailable");
+        setStatus("We couldn't open the 3D view right now. You can continue using the regular map.");
       }
     }
   }
@@ -2330,8 +2335,8 @@
     try {
       sessionStorage.setItem("wf_nav_walkthrough_v1", JSON.stringify(payload));
     } catch (e) {
-      try { ensureOverlay(); setStatus("Could not save route for fullscreen page: " + (e && e.message || e)); }
-      catch (_) { alert("Could not save route for fullscreen page"); }
+      try { ensureOverlay(); setStatus("We couldn't load your navigation view. Please go back and try opening directions again."); }
+      catch (_) { alert("We couldn't load your navigation view. Please go back and try opening directions again."); }
       return false;
     }
     var dest = new URL("walkthrough.html", location.href);
@@ -2433,14 +2438,14 @@
       resolveStairChains();
       var edges = sweeps.reduce(function(n,sw){ return n+sw.neighbours.length; }, 0);
       console.info("[ThreeDNav] (reused mp=1 connection) " + sweeps.length + " sweeps, " + edges + " links");
-      if (!sweeps.length) { setStatus("3D scan loaded but no scan points available"); return; }
+      if (!sweeps.length) { setStatus("We couldn't find the information needed to guide you through this building. Please try again later."); return; }
       watchSweepChanges();
       setStatus("");
       return runNavigate(fromPtMp);
     }).catch(function (e) {
       if (gen !== openGen) return;
       console.warn("[ThreeDNav] reuse-connection error:", e);
-      setStatus("3D scan overlay unavailable");
+      setStatus("We couldn't open the 3D view right now. You can continue using the regular map.");
     });
   }
 

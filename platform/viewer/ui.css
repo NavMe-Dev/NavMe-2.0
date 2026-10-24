@@ -299,7 +299,7 @@ body.nav .cbot{bottom:96px}
 .me-dot .cone{position:absolute;left:-40px;top:-40px;width:80px;height:80px;border-radius:50%;background:conic-gradient(from -30deg,rgba(26,115,232,.45),rgba(26,115,232,0) 60deg,transparent 0);transform:rotate(var(--hd,0deg));display:none;
   -webkit-mask:radial-gradient(circle,#000 0 55%,transparent 72%);mask:radial-gradient(circle,#000 0 55%,transparent 72%)}
 .me-dot.hd .cone{display:block}
-.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sheetH) + 16px);z-index:70;background:#323232;color:#fff;border-radius:8px;padding:12px 16px;box-shadow:var(--sh2);display:flex;gap:16px;align-items:center;max-width:90vw}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sheetH) + 16px);z-index:70;background:#323232;color:#fff;border-radius:8px;padding:12px 16px;box-shadow:var(--sh2);display:flex;gap:16px;align-items:center;max-width:90vw;box-sizing:border-box;overflow-wrap:anywhere}
 .toast button{color:#8ab4f8!important;font-weight:500!important}
 .esri-view .esri-view-surface--inset-outline:focus::after{outline:none!important}
 .esri-attribution{font-size:10px!important}
@@ -334,7 +334,7 @@ body.dark .mode.on,body.dark .chip.on,body.dark .badge.floor,body.dark .steps li
 body.dark .badge.sf{background:#1e3a2a;color:#81c995}body.dark .badge.st,body.dark .warn,body.dark .fcard{background:#3c3223;color:#fdd663}
 body.hc{--txt2:#3c4043;--line:#80868b}body.hc.dark{--txt2:#e8eaed;--line:#9aa0a6}
 body.hc .chip,body.hc .fab,body.hc .searchbox,body.hc .sheet{outline:2px solid var(--txt)}
-body.booting .ui{opacity:0}.ui{transition:opacity .3s}
+body.booting .ui{opacity:0;visibility:hidden;pointer-events:none}.ui{transition:opacity .3s}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .ctop{top:118px;bottom:auto!important}

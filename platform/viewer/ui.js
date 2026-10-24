@@ -103,7 +103,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   // ---------------- boot ----------------
-  const boot = setInterval(() => { if (window.wf && window.wf.ready && window.wf.pois && window.wf.setStyle && window.wf.indoorReady) { clearInterval(boot); init(); } }, 100);
+  const boot = setInterval(() => { if (window.wf && window.wf.ready && window.wf.pois && window.wf.setStyle && window.wf.indoorReady) { clearInterval(boot); try { init(); } catch (e) { if (window.WFStartup) window.WFStartup.fail(); else throw e; } } }, 100);
 
   function init() {
     wf = window.wf;
@@ -159,34 +159,28 @@ function wfDbg(level, source, message, meta) {
       $("togHC").checked = !document.body.classList.contains("dark");
     }
     const ready = (window.WF && WF.i18nReady) ? WF.i18nReady : Promise.resolve();
-    // MP mode: wait for mp_background.js's Matterport connect to actually finish (or fail)
-    // before revealing the chrome — otherwise the search bar/chips/directions button fade
-    // in over a still-loading (sometimes still-blank) Matterport scene on a slow
-    // connection, which is what was happening. Resolves immediately once the connect
-    // attempt is done either way; the 15s cap only matters if that attempt hangs.
-    function mpBackgroundReady() {
-      if (!isMpMode()) return Promise.resolve();
-      if (window.__mpBackgroundReady) return Promise.resolve();
-      return new Promise((resolve) => {
-        const done = () => { window.removeEventListener("mp-background-ready", done); resolve(); };
-        window.addEventListener("mp-background-ready", done);
-        setTimeout(done, 15000);
-      });
-    }
-    // Failsafe: never leave body.booting (opacity:0 UI = blank screen)
     const clearBoot = () => {
-      try { document.body.classList.remove("booting"); } catch (_) {}
+      document.body.classList.remove("booting");
       try { updateFloorPicker(); } catch (_) {}
     };
-    setTimeout(clearBoot, isMpMode() ? 16000 : 8000);
-    ready.finally(() => {
+    // Keep the ordinary map's existing failsafe. MP startup has a failure
+    // deadline owned by its loader, rather than a timer that reveals blank UI.
+    if (!isMpMode()) setTimeout(clearBoot, 8000);
+    let startupGeneration = window.WFStartup && window.WFStartup.generation;
+    Promise.resolve(ready).then(async () => {
+      if (isMpMode()) {
+        const ok = await window.__mpBackgroundPromise;
+        startupGeneration = window.WFStartup && window.WFStartup.generation;
+        if (!ok) throw new Error("Background not ready");
+      }
       try { if (window.WFi18n) WFi18n.applyDom(); } catch (_) {}
-      Promise.resolve()
-        .then(() => applyDeepLink())
-        .then(() => mpBackgroundReady())
-        .catch((e) => { try { console.warn("applyDeepLink", e); showHome(); } catch (_) {} })
-        .finally(clearBoot);
-    });
+      // Apply links after the SDK is available, preserving destination/floor context.
+      try { await applyDeepLink(); }
+      catch (e) { console.warn("applyDeepLink", e); showHome(); }
+      if (window.WFStartup) window.WFStartup.uiReady(startupGeneration);
+      else clearBoot();
+      try { updateFloorPicker(); } catch (_) {}
+    }).catch(() => { if (window.WFStartup) window.WFStartup.fail(startupGeneration); else clearBoot(); });
   }
 
 
@@ -834,7 +828,7 @@ function wfDbg(level, source, message, meta) {
       ? () => {
           const url = arShareUrlFor(p);
           if (url) window.open(url, "_blank", "noopener");
-          else toast(t("viewer.arLocked") || "AR is temporarily locked");
+          else toast(t("viewer.arLocked") || "AR navigation can't be started right now. Please try again shortly or continue using the map.");
         }
       : async () => { await toggle3D(true); flyTo3D(p); };
     // mp mode hides the ArcGIS view entirely (see mp_background.js) and POIs here carry
@@ -1130,7 +1124,7 @@ function wfDbg(level, source, message, meta) {
     if (!S.from || !S.to) return;
     pendingNav = !!startNav;
     if (S.from === "me" && !wf.lastLoc) {
-      setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(t("viewer.locNotSet"))}</div></div>
+      setSheet(`<div class="warn"><span class="ms">my_location</span><div><strong>${esc(t("viewer.locNotSetTitle"))}</strong><br>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
           <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
           <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
@@ -1152,7 +1146,7 @@ function wfDbg(level, source, message, meta) {
     if (S.mode !== "dir" && S.mode !== "nav") return;   // routes triggered from the dev panel
     if (!r) {
       S.route = null;
-      setSheet(`<div class="warn"><span class="ms">${S.stepFree ? "accessible" : "wrong_location"}</span><div>${esc(msg || t("viewer.noRoute"))}${S.stepFree ? "<br><br>" + esc(t("viewer.noRouteStepFree")) : ""}</div></div>
+      setSheet(`<div class="warn"><span class="ms">${S.stepFree ? "accessible" : "wrong_location"}</span><div><strong>${esc(t(S.stepFree ? "viewer.noRouteStepFreeTitle" : "viewer.noRouteTitle"))}</strong><br>${esc(S.stepFree ? t("viewer.noRouteStepFree") : (msg || t("viewer.noRoute")))}${S.stepFree ? "<br><br>Walking may include stairs." : ""}</div></div>
         ${S.stepFree ? `<div class="actions"><button class="pill primary" id="dWalk"><span class="ms">directions_walk</span>${esc(t("viewer.showWalking"))}</button></div>` : ""}`, "peek");
       if ($("dWalk")) $("dWalk").onclick = () => { S.stepFree = false; syncDirFields(); computeRoute(); };
       return;
@@ -1375,17 +1369,17 @@ function wfDbg(level, source, message, meta) {
     if ($("dViewAr")) $("dViewAr").onclick = () => {
       const url = (S.to && S.to !== "me") ? arShareUrlFor(S.to) : null;
       if (url) window.open(url, "_blank", "noopener");
-      else toast(t("viewer.arLocked") || "AR is temporarily locked");
+      else toast(t("viewer.arLocked") || "AR navigation can't be started right now. Please try again shortly or continue using the map.");
     };
     if ($("dTourMp")) $("dTourMp").onclick = () => {
       if (!S.route) return;
       const acc = accessFlags();
       if (acc.twin_disabled) {
-        toast(t("viewer.tourDisabled") || "Digital twin tour is disabled for this building");
+        toast(t("viewer.tourDisabled") || "The 3D tour isn't available for this building. You can still explore using the regular map.");
         return;
       }
       if (!acc.embed_tour_allowed && !acc.twin_pin_required) {
-        toast(t("viewer.tourUnavailable") || "Tour unavailable");
+        toast(t("viewer.tourUnavailable") || "The indoor tour isn't available right now. Please try again later.");
         return;
       }
       if (window.MpPreview) window.MpPreview.open(mpRoutePayload());
@@ -1394,15 +1388,15 @@ function wfDbg(level, source, message, meta) {
     if ($("dWalkNav")) $("dWalkNav").onclick = () => {
       if (!S.route) return;
       const acc = accessFlags();
-      if (acc.twin_disabled) { toast(t("viewer.tourDisabled") || "Digital twin tour is disabled"); return; }
+      if (acc.twin_disabled) { toast(t("viewer.tourDisabled") || "The 3D tour isn't available for this building. You can still explore using the regular map."); return; }
       if (window.ThreeDNav) window.ThreeDNav.open(S.route);
-      else toast(t("viewer.tourUnavailable") || "Walkthrough unavailable");
+      else toast(t("viewer.tourUnavailable") || "The indoor tour isn't available right now. Please try again later.");
     };
     if ($("dMeshTour")) $("dMeshTour").onclick = () => openMeshTourFromDirections();
     if ($("dBundle")) $("dBundle").onclick = () => {
       if (!S.route) return;
       if (window.BundlePreview) BundlePreview.open(S.route);
-      else toast(t("viewer.bundleUnavailable") || "Bundle Scene unavailable");
+      else toast(t("viewer.bundleUnavailable") || "We couldn't open the 3D view right now. You can continue using the regular map.");
     };
     wireStartArButton($("dStartAr"));
     $("dShare").onclick = share;
@@ -1744,7 +1738,7 @@ function wfDbg(level, source, message, meta) {
     const [x, y] = wf.llToModel(lon, lat);
     const indoors = insideModel(x, y);
     const poor = accuracy == null || accuracy > GPS_ACC_OK || (indoors && accuracy > GPS_INDOOR_ACC);
-    if (poor && indoors) return { kind: "indoor_poor", x, y, indoors };
+    if (poor) return { kind: "indoor_poor", x, y, indoors };
     const ent = nearestEntranceXY(x, y);
     // Outdoors / near building: prefer entrance if close
     if ((!indoors || (ent && ent.dist < ENTRANCE_SNAP_M)) && ent && ent.dist < ENTRANCE_SNAP_M) {
@@ -1756,11 +1750,17 @@ function wfDbg(level, source, message, meta) {
     if (snap && snap.node) return { kind: "node", x, y, indoors, node: snap.node, dist: snap.dist, floor };
     return { kind: "raw", x, y, indoors, floor };
   }
-  function locateMe() {
+  async function locateMe() {
     if (!navigator.geolocation) {
       showLocateFallback(t("viewer.geoUnsupported"));
       return;
     }
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const permission = await navigator.permissions.query({ name: "geolocation" });
+        if (permission.state === "denied") { showLocateFallback(t("viewer.geoDeniedRetry")); return; }
+      }
+    } catch (_) { /* Permission queries are unsupported on some browsers. */ }
     setLocateBusy(true);
     toast(t("viewer.locating"));
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -1795,7 +1795,12 @@ function wfDbg(level, source, message, meta) {
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
   }
   function showLocateFallback(msg, extra) {
-    setSheet(`<div class="warn"><span class="ms">my_location</span><div>${esc(msg)}</div></div>
+    const titleKey = [
+      ["geoDeniedRetry", "geoDeniedTitle"], ["geoTimeout", "geoTimeoutTitle"],
+      ["geoUnsupported", "geoUnsupportedTitle"], ["gpsPoorIndoor", "gpsPoorTitle"]
+    ].find(([key]) => msg === t("viewer." + key));
+    const heading = t("viewer." + (titleKey ? titleKey[1] : "geoFailedTitle"));
+    setSheet(`<div class="warn"><span class="ms">my_location</span><div><strong>${esc(heading)}</strong><br>${esc(msg)}</div></div>
       <div class="actions">
         <button class="pill primary" id="dRetryGps"><span class="ms">my_location</span>${esc(t("viewer.tryAgainGps"))}</button>
         <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
@@ -1879,27 +1884,26 @@ function wfDbg(level, source, message, meta) {
       const url = vpsLocalizeUrl();
       const resp = await fetch(url, { method: "POST", body: fd });
       if (!resp.ok) {
+        wfDbg("warn", "viewer.photo", "Photo positioning request failed", { status: resp.status });
         let detail = "";
         try { detail = (await resp.json()).detail || ""; } catch (e) { try { detail = await resp.text(); } catch (e2) {} }
-        if (resp.status === 501) throw new Error(t("viewer.vpsNotConfigured") || "Image locate is not configured on this server");
+        if (resp.status === 501) { toast(t("viewer.vpsNotConfigured")); return; }
         if (resp.status === 404) throw new Error("Locate endpoint missing (" + url + "). Hard-refresh and retry.");
         throw new Error("HTTP " + resp.status + (detail ? (": " + detail) : ""));
       }
       const r = await resp.json();
       if (!r.success) {
-        // Surface the server's actual reason (e.g. "photo doesn't have enough
-        // distinctive detail" vs "couldn't find a confident match") instead of a
-        // generic message — and the generic fallback used to suggest "pick on the
-        // map", which doesn't exist in MP mode at all.
-        toast(r.message || (isMpMode() ? t("viewer.vpsFailedMp") : t("viewer.vpsFailed")));
+        toast(t("viewer.vpsFailed"));
         return;
       }
       if (r.confidence != null && r.confidence < 0.3) {
         toast(t("viewer.vpsLowConf"));
+        return; // An uncertain fix must not replace the user's location.
       }
       applyVpsResult(r);
     } catch (e) {
-      toast(t("viewer.vpsError", { msg: String(e.message || e) }));
+      wfDbg("warn", "viewer.photo", "Photo positioning request failed");
+      toast(t("viewer.vpsError"));
     }
   }
   function applyVpsResult(r) {
@@ -2244,7 +2248,7 @@ function wfDbg(level, source, message, meta) {
   function toast(msg, action, fn) {
     const t = $("toast"); t.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button id="toastBtn">${esc(action)}</button>` : ""); t.hidden = false;
     if (action) $("toastBtn").onclick = () => { hideToast(); fn && fn(); };
-    clearTimeout(toastT); if (!action) toastT = setTimeout(hideToast, 2600);
+    clearTimeout(toastT); if (!action) toastT = setTimeout(hideToast, Math.max(5000, String(msg).length * 65));
   }
   function hideToast() { $("toast").hidden = true; }
 
@@ -2322,7 +2326,7 @@ function wfDbg(level, source, message, meta) {
   window.wfShowArrivalCard = showArrivalCard;
   window.wfHideArrivalCard = hideArrivalCard;
 
-  window.wfUI = { S, selectPlace: (id) => { const p = byId[id]; if (!p) { toast("Place not on this map"); return; } selectPlace(p, { fly: true }); }, openDirections: (from, to, stepFree) => { const dest = byId[to]; if (!dest) { toast("Place not on this map"); return; } S.from = from === "me" ? "me" : (from ? byId[from] : null); S.to = dest; S.stepFree = !!stepFree; openDirections(); },
+  window.wfUI = { S, selectPlace: (id) => { const p = byId[id]; if (!p) { toast(t("viewer.placeMissing")); return; } selectPlace(p, { fly: true }); }, openDirections: (from, to, stepFree) => { const dest = byId[to]; if (!dest) { toast(t("viewer.placeMissing")); return; } S.from = from === "me" ? "me" : (from ? byId[from] : null); S.to = dest; S.stepFree = !!stepFree; openDirections(); },
     startNav: () => startNav(), navGo: (i) => navGo(i), exitNav: () => exitNav(), toggle3D, setStyle, share: (opts) => shareUrl(opts), toggleChip, renderAc: () => { $("q").focus(); }, preview3D, showHome, focusStep, setSheetState, toast };
 })();
 var wfShare;

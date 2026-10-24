@@ -26,7 +26,7 @@ require([
   const fmtNum = (v, d, fallback = "n/a") => (v == null ? fallback : v.toFixed(d));
   const R = 6378137.0;
 
-  const J = (u) => fetch(u).then(r => r.json());
+  const J = (u) => fetch(u).then(r => { if (!r.ok) throw new Error("Data request failed (" + r.status + ")"); return r.json(); });
   let CFG = null; const D = (f) => window.WF.D(f);
   // WF.building is an object; the slug can also come from cfg or the ?b= query param.
   const wfSlug = () => (window.WF.building && window.WF.building.slug)
@@ -70,7 +70,11 @@ require([
       georef.floors = CFG.floors.map(f => ({ id: f.id, name: f.label, ordinal: f.ordinal, model_z: f.elevation }));
       floorsData.floors.forEach(f => { if (!/^(https?:|\/|data:)/.test(f.image)) f.image = D(f.image); });
       init(georef, floorsData, { nav, walkgrid, pois, rawGraph, navmesh, navmeCategories, navmeTranslations }); })
-    .catch(e => { status("Failed to load data: " + e); console.error(e); });
+    .catch(e => {
+      console.error("[wf] required data failed", e);
+      if (window.WFStartup) window.WFStartup.fail();
+      else status("We couldn't load the map right now. Please try again.");
+    });
 
   function init(georef, floorsData, R2) {
     // ---------- coordinate chain: model (m) <-> EPSG:3857 <-> WGS84 ----------
@@ -729,10 +733,10 @@ require([
       }
 
       function doRoute(fromKey, toPoiId, opts = {}) {
-        const to = poiById[toPoiId]; if (!to) { $("routeSummary").textContent = "Pick a destination"; return null; }
+        const to = poiById[toPoiId]; if (!to) { $("routeSummary").textContent = "Select where you'd like to go to start navigation."; return null; }
         let fromNode, fromName, warn = null; startInfo = null;
         if (fromKey === "__loc") {
-          if (!lastLoc) { $("routeSummary").innerHTML = '<span class="warn">Set your location first (Localize), or pick a “From” place.</span>'; if (window.wf.onRoute) window.wf.onRoute(null, "Set your location first (tap the location button, then tap the map), or choose a starting place."); return null; }
+          if (!lastLoc) { $("routeSummary").innerHTML = "<span class=\"warn\">We don't know where you're starting from yet. Select your floor, then tap your location on the map.</span>"; if (window.wf.onRoute) window.wf.onRoute(null, "We don't know where you're starting from yet. Select your floor, then tap your location on the map."); return null; }
           const s = WFRouting.snap(lastLoc.x, lastLoc.y, lastLoc.floor);
           fromNode = s.node.id; fromName = "My location"; startInfo = { fromDot: true, x: lastLoc.x, y: lastLoc.y };
           if (s.dist > 20) warn = `Your dot is ${Math.round(s.dist)} m from the nearest mapped point.`;
@@ -755,8 +759,9 @@ require([
         if (!r && fromNode && to.nearest_node) r = WFRouting.route(fromNode, to.nearest_node, { stepFree: !!opts.stepFree });
         if (!r) {
           lastRoute = null; drawRoute();
-          $("routeSummary").innerHTML = `<span class="warn">No ${opts.stepFree ? 'step-free ' : ''}route found from ${fromName} to ${to.name}.</span>`; $("steps").innerHTML = "";
-          if (window.wf.onRoute) window.wf.onRoute(null, `No ${opts.stepFree ? 'step-free ' : ''}route found from ${fromName} to ${to.name}.`); return null;
+          const message = opts.stepFree ? "We couldn't find a route without stairs. You can switch to Walking to see other available routes. Walking may include stairs." : "We couldn't find a route to your destination. Try choosing another starting point or destination.";
+          $("routeSummary").textContent = message; $("steps").innerHTML = "";
+          if (window.wf.onRoute) window.wf.onRoute(null, message); return null;
         }
         r.fromName = fromName; r.toName = to.name; r.toPoi = to.id; r.warn = warn;
         if (!r.instructions) r.instructions = (r.steps || []).map(s2 => ({
@@ -1015,7 +1020,14 @@ require([
       };
       document.querySelectorAll("button.bstyle").forEach(b => b.onclick = () => setStyle(b.dataset.style));
       $("photoPlan").onchange = () => { photo = $("photoPlan").checked; applyVisibility(); };
-      const indoorP = loadIndoor().then(() => { window.wf.indoorReady = true; });
+      // These GeoJSON layers only belong to the hidden Esri view in MP mode.
+      // Navigation already has its graph/POIs; do not delay the live dollhouse UI
+      // while downloading floor styling that will never be displayed.
+      const indoorP = (isMpMode() ? Promise.resolve() : loadIndoor()).then(() => { window.wf.indoorReady = true; }).catch(e => {
+        console.warn("[wf] indoor data failed", e);
+        if (window.WFStartup) window.WFStartup.fail();
+        else status("We couldn't load the map right now. Please try again.");
+      });
     }
     initStyles();
     window.wf.setFloor = setFloor;

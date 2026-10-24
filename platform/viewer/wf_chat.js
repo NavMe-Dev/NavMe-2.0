@@ -339,8 +339,8 @@
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        const msg = (data && (data.detail || data.message)) || ("Chat error " + r.status);
-        setBubbleContent(pending, typeof msg === "string" ? msg : JSON.stringify(msg), []);
+        console.warn("wf_chat request failed", r.status);
+        setBubbleContent(pending, "We couldn't connect to the chat right now. Check your internet connection and try again.", []);
         return;
       }
       const rawReply = data.message || "(empty reply)";
@@ -350,7 +350,7 @@
       STATE.history.push({ role: "assistant", content: reply });
       setBubbleContent(pending, reply, humanized.actions || []);
     } catch (err) {
-      setBubbleContent(pending, "Network error talking to chat. Try again.", []);
+      setBubbleContent(pending, "We couldn't connect to the chat right now. Check your internet connection and try again.", []);
       console.warn("wf_chat", err);
     } finally {
       STATE.busy = false;
