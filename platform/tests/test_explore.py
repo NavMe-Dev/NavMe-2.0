@@ -18,7 +18,7 @@ def test_metadata_reads_actual_floor_relationship_and_keeps_missing_floor_unknow
     calls = []
     def fetch(cfg, table, filters):
         calls.append((table, filters))
-        assert filters['poi_type'] == 'eq.GCU'
+        assert filters['poi_type'] == 'ilike.GCU'
         if table == 'navme_pois':
             assert filters['is_active'] == 'is.true'
             return [{'id':'one','poi_name':'Actual room','floor_id':'floor-a'}, {'id':'two','poi_name':'Outdoor place','floor_id':None}]
@@ -43,9 +43,9 @@ def test_reopening_tabs_reuses_cache_but_another_venue_gets_its_own_data(monkeyp
     monkeypatch.setattr(explore.navme_sync, 'fetch_rows', fetch)
     cfg = SimpleNamespace(supabase_url='https://project.supabase.co')
     explore.metadata(cfg, building());explore.metadata(cfg, building())
-    assert calls == ['eq.GCU']*3
+    assert calls == ['ilike.GCU']*3
     result = explore.metadata(cfg, building('uncc'))
-    assert calls[-3:] == ['eq.UNCC']*3
+    assert calls[-3:] == ['ilike.UNCC']*3
     assert result['building_slug'] == 'uncc'
 
 

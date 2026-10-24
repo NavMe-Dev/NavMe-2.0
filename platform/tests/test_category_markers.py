@@ -8,10 +8,10 @@ def test_actual_primary_array_and_link_relationships_are_deduplicated(monkeypatc
     def fetch(cfg, table, filters, **kwargs):
         calls.append((table, filters))
         if table == 'navme_categories':
-            assert filters['poi_type'] == 'eq.GCU'
+            assert filters['poi_type'] == 'ilike.GCU'
             return [{'id': 'a', 'name': 'A', 'icon_key': 'home'}, {'id': 'b', 'name': 'B', 'icon_key': 'book-open'}]
         if table == 'navme_pois':
-            assert filters['poi_type'] == 'eq.GCU'
+            assert filters['poi_type'] == 'ilike.GCU'
             assert filters['is_active'] == 'is.true'
             return [{'id': 'one', 'category_type': 'a', 'category_types': ['a', 'b'], 'pos_x': 0, 'pos_y': 2, 'pos_z': -4, 'is_active': True}]
         assert table == 'navme_poi_categories'
@@ -29,7 +29,7 @@ def test_actual_primary_array_and_link_relationships_are_deduplicated(monkeypatc
 def test_empty_venue_does_not_query_unscoped_category_links(monkeypatch):
     def fetch(cfg, table, filters, **kwargs):
         assert table != 'navme_poi_categories'
-        assert filters['poi_type'] == 'eq.other'
+        assert filters['poi_type'] == 'ilike.other'
         return []
     monkeypatch.setattr(category_markers.navme_sync, 'fetch_rows', fetch)
     assert category_markers.marker_data(None, SimpleNamespace(slug='other', pipeline_config={}))['pois'] == []

@@ -18,7 +18,9 @@ def metadata(cfg, building):
         cached = _cache.get(key)
         if cached and cached[0] > time.monotonic():
             return cached[1]
-        filters = {'poi_type': 'eq.' + navme.pg_value(ptype)}
+        # Match legacy slug fallbacks case-insensitively (for example gcu -> GCU),
+        # consistent with the established public Dashboard endpoints.
+        filters = {'poi_type': 'ilike.' + navme.pg_value(ptype)}
         rows = navme_sync.fetch_rows(cfg, 'navme_pois', {
             **filters, 'is_active': 'is.true', 'select': 'id,poi_name,poi_names,floor_id'})
         floors = navme_sync.fetch_rows(cfg, 'navme_floors', {

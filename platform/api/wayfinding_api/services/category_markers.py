@@ -3,7 +3,11 @@ from . import navme, navme_sync
 
 
 def marker_data(cfg, building):
-    filters = {"poi_type": "eq." + navme.pg_value(navme.poi_type(building))}
+    # Legacy buildings can fall back to a lowercase URL slug ("gcu") while the
+    # Dashboard stores the same venue as "GCU". Venue identifiers are otherwise
+    # exact, so a case-insensitive comparison fixes those records without widening
+    # the query to another venue.
+    filters = {"poi_type": "ilike." + navme.pg_value(navme.poi_type(building))}
     categories = navme_sync.fetch_rows(cfg, "navme_categories", {
         **filters, "select": "id,name,icon_key,sort_order,category_names"})
     rows = navme_sync.fetch_rows(cfg, "navme_pois", {
