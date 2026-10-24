@@ -55,7 +55,8 @@ function wfDbg(level, source, message, meta) {
     "utensils-crossed": "restaurant", coffee: "local_cafe", sofa: "weekend", store: "storefront",
     info: "info", key: "key", "key-round": "key", search: "search", image: "image",
     video: "videocam", accessibility: "accessible", refrigerator: "kitchen", school2: "school",
-    "graduation-cap": "school", landmark: "museum", sparkles: "auto_awesome"
+    "graduation-cap": "school", landmark: "museum", sparkles: "auto_awesome",
+    "book-open": "menu_book", computer: "computer", home: "home", warehouse: "warehouse", volleyball: "sports_volleyball"
   };
   const CHIP_PALETTE = [[26, 115, 232], [161, 66, 244], [24, 128, 56], [227, 116, 0], [66, 133, 244], [0, 137, 123], [25, 103, 210], [194, 24, 91]];
   function applyDynamicCategories() {
@@ -141,6 +142,7 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.watch("zoom", updateFloorPicker);
     wf.view2d.watch("extent", placeMe);
     ["resize", "orientationchange"].forEach(e => window.addEventListener(e, () => { applyPadding(); placeMe(); }));
+    window.addEventListener("wf-weather-updated", () => { applyPadding(); placeMe(); });
     document.addEventListener("keydown", (e) => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); $("q").focus(); }
       if (e.key === "Escape") { closeAc(); closePop(); closeDrawer(); closeShareSheet(); }
@@ -158,6 +160,9 @@ function wfDbg(level, source, message, meta) {
     } else {
       $("togHC").checked = !document.body.classList.contains("dark");
     }
+    syncSidebarPreferences();
+    if (window.WFVenueInfo) window.WFVenueInfo.render();
+    window.dispatchEvent(new Event("wf-category-style"));
     const ready = (window.WF && WF.i18nReady) ? WF.i18nReady : Promise.resolve();
     const clearBoot = () => {
       document.body.classList.remove("booting");
@@ -194,6 +199,7 @@ function wfDbg(level, source, message, meta) {
     if (wf && wf.redrawPOIs) try { wf.redrawPOIs(); } catch (_) {}
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));
     buildChips();
+    window.dispatchEvent(new Event("wf-category-style"));
     // Floor picker: real-floor buttons show a language-agnostic digit (wf.floorLabel's
     // translation lives in each button's aria-label instead), only the "All" button's
     // visible text and every button's aria-label need updating here.
@@ -222,6 +228,8 @@ function wfDbg(level, source, message, meta) {
       bindList(items);
     } else if (S.mode === "about") about();
     else if (S.mode === "language") showLanguageSheet();
+    else if (S.mode === "recent") showRecentSearches();
+    else if (S.mode === "help") showHelp();
     if (S.mode === "dir" || S.mode === "nav") syncDirFields();
   }
 
@@ -462,7 +470,7 @@ function wfDbg(level, source, message, meta) {
         const floors = (b.floors && b.floors.length) ? t("viewer.floorsShort", { n: b.floors.length }) : "";
         html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(b.name || b.slug)}</b><div class="s">${esc([floors, b.address].filter(Boolean).join(" · "))}</div></span></li>`;
       });
-      if (!buildings.length) html += `<li class="hdr" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
+      if (!buildings.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
       list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
       list.querySelectorAll("li[role=option]").forEach((li) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
       const top = $("top").getBoundingClientRect().top, fb = $("searchBox").getBoundingClientRect().bottom;
@@ -496,7 +504,7 @@ function wfDbg(level, source, message, meta) {
         html += `<li class="hdr" role="presentation">${esc(b.name)} (${items.length})</li>`;
         items.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
       });
-    } else if (!res.length) html += `<li class="hdr" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
+    } else if (!res.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
     else res.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
     list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
     list.querySelectorAll("li[role=option]").forEach((li, i) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
@@ -596,15 +604,36 @@ function wfDbg(level, source, message, meta) {
     $("chipsDropdown").hidden = !open;
     $("chipsMore").setAttribute("aria-expanded", String(!!open));
   }
-  function toggleChip(c) {
+  function selectCategoryMarker(id, poiIds, name) {
+    if (!wf || S.mode === "dir" || S.mode === "nav") return;
+    const category = (wf.categories || []).find(c => String(c.id) === String(id));
+    const key = String((category && category.name) || name || "").trim().toLowerCase();
+    if (!key) return;
+    // A marker always opens the category list; it never toggles it off or picks a destination.
+    S.filter = null;
+    toggleChip(key, new Set(poiIds.map(String)));
+  }
+  function categoryMarkerContext() {
+    const current = window.wf;
+    return { venue: (window.WF && WF.building && WF.building.slug) || (window.WF && WF.cfg && WF.cfg.slug),
+      pois: current && current.pois, uiMode: S.mode, filter: S.filter, uiReady: !!wf };
+  }
+  function categoryMarkerStyle(category) {
+    const key = String(category.name || "").trim().toLowerCase();
+    const style = CAT_BASE[key] || CAT_BASE.room || {};
+    return { label: localized(category.category_names || category.names, category.name),
+      icon: LUCIDE_TO_MS[category.icon_key] || style.icon || "place", color: style.color };
+  }
+  function toggleChip(c, memberIds) {
     S.filter = S.filter === c ? null : c;
     document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     $("chipsMore").classList.toggle("active", !!(S.filter && S.filter !== ALL_CAT));
     setChipsOpen(false);
+    window.dispatchEvent(new Event("wf-category-style"));
     const showingAll = S.filter === ALL_CAT;
     wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
     if (!S.filter) { showHome(); return; }
-    const items = showingAll ? POIS.slice() : POIS.filter(p => p.category === S.filter);
+    const items = showingAll ? POIS.slice() : POIS.filter(p => memberIds ? memberIds.has(String(p.id)) : p.category === S.filter);
     const title = showingAll ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === c) || [, c])[1];
     S.mode = "list"; setSheet(listHtml(items, title), "half");
     bindList(items);
@@ -955,13 +984,20 @@ function wfDbg(level, source, message, meta) {
       ${buildingCardsHtml(filterTxt)}`, isMobileUx() ? "half" : "half");
     bindBuildingCards();
   }
+  function currentVenueInfo() {
+    const info = window.WFVenueInfo && window.WFVenueInfo.get();
+    const slug = (WF.building && WF.building.slug) || WF.cfg.slug;
+    return info && info.building_slug === slug ? info : { name: WF.cfg.name || (WF.building && WF.building.name) || "Venue information", address: WF.cfg.address || "", description: WF.cfg.description || "" };
+  }
   function showBuildingHome() {
     S.mode = "home"; document.body.classList.remove("dir");
     setUxMode("places");
+    const info = currentVenueInfo();
     const galleryIds = Array.from(thumbs).slice(0, 14);
     setSheet(`
       <div style="display:flex;gap:12px;align-items:center"><span class="ms fill blue" style="font-size:36px">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
-        <div style="flex:1"><h1 class="pname" style="font-size:1.2em;margin:0">${esc(WF.cfg.name || "")}</h1><div class="muted">${esc(WF.cfg.address || "")}</div></div></div>
+        <div style="flex:1;min-width:0"><h1 class="pname" data-venue-title style="font-size:1.2em;margin:0;overflow-wrap:anywhere">${esc(info.name)}</h1><div class="muted" data-venue-address ${info.address ? "" : "hidden"}>${esc(info.address)}</div></div></div>
+      <p class="muted" data-venue-description ${info.description ? "" : "hidden"}>${esc(info.description)}</p>
       <div class="pophead sm">${esc(t("viewer.explore"))}</div>
       ${galleryIds.length ? `<div class="photo-gallery" style="margin-top:12px">${galleryIds.map(id => `<img class="gallery-img" src="${thumbFor(id)}" alt="" loading="lazy">`).join("")}</div>` : ""}
       <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}</div>
@@ -2135,9 +2171,8 @@ function wfDbg(level, source, message, meta) {
   }
   function updateFloorPicker() {
     const fp = $("floorPicker"); if (!wf) return;
-    // Only expose floors authored in the NavMe Dashboard. Pipeline-only floor groups
-    // remain internal routing details and must never appear as user choices.
-    const show = !!(window.WF && WF.cfg && WF.cfg.display_floors && WF.cfg.display_floors.length);
+    // Floor selection stays internal; never show a floor button in the viewer.
+    const show = false;
     fp.hidden = !show;
     if (!show) setFloorStack(false);
     $("floorList").querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });
@@ -2198,35 +2233,87 @@ function wfDbg(level, source, message, meta) {
   }
 
   // ---------------- drawer / menu ----------------
+  let drawerReturnFocus = null;
+  function syncSidebarPreferences() {
+    $("togLarge").checked = document.body.classList.contains("large");
+    const light = !document.body.classList.contains("dark");
+    $("togHC").checked = light;
+    $("appearanceSelect").value = light ? "light" : "dark";
+  }
+  function focusVenueSearch() {
+    closeDirectionsIfOpen(); setUxMode("places");
+    $("q").focus(); $("q").select(); renderAc($("q"));
+  }
+  function showRecentSearches() {
+    S.mode = "recent";
+    const items = recent().map(id => byId[id]);
+    setSheet(items.length ? listHtml(items, t("viewer.recentSearches"))
+      : `<h1 class="pname">${esc(t("viewer.recentSearches"))}</h1><p class="muted">${esc(t("viewer.noRecentSearches"))}</p>`, "half");
+    bindList(items);
+  }
+  function showHelp() {
+    S.mode = "help";
+    setSheet(`<h1 class="pname">${esc(t("viewer.helpSupport"))}</h1>
+      <ul class="facts"><li><span class="ms">search</span><div>${esc(t("viewer.helpSearch"))}</div></li>
+      <li><span class="ms">directions</span><div>${esc(t("viewer.helpDirections"))}</div></li>
+      <li><span class="ms">my_location</span><div>${esc(t("viewer.helpLocation"))}</div></li>
+      <li><span class="ms">keyboard</span><div>${esc(t("viewer.helpKeyboard"))}</div></li></ul>
+      <div class="actions"><button class="pill" id="helpSearch">${esc(t("viewer.findPlace"))}</button><button class="pill" id="helpDirections">${esc(t("viewer.getDirections"))}</button></div>`, "half");
+    $("helpSearch").onclick = focusVenueSearch;
+    $("helpDirections").onclick = () => openDirections();
+  }
   function bindDrawer() {
     $("btnMenu").onclick = openDrawer; $("scrim").onclick = closeDrawer;
-    // Switch-building entry point now that the chip is gone from the search bar —
-    // same action #btnBrand/the old #bldgChip already triggered.
+    $("drawerClose").onclick = closeDrawer;
+    $("btnMenu").setAttribute("aria-controls", "drawer");
+    $("btnMenu").setAttribute("aria-expanded", "false");
     const dh = document.querySelector(".drawhead");
-    if (dh) dh.onclick = () => { closeDrawer(); showBuildingPicker(); try { $("q").focus(); } catch (e) {} };
+    if (dh) dh.onclick = () => { closeDrawer(); showBuildingPicker(); try { $("q").focus(); } catch (_) {} };
     $("togLarge").onchange = () => { document.body.classList.toggle("large", $("togLarge").checked); localStorage.setItem("wf_large", $("togLarge").checked ? "1" : "0"); };
     $("togHC").onchange = () => {
       const light = $("togHC").checked;
       document.body.classList.toggle("dark", !light);
-      localStorage.setItem("wf_theme", light ? "light" : "dark");
+      localStorage.setItem("wf_theme", light ? "light" : "dark"); syncSidebarPreferences();
     };
+    $("appearanceSelect").onchange = () => { $("togHC").checked = $("appearanceSelect").value === "light"; $("togHC").onchange(); };
     $("drawer").querySelectorAll("button.ditem").forEach(b => b.onclick = () => {
       const a = b.dataset.act; closeDrawer();
-      if (a === "building") { closeDirectionsIfOpen(); showHome(); zoomBuilding(); setSheetState("half"); }
-      if (a === "recent") { $("q").focus(); }
+      if (a === "building") { closeDirectionsIfOpen(); showBuildingHome(); setSheetState("half"); }
+      if (a === "search") focusVenueSearch();
+      if (a === "directions") { closeDirectionsIfOpen(); openDirections(); }
+      if (a === "recent") { closeDirectionsIfOpen(); showRecentSearches(); }
       if (a === "share") share();
       if (a === "language") showLanguageSheet();
+      if (a === "help") { closeDirectionsIfOpen(); showHelp(); }
       if (a === "dev") { const d = $("devWrap"); d.hidden = !d.hidden; toast(d.hidden ? t("viewer.devHidden") : t("viewer.devShown")); }
       if (a === "about") { closeDirectionsIfOpen(); about(); }
     });
+    $("drawer").addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeDrawer(); }
+      if (event.key !== "Tab") return;
+      const nodes = [...$("drawer").querySelectorAll('button:not([disabled]), input:not([hidden]), select')].filter(el => !el.hidden && el.getClientRects().length);
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
   }
   function closeDirectionsIfOpen() { if (S.mode === "nav") exitNav(); if (S.mode === "dir") closeDirections(); }
-  function openDrawer() { $("drawer").hidden = false; $("scrim").hidden = false; $("drawer").querySelector("button,label").focus(); }
-  function closeDrawer() { $("drawer").hidden = true; $("scrim").hidden = true; }
+  function openDrawer() {
+    drawerReturnFocus = document.activeElement;
+    syncSidebarPreferences();
+    if (window.WFVenueInfo) window.WFVenueInfo.render();
+    $("drawer").hidden = false; $("scrim").hidden = false;
+    $("btnMenu").setAttribute("aria-expanded", "true"); $("drawerClose").focus();
+  }
+  function closeDrawer() {
+    const wasOpen = !$("drawer").hidden;
+    $("drawer").hidden = true; $("scrim").hidden = true; $("btnMenu").setAttribute("aria-expanded", "false");
+    if (wasOpen && drawerReturnFocus && drawerReturnFocus.isConnected) drawerReturnFocus.focus();
+  }
   function about() {
     S.mode = "about";
     setSheet(`<h1 class="pname">${esc(t("viewer.aboutTitle"))}</h1><p>${esc(t("viewer.aboutBody", { model: WF.cfg.matterport_model_id || "" }))}</p>
-      <ul class="facts"><li><span class="ms">map</span><div>Basemaps: OpenFreeMap (© OpenMapTiles, © OpenStreetMap contributors, ODbL) · Esri World Imagery</div></li>
+      <ul class="facts"><li><span class="ms">device_thermostat</span><div>Weather: <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></div></li><li><span class="ms">map</span><div>Basemaps: OpenFreeMap (© OpenMapTiles, © OpenStreetMap contributors, ODbL) · Esri World Imagery</div></li>
       <li><span class="ms">route</span><div>Routing: ngraph.path (MIT), turf.js (MIT), networkx + shapely (BSD) · OSM footways (ODbL)</div></li>
       <li><span class="ms">search</span><div>Search: Fuse.js (Apache-2.0) · Icons: Material Symbols (Apache-2.0) · Font: Roboto (Apache-2.0)</div></li>
       <li><span class="ms">keyboard</span><div>Keyboard: <b>/</b> search · <b>↑↓ Enter</b> pick · <b>Esc</b> close · <b>← →</b> steps while navigating</div></li></ul>`, "half");
@@ -2326,7 +2413,7 @@ function wfDbg(level, source, message, meta) {
   window.wfShowArrivalCard = showArrivalCard;
   window.wfHideArrivalCard = hideArrivalCard;
 
-  window.wfUI = { S, selectPlace: (id) => { const p = byId[id]; if (!p) { toast(t("viewer.placeMissing")); return; } selectPlace(p, { fly: true }); }, openDirections: (from, to, stepFree) => { const dest = byId[to]; if (!dest) { toast(t("viewer.placeMissing")); return; } S.from = from === "me" ? "me" : (from ? byId[from] : null); S.to = dest; S.stepFree = !!stepFree; openDirections(); },
+  window.wfUI = { S, categoryMarkerContext, categoryMarkerStyle, selectCategoryMarker, selectPlace: (id) => { const p = byId[id]; if (!p) { toast(t("viewer.placeMissing")); return; } selectPlace(p, { fly: true }); }, openDirections: (from, to, stepFree) => { const dest = byId[to]; if (!dest) { toast(t("viewer.placeMissing")); return; } S.from = from === "me" ? "me" : (from ? byId[from] : null); S.to = dest; S.stepFree = !!stepFree; openDirections(); },
     startNav: () => startNav(), navGo: (i) => navGo(i), exitNav: () => exitNav(), toggle3D, setStyle, share: (opts) => shareUrl(opts), toggleChip, renderAc: () => { $("q").focus(); }, preview3D, showHome, focusStep, setSheetState, toast };
 })();
 var wfShare;

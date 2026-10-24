@@ -244,20 +244,23 @@ export function createGmapPanel(slot) {
     syncBtn.disabled = true;
     setStatus(manageStatus, 'Syncing POIs…');
     try {
-      const result = await adminGmapSyncPois(String(poiType));
-      const count = typeof result === 'number' ? result : result?.synced ?? result?.count ?? 0;
-      setStatus(manageStatus, `✓ ${count} POIs synced to Supabase. Pushing to wayfinding…`);
-
       const url = (b.wayfinding_admin_url || '').replace(/\/$/, '');
       if (url && b.slug) {
-        // slug addresses the building; poi_type is the verbatim Supabase filter key.
+        // The platform reads canonical navme_pois directly. Re-running the legacy
+        // gmap mirror RPC first creates duplicate rows and can truncate POI lists.
         const r = await wfFetch(url, `/api/v1/public/dashboard/buildings/${encodeURIComponent(b.slug)}/sync-pois`
           + `?poi_type=${encodeURIComponent(String(poiType))}`, { method: 'POST' });
         const j = await r.json().catch(() => ({}));
-        if (r.ok) setStatus(manageStatus, `✓ ${j.created ?? 0} created, ${j.updated ?? 0} updated in wayfinding.`, true);
-        else setStatus(manageStatus, `Supabase synced. Wayfinding: ${j.detail || r.status}`, false);
+        if (r.ok) {
+          const skipped = j.skipped ?? 0;
+          const total = j.source_total ?? j.synced ?? ((j.created ?? 0) + (j.updated ?? 0));
+          setStatus(manageStatus, `${skipped ? '⚠' : '✓'} ${j.synced ?? total} of ${total} POIs synced (${j.created ?? 0} new, ${j.updated ?? 0} updated).`
+            + (skipped ? ` ${skipped} skipped: check their names and positions.` : ''), !skipped);
+        } else setStatus(manageStatus, `Sync failed: ${j.detail || r.status}`, false);
       } else {
-        setStatus(manageStatus, `✓ ${count} POIs synced to Supabase.`, true);
+        const result = await adminGmapSyncPois(String(poiType));
+        const count = typeof result === 'number' ? result : result?.synced ?? result?.count ?? 0;
+        setStatus(manageStatus, `✓ ${count} POIs synced to Supabase. Connect a wayfinding building to sync the platform.`, true);
       }
     } catch (e) {
       setStatus(manageStatus, 'Sync failed: ' + e.message, false);

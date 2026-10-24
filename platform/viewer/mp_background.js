@@ -1,5 +1,5 @@
 /* Matterport public viewer (?mp=1): swaps the ArcGIS map background for the live
-   Matterport Showcase embed, left in Dollhouse mode. Everything else (search,
+   Matterport Showcase embed, opening in Dollhouse before entering Inside mode. Everything else (search,
    directions, turn-by-turn) is the normal ui.js/app.js chrome running unmodified
    on top — ui.js only ever duck-types window.wf.*, it never checks how the
    background is rendered. See ui.js's isMpMode()/mpFocusSelection() for the
@@ -65,9 +65,9 @@
        mesh-debug toggles) — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels,
     body.mp-bg-mode #layersPop, body.mp-bg-mode [data-act="dev"] { display:none !important; }
-    /* Reuse the branded surface until the SDK and existing dollhouse framing
-       are ready. Then show only a centered, transparent preparation indicator
-       over the live iframe while NavMe's search/navigation UI finishes. */
+    /* Keep the branded surface until Matterport starts its rendered entrance.
+       Show a transparent preparation indicator over that original fly-in and
+       dollhouse framing while NavMe's search/navigation UI finishes. */
     body.mp-bg-mode #mpBgLoading {
       position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:14px; background:#000; color:#e8eaed;
@@ -103,7 +103,7 @@
     @keyframes mpBgSpin { to { transform:rotate(360deg); } }
     @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .mp-bg-spinner { animation:none; } }
     /* Preserve the existing logo, spinner, and milestone-based percentage.
-       Only a usable dollhouse replaces this surface with the preparation text. */
+       The rendered entrance replaces this surface with the preparation text. */
     body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > .mp-bg-spinner,
     body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > #mpBgLoadingText {
       display:none !important;
@@ -225,7 +225,7 @@
   // Own the existing loader until BOTH the live model and NavMe chrome are ready.
   // iframe.load and percentage milestones intentionally never advance this state.
   function createStartup() {
-    let generation = 0, modelReady = false, chromeReady = false, failed = false, complete = false;
+    let generation = 0, modelVisible = false, modelReady = false, chromeReady = false, failed = false, complete = false;
     let watchdog = null, lastStatus = "Loading digital twin…";
     const preparing = "Preparing your experience…";
     function render() {
@@ -239,7 +239,7 @@
       const text = document.getElementById("mpBgLoadingText");
       if (text) text.textContent = failed
         ? "We couldn't load your navigation experience. Please try again."
-        : (modelReady ? preparing : lastStatus);
+        : (modelVisible ? preparing : lastStatus);
       el.hidden = false;
       if (failed && !document.getElementById("mpStartupRetry")) {
         const retry = document.createElement("button");
@@ -268,7 +268,7 @@
       begin(gen) {
         // A required-data failure may arrive before DOMContentLoaded starts the model.
         if (failed && generation === 0) { generation = gen; render(); return; }
-        generation = gen; modelReady = false; chromeReady = false; failed = false; complete = false;
+        generation = gen; modelVisible = false; modelReady = false; chromeReady = false; failed = false; complete = false;
         window.__mpBackgroundReady = false;
         lastStatus = "Loading digital twin…";
         document.body.classList.add("booting");
@@ -286,11 +286,16 @@
         if (msg) lastStatus = msg;
         render();
       },
+      modelVisible(gen) {
+        if (!state.isCurrent(gen)) return;
+        modelVisible = true;
+        document.body.classList.add("mp-frame-loaded");
+        render();
+      },
       modelReady(gen) {
         if (!state.isCurrent(gen)) return;
         modelReady = true;
-        document.body.classList.add("mp-frame-loaded");
-        render();
+        state.modelVisible(gen);
       },
       uiReady(gen) {
         if (!state.isCurrent(gen)) return;

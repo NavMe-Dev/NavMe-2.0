@@ -806,6 +806,7 @@ require([
       window.wf.pois = pois.pois;
       { const catNamesById = (R2 && R2.navmeTranslations && R2.navmeTranslations.category_names) || {};
         window.wf.categories = ((R2 && R2.navmeCategories) || []).map(c => ({ ...c, names: catNamesById[String(c.id)] || null })); }
+      window.dispatchEvent(new Event("wf-pois-updated"));
       window.wf.redrawPOIs = drawPOIs;
       if (window.wf.showLabels == null) {
         try { window.wf.showLabels = localStorage.getItem("wf_showLabels") === "1"; }

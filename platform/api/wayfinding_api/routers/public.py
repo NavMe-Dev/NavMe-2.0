@@ -437,7 +437,6 @@ def dashboard_sync_pois(slug: str, request: Request, poi_type: str | None = None
     "poi-navme") and Supabase matches it byte-for-byte. It is remembered on the building
     so the admin sync, navmesh and category lookups all use the same value afterwards."""
     _verify_supabase_key(request)
-    import urllib.request, urllib.error, json
     cfg = get_settings()
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
@@ -459,99 +458,16 @@ def dashboard_sync_pois(slug: str, request: Request, poi_type: str | None = None
         ).first()
     if not b: raise HTTPException(404, f"building not found for slug '{slug}'")
 
-    url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    # Filter Supabase by the dashboard's poi_type, byte-for-byte: an explicit ?poi_type=
-    # from the caller wins, then whatever onboarding stored on the building, and only
-    # then the path value (which is what this did before the field existed).
     ptype = (poi_type or "").strip() or (b.pipeline_config or {}).get("navme_poi_type") or slug
     if (poi_type or "").strip() and (b.pipeline_config or {}).get("navme_poi_type") != ptype:
         from sqlalchemy.orm.attributes import flag_modified
         b.pipeline_config = navme.set_poi_type(b.pipeline_config, ptype)
         flag_modified(b, "pipeline_config")
         db.commit()
-    body = json.dumps({"p_slug": ptype}).encode()
-    req = urllib.request.Request(url, data=body, method="POST", headers={
-        "Content-Type": "application/json",
-        "apikey": cfg.supabase_anon_key,
-        "Authorization": f"Bearer {cfg.supabase_anon_key}",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            rows = json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        body_err = ""
-        try: body_err = e.read().decode()
-        except Exception: pass
-        raise HTTPException(502, f"Supabase RPC error {e.code}: {body_err}")
-    except Exception as e:
-        raise HTTPException(502, f"Supabase unreachable: {e}")
-
-    if not isinstance(rows, list) or not rows:
-        return {"synced": 0, "created": 0, "updated": 0, "skipped": 0, "errors": [],
-                "building_slug": b.slug, "poi_type": ptype,
-                "note": f"gmap_list_pois returned 0 rows for poi_type {ptype!r} — check the POI type "
-                        f"matches navme_pois.poi_type exactly, and that POIs have x/y/z set"}
-
-    # Build floor label → floor id map from the building's floors
-    floor_label_to_id: dict = {}
-    try:
-        import json as _json
-        bj_path = cfg.buildings_dir / b.slug / "building.json"
-        if bj_path.exists():
-            for fl in _json.loads(bj_path.read_text()).get("floors", []):
-                for key_v in (fl.get("label"), fl.get("short"), fl.get("id")):
-                    if key_v:
-                        floor_label_to_id[str(key_v).lower()] = fl["id"]
-    except Exception:
-        pass
-
-    created = updated = skipped = 0
-    errors = []
-    for r in rows:
-        meta = r.get("metadata") or {}
-        src_id = str(r.get("src_id") or meta.get("src_id") or r.get("id") or "")
-        if not src_id: skipped += 1; continue
-        poi_key = f"sb_{src_id}"
-        name = str(r.get("label") or r.get("name") or "")
-        # Matterport SDK coords (Y-up): x=right, y=elevation, z=depth
-        # Map to wayfinding model coords: model_x=scan X, model_y=scan Z(depth), model_z=elevation(SDK Y)
-        sdk_x = r.get("x") or r.get("pos_x")
-        sdk_y = r.get("y") or r.get("pos_y")  # elevation in SDK coords
-        sdk_z = r.get("z") or r.get("pos_z")
-        # Resolve floor id from label
-        raw_floor = str(r.get("floor_id") or r.get("floor_label") or r.get("floor") or "")
-        floor_id = floor_label_to_id.get(raw_floor.lower(), raw_floor) or "F1"
-        category = str(r.get("category") or "room")
-
-        vals = dict(
-            name=name,
-            floor=floor_id,
-            category=category,
-            source="admin",
-            model_x=float(sdk_x) if sdk_x is not None else None,
-            model_y=float(sdk_z) if sdk_z is not None else None,  # SDK z → plan Y
-            model_z=float(sdk_y) if sdk_y is not None else None,  # SDK y (elevation) → model_z
-        )
-
-        existing = db.query(models.POI).filter_by(building_id=b.id, key=poi_key).first()
-        if existing:
-            for k, v in vals.items():
-                if v is not None: setattr(existing, k, v)
-            updated += 1
-        else:
-            try:
-                poi = models.POI(building_id=b.id, key=poi_key, locked=False, **vals)
-                db.add(poi)
-                created += 1
-            except Exception as e:
-                errors.append({"src_id": src_id, "error": str(e)})
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(500, f"DB commit failed: {e}")
-    return {"synced": created + updated, "created": created, "updated": updated,
-            "skipped": skipped, "errors": errors, "building_slug": b.slug}
+    from ..services import navme_sync
+    result = navme_sync.sync_pois(db, b, cfg)
+    db.commit()
+    return {**{k: v for k, v in result.items() if k != "categories"}, "building_slug": b.slug}
 
 
 # --------------- NavMe live POI list + coord-based route (no sync required) ---------------
@@ -571,6 +487,37 @@ def _verify_supabase_key_or_admin(request: Request):
             pass
     raise HTTPException(403, "invalid supabase key or admin token")
 
+
+
+@router.get("/buildings/{slug}/weather")
+def public_weather(slug: str, db: Session = Depends(get_db)):
+    """Outdoor weather for the venue's WGS84 location, never visitor GPS."""
+    from ..services.weather import venue_weather
+    result = venue_weather(building_or_404(db, slug))
+    return JSONResponse(result, headers={"Cache-Control": "private, max-age=" + str(result["cache_seconds"])})
+
+
+@router.get("/buildings/{slug}/venue-info")
+def public_venue_info(slug: str, db: Session = Depends(get_db)):
+    """Display metadata only: no Matterport credentials, writes, or renamed IDs."""
+    from ..services.venue_info import venue_info
+    return venue_info(building_or_404(db, slug))
+
+
+@router.get("/buildings/{slug}/category-marker-data")
+def category_marker_data(slug: str, db: Session = Depends(get_db)):
+    """Optional, read-only category memberships and SDK positions for one venue."""
+    from ..services import category_markers
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        raise HTTPException(404, "unknown building")
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return {"building_slug": b.slug, "categories": [], "pois": []}
+    try:
+        return category_markers.marker_data(cfg, b)
+    except Exception as exc:
+        raise HTTPException(502, "Category labels are unavailable right now.") from exc
 
 
 @router.get("/dashboard/buildings/{slug}/navme-pois")

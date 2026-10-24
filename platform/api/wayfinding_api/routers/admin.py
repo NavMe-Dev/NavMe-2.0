@@ -893,79 +893,23 @@ def navme_poi_types():
 
 @router.post("/buildings/{slug}/pois/sync-supabase")
 def sync_pois_from_supabase(slug: str, db: Session = Depends(get_db)):
-    """Pull POIs from Supabase navme_gmap_pois (synced from navme_pois) and upsert into wayfinding."""
-    import urllib.request, urllib.error
+    """Sync the complete active dashboard POI list into the viewer mirror."""
+    from ..services import navme_sync
     cfg = get_settings()
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         raise HTTPException(400, "SUPABASE_URL / SUPABASE_ANON_KEY not configured")
     b = B(db, slug)
     if not b.georef:
         raise HTTPException(400, "Building has no georef — set georef before syncing POIs")
-    T = navgraph.GeoT(b.georef)
-    ptype = navme.poi_type(b)   # dashboard poi_type verbatim ("POI Navme"), not the slug
-    url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    body = json.dumps({"p_slug": ptype}).encode()
-    req = urllib.request.Request(url, data=body, method="POST", headers={
-        "Content-Type": "application/json",
-        "apikey": cfg.supabase_anon_key,
-        "Authorization": f"Bearer {cfg.supabase_anon_key}",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            rows = json.loads(r.read())
-    except urllib.error.HTTPError as e:
-        raise HTTPException(502, f"Supabase error {e.code}: {e.read().decode()}")
-    if not rows:
-        return {"synced": 0, "skipped": 0, "errors": [], "poi_type": ptype,
-                "note": f"gmap_list_pois returned 0 rows for poi_type {ptype!r} — check the "
-                        f"building's \u201cNavMe dashboard POI type\u201d matches navme_pois.poi_type exactly"}
-    created = updated = skipped = 0; errors = []
-    for row in rows:
-        try:
-            src_id = row.get("src_id") or ""
-            key = f"sb_{src_id[:32]}" if src_id else None
-            name = (row.get("label") or "").strip()
-            if not name: skipped += 1; continue
-            x, y, z = float(row.get("x") or 0), float(row.get("y") or 0), float(row.get("z") or 0)
-            lon, lat = T.ll(x, y)
-            floor = str(row.get("floor_id") or "F1")
-            category = str(row.get("category") or "General")
-            if key:
-                existing = db.query(models.POI).filter_by(building_id=b.id, key=key).first()
-            else:
-                existing = None
-            if existing:
-                existing.name = name; existing.floor = floor; existing.category = category
-                existing.model_x, existing.model_y, existing.model_z = x, y, z
-                existing.geom = WKTElement(f"POINT({lon} {lat})", srid=4326)
-                existing.locked = False; updated += 1
-            else:
-                if not key:
-                    key = "sb_" + re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")[:36]
-                p = models.POI(building_id=b.id, key=key, name=name, floor=floor,
-                               category=category, model_x=x, model_y=y, model_z=z,
-                               geom=WKTElement(f"POINT({lon} {lat})", srid=4326),
-                               source="supabase", locked=False)
-                db.add(p); created += 1
-        except Exception as e:
-            errors.append(f"{row.get('label','?')}: {e}"); db.rollback()
+    result = navme_sync.sync_pois(db, b, cfg)
     db.commit()
     workspace.recompute_step_free(db, b)
-    return {"synced": created + updated, "created": created, "updated": updated, "skipped": skipped, "errors": errors}
+    return {k: v for k, v in result.items() if k != "categories"}
 
 
 @router.post("/buildings/{slug}/navme-gmap/sync")
 def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
-    """Pull this building's NavMe Dashboard POI list (Supabase gmap_list_pois RPC, same
-    source as the pre-existing /pois/sync-supabase) and its active navmesh (Supabase
-    navme_media, media_type='navmesh') in — no new tables: POIs upsert into the existing
-    `pois` table (source="supabase", same as sync-supabase already does; dashboard-only
-    fields like expected_pos_* and the Supabase row id live in POI.extra, which already
-    exists), and the navmesh file is downloaded to local disk with its pointer kept in
-    Building.pipeline_config["navme_navmesh"] (also an existing JSONB column — no schema
-    change). Run this once (or whenever the dashboard changes POIs/navmesh); after that,
-    /dashboard/buildings/{slug}/navme-pois and /navmesh-url serve straight from Postgres /
-    local disk and never call Supabase again at request time."""
+    """Sync canonical dashboard POIs/categories and the active navmesh into this server."""
     import urllib.request, urllib.error, urllib.parse
     cfg = get_settings()
     if not cfg.supabase_url or not cfg.supabase_anon_key:
@@ -973,7 +917,6 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
     b = B(db, slug)
     if not b.georef:
         raise HTTPException(400, "Building has no georef — set georef before syncing POIs")
-    T = navgraph.GeoT(b.georef)
     ptype = navme.poi_type(b)   # dashboard poi_type verbatim ("POI Navme"), not the slug
     headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
 
@@ -982,79 +925,12 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
         with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read())
 
-    # ---- POIs: gmap_list_pois RPC + expected_pos_* straight off navme_pois ----
-    rpc_url = f"{cfg.supabase_url}/rest/v1/rpc/gmap_list_pois"
-    req = urllib.request.Request(rpc_url, data=json.dumps({"p_slug": ptype}).encode(), method="POST",
-                                  headers={**headers, "Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            rows = json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        raise HTTPException(502, f"Supabase RPC error {e.code}: {e.read().decode()}")
-    except Exception as e:
-        raise HTTPException(502, f"Supabase unreachable: {e}")
-
-    staged, seen = [], set()
-    for r in (rows or []):
-        meta = r.get("metadata") or {}
-        src_id = str(r.get("src_id") or meta.get("src_id") or r.get("id") or "")
-        label = str(r.get("label") or r.get("name") or "")
-        if not label or not src_id or src_id in seen:
-            continue
-        seen.add(src_id); staged.append((src_id, r, meta))
-
-    expected_by_id = {}
-    if staged:
-        id_list = ",".join(urllib.parse.quote(sid, safe="") for sid, _, _ in staged)
-        try:
-            exp_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_pois?id=in.({id_list})"
-                             f"&select=id,expected_pos_x,expected_pos_y,expected_pos_z,category_type")
-            expected_by_id = {str(r.get("id")): r for r in exp_rows if r.get("id")}
-        except Exception:
-            pass
-
-    # ---- Categories: navme_categories (dashboard-curated POI category chips) ----
-    # Fetched before the POI loop below, because gmap_list_pois' own "category" field is
-    # a fixed generic placeholder ("General") on every row — the real per-POI category is
-    # navme_pois.category_type, a FK to navme_categories.id, not exposed by that RPC at all.
-    # So each POI's real category name has to be resolved here via this id->name map,
-    # fetched directly off navme_pois.category_type above (the viewer's own category
-    # dropdown/filter keys off this same navme_categories.name, lowercased).
-    categories = []
-    try:
-        q = urllib.parse.urlencode({"select": "id,name,icon_key,sort_order",
-                                     "poi_type": f"ilike.{navme.pg_value(ptype)}",
-                                     "order": "sort_order.asc,name.asc"})
-        cat_rows = _get(f"{cfg.supabase_url}/rest/v1/navme_categories?{q}")
-        categories = [{"id": r.get("id"), "name": r.get("name"), "icon_key": r.get("icon_key"),
-                       "sort_order": r.get("sort_order")} for r in (cat_rows or [])]
-    except Exception:
-        pass  # best-effort; categories are optional chrome, never block the rest of the sync
-    cat_name_by_id = {c["id"]: c["name"] for c in categories if c.get("id") and c.get("name")}
-
-    # key is the full src_id (not truncated) so two POIs never collide on a shared prefix.
-    poi_created = poi_updated = 0
-    for src_id, r, meta in staged:
-        exp = expected_by_id.get(src_id) or {}
-        key = "gmap_" + re.sub(r"[^a-z0-9]+", "_", src_id.lower())[:70]
-        name = str(r.get("label") or r.get("name") or "")
-        x, y, z = r.get("x") or 0, r.get("y") or 0, r.get("z") or 0
-        lon, lat = T.ll(float(x), float(y))
-        existing = db.query(models.POI).filter_by(building_id=b.id, key=key).first()
-        if not existing:
-            existing = models.POI(building_id=b.id, key=key, source="supabase", locked=False)
-            db.add(existing); poi_created += 1
-        else:
-            poi_updated += 1
-        existing.name = name
-        cat_name = cat_name_by_id.get(exp.get("category_type")) or r.get("category") or "room"
-        existing.category = str(cat_name).strip().lower()
-        existing.floor = str(r.get("floor_id") or "F1")
-        existing.model_x, existing.model_y, existing.model_z = x, y, z
-        existing.geom = WKTElement(f"POINT({lon} {lat})", srid=4326)
-        existing.extra = {**(existing.extra or {}), "gmap_poi_type": ptype, "gmap_src_id": src_id,
-                           "gmap_metadata": meta, "expected_pos_x": exp.get("expected_pos_x"),
-                           "expected_pos_y": exp.get("expected_pos_y"), "expected_pos_z": exp.get("expected_pos_z")}
+    # Read the canonical table with pagination; the old Google-map mirror can
+    # contain thousands of duplicates and its RPC accepts a slug, not poi_type.
+    from ..services import navme_sync
+    result = navme_sync.sync_pois(db, b, cfg)
+    categories = result["categories"]
+    poi_created, poi_updated = result["created"], result["updated"]
 
     # ---- Navmesh media: find the active row, download the file onto local disk ----
     candidates = navme.media_candidates(b)
@@ -1125,7 +1001,8 @@ def sync_navme_gmap(slug: str, db: Session = Depends(get_db)):
 
     db.commit()
     workspace.recompute_step_free(db, b)
-    return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": len(staged),
+    return {"pois_created": poi_created, "pois_updated": poi_updated, "pois_total": result["synced"],
+            "source_total": result["source_total"], "skipped": result["skipped"], "errors": result["errors"],
             "navmesh_synced": media_synced, "categories_synced": len(categories),
             "stair_chains_synced": len(stair_chains), "poi_type": ptype}
 

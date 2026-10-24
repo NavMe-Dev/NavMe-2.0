@@ -115,7 +115,7 @@
             const lab = document.getElementById("langCurrentLabel");
             if (lab) lab.textContent = cur ? cur.native : "";
           };
-          btn.hidden = window.WFi18n.getEnabled().length < 2;
+          btn.hidden = false;
           refreshLabel();
           window.WFi18n.onChange(refreshLabel);
         }

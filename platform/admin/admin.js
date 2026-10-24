@@ -1005,8 +1005,9 @@ const Overview = {
         gmapMsg.value = `Synced ${r.pois_total} POIs (${r.pois_created} new, ${r.pois_updated} updated)` +
           (r.navmesh_synced ? ", navmesh updated." : ", no active navmesh found.") +
           (r.poi_type ? ` POI type: "${r.poi_type}".` : "") +
-          (r.pois_total === 0 ? " Zero rows usually means the POI type above doesn't match navme_pois.poi_type exactly — hit Check." : "");
-        gmapErr.value = r.pois_total === 0;
+          (r.skipped ? ` ${r.skipped} of ${r.source_total} dashboard POIs skipped: check their names and positions.` : "") +
+          (r.pois_total === 0 ? " No active POIs found for this dashboard POI type — hit Check." : "");
+        gmapErr.value = r.pois_total === 0 || !!r.skipped;
       } catch (x) { gmapErr.value = true; gmapMsg.value = x.message; }
       gmapBusy.value = false;
     }

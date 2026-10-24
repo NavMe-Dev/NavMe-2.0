@@ -238,6 +238,7 @@ body.dark .fcard.plain{background:#2a2d30}
 /* Floor stack: a single FAB (current floor) by default; tapping it expands the full
    list above it. Keeps the right-side control column compact on any device instead of
    always showing every floor button at once. */
+#floorPicker{display:none!important}
 .floorpicker{position:relative;display:flex;flex-direction:column;align-items:center}
 .floor-stack{position:relative}
 .floor-stack-label{position:absolute;bottom:-2px;right:-2px;min-width:15px;height:15px;padding:0 2px;border-radius:8px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;line-height:15px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
@@ -639,3 +640,53 @@ body.dir .wf-chat-root{bottom:calc(min(var(--sheetH, 28vh), 40vh) + 14px);right:
 .wf-thumb.picked{background:#e8f0fe;border-color:#1a73e8;color:#1967d2}
 .wf-arrived-done{width:100%;height:50px;margin-top:4px;border:0;border-radius:14px;background:#182858;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
 .wf-arrived-done:active{transform:scale(.98)}
+
+/* Optional world-anchored category labels over the existing Matterport iframe. */
+.mp-category-markers{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+.mp-category-markers[hidden],.mp-category-marker[hidden],body.nav .mp-category-markers,body.dir .mp-category-markers,body.n3d-open .mp-category-markers{display:none!important}
+.mp-category-marker{position:absolute;transform:translate(-50%,calc(-100% - 12px));display:flex;align-items:center;gap:6px;max-width:min(220px,65vw);padding:7px 11px;border:1px solid rgba(255,255,255,.2);border-radius:24px;background:rgba(28,30,33,.94);color:#fff;font:500 13px/1.3 Roboto,system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:auto;cursor:pointer;white-space:nowrap}
+.mp-category-marker .mp-category-icon{font-size:18px;color:var(--category-color,#8ab4f8);flex-shrink:0}
+.mp-category-name{overflow:hidden;text-overflow:ellipsis}
+.mp-category-marker .mp-category-pin{position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);font-size:18px;color:var(--category-color,#8ab4f8);text-shadow:0 1px 3px #000}
+.mp-category-marker:focus-visible{outline:3px solid #8ab4f8;outline-offset:3px}
+
+.mp-category-leader{position:absolute;left:50%;top:calc(100% + 12px);height:1px;background:var(--category-color,#8ab4f8);opacity:.8;transform-origin:0 50%;pointer-events:none}
+.mp-category-leader::after{content:"";position:absolute;right:-2px;top:-2px;width:5px;height:5px;border-radius:50%;background:var(--category-color,#8ab4f8);box-shadow:0 0 2px #111}
+@media(max-width:600px){
+  .mp-category-marker{gap:4px;max-width:140px;min-height:32px;box-sizing:border-box;padding:5px 7px;font-size:11.5px}
+  .mp-category-marker .mp-category-icon{font-size:15px}
+}
+
+/* Sidebar keeps the existing shell, with wrapped venue metadata and grouped actions. */
+.ui .drawhead{width:100%;padding:8px 52px 16px 20px!important;text-align:start;font:inherit}
+.drawhead img{flex-shrink:0}
+.drawhead-text{display:flex;flex-direction:column;gap:4px;min-width:0;overflow-wrap:anywhere;white-space:normal}
+.drawhead-text b{font-size:1.1em;line-height:1.35}
+.drawer-close{position:absolute;top:6px;right:6px}
+.drawer-section{margin:18px 24px 6px;font-size:.76em;line-height:1.4;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em}
+.drawer .ditem{min-height:46px;gap:16px}
+.drawer .ditem>span:not(.ms){min-width:0;overflow-wrap:anywhere}
+.appearance-row select{margin-inline-start:auto;max-width:48%;font:inherit;color:var(--txt);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:7px}
+.drawer .ditem-sub{max-width:45%;font-size:.9em;white-space:normal;overflow-wrap:anywhere}
+body.large .drawer{width:340px}
+[dir=rtl] .drawer-close{right:auto;left:6px}
+[dir=rtl] .ui .drawhead{padding-right:20px!important;padding-left:52px!important}
+
+/* Messages preserve sentence case and the exact casing of the user's search. */
+.ac .hdr.ac-message,.warn,.toast,.mp-status,.n3d-status,[role="alert"]{text-transform:none;letter-spacing:normal}
+
+/* A dedicated narrow-screen row keeps weather out of search/category hit areas. */
+.weather-row{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));display:flex;justify-content:flex-end;pointer-events:none}
+.weather-badge{display:inline-flex;align-items:center;gap:5px;min-height:32px;box-sizing:border-box;padding:5px 10px;border-radius:18px;background:var(--bg);color:var(--txt);box-shadow:var(--sh1);font-size:13px;line-height:1.25;font-weight:500;white-space:nowrap;pointer-events:auto}
+.weather-badge .ms{font-size:19px;color:var(--blue)}
+.sidebar-weather{display:flex;gap:12px;align-items:center;padding:10px 24px;font-size:.9em;line-height:1.4}
+.sidebar-weather>.ms{color:var(--blue)}
+.sidebar-weather small{font-size:.78em;color:var(--txt2)}
+.sidebar-weather a{color:var(--txt2)}
+body.nav .weather-row,body.dir .weather-row,body.n3d-open .weather-row{display:none!important}
+@media(max-width:767px){
+  .top{top:max(8px,env(safe-area-inset-top,0px));left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px))}
+  .weather-row{position:static;margin-top:6px;min-height:32px}
+  body.weather-visible:not(.dir):not(.nav) .ctop{top:calc(156px + env(safe-area-inset-top,0px))}
+}
+@media(min-width:768px){body.weather-visible .ctop{top:calc(56px + env(safe-area-inset-top,0px))!important}}

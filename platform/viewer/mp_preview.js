@@ -26,6 +26,7 @@ function wfDbg(level, source, message, meta) {
   let accessToken = "";  // X-WF-Access / ?access= for twin=pin
   let connectError = "";
   let sdkScriptPromise = null;
+  let categoryMarkers = null;
   let openGen = 0;
   // True when this session is reusing mp_background.js's permanent mp=1 connection
   // (see getLiveConnection/openUsingLiveConnection) instead of owning a dedicated
@@ -1530,6 +1531,19 @@ function wfDbg(level, source, message, meta) {
     try {
       mpSdk = await window.MP_SDK.connect(iframe, applicationKey, "");
       window.__mpSdk = mpSdk;   // debug handle for console inspection
+      // ModelDetails is authoritative for this connected space; fetch it without
+      // delaying rendering and never expose Model API credentials to the client.
+      if (window.WFVenueInfo && mpSdk.Model && mpSdk.Model.getDetails) {
+        const connected = mpSdk, connectedModel = modelId;
+        const wf = window.WF || {}, cfg = wf.cfg || {}, building = wf.building || {};
+        const context = { slug: building.slug || cfg.slug, modelId: connectedModel,
+          name: building.name || cfg.name, address: building.address || cfg.address };
+        void window.WFVenueInfo.load(context);
+        void Promise.resolve().then(() => connected.Model.getDetails()).then(details => {
+          const current = (window.WF && WF.building && WF.building.slug) || (window.WF && WF.cfg && WF.cfg.slug);
+          if (mpSdk === connected && modelId === connectedModel && current === context.slug) window.WFVenueInfo.acceptSdk(details, context);
+        }).catch(() => wfDbg("warn", "viewer.venue", "Matterport space details unavailable"));
+      }
       return mpSdk;
     } catch (e) {
       connectError = (e && (e.message || String(e))) || "SDK connect failed";
@@ -2554,11 +2568,12 @@ function wfDbg(level, source, message, meta) {
 
   // ── Matterport public viewer (background mode) ──────────────────────────────
   // Lighter-weight sibling of open(): connects the same Showcase iframe/SDK and
-  // drops straight into Dollhouse (f=0 already means no floor filter — see
-  // showcaseUrl()'s comment — so unlike open() there is no route/tour to prepare
-  // here), then leaves it idle as the page's permanent background. mp_background.js
+  // shows the Dollhouse opening (f=0 means no floor filter), then enters the
+  // native Inside view, like Showcase's Explore 3D Space control. Unlike open(),
+  // there is no route/tour to prepare; it remains the page's live background. mp_background.js
   // calls this once; focusAt() (below) handles every camera move after that.
   async function showBackground() {
+    if (categoryMarkers) { categoryMarkers.dispose(); categoryMarkers = null; }
     const gen = ++openGen;
     ensureOverlay();
     const ov = $("mpOverlay");
@@ -2597,14 +2612,62 @@ function wfDbg(level, source, message, meta) {
     const sdk = await connectSdk(iframe);
     if (!current()) return false;
     if (!sdk) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
+    // Optional labels observe this existing camera; their data request never
+    // participates in startup readiness and never remounts the Matterport scene.
+    try {
+      if (window.WFCategoryMarkers) categoryMarkers = window.WFCategoryMarkers.mount({
+        sdk, iframe, container: iframe.parentElement,
+        config: (window.WF_CONFIG && window.WF_CONFIG.categoryMarkers) || {},
+        getContext: () => window.wfUI && window.wfUI.categoryMarkerContext
+          ? window.wfUI.categoryMarkerContext() : { venue: (window.WF && WF.building && WF.building.slug) || (window.WF && WF.cfg && WF.cfg.slug) },
+        getStyle: category => window.wfUI && window.wfUI.categoryMarkerStyle ? window.wfUI.categoryMarkerStyle(category) : {},
+        onSelect: (id, poiIds, name) => { if (window.wfUI && window.wfUI.selectCategoryMarker) window.wfUI.selectCategoryMarker(id, poiIds, name); },
+        fetchData: async (slug, signal) => {
+          const base = ((window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
+          const response = await fetch(base + "buildings/" + encodeURIComponent(slug) + "/category-marker-data", { signal });
+          if (!response.ok) throw new Error("Category data unavailable");
+          return response.json();
+        },
+      });
+    } catch (_) { console.warn("[Category markers] optional layer unavailable"); }
     setStatus("Waiting for twin to be ready…");
-    const ready = await waitPlaying(sdk, 90000, (phase) => {
-      // Quick-start normally bypasses the Enter gate. If it is genuinely required,
-      // fail with a working retry rather than expose an unrendered canvas.
-      if (current() && phase === phaseConsts(sdk).WAITING) setStatus("Waiting for twin to be ready…");
-    });
-    if (!current()) return false;
-    if (!ready) { setStatus("Tap Enter in the 3D view, then try again.", true); return fail(); }
+    // Let Matterport's own entrance animation remain visible. STARTING means
+    // the transition into the model has begun; PLAYING means interaction is ready.
+    // Neither iframe.load nor a percentage is evidence of a model being drawn.
+    let revealPromise = null;
+    const revealModel = () => {
+      if (!revealPromise) revealPromise = new Promise(resolve => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }).then(() => {
+        if (!current()) return;
+        if (startup) startup.modelVisible(gen);
+        else document.body.classList.add("mp-frame-loaded");
+      });
+      return revealPromise;
+    };
+    let introSubscription = null;
+    try {
+      if (sdk.App && sdk.App.state && sdk.App.state.subscribe) {
+        const phases = phaseConsts(sdk);
+        introSubscription = sdk.App.state.subscribe(state => {
+          if (current() && state && (state.phase === phases.STARTING || state.phase === phases.PLAYING)) {
+            void revealModel();
+          }
+        });
+      }
+      const ready = await waitPlaying(sdk, 90000);
+      if (!current()) return false;
+      if (!ready) return fail();
+      // Cached models may already be PLAYING by the time we subscribe. Reveal
+      // them before the existing dollhouse fly-to and camera framing, too.
+      await revealModel();
+      if (!current()) return false;
+    } finally {
+      try {
+        if (typeof introSubscription === "function") introSubscription();
+        else if (introSubscription && introSubscription.cancel) introSubscription.cancel();
+      } catch (_) { /* SDK subscription cleanup is best effort. */ }
+    }
     try {
       const Mode = sdk.Mode;
       if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
@@ -2615,10 +2678,22 @@ function wfDbg(level, source, message, meta) {
     } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
     await frameWholeBuilding(sdk);
     if (!current()) return false;
-    // PLAYING is the SDK's interactive-state signal. The awaited mode/camera
-    // operations above preserve the existing framing; compositor frames allow
-    // that live iframe surface to paint before the opaque brand surface leaves.
+    // Keep preparation and hidden controls through the visible fly-in. Only
+    // completed mode/camera setup and UI readiness can finish startup.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (!current()) return false;
+    // Enter Matterport's native first-person view after the dollhouse has
+    // finished framing and painted. Omitting a position lets Showcase choose
+    // its normal entry point, as with its hidden “Explore 3D Space” control.
+    try {
+      const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
+      const transition = sdk.Camera && sdk.Camera.TransitionType;
+      await sdk.Mode.moveTo(inside, { transition: (transition && transition.FLY) || undefined });
+    } catch (e) {
+      if (!current()) return false;
+      console.warn("[MpBackground] enter inside failed", e && e.name);
+      toast("We couldn't open the walkthrough right now. You can still explore the 3D view.");
+    }
     if (!current()) return false;
     if (startup) startup.modelReady(gen);
     else document.body.classList.add("mp-frame-loaded");

@@ -122,29 +122,32 @@ function modelContext(overrides = {}) {
   const c = startup(), load = deferred(), playing = deferred(), mode = deferred();
   const frame = { src: '' }, overlay = element();
   const calls = [];
-  const sdk = { Mode: { Mode: { DOLLHOUSE: 'dollhouse' }, moveTo: async () => { calls.push('mode'); await mode.promise; } } };
+  let onPhase = () => {};
+  const sdk = { App: { state: { subscribe(callback) { onPhase = callback; return { cancel() { calls.push('unsubscribe'); } }; } } }, Mode: { Mode: { DOLLHOUSE: 'dollhouse' }, moveTo: async target => { calls.push(target === 'dollhouse' ? 'mode' : target); await mode.promise; } } };
   const deps = {
-    openGen: 0, mpSdk: null, applicationKey: 'test', window: { WFStartup: c.state, WF: { ready: Promise.resolve() } },
+    categoryMarkers: null, openGen: 0, mpSdk: null, applicationKey: 'test', window: { WFStartup: c.state, WF: { ready: Promise.resolve() } },
     document: { body: c.body }, $: id => id === 'mpFrame' ? frame : overlay,
     ensureOverlay() {}, setStatus() {}, resolveConfig: async () => {},
     showcaseUrl: () => 'https://example.invalid/model', waitIframeLoad: () => load.promise,
     resetFrameIfNeeded: async () => {}, connectSdk: async () => sdk,
+    phaseConsts: () => ({ STARTING: 'starting', PLAYING: 'playing' }),
     waitPlaying: () => playing.promise, frameWholeBuilding: async () => { calls.push('frame'); },
     requestAnimationFrame: fn => fn(), console: { warn() {} },
     ...overrides,
   };
-  return { ...c, load, playing, mode, frame, calls, deps };
+  return { ...c, load, playing, mode, frame, calls, deps, emitPhase: phase => onPhase({ phase }) };
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
-test('the actual background loader waits for PLAYING and camera completion, not iframe load', async () => {
+test('cached model becomes visible before camera fly-in finishes, with controls still hidden', async () => {
   const c = modelContext();
   const result = handler('mp_preview.js', 'showBackground', c.deps)();
   await tick(); c.load.resolve(); await tick();
   assert.equal(c.body.classList.contains('mp-frame-loaded'), false);
   c.playing.resolve(true); await tick();
-  assert.equal(c.body.classList.contains('mp-frame-loaded'), false);
+  assert.equal(c.body.classList.contains('mp-frame-loaded'), true);
+  assert.equal(c.body.classList.contains('booting'), true);
   c.mode.resolve(); assert.equal(await result, true);
-  assert.deepEqual(c.calls, ['mode', 'frame']);
+  assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame', 'mode.inside']);
   assert.equal(c.body.classList.contains('mp-frame-loaded'), true);
   assert.equal(c.text.textContent, 'Preparing your experience…');
   assert.equal(c.frame.src, 'https://example.invalid/model');
@@ -164,4 +167,59 @@ test('failed venue bootstrap never navigates the iframe to a fallback model', as
   assert.equal(await result, false);
   assert.equal(c.frame.src, '');
   assert.equal(c.loader.classList.contains('err'), true);
+});
+
+test('Matterport STARTING reveals the original entrance effect before PLAYING', async () => {
+  const c = modelContext();
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  c.load.resolve(); await tick();
+  c.emitPhase('loading'); await tick();
+  assert.equal(c.body.classList.contains('mp-frame-loaded'), false);
+  c.emitPhase('starting'); await tick();
+  assert.equal(c.body.classList.contains('mp-frame-loaded'), true);
+  assert.equal(c.text.textContent, 'Preparing your experience…');
+  assert.equal(c.body.classList.contains('booting'), true);
+  assert.equal(c.calls.includes('mode'), false);
+  c.playing.resolve(true); await tick();
+  assert.equal(c.calls.includes('mode'), true);
+  c.mode.resolve(); assert.equal(await result, true);
+  assert.equal(c.calls.filter(call => call === 'mode').length, 1);
+});
+test('visible entrance animation does not by itself enable navigation controls', () => {
+  const c = startup(); c.state.begin(1); c.state.uiReady(1); c.state.modelVisible(1);
+  assert.equal(c.body.classList.contains('booting'), true);
+  assert.equal(c.body.classList.contains('mp-startup-complete'), false);
+  c.state.modelReady(1);
+  assert.equal(c.body.classList.contains('mp-startup-complete'), true);
+});
+
+test('startup enters native Inside only after dollhouse framing, without choosing a route', async () => {
+  const c = modelContext();
+  const inside = deferred();
+  const sdk = { Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
+    moveTo: async (mode, options) => {
+      c.calls.push(mode);
+      assert.equal(options.position, undefined);
+      if (mode === 'inside') await inside.promise;
+    } }, Camera: { TransitionType: { FLY: 'fly' } } };
+  c.deps.connectSdk = async () => sdk;
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  c.load.resolve(); c.playing.resolve(true); await tick();
+  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  assert.equal(c.body.classList.contains('booting'), true);
+  inside.resolve(); assert.equal(await result, true);
+  assert.equal(c.frame.src, 'https://example.invalid/model');
+});
+test('failed Inside transition retains the working dollhouse and displays recovery guidance', async () => {
+  const c = modelContext();
+  const shown = [];
+  c.deps.toast = text => shown.push(text);
+  c.deps.connectSdk = async () => ({ Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
+    moveTo: async mode => { if (mode === 'inside') throw new Error('SDK unavailable'); }
+  } });
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  c.load.resolve(); c.playing.resolve(true);
+  assert.equal(await result, true);
+  assert.equal(c.loader.classList.contains('err'), false);
+  assert.deepEqual(shown, ["We couldn't open the walkthrough right now. You can still explore the 3D view."]);
 });
