@@ -56,6 +56,32 @@
       window.WF.others = manifest.buildings.filter(x => x.slug !== b.slug).map(x => ({ ...x, dataUrl: join(C.apiBase, x.data) }));
     }
     const cfg = await J(join(base, "config.json"));
+    // Use the NavMe Dashboard's authored floors for the visible selector. Keep every
+    // pipeline floor in cfg.floors because route graphs and generated assets use those
+    // stable ids. Dashboard slice_y values share the model's vertical coordinate, so
+    // each authored floor maps safely to the nearest pipeline elevation.
+    const slug = (window.WF.building && window.WF.building.slug) || cfg.slug || q.get("b");
+    cfg.display_floors = [];
+    if (slug && C.apiBase && Array.isArray(cfg.floors)) {
+      try {
+        const apiBase = C.apiBase.replace(/\/?$/, "/");
+        const data = await J(apiBase + "buildings/" + encodeURIComponent(slug) + "/navme-floors");
+        const used = new Set();
+        for (const row of (data.floors || [])) {
+          const y = Number(row.slice_y);
+          if (!Number.isFinite(y)) continue;
+          const match = cfg.floors
+            .filter(f => !used.has(f.id))
+            .reduce((best, f) => !best || Math.abs(Number(f.elevation) - y) < Math.abs(Number(best.elevation) - y) ? f : best, null);
+          if (!match) continue;
+          used.add(match.id);
+          match.label = row.name || match.label;
+          match.floor_names = row.floor_names || {};
+          const short = Number(row.sort_order) === 0 ? "G" : String(Number(row.sort_order));
+          cfg.display_floors.push({ ...match, short, dashboard_floor_id: row.id });
+        }
+      } catch (_) { /* Dashboard floors are optional; routing still boots normally. */ }
+    }
     Object.assign(window.WF, { base, cfg, manifest, D: (f) => join(base, f) });
     // Debug mode: ship verbose logs to admin Dashboard when enabled (live status + published hint)
     try {
@@ -99,17 +125,17 @@
       window.WF.i18nReady = Promise.resolve(null);
     }
     // floor pickers (UI + dev panel) generated from config (top floor first in the vertical picker)
-    const fl = cfg.floors.slice().sort((a, b) => a.ordinal - b.ordinal);
+    const fl = (cfg.display_floors.length ? cfg.display_floors : cfg.floors).slice().sort((a, b) => a.ordinal - b.ordinal);
     const fp = document.getElementById("floorList");
     if (fp) {
-      const allBtn = fl.length > 1
+      const allBtn = !cfg.display_floors.length && fl.length > 1
         ? `<button data-floor="all" role="radio" aria-label="All floors" title="All floors">All</button>`
         : "";
       fp.innerHTML = allBtn + fl.slice().reverse().map(f => `<button data-floor="${f.id}" role="radio" aria-label="${f.label}">${f.short}</button>`).join("");
     }
     const dfl = document.getElementById("devFloors");
     if (dfl) {
-      const allDev = fl.length > 1 ? `<button class="floor" data-floor="all">All floors</button>` : "";
+      const allDev = !cfg.display_floors.length && fl.length > 1 ? `<button class="floor" data-floor="all">All floors</button>` : "";
       dfl.innerHTML = allDev + fl.map(f => `<button class="floor" data-floor="${f.id}">${f.label}</button>`).join("");
     }
     return window.WF;

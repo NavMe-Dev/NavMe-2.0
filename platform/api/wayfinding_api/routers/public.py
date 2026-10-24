@@ -767,6 +767,39 @@ def building_translations(slug: str, db: Session = Depends(get_db)):
     return {"poi_names": poi_names, "category_names": category_names}
 
 
+@router.get("/buildings/{slug}/navme-floors")
+def building_navme_floors(slug: str, db: Session = Depends(get_db)):
+    """Return the floors authored in the NavMe Dashboard for this building.
+
+    The public viewer uses these rows for its floor picker. Pipeline floors remain in
+    config.json because routing and generated assets refer to their stable F1/F2/... ids.
+    """
+    import urllib.request, urllib.parse
+    cfg = get_settings()
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return {"floors": []}
+    b = db.query(models.Building).filter_by(slug=slug).first()
+    if not b:
+        raise HTTPException(404, "unknown building")
+    ptype = navme.poi_type(b)
+    q = urllib.parse.urlencode({
+        "select": "id,name,slice_y,sort_order,floor_names",
+        "poi_type": f"ilike.{navme.pg_value(ptype)}",
+        "order": "sort_order.asc,slice_y.asc,name.asc",
+    })
+    req = urllib.request.Request(
+        f"{cfg.supabase_url}/rest/v1/navme_floors?{q}",
+        headers={"apikey": cfg.supabase_anon_key,
+                 "Authorization": f"Bearer {cfg.supabase_anon_key}"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            rows = json.loads(resp.read())
+    except Exception:
+        return {"floors": []}
+    return {"floors": rows or []}
+
+
 class _FeedbackIn(_BM):
     rating: str  # "up" | "down"
     context: str  # "walkthrough_wayfinding" | "tour_interior" | "start_preview"

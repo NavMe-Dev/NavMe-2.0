@@ -2135,9 +2135,9 @@ function wfDbg(level, source, message, meta) {
   }
   function updateFloorPicker() {
     const fp = $("floorPicker"); if (!wf) return;
-    // Floor selection is hidden entirely — the app should decide the floor on its own,
-    // never ask the user to pick one.
-    const show = false;
+    // Only expose floors authored in the NavMe Dashboard. Pipeline-only floor groups
+    // remain internal routing details and must never appear as user choices.
+    const show = !!(window.WF && WF.cfg && WF.cfg.display_floors && WF.cfg.display_floors.length);
     fp.hidden = !show;
     if (!show) setFloorStack(false);
     $("floorList").querySelectorAll("button").forEach(b => { const on = b.dataset.floor === wf.currentFloor(); b.setAttribute("aria-checked", on); });

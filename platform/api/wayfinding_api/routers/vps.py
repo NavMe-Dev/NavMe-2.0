@@ -156,7 +156,14 @@ async def _forward_localize(request: Request, db: Session) -> Response:
                 elapsed_s=time.perf_counter() - t0,
                 path=str(request.url.path),
             )
-            raise HTTPException(502, error)
+            # Onboarding builds a per-building vps_index.npz. A configured external
+            # Project X service is preferred, but it must not make image localization
+            # unusable when that optional process is stopped.
+            return await _local_match_localize(request, db)
+    if r.status_code in (501, 502, 503, 504):
+        # The external service is running but has no index for this model (or is
+        # temporarily unhealthy). Use the building index produced by onboarding.
+        return await _local_match_localize(request, db)
     try:
         data = r.json()
     except Exception:
