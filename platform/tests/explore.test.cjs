@@ -5,7 +5,7 @@ const data = (slug, pois = [{id: 'one', name: 'Library', floor_name: 'Ground flo
 const options = {venue:'gcu',venueName:'Actual current venue'};
 test('cards join only current venue POIs by ID and use actual names and floor metadata',()=>{
  const cards=E.cards([{id:'one',name:'old'},{id:'other',name:'foreign'},{id:'one',name:'duplicate'}],data('gcu'),options);
- assert.deepEqual(cards,[{id:'one',name:'Library',building:'Actual current venue',floor:'Ground floor',image:null}]);
+ assert.deepEqual(cards,[{id:'one',name:'Library',building:'Actual current venue',category:'room',floor:'Ground floor',image:null}]);
  assert.deepEqual(E.cards([{id:'one'}],data('uncc'),options),[]);
  assert.deepEqual(E.cards([{id:'one',building_slug:'uncc'}],data('gcu'),options),[]);
 });
@@ -18,6 +18,16 @@ test('image preference is linked photo, linked cover, then the exact scan thumbn
  assert.equal(E.cards(p,data('gcu',[{id:'one',image_url:'https://images.test/own.jpg'}]),{...options,shops:{one:{cover_image_url:'https://images.test/shop.jpg'}}})[0].image,'https://images.test/own.jpg');
  assert.equal(E.cards(p,data('gcu'),{...options,shops:{one:{cover_image_url:'https://images.test/shop.jpg'}}})[0].image,'https://images.test/shop.jpg');
  assert.equal(E.cards(p,data('gcu'),{...options,thumbnail:id=>id==='scan'?'/actual-scan.jpg':null})[0].image,'/actual-scan.jpg');
+});
+test('featured Explore selects one POI per category and prefers one with a photo',()=>{
+ const items=[
+  {id:'lab-1',name:'Lab without photo',category:'laboratory',image:null},
+  {id:'court',name:'Basketball Court',category:'sports',image:'/court.jpg'},
+  {id:'lab-2',name:'Best Lab',category:'laboratory',image:'/lab.jpg'},
+  {id:'court-2',name:'Other Court',category:'sports',image:null}
+ ];
+ const result=E.featured(items,[{key:'sports',label:'Sports'},{key:'laboratory',label:'Laboratories'}]);
+ assert.deepEqual(result.map(item=>[item.id,item.categoryLabel]),[['court','Sports'],['lab-2','Laboratories']]);
 });
 test('card markup escapes authored names, rejects unsafe image schemes, and supports lazy loading',()=>{
  assert.equal(E.imageUrl('javascript:alert(1)'),null);

@@ -85,7 +85,7 @@ function wfDbg(level, source, message, meta) {
     fuse = new Fuse(POIS, { keys: [{ name: "name", weight: 0.6 }, { name: "code", weight: 0.2 }, { name: "category", weight: 0.1 }, { name: "tagsText", weight: 0.1 }], threshold: 0.4, ignoreLocation: true, includeMatches: false });
   }
   const S = { mode: "home",
-    uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, previewing: false, locMeta: null };
+    uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, categoryFloor: "__all__", categoryPoiIds: null, previewing: false, locMeta: null };
 
   // Matterport public viewer (?mp=1, see mp_background.js): same search/directions/
   // turn-by-turn UI, but POI selection and turn-by-turn clicks drive the live
@@ -226,10 +226,8 @@ function wfDbg(level, source, message, meta) {
     else if (S.mode === "place" && S.place) selectPlace(S.place, { fly: false, sheet: $("sheet").dataset.state });
     else if (S.mode === "dir" && S.route) renderDirections(S.route);
     else if (S.mode === "list" && S.filter) {
-      const items = POIS.filter(p => p.category === S.filter);
-      const title = (CHIPS().find(x => x[0] === S.filter) || [, S.filter])[1];
-      setSheet(listHtml(items, title), $("sheet").dataset.state || "half");
-      bindList(items);
+      const title = S.filter === ALL_CAT ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === S.filter) || [, S.filter])[1];
+      showCategoryList(categorySourceItems(), title, $("sheet").dataset.state || "half");
     } else if (S.mode === "about") about();
     else if (S.mode === "language") showLanguageSheet();
     else if (S.mode === "recent") showRecentSearches();
@@ -589,10 +587,33 @@ function wfDbg(level, source, message, meta) {
     // #chipsMore is a static pinned button (index.html), NOT part of this scrolling row —
     // it stays put in the right corner while only these pills scroll past/behind it.
     $("chips").innerHTML = allChipHtml() + chipsHtml;
-    $("chips").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
+    bindCategoryButtons($("chips"));
     $("chipsDropdown").innerHTML = allChipHtml() + chipsHtml;
-    $("chipsDropdown").querySelectorAll(".chip[data-cat]").forEach(b => b.onclick = () => toggleChip(b.dataset.cat));
+    bindCategoryButtons($("chipsDropdown"));
     $("chipsMore").onclick = () => setChipsOpen($("chipsDropdown").hidden);
+  }
+  function bindCategoryButtons(root) {
+    root.querySelectorAll(".chip[data-cat]").forEach(button => {
+      let touchHandledAt = 0;
+      const choose = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        setChipsOpen(false);
+        toggleChip(button.dataset.cat);
+      };
+      // Mobile Safari/Chrome can suppress the later click when this fixed dropdown is
+      // over a touch-driven Matterport canvas. Handle the completed touch pointer
+      // directly, while retaining click for mouse, keyboard and older browsers.
+      button.addEventListener("pointerup", event => {
+        if (event.pointerType !== "touch") return;
+        touchHandledAt = Date.now();
+        choose(event);
+      });
+      button.onclick = event => {
+        if (Date.now() - touchHandledAt < 700) { event.preventDefault(); event.stopPropagation(); return; }
+        choose(event);
+      };
+    });
   }
   function setChipsOpen(open) {
     if (open) {
@@ -629,26 +650,57 @@ function wfDbg(level, source, message, meta) {
       icon: LUCIDE_TO_MS[category.icon_key] || style.icon || "place", color: style.color };
   }
   function toggleChip(c, memberIds) {
-    S.filter = S.filter === c ? null : c;
+    // Category choices are navigation, not on/off toggles: tapping the active category
+    // must reliably reopen its POI list instead of unexpectedly returning home.
+    S.filter = c;
     document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     $("chipsMore").classList.toggle("active", !!(S.filter && S.filter !== ALL_CAT));
     setChipsOpen(false);
     window.dispatchEvent(new Event("wf-category-style"));
     const showingAll = S.filter === ALL_CAT;
     wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
-    if (!S.filter) { showHome(); return; }
+    if (!S.filter) { S.categoryPoiIds = null; S.categoryFloor = "__all__"; showHome(); return; }
     const items = showingAll ? POIS.slice() : POIS.filter(p => memberIds ? memberIds.has(String(p.id)) : p.category === S.filter);
     const title = showingAll ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === c) || [, c])[1];
-    S.mode = "list"; setSheet(listHtml(items, title), "half");
-    bindList(items);
+    S.categoryPoiIds = memberIds ? items.map(p => String(p.id)) : null;
+    S.categoryFloor = "__all__";
+    S.mode = "list"; showCategoryList(items, title, "half");
     if (items.length) {
       const fl = items.map(p => p.floor); const F = fl.includes(wf.currentFloor()) ? wf.currentFloor() : fl[0]; wf.setFloor(F);
       fitLonLat(items.map(p => p.lonlat), 1.8);
     }
   }
-  function listHtml(items, title) {
-    if (!items.length) return `<h1 class="pname">${esc(title)}</h1><div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
-    return `<h1 class="pname">${esc(title)} <span class="muted">(${items.length})</span></h1><ul class="list">` + items.map(p => { const c = cat(p);
+  function categorySourceItems() {
+    if (Array.isArray(S.categoryPoiIds)) {
+      const ids = new Set(S.categoryPoiIds);
+      return POIS.filter(p => ids.has(String(p.id)));
+    }
+    return S.filter === ALL_CAT ? POIS.slice() : POIS.filter(p => p.category === S.filter);
+  }
+  function categoryFloorToolbar(items) {
+    const ordinal = id => ((((WF.cfg.floors || []).find(f => f.id === id)) || {}).ordinal ?? 0);
+    const floors = [...new Set(items.map(p => p.floor).filter(Boolean))].sort((a, b) => ordinal(a) - ordinal(b));
+    if (S.categoryFloor !== "__all__" && !floors.includes(S.categoryFloor)) S.categoryFloor = "__all__";
+    if (floors.length < 2) return "";
+    const button = (id, label) => `<button type="button" class="ac-floor${S.categoryFloor === id ? " on" : ""}" data-category-floor="${esc(id)}" aria-pressed="${S.categoryFloor === id}">${esc(label)}</button>`;
+    return `<div class="category-floor-filter"><span class="ms" aria-hidden="true">layers</span><div class="ac-floor-scroll" role="group" aria-label="${esc(t("viewer.floor"))}">${button("__all__", t("viewer.allFloors"))}${floors.map(id => button(id, wf.floorLabel(id))).join("")}</div></div>`;
+  }
+  function showCategoryList(items, title, state) {
+    const toolbar = categoryFloorToolbar(items);
+    const visible = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
+    setSheet(listHtml(visible, title, toolbar), state || "half");
+    bindList(visible);
+    $("sheetBody").querySelectorAll("[data-category-floor]").forEach(button => { button.onclick = () => {
+      S.categoryFloor = button.dataset.categoryFloor;
+      showCategoryList(items, title, $("sheet").dataset.state || "half");
+      const shown = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
+      if (S.categoryFloor !== "__all__") wf.setFloor(S.categoryFloor);
+      if (shown.length) fitLonLat(shown.map(p => p.lonlat), 1.8);
+    }; });
+  }
+  function listHtml(items, title, toolbar) {
+    if (!items.length) return `<h1 class="pname">${esc(title)}</h1>${toolbar || ""}<div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
+    return `<h1 class="pname">${esc(title)} <span class="muted">(${items.length})</span></h1>${toolbar || ""}<ul class="list">` + items.map(p => { const c = cat(p);
       return `<li data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1;min-width:0"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)} · ${esc(wf.floorLabel(p.floor))}</div></div>${sfBadge(p, true)}</li>`; }).join("") + "</ul>";
   }
   function bindList(items) {
@@ -1040,7 +1092,12 @@ function wfDbg(level, source, message, meta) {
       } else {
         const cards = WFExplore.cards(POIS, state.data, {venue: slug, venueName: info.name,
           thumbnail: thumbFor, shops: WF.shopsByPoiId || {}, localize: localized});
-        panel.innerHTML = cards.length ? WFExplore.gridHtml(cards, {floorUnavailable: exploreText("viewer.floorUnavailable", "Floor not listed")})
+        const categoryOrder = (wf.categories || []).map(category => ({
+          key: String(category.name || "").trim().toLowerCase(),
+          label: localized(category.names, category.name)
+        }));
+        const featured = WFExplore.featured(cards, categoryOrder);
+        panel.innerHTML = featured.length ? WFExplore.gridHtml(featured, {floorUnavailable: exploreText("viewer.floorUnavailable", "Floor not listed")})
           : venueMessage(exploreText("viewer.noPlacesTitle", "No places available"), exploreText("viewer.noPlacesBody", "There are no places to explore here yet."));
         panel.querySelectorAll("[data-explore-poi]").forEach(button => { button.onclick = () => {
           const poi = byId[button.dataset.explorePoi]; if (poi) selectPlace(poi, {fly: true});
@@ -2167,7 +2224,7 @@ function wfDbg(level, source, message, meta) {
       if (fp.classList.contains("expanded") && !fp.contains(e.target)) setFloorStack(false);
     });
     document.addEventListener("pointerdown", (e) => {
-      if (!$("chipsDropdown").hidden && !$("chipsWrap").contains(e.target)) setChipsOpen(false);
+      if (!$("chipsDropdown").hidden && !$("chipsWrap").contains(e.target) && !$("chipsDropdown").contains(e.target)) setChipsOpen(false);
     });
     $("btnLayers").onclick = () => { const p = $("layersPop"); p.hidden = !p.hidden; if (!p.hidden) { syncLayers(); p.querySelector(".sty").focus(); } };
     $("btnLayersClose").onclick = closePop;

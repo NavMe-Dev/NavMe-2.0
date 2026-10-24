@@ -18,14 +18,35 @@
     }).map(p => {
       const meta = metadata.get(String(p.id)), shop = shops[String(p.id)] || {};
       return {id: String(p.id), name: localize(meta.names, meta.name || p.name), building: venueName,
+        category: String(p.category || 'room').trim().toLowerCase(),
         floor: localize(meta.floor_names, meta.floor_name) || null,
         image: imageUrl(meta.image_url) || imageUrl(p.photo_url) || imageUrl(shop.cover_image_url) || imageUrl(thumbnail(p.nearest_node))};
     });
   }
+  function featured(items, categories) {
+    const groups = new Map();
+    (items || []).forEach((item, index) => {
+      const key = String(item.category || 'room').trim().toLowerCase();
+      const current = groups.get(key);
+      if (!current || (!current.item.image && item.image)) groups.set(key, {item, index});
+    });
+    const output = [], used = new Set();
+    (categories || []).forEach(category => {
+      const key = String(category.key || category.name || '').trim().toLowerCase();
+      const match = groups.get(key);
+      if (!match || used.has(key)) return;
+      output.push({...match.item, categoryLabel: category.label || category.name || key});
+      used.add(key);
+    });
+    [...groups.entries()].sort((a, b) => a[1].index - b[1].index).forEach(([key, match]) => {
+      if (!used.has(key)) output.push({...match.item, categoryLabel: match.item.category || key});
+    });
+    return output;
+  }
   function gridHtml(items, labels) {
     return `<div class="explore-grid">${items.map(p => `<button type="button" class="explore-card" data-explore-poi="${escape(p.id)}">
       <span class="explore-photo"><span class="ms explore-placeholder" aria-hidden="true">image</span>${p.image ? `<img src="${escape(p.image)}" alt="${escape(p.name)}" loading="lazy" decoding="async">` : ''}</span>
-      <span class="explore-card-body"><span class="explore-name">${escape(p.name)}</span>
+      <span class="explore-card-body">${p.categoryLabel ? `<span class="explore-category">${escape(p.categoryLabel)}</span>` : ''}<span class="explore-name">${escape(p.name)}</span>
       <span class="explore-building"><span class="ms" aria-hidden="true">apartment</span><span>${escape(p.building)}</span></span>
       <span class="explore-floor">${escape(p.floor || labels.floorUnavailable)}</span></span></button>`).join('')}</div>`;
   }
@@ -56,6 +77,6 @@
     }
     return {load, get: () => state};
   }
-  const api = {cards, gridHtml, create, imageUrl};
+  const api = {cards, featured, gridHtml, create, imageUrl};
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.WFExplore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
