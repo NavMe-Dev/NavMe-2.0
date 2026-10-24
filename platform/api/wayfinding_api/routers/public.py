@@ -82,10 +82,10 @@ def data_file(slug: str, path: str, db: Session = Depends(get_db)):
     # gone. Recover from Supabase Storage and re-cache locally. No-op (raises
     # immediately) unless bundle_storage is configured. See services/bundle_storage.py.
     try:
-        data = bundle_storage.read_bundle_file(root, slug, mv.version, path)
+        local_file = bundle_storage.cache_bundle_file(root, slug, mv.version, path)
     except FileNotFoundError:
         raise HTTPException(404, "not found")
-    return Response(content=data, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
+    return FileResponse(local_file, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
 
 
 @router.post("/buildings/{slug}/route")

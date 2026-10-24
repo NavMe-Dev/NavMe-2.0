@@ -14,6 +14,7 @@ imported bundles durable going forward. Public reads need only the project URL
 and bucket; writes additionally require SUPABASE_SERVICE_ROLE_KEY.
 """
 import mimetypes
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -277,6 +278,52 @@ def fetch_navmesh_bytes(slug: str) -> bytes | None:
     except httpx.HTTPError:
         pass
     return None
+
+
+def cache_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> Path:
+    """Recover a public asset to disk with bounded memory, including split objects.
+
+    Large walk grids and GLBs must not be joined into a bytes response on small
+    hosts. Atomic replacement also keeps concurrent readers away from partial files.
+    """
+    target = local_version_dir / relpath
+    if target.is_file():
+        return target
+    if not is_read_enabled():
+        raise FileNotFoundError(relpath)
+    s = get_settings()
+    url = f"{s.supabase_url}/storage/v1/object/public/{s.supabase_storage_bucket}/{_object_path(slug, version, relpath)}"
+    temporary = None
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".bundle-", delete=False) as out:
+            temporary = Path(out.name)
+            with httpx.Client(timeout=120, follow_redirects=True) as client:
+                with client.stream("GET", url) as response:
+                    direct = response.status_code < 300
+                    if direct:
+                        for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                            out.write(chunk)
+                if not direct:
+                    manifest = client.get(url + ".chunks")
+                    if manifest.status_code >= 300:
+                        raise FileNotFoundError(relpath)
+                    parts = int(manifest.text.strip())
+                    if not 0 < parts <= 10000:
+                        raise ValueError("Invalid bundle chunk count")
+                    for i in range(parts):
+                        with client.stream("GET", f"{url}.part{i}") as response:
+                            if response.status_code >= 300:
+                                raise FileNotFoundError(relpath)
+                            for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                                out.write(chunk)
+        temporary.replace(target)
+        return target
+    except (httpx.HTTPError, OSError, ValueError) as exc:
+        raise FileNotFoundError(f"{relpath} not available for {slug} v{version}") from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def read_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> bytes:

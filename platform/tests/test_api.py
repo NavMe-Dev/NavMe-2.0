@@ -95,3 +95,29 @@ def test_import_publish_route_greenland(client, auth):
     r = client.post("/api/v1/public/buildings/greenland/route", json={"from_key": a["key"], "to_key": z["key"]})
     assert r.status_code == 200, r.text
     assert r.json()["length_m"] > 0
+
+
+def test_recovered_public_asset_supports_file_streaming_and_ranges(client, auth, monkeypatch, tmp_path):
+    from wayfinding_api.services import bundle_storage
+    r = client.post('/api/v1/admin/buildings', json={'slug': 'streamed-asset', 'name': 'Streamed asset'}, headers=auth)
+    assert r.status_code == 200
+    with SessionLocal() as db:
+        b = db.query(models.Building).filter_by(slug='streamed-asset').one()
+        db.add(models.MapVersion(building_id=b.id, version=1, path=str(tmp_path), is_current=True, created_by='test', summary={}))
+        db.commit()
+    recovered = []
+
+    def recover(root, slug, version, name):
+        recovered.append(name)
+        path = root / name
+        path.write_bytes(b'0123456789')
+        return path
+
+    monkeypatch.setattr(bundle_storage, 'cache_bundle_file', recover)
+    response = client.get('/api/v1/public/buildings/streamed-asset/data/model.glb', headers={'Range': 'bytes=0-3'})
+    assert response.status_code == 206
+    assert response.content == b'0123'
+    assert response.headers['content-range'] == 'bytes 0-3/10'
+    response = client.get('/api/v1/public/buildings/streamed-asset/data/model.glb')
+    assert response.status_code == 200 and response.content == b'0123456789'
+    assert recovered == ['model.glb']
