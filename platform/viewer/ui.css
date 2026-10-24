@@ -690,3 +690,47 @@ body.nav .weather-row,body.dir .weather-row,body.n3d-open .weather-row{display:n
   body.weather-visible:not(.dir):not(.nav) .ctop{top:calc(156px + env(safe-area-inset-top,0px))}
 }
 @media(min-width:768px){body.weather-visible .ctop{top:calc(56px + env(safe-area-inset-top,0px))!important}}
+
+/* Venue Explore: compact, readable cards within the existing sheet. */
+.sheet.venue-info{touch-action:pan-y}
+.sheet.venue-info .handle{touch-action:none}
+.sheetbody>.venue-panel:first-child{margin-right:0}
+.venue-header{display:flex;align-items:flex-start;gap:10px;padding-inline-end:36px}
+.venue-header>div{min-width:0;flex:1}
+.venue-icon{font-size:32px;margin-top:3px;flex-shrink:0}
+.venue-header h1.pname{font-size:1.15em;line-height:1.3;margin:0 0 4px;overflow-wrap:anywhere}
+.venue-header .muted{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.sheet.venue-info .sheet-close{display:grid}
+.venue-tabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-top:12px}
+.venue-tabs [role=tab]{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--txt2);font:500 13px/1.4 Roboto,system-ui,sans-serif;min-height:44px;min-width:44px;padding:10px 0;cursor:pointer;white-space:nowrap}
+.venue-tabs [aria-selected=true]{color:var(--blue);border-bottom-color:var(--blue)}
+.venue-tabs [role=tab]:focus-visible,.explore-card:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.venue-tabpanel{padding-top:12px;min-width:0}
+.explore-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ui .explore-card{display:flex;flex-direction:column;align-items:stretch;min-width:0;width:100%;padding:0;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--txt);text-align:start;font:inherit;overflow:hidden;cursor:pointer;touch-action:manipulation}
+.explore-photo{position:relative;display:grid;place-items:center;aspect-ratio:4/3;background:var(--bg2);overflow:hidden}
+.explore-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.explore-placeholder{font-size:32px;color:var(--txt2);opacity:.5}
+.explore-card-body{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:9px;flex:1;min-width:0}
+.explore-name{font-size:.9em;line-height:1.35;font-weight:500;overflow-wrap:anywhere}
+.explore-building{display:flex;align-items:flex-start;gap:4px;color:var(--txt2);font-size:.76em;line-height:1.35;overflow-wrap:anywhere;max-width:100%}
+.explore-building .ms{font-size:15px;flex-shrink:0}
+.explore-building>span:last-child{min-width:0}
+.explore-floor{display:inline-block;padding:3px 7px;border-radius:6px;background:var(--bg2);color:var(--txt2);font-size:.73em;line-height:1.4;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box}
+.venue-message{padding:16px 0;text-align:start}
+.venue-message h2{font-size:1em;font-weight:500;margin:0 0 8px}
+.venue-message p{font-size:.9em;line-height:1.5;margin:0 0 12px}
+.venue-about p{line-height:1.5;overflow-wrap:anywhere}
+.venue-fact{display:flex;gap:10px;align-items:flex-start;line-height:1.45;font-size:.9em}
+.venue-fact .ms{font-size:20px;flex-shrink:0;color:var(--txt2)}
+.venue-facilities{list-style:none;padding:0;margin:0}
+.venue-facilities li{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.venue-facilities li>.ms{color:var(--blue);flex-shrink:0;font-size:23px}
+.venue-facilities li>div{min-width:0}
+.venue-facilities strong{font-weight:500;font-size:.95em}
+.venue-facilities .muted{font-size:.82em;margin:4px 0}
+@media(max-width:767px){
+  .sheet.venue-info .sheetbody{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  body.large .explore-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:300px){.explore-grid{grid-template-columns:minmax(0,1fr)}}

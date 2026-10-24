@@ -489,6 +489,31 @@ def _verify_supabase_key_or_admin(request: Request):
 
 
 
+@router.get("/buildings/{slug}/explore")
+def public_explore(slug: str, db: Session = Depends(get_db)):
+    from ..services import explore
+    b = building_or_404(db, slug)
+    cfg = get_settings()
+    rows = db.query(models.POI).filter_by(building_id=b.id, published=True).all()
+    def photo_url(p):
+        url = (p.photo_url or "").strip()
+        return f"/api/v1/public/buildings/{slug}/data/{url}" if url.startswith("media/") else url
+    images = {str((p.extra or {}).get("gmap_src_id") or p.key): photo_url(p) for p in rows if p.photo_url}
+    if cfg.supabase_url and cfg.supabase_anon_key:
+        try:
+            result = explore.metadata(cfg, b)
+        except Exception:
+            return JSONResponse({"building_slug": slug, "error": "Couldn't load places"},
+                                status_code=503, headers={"Cache-Control": "no-store"})
+        result = {**result, "pois": [{**p, "image_url": images.get(p["id"])} for p in result["pois"]]}
+    else:
+        floors = {f.fid: f.label for f in b.floors}
+        result = {"building_slug": slug, "source": "published", "facilities": [], "pois": [
+            {"id": str((p.extra or {}).get("gmap_src_id") or p.key), "name": p.name,
+             "floor_name": floors.get(p.floor), "image_url": photo_url(p)} for p in rows]}
+    return JSONResponse(result, headers={"Cache-Control": "private, max-age=60"})
+
+
 @router.get("/buildings/{slug}/weather")
 def public_weather(slug: str, db: Session = Depends(get_db)):
     """Outdoor weather for the venue's WGS84 location, never visitor GPS."""

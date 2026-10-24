@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261024weather2">
+<link rel="stylesheet" href="ui.css?v=20261024explore1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script src="vendor/ngraph.graph.min.js"></script>
 <script src="vendor/ngraph.path.min.js"></script>
@@ -167,7 +167,6 @@
   <nav id="drawer" class="drawer" aria-label="Menu" hidden>
     <button type="button" class="drawhead" aria-labelledby="drawerVenueName" aria-describedby="drawerVenueSubtitle"><img src="img/navme-logo.png" alt="NavMe" width="40" height="40" style="border-radius:50%;object-fit:cover"><span class="drawhead-text"><b id="drawerVenueName" data-bname aria-live="polite">Venue information</b><span id="drawerVenueSubtitle" class="muted" data-i18n="viewer.sidebarSubtitle">NavMe Indoor Navigation</span></span></button>
     <button type="button" class="ib drawer-close" id="drawerClose" aria-label="Close menu"><span class="ms">close</span></button>
-    <div id="sidebarWeather" class="sidebar-weather" hidden><span class="ms" aria-hidden="true">device_thermostat</span><div><span class="muted">Outdoor weather</span><div id="sidebarWeatherSummary"></div><small id="weatherCredit"><a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></small></div></div>
     <h2 class="drawer-section" data-i18n="viewer.sidebarExplore">Explore</h2>
     <button class="ditem" data-act="building"><span class="ms">apartment</span><span data-i18n="viewer.campusInformation">Campus information</span></button>
     <button class="ditem" data-act="search"><span class="ms">search</span><span data-i18n="viewer.findPlace">Find a place</span></button>
@@ -341,7 +340,7 @@
 <script src="/locales/i18n.js?v=20261013lang3"></script>
 <script src="wf-config.js"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
-<script src="wf-boot.js?v=20261024sidebar1"></script>
+<script src="wf-boot.js?v=20261024languages1"></script>
 <script src="wf_mesh_overlay.js?v=20261005overlay8"></script>
 <script src="app.js?v=20261024categories1"></script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
@@ -351,7 +350,8 @@
 <script src="threed_nav.js?v=20261012arrival1"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20260930access2"></script>
-<script src="ui.js?v=20261024weather1"></script>
+<script src="explore.js?v=20261024explore1"></script>
+<script src="ui.js?v=20261024explore1"></script>
 <script src="weather.js?v=20261024weather1"></script>
 </body>
 </html>

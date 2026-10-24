@@ -304,7 +304,18 @@
     "dirSharpLeft": "Sharp left",
     "dirTurnAround": "Turn around",
     "startAt": "Start at {{name}}",
-    "arriveAtPlace": "Arrive at {{name}} ({{floor}})"
+    "arriveAtPlace": "Arrive at {{name}} ({{floor}})",
+    "venueInformation": "Venue information",
+    "loadingPlaces": "Loading places…",
+    "aboutTab": "About",
+    "facilitiesTab": "Facilities",
+    "noPlacesTitle": "No places available",
+    "noPlacesBody": "There are no places to explore here yet.",
+    "exploreErrorTitle": "Couldn't load places",
+    "exploreErrorBody": "We're having trouble showing places right now. Please try again.",
+    "noFacilitiesTitle": "No facilities listed",
+    "noFacilitiesBody": "There are no facilities listed here yet.",
+    "floorUnavailable": "Floor not listed"
   },
   "admin": {
     "brand": "NavMe Spatial Studio",

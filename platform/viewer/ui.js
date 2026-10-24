@@ -126,9 +126,8 @@ function wfDbg(level, source, message, meta) {
     if (window.WFi18n) WFi18n.onChange(() => refreshI18nChrome());
     fetch(WF.D(WF.cfg.files.thumbs)).then(r => r.json()).then(a => {
       thumbs = new Set(a);
-      // Thumbnails resolve after the building-home card may have already rendered with
-      // no gallery (thumbs was still empty at that point) — refresh it once they're in.
-      if (S.mode === "home") showBuildingHome();
+      // Add associated scan images without resetting the selected tab or sheet height.
+      if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
     }).catch(() => { });
     // map chrome: hide ArcGIS default widgets except attribution
     wf.view2d.ui.components = ["attribution"];
@@ -143,6 +142,11 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.watch("extent", placeMe);
     ["resize", "orientationchange"].forEach(e => window.addEventListener(e, () => { applyPadding(); placeMe(); }));
     window.addEventListener("wf-weather-updated", () => { applyPadding(); placeMe(); });
+    window.addEventListener("wf-venue-info", () => { if (S.mode === "home" && $("venueTabPanel")) renderVenueTab(); });
+    window.addEventListener("wf-pois-updated", () => {
+      POIS = wf.pois.slice(); byId = {}; POIS.forEach(p => byId[p.id] = p); buildSearchIndex();
+      if (S.mode === "home" && $("venueTabPanel")) { ensureExplore(); renderVenueTab(); }
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); $("q").focus(); }
       if (e.key === "Escape") { closeAc(); closePop(); closeDrawer(); closeShareSheet(); }
@@ -989,22 +993,91 @@ function wfDbg(level, source, message, meta) {
     const slug = (WF.building && WF.building.slug) || WF.cfg.slug;
     return info && info.building_slug === slug ? info : { name: WF.cfg.name || (WF.building && WF.building.name) || "Venue information", address: WF.cfg.address || "", description: WF.cfg.description || "" };
   }
+  let exploreController = null, exploreVenue = null;
+  function venueSlug() { return (WF.building && WF.building.slug) || WF.cfg.slug; }
+  function exploreText(key, fallback) { const value = t(key); return value && value !== key ? value : fallback; }
+  function ensureExplore() {
+    if (!exploreController && window.WFExplore) exploreController = WFExplore.create({
+      fetchData: async slug => {
+        const base = ((window.WF_CONFIG && WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
+        const response = await fetch(base + "buildings/" + encodeURIComponent(slug) + "/explore", {cache: "no-cache"});
+        if (!response.ok) throw new Error("Explore unavailable");
+        return response.json();
+      },
+      apply: () => { if (S.mode === "home" && $("venueTabPanel")) renderVenueTab(); }
+    });
+    if (exploreController) void exploreController.load(venueSlug());
+  }
+  function venueMessage(title, body, retry) {
+    return `<div class="venue-message" role="status"><h2>${esc(title)}</h2><p class="muted">${esc(body)}</p>${retry ? `<button type="button" class="pill" id="exploreRetry">${esc(exploreText("common.tryAgain", "Try Again"))}</button>` : ""}</div>`;
+  }
+  function renderVenueTab() {
+    const panel = $("venueTabPanel"); if (!panel || S.mode !== "home") return;
+    const slug = venueSlug(), tab = S.venueTab || "explore", info = currentVenueInfo();
+    $("sheetBody").querySelectorAll("[data-venue-tab]").forEach(button => {
+      const active = button.dataset.venueTab === tab;
+      button.setAttribute("aria-selected", String(active)); button.tabIndex = active ? 0 : -1;
+    });
+    panel.setAttribute("aria-labelledby", "venueTab-" + tab);
+    const scroll = $("sheetBody").scrollTop;
+    if (tab === "about") {
+      panel.innerHTML = `<div class="venue-about"><p data-venue-description ${info.description ? "" : "hidden"}>${esc(info.description)}</p>
+        ${info.address ? `<div class="venue-fact"><span class="ms" aria-hidden="true">location_on</span><span data-venue-address>${esc(info.address)}</span></div>` : ""}
+        <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}
+        <button type="button" class="pill" id="venueLicenses"><span class="ms" aria-hidden="true">info</span>${esc(t("viewer.aboutTitle"))}</button></div></div>`;
+      if ($("hEnt")) $("hEnt").onclick = () => { S.to = mainEntrance(); S.from = wf.lastLoc ? "me" : arrivalPoi(); openDirections(); };
+      $("venueLicenses").onclick = about;
+    } else {
+      const state = exploreController && exploreController.get();
+      if (!state || state.venue !== slug || state.status === "loading") {
+        panel.innerHTML = `<div class="venue-message" role="status">${esc(exploreText("viewer.loadingPlaces", "Loading places…"))}</div>`;
+      } else if (state.status === "error") {
+        panel.innerHTML = venueMessage(exploreText("viewer.exploreErrorTitle", "Couldn't load places"), exploreText("viewer.exploreErrorBody", "We're having trouble showing places right now. Please try again."), true);
+      } else if (tab === "facilities") {
+        const facilities = state.data.facilities || [];
+        panel.innerHTML = facilities.length ? `<ul class="venue-facilities">${facilities.map(f => `<li><span class="ms" aria-hidden="true">${esc(LUCIDE_TO_MS[f.icon_key] || "info")}</span><div><strong>${esc(f.facility_name)}</strong>${f.facility_category ? `<div class="muted">${esc(f.facility_category)}</div>` : ""}${f.floor_name ? `<span class="explore-floor">${esc(f.floor_name)}</span>` : ""}</div></li>`).join("")}</ul>`
+          : venueMessage(exploreText("viewer.noFacilitiesTitle", "No facilities listed"), exploreText("viewer.noFacilitiesBody", "There are no facilities listed here yet."));
+      } else {
+        const cards = WFExplore.cards(POIS, state.data, {venue: slug, venueName: info.name,
+          thumbnail: thumbFor, shops: WF.shopsByPoiId || {}, localize: localized});
+        panel.innerHTML = cards.length ? WFExplore.gridHtml(cards, {floorUnavailable: exploreText("viewer.floorUnavailable", "Floor not listed")})
+          : venueMessage(exploreText("viewer.noPlacesTitle", "No places available"), exploreText("viewer.noPlacesBody", "There are no places to explore here yet."));
+        panel.querySelectorAll("[data-explore-poi]").forEach(button => { button.onclick = () => {
+          const poi = byId[button.dataset.explorePoi]; if (poi) selectPlace(poi, {fly: true});
+        }; });
+        panel.querySelectorAll(".explore-photo img").forEach(image => {
+          image.addEventListener("error", () => { image.hidden = true; }, {once: true});
+          if (image.complete && !image.naturalWidth) image.hidden = true;
+        });
+      }
+      if ($("exploreRetry")) $("exploreRetry").onclick = () => { void exploreController.load(slug, true); };
+    }
+    $("sheetBody").scrollTop = scroll;
+  }
   function showBuildingHome() {
     S.mode = "home"; document.body.classList.remove("dir");
     setUxMode("places");
-    const info = currentVenueInfo();
-    const galleryIds = Array.from(thumbs).slice(0, 14);
-    setSheet(`
-      <div style="display:flex;gap:12px;align-items:center"><span class="ms fill blue" style="font-size:36px">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
-        <div style="flex:1;min-width:0"><h1 class="pname" data-venue-title style="font-size:1.2em;margin:0;overflow-wrap:anywhere">${esc(info.name)}</h1><div class="muted" data-venue-address ${info.address ? "" : "hidden"}>${esc(info.address)}</div></div></div>
-      <p class="muted" data-venue-description ${info.description ? "" : "hidden"}>${esc(info.description)}</p>
-      <div class="pophead sm">${esc(t("viewer.explore"))}</div>
-      ${galleryIds.length ? `<div class="photo-gallery" style="margin-top:12px">${galleryIds.map(id => `<img class="gallery-img" src="${thumbFor(id)}" alt="" loading="lazy">`).join("")}</div>` : ""}
-      <div class="actions">${mainEntrance() ? `<button class="pill primary" id="hEnt"><span class="ms fill">directions</span>${esc(t("viewer.goMainEntrance"))}</button>` : ""}</div>
-      <ul class="list">${exploreIds().map(id => { const p = byId[id], c = cat(p);
-        return `<li data-id="${id}" tabindex="0" role="button"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)} · ${esc(wf.floorLabel(p.floor))}</div></div></li>`; }).join("")}</ul>`, "peek");
-    bindList();
-    if ($("hEnt")) $("hEnt").onclick = () => { S.to = mainEntrance(); S.from = wf.lastLoc ? "me" : arrivalPoi(); openDirections(); };
+    const slug = venueSlug(), info = currentVenueInfo();
+    if (exploreVenue !== slug) { exploreVenue = slug; S.venueTab = "explore"; }
+    setSheet(`<section class="venue-panel">
+      <div class="venue-header"><span class="ms fill blue venue-icon" aria-hidden="true">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
+        <div><h1 class="pname" data-venue-title>${esc(info.name)}</h1><div class="muted" data-venue-address ${info.address ? "" : "hidden"}>${esc(info.address)}</div></div></div>
+      <div class="venue-tabs" role="tablist" aria-label="${esc(exploreText("viewer.venueInformation", "Venue information"))}">
+        ${[["explore", t("viewer.explore")], ["about", exploreText("viewer.aboutTab", "About")], ["facilities", exploreText("viewer.facilitiesTab", "Facilities")]].map(([id, label]) => `<button type="button" id="venueTab-${id}" data-venue-tab="${id}" role="tab" aria-controls="venueTabPanel">${esc(label)}</button>`).join("")}
+      </div><div id="venueTabPanel" class="venue-tabpanel" role="tabpanel"></div></section>`, "half");
+    const tabs = [...$("sheetBody").querySelectorAll("[data-venue-tab]")];
+    tabs.forEach((button, index) => {
+      button.onclick = () => { S.venueTab = button.dataset.venueTab; renderVenueTab(); $("sheetBody").scrollTop = 0; };
+      button.onkeydown = event => {
+        let next = null;
+        if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+        if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = tabs.length - 1;
+        if (next !== null) { event.preventDefault(); tabs[next].click(); tabs[next].focus(); }
+      };
+    });
+    renderVenueTab(); ensureExplore();
   }
   function showHome() {
     // Mobile open: building gallery. Deep links / desk: places for current building.
@@ -1024,14 +1097,6 @@ function wfDbg(level, source, message, meta) {
   }
   function bindBuildingSwitcher() { bindBuildingCards(); }
 
-  function exploreIds() {
-    const ex = (WF.cfg.branding && WF.cfg.branding.explore) || [];
-    if (ex.length) return ex.filter(id => byId[id]);
-    const out = []; const me = mainEntrance(); if (me) out.push(me.id);
-    POIS.filter(p => p.category === "hall").slice(0, 2).forEach(p => out.push(p.id));
-    const ar = arrivalPoi(); if (ar && !out.includes(ar.id)) out.push(ar.id);
-    return out;
-  }
   function zoomBuilding(instant) {
     const cs = POIS.filter(p => p.room_id).map(p => p.lonlat);
     fitLonLat(cs, isDesk() ? 1.35 : 1.0, instant);
@@ -2192,6 +2257,7 @@ function wfDbg(level, source, message, meta) {
   function sheetPx(state) { const v = SHEET[state]; return v > 1 ? v : Math.round(window.innerHeight * v); }
   function setSheet(html, state) {
     $("sheetBody").innerHTML = html; $("sheetBody").scrollTop = 0;
+    $("sheet").classList.toggle("venue-info", !!$("sheetBody").querySelector(".venue-panel"));
     $("sheet").hidden = false;
     setSheetState(state || $("sheet").dataset.state || "peek");
   }

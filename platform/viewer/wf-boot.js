@@ -100,8 +100,12 @@
     if (br.primary_color) document.documentElement.style.setProperty("--blue", br.primary_color);
     document.querySelectorAll("[data-bname]").forEach(el => el.textContent = cfg.name || "");
     document.querySelectorAll("[data-baddr]").forEach(el => el.textContent = cfg.address || "");
-    // i18n: enabled languages from venue+building branding (en always on)
-    const enabled = (br.enabled_languages || br.enabledLanguages || ["en"]);
+    // Every translation shipped with the public viewer is available at every venue.
+    // Venue branding used to restrict this list, which could leave visitors with an
+    // English-only picker even though all locale dictionaries were installed.
+    const enabled = (window.WFi18n && Array.isArray(window.WFi18n.catalog))
+      ? window.WFi18n.catalog.map(item => item.code)
+      : ["en"];
     window.WF.branding = br;
     if (window.WFi18n) {
       window.WF.i18nReady = window.WFi18n.init({ enabled }).then(() => {
