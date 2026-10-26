@@ -31,7 +31,7 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
   }
 
   WF.init = function (navData, gridData, navmeshData) {
-    nav = navData; grid = gridData;
+    nav = navData; grid = gridData || null;
     graph = createGraph();
     nav.nodes.forEach(n => { nodes[n.id] = n; graph.addNode(n.id, n); });
     nav.edges.forEach(e => {
@@ -39,7 +39,8 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
       const cost = e.length + (e.stairs ? STAIR_PENALTY : 0);
       graph.addLink(e.u, e.v, Object.assign({ cost }, e));
     });
-    for (const F of Object.keys(grid.floors)) {
+    walk = {}; zcm = {};
+    for (const F of Object.keys((grid && grid.floors) || {})) {
       walk[F] = b64ToBytes(grid.floors[F].walk);
       const zb = b64ToBytes(grid.floors[F].z_cm); zcm[F] = new Int16Array(zb.buffer);
     }
@@ -97,6 +98,7 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
 
   // ---------- line-of-sight smoothing on the walk grid ----------
   function cell(F, x, y) {
+    if (!grid || !walk[F] || !zcm[F]) return null;
     const i = Math.floor((x - grid.x0) / grid.res), j = Math.floor((y - grid.y0) / grid.res);
     if (i < 0 || j < 0 || i >= grid.nx || j >= grid.ny) return null;
     const k = j * grid.nx + i; return { w: walk[F][k], z: zcm[F][k] };

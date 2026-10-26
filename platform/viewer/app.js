@@ -32,8 +32,24 @@ require([
   const wfSlug = () => (window.WF.building && window.WF.building.slug)
     || (window.WF.cfg && window.WF.cfg.slug)
     || new URLSearchParams(location.search).get("b") || "";
+  const EMPTY_PIXEL = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+  function lightweightFloors(georef, nav) {
+    const nodes = (nav && nav.nodes || []).filter(n => Number.isFinite(n.x) && Number.isFinite(n.y));
+    const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+    const minX = xs.length ? Math.min(...xs) - 2 : -10, maxX = xs.length ? Math.max(...xs) + 2 : 10;
+    const minY = ys.length ? Math.min(...ys) - 2 : -10, maxY = ys.length ? Math.max(...ys) + 2 : 10;
+    const cornersModel = [[minX,maxY],[maxX,maxY],[maxX,minY],[minX,minY]];
+    const A = georef.model_to_epsg3857_affine, R = 6378137.0;
+    const cornersLonlat = cornersModel.map(([x,y]) => {
+      const X=A[0][0]*x+A[0][1]*y+A[0][2], Y=A[1][0]*x+A[1][1]*y+A[1][2];
+      return [X/R*180/Math.PI,Math.atan(Math.sinh(Y/R))*180/Math.PI];
+    });
+    return {height_grid:null,floors:(CFG.floors||[]).map(f => ({id:f.id,image:EMPTY_PIXEL,
+      corners_model:cornersModel,corners_lonlat:cornersLonlat}))};
+  }
   window.WF.ready.then(() => { CFG = window.WF.cfg; const F = CFG.files;
-    return Promise.all([J(D(F.georef)), J(D(F.floors)), J(D(F.nav_graph)), J(D(F.walkgrid)), J(D(F.pois)), J(D(F.mp_graph_raw)),
+    const lightMp = isMpMode();
+    return Promise.all([J(D(F.georef)), lightMp ? Promise.resolve(null) : J(D(F.floors)), J(D(F.nav_graph)), lightMp ? Promise.resolve(null) : J(D(F.walkgrid)), J(D(F.pois)), lightMp ? Promise.resolve({nodes:[],edges:[]}) : J(D(F.mp_graph_raw)),
       F.navmesh ? J(D(F.navmesh)).catch(() => null) : Promise.resolve(null),
       // Live NavMe POIs (Supabase). These are the real places; the published pois.json
       // holds pipeline-detected entrances. Null on failure so the viewer still loads.
@@ -60,6 +76,7 @@ require([
       // swapping UI chrome text.
       J("/api/v1/public/buildings/" + encodeURIComponent(wfSlug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))]); })
     .then(([georef, floorsData, nav, walkgrid, pois, rawGraph, navmesh, navmePois, navmeCategories, navmeStairChains, navmeShops, arRef, navmeTranslations]) => {
+      if (!floorsData) floorsData = lightweightFloors(georef, nav);
       pois._navme = navmePois;
       pois._navmeTranslations = navmeTranslations || { poi_names: {}, category_names: {} };
       window.WF.shopsByPoiId = {};
@@ -95,7 +112,9 @@ require([
     georef.floors.forEach(f => floorsMeta[f.id] = f);
     const hg = floorsData.height_grid;
     function floorZ(fid, x, y) {                           // sample floor surface z from mesh-derived grid
-      const g = hg.grids[fid]; const nominal = floorsMeta[fid].model_z;
+      const nominal = floorsMeta[fid].model_z;
+      if (!hg || !hg.grids || !hg.grids[fid]) return { z: nominal, src: "nominal floor elevation" };
+      const g = hg.grids[fid];
       const c = Math.floor((x - hg.x0) / hg.res), r = Math.floor((y - hg.y0) / hg.res);
       let best = null, bestD = 1e9;
       for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {   // nearest valid within 1 m

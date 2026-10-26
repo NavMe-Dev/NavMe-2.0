@@ -457,7 +457,12 @@ function wfDbg(level, source, message, meta) {
   }
   function goBuilding(slug, poiId) {
     const u = new URL(location.href); u.search = ""; const q0 = new URLSearchParams(location.search);
-    if (q0.get("venue")) u.searchParams.set("venue", q0.get("venue")); u.searchParams.set("b", slug); if (poiId) u.searchParams.set("to", poiId);
+    if (q0.get("venue")) u.searchParams.set("venue", q0.get("venue"));
+    u.searchParams.set("b", slug);
+    // A building switch is still part of the same viewer session. Keep the live
+    // Matterport background enabled instead of silently falling back to the 2D map.
+    if (q0.get("mp") === "1" || slug === "uncc-main-campus") u.searchParams.set("mp", "1");
+    if (poiId) u.searchParams.set("to", poiId);
     location.href = u.toString();
   }
   function search(txt, local) {

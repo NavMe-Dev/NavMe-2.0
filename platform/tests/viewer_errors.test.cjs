@@ -188,8 +188,8 @@ test('map boot failure hides internal fetch details and retry preserves the curr
   const attached = [];
   let reloaded = false;
   const context = {
-    window: { WF_CONFIG: {} }, location: { search: '?b=test&mp=1', reload() { reloaded = true; } },
-    URLSearchParams, fetch: async () => { throw new Error('private server detail'); },
+    window: { WF_CONFIG: {} }, location: { href: 'https://wayfinding.navme.space/?b=test&mp=1', search: '?b=test&mp=1', reload() { reloaded = true; } },
+    URL, URLSearchParams, history: { replaceState() {} }, fetch: async () => { throw new Error('private server detail'); },
     document: { createElement: () => ({ style: {}, append(...children) { this.children = children; } }),
       body: { appendChild: el => attached.push(el) } }, console: { error() {} },
   };

@@ -22,6 +22,13 @@
     } catch (_) { return "en"; }
   }
 
+  function preserveViewerMode(url) {
+    const u = url instanceof URL ? url : new URL(url, location.origin);
+    const current = new URLSearchParams(location.search);
+    if (current.get("mp") === "1" || u.searchParams.get("b") === "uncc-main-campus") u.searchParams.set("mp", "1");
+    return u;
+  }
+
   function ensureDom() {
     if ($("wfChatRoot")) return;
     const root = document.createElement("div");
@@ -280,7 +287,7 @@
   function applyDeepLink(actionOrUrl) {
     try {
       const a = typeof actionOrUrl === "string" ? { type: "deep_link", url: actionOrUrl } : (actionOrUrl || {});
-      const u = new URL(a.url, location.origin);
+      const u = preserveViewerMode(new URL(a.url, location.origin));
       const to = a.poi_id || u.searchParams.get("to");
       const from = u.searchParams.get("from");
       const step = u.searchParams.get("mode") === "stepfree";
@@ -309,7 +316,9 @@
     } catch (e) {
       console.warn("wf_chat deep_link", e);
       try {
-        location.href = typeof actionOrUrl === "string" ? actionOrUrl : actionOrUrl.url;
+        const raw = typeof actionOrUrl === "string" ? actionOrUrl : actionOrUrl.url;
+        const fallback = preserveViewerMode(raw);
+        location.href = fallback.pathname + fallback.search;
       } catch (_) {}
     }
   }
@@ -381,7 +390,7 @@
     if (sub && !configured) sub.textContent = "LLM not configured — replies explain setup";
   }
 
-  window.WFChat = { init, setOpen, STATE, humanizeReply, applyDeepLink, formatPoiLabel };
+  window.WFChat = { init, setOpen, STATE, humanizeReply, applyDeepLink, formatPoiLabel, preserveViewerMode };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => { init(); });
   } else {

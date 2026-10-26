@@ -2,6 +2,13 @@
    URL params: ?venue=<slug>&b=<building-slug>  (+ the usual to/from/floor/style/mode/view/me deep-link params) */
 (function () {
   const C = window.WF_CONFIG || {};
+  // UNCC is published as a Matterport-first venue. Canonicalize even a bare
+  // ?b=uncc-main-campus link before boot so every UI module sees mp=1.
+  const initialUrl = new URL(location.href);
+  if (initialUrl.searchParams.get("b") === "uncc-main-campus" && initialUrl.searchParams.get("mp") !== "1") {
+    initialUrl.searchParams.set("mp", "1");
+    history.replaceState(null, "", initialUrl.toString());
+  }
   const q = new URLSearchParams(location.search);
   const J = (u) => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + " " + u); return r.json(); });
   const join = (a, b) => a.replace(/\/?$/, "/") + b.replace(/^\//, "");
