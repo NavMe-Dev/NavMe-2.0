@@ -19,7 +19,7 @@ require([
   // on mobile, two simultaneous heavy WebGL contexts can exceed the browser's GPU memory
   // budget and trigger a silent tab reload (surfaced as "selecting a destination kicks
   // me out"). See the isMpMode() guards below that keep view2d's own layers stripped.
-  const isMpMode = () => new URLSearchParams(location.search).get("mp") === "1";
+  const isMpMode = () => (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1";
   // georef.rms_m/max_err_m are null by design for "fixed" mode (a manual transform has no
   // fitted residual to report) — this debug readout assumed every georef field is always
   // a number and crashed the first time a location got set against a fixed-mode building.
@@ -31,7 +31,7 @@ require([
   // WF.building is an object; the slug can also come from cfg or the ?b= query param.
   const wfSlug = () => (window.WF.building && window.WF.building.slug)
     || (window.WF.cfg && window.WF.cfg.slug)
-    || new URLSearchParams(location.search).get("b") || "";
+    || (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("b") || "";
   const EMPTY_PIXEL = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
   function lightweightFloors(georef, nav) {
     const nodes = (nav && nav.nodes || []).filter(n => Number.isFinite(n.x) && Number.isFinite(n.y));

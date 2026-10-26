@@ -90,7 +90,8 @@ function wfDbg(level, source, message, meta) {
   // Matterport public viewer (?mp=1, see mp_background.js): same search/directions/
   // turn-by-turn UI, but POI selection and turn-by-turn clicks drive the live
   // Matterport Showcase camera (MpPreview.focusAt) instead of only the ArcGIS one.
-  function isMpMode() { return new URLSearchParams(location.search).get("mp") === "1"; }
+  const pageQuery = () => window.WFQuery ? WFQuery() : new URLSearchParams(location.search);
+  function isMpMode() { return pageQuery().get("mp") === "1"; }
   function mpFocusSelection(which) {
     if (!isMpMode() || !window.MpPreview) return;
     const p = S[which];
@@ -245,7 +246,7 @@ function wfDbg(level, source, message, meta) {
 
   // ---------------- deep links ----------------
   async function applyDeepLink() {
-    const q = new URLSearchParams(location.search);
+    const q = pageQuery();
     const style = q.get("style") || (document.body.classList.contains("hc") ? "dark" : "map");
     await setStyle(style);
     if (q.get("floor")) wf.setFloor(q.get("floor"));
@@ -280,11 +281,12 @@ function wfDbg(level, source, message, meta) {
     const place = opts.place !== undefined ? resolveShareRef(opts.place) : S.place;
     const stepFree = opts.stepFree !== undefined ? !!opts.stepFree : !!S.stepFree;
     const u = new URL(location.href.split("?")[0]);
-    const cur = new URLSearchParams(location.search);
+    const cur = pageQuery();
     const P = u.searchParams;
     if (cur.get("venue")) P.set("venue", cur.get("venue"));
-    if (cur.get("b")) P.set("b", cur.get("b"));
-    if (cur.get("mp")) P.set("mp", cur.get("mp"));
+    const cleanAlias = window.WF_ROUTE_ALIASES && window.WF_ROUTE_ALIASES[location.pathname.replace(/\/$/, "") || "/"];
+    if (!cleanAlias && cur.get("b")) P.set("b", cur.get("b"));
+    if (!cleanAlias && cur.get("mp")) P.set("mp", cur.get("mp"));
     if (kind === "dir") {
       if (to && to !== "me") P.set("to", to.id);
       if (from) P.set("from", from === "me" ? "me" : from.id);
@@ -468,7 +470,8 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.on("click", (e) => wf.view2d.hitTest(e, { include: [lyr] }).then(h => { const g = h.results[0]; if (g && g.graphic.attributes) goBuilding(g.graphic.attributes.bslug); }));
   }
   function goBuilding(slug, poiId) {
-    const u = new URL(location.href); u.search = ""; const q0 = new URLSearchParams(location.search);
+    const u = new URL("/", location.href);
+    const q0 = typeof WFQuery === "function" ? WFQuery() : new URLSearchParams(location.search);
     if (q0.get("venue")) u.searchParams.set("venue", q0.get("venue"));
     u.searchParams.set("b", slug);
     // A building switch is still part of the same viewer session. Keep the live
@@ -1068,7 +1071,7 @@ function wfDbg(level, source, message, meta) {
 
   function isMobileUx() { return window.innerWidth < 700; }
   function currentBuildingMeta() {
-    const slug = (WF.building && WF.building.slug) || (new URLSearchParams(location.search).get("b")) || "";
+    const slug = (WF.building && WF.building.slug) || pageQuery().get("b") || "";
     const b = allBuildings().find(x => x.slug === slug) || WF.building || { name: WF.cfg && WF.cfg.name, address: WF.cfg && WF.cfg.address, slug, floors: (WF.cfg && WF.cfg.floors) || [] };
     return b;
   }
@@ -1107,7 +1110,7 @@ function wfDbg(level, source, message, meta) {
     document.body.classList.toggle("ux-places", S.uxMode === "places");
   }
   function enterBuilding(slug) {
-    const cur = (WF.building && WF.building.slug) || (new URLSearchParams(location.search).get("b"));
+    const cur = (WF.building && WF.building.slug) || pageQuery().get("b");
     if (slug && slug !== cur) { goBuilding(slug); return; }
     setUxMode("places");
     if ($("q")) { $("q").value = ""; $("btnClearQ").hidden = true; }
@@ -1119,7 +1122,7 @@ function wfDbg(level, source, message, meta) {
     const q = (filterTxt || "").trim().toLowerCase();
     let buildings = allBuildings();
     if (q) buildings = buildings.filter(b => (buildingDisplayName(b) + " " + (b.address || "") + " " + (b.slug || "")).toLowerCase().includes(q));
-    const curSlug = (WF.building && WF.building.slug) || (new URLSearchParams(location.search).get("b")) || "";
+    const curSlug = (WF.building && WF.building.slug) || pageQuery().get("b") || "";
     if (!buildings.length) return `<div class="muted" style="padding:12px 4px">${esc(t("viewer.noMatches", { q: filterTxt || "" }))}</div>`;
     return `<div class="bgal">` + buildings.map(b => {
       const isCur = b.slug === curSlug;
@@ -1251,7 +1254,7 @@ function wfDbg(level, source, message, meta) {
   }
   function showHome() {
     // Mobile open: building gallery. Deep links / desk: places for current building.
-    const q = new URLSearchParams(location.search);
+    const q = pageQuery();
     const deep = !!(q.get("to") || q.get("from") || q.get("me") || q.get("mode") === "dir");
     if (isMobileUx() && !deep && S.uxMode !== "places") showBuildingPicker();
     else showBuildingHome();
@@ -1503,7 +1506,7 @@ function wfDbg(level, source, message, meta) {
     btn.onclick = () => {
       if (!S.to) return;
       const slug = (window.WF && WF.building && WF.building.slug)
-        || (new URLSearchParams(location.search).get("b")) || "";
+        || pageQuery().get("b") || "";
       const me = (wf && wf.lastLoc)
         ? [wf.lastLoc.lon, wf.lastLoc.lat, wf.lastLoc.floor]
         : undefined;
@@ -1570,7 +1573,7 @@ function wfDbg(level, source, message, meta) {
     }
     const slug = (window.WF && WF.building && WF.building.slug)
       || (window.WF && WF.cfg && WF.cfg.slug)
-      || (new URLSearchParams(location.search).get("b")) || "";
+      || pageQuery().get("b") || "";
     const fromId = (S.from && S.from !== "me" && S.from.id) ? S.from.id : "";
     let fromModel;
     const start = (S.route.smoothed && S.route.smoothed[0])
@@ -2585,7 +2588,7 @@ function wfDbg(level, source, message, meta) {
   function submitRouteFeedback(rating, meta) {
     try {
       const slug = (window.WF && WF.building && WF.building.slug)
-        || (new URLSearchParams(location.search).get("b")) || (window.WF && WF.cfg && WF.cfg.slug) || "";
+        || pageQuery().get("b") || (window.WF && WF.cfg && WF.cfg.slug) || "";
       if (!slug) return;
       fetch(`/api/v1/public/buildings/${encodeURIComponent(slug)}/feedback`, {
         method: "POST",

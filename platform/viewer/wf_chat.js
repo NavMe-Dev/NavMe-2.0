@@ -10,7 +10,7 @@
   function buildingSlug() {
     try {
       if (window.WF && WF.building && WF.building.slug) return WF.building.slug;
-      const q = new URLSearchParams(location.search);
+      const q = typeof WFQuery === "function" ? WFQuery() : new URLSearchParams(location.search);
       return q.get("b") || null;
     } catch (_) { return null; }
   }
@@ -24,7 +24,7 @@
 
   function preserveViewerMode(url) {
     const u = url instanceof URL ? url : new URL(url, location.origin);
-    const current = new URLSearchParams(location.search);
+    const current = typeof WFQuery === "function" ? WFQuery() : new URLSearchParams(location.search);
     if (current.get("mp") === "1" || u.searchParams.get("b") === "uncc-main-campus") u.searchParams.set("mp", "1");
     return u;
   }

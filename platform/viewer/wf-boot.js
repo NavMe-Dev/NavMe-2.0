@@ -9,7 +9,7 @@
     initialUrl.searchParams.set("mp", "1");
     history.replaceState(null, "", initialUrl.toString());
   }
-  const q = new URLSearchParams(location.search);
+  const q = window.WFQuery ? WFQuery() : new URLSearchParams(location.search);
   const J = (u) => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + " " + u); return r.json(); });
   const join = (a, b) => a.replace(/\/?$/, "/") + b.replace(/^\//, "");
 

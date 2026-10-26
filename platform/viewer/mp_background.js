@@ -5,7 +5,7 @@
    background is rendered. See ui.js's isMpMode()/mpFocusSelection() for the
    POI-selection and turn-by-turn camera wiring that pairs with this file. */
 (function () {
-  function isMpMode() { return new URLSearchParams(location.search).get("mp") === "1"; }
+  function isMpMode() { return (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1"; }
   if (!isMpMode()) return;
 
   // Warm up DNS/TLS for the Showcase domains as early as possible — the iframe

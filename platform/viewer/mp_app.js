@@ -47,7 +47,7 @@
 
   function slug() {
     return (WF.building && WF.building.slug) || (WF.cfg && WF.cfg.slug)
-      || new URLSearchParams(location.search).get("b") || "";
+      || (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("b") || "";
   }
   function floorLabel(nav, id) {
     if (id === "all") return (window.WFi18n && WFi18n.t("viewer.allFloors")) || "All floors";

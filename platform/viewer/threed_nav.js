@@ -1986,7 +1986,7 @@
     try {
       return (window.WF && window.WF.building && window.WF.building.slug)
         || (window.WF && window.WF.cfg && window.WF.cfg.slug)
-        || new URLSearchParams(location.search).get("b") || "";
+        || (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("b") || "";
     } catch (_) { return ""; }
   }
 

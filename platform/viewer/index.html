@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1a73e8">
+<base href="/">
 <!-- iOS Safari does not support Element.requestFullscreen() for ordinary pages (WebKit
      restricts it to <video>) — there is no JS-only fix for that. These tags make "Add to
      Home Screen" launch with zero browser chrome (status bar only), which is the only way
@@ -20,22 +21,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
+<script>
+window.WF_ROUTE_ALIASES={"/gcu-omr":{b:"gcu",mp:"1"}};
+window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.pathname.replace(/\/$/,"")||"/",a=window.WF_ROUTE_ALIASES[p];if(a)Object.keys(a).forEach(function(k){if(!q.has(k))q.set(k,a[k]);});return q;};
+</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
 <link rel="stylesheet" href="ui.css?v=20261026poigallery1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
 <script src="vendor/fuse.min.js"></script>
 <!-- Keep the established eager Recast runtime in the regular map viewer. Only mp=1
      defers it, preventing its WASM/binary import from competing with Matterport startup. -->
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/recast-navigation.js"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/recast-navigation.js"><\/script>');</script>
 <script src="wf_navmesh_route.js?v=20261026turns1"></script>
 <script src="wf_navmesh_bridge.js?v=20261026lazy1"></script>
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="navmesh_route.js?v=20260930access2"><\/script><script src="routing.js?v=20261026turns1"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="navmesh_route.js?v=20260930access2"><\/script><script src="routing.js?v=20261026turns1"><\/script>');</script>
 <script src="tour_modes_config.js?v=20260930access2"></script>
 <script src="access_config.js?v=20260930access2"></script>
 <script src="bundle_preview.js?v=20260930access2"></script>
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="https://js.arcgis.com/4.34/"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="https://js.arcgis.com/4.34/"><\/script>');</script>
 </head>
 <body class="booting">
 <div id="viewDiv" role="application" aria-label="Map" data-i18n-aria-label="viewer.map"></div>
@@ -324,8 +329,8 @@
 <script src="wf-config.js"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
 <script src="wf-boot.js?v=20261026unccmp1"></script>
-<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="wf_mesh_overlay.js?v=20261005overlay8"><\/script>');</script>
-<script>document.write('<script src="'+(new URLSearchParams(location.search).get("mp")==="1"?'mp_app.js?v=20261026friendlyroute1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="wf_mesh_overlay.js?v=20261005overlay8"><\/script>');</script>
+<script>document.write('<script src="'+(WFQuery().get("mp")==="1"?'mp_app.js?v=20261026friendlyroute1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
 <script src="category_markers.js?v=20261026alldollhouse1"></script>
 <script src="mp_preview.js?v=20261026routethumbs1"></script>

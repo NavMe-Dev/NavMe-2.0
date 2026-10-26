@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from . import __version__
 from .config import get_settings
 from .routers import auth, public, admin, vps, scan_plans
@@ -118,6 +119,11 @@ def create_app() -> FastAPI:
 
         app.mount("/ar_webxr", StaticFiles(directory=str(ar_dir), html=True), name="ar_webxr")
     if s.viewer_dir and Path(s.viewer_dir).is_dir():
+        @app.get("/gcu-omr", include_in_schema=False)
+        @app.get("/gcu-omr/", include_in_schema=False)
+        def gcu_omr_viewer():
+            return FileResponse(Path(s.viewer_dir) / "index.html")
+
         app.mount("/", StaticFiles(directory=s.viewer_dir, html=True), name="viewer")
     return app
 
