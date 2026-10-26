@@ -97,7 +97,6 @@ body.dir #chipsMore{display:none}
 .ac .hdr{font-size:.8em;color:var(--txt2);padding:6px 16px 2px;cursor:default;min-height:0;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
 .ac .hdr:hover{background:none}
 .category-floor-filter{display:flex;align-items:flex-start;gap:9px;margin:10px 0 12px;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
-.category-floor-filter>.ms{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:var(--bg);color:var(--txt2);font-size:18px}
 .ac-floor-scroll{display:flex;flex:1;flex-wrap:wrap;gap:6px;min-width:0;padding:1px 1px 2px}
 .ac-floor-scroll::-webkit-scrollbar{display:none}
 .ui .ac-floor{flex:none;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--txt);font:500 12px/1 Roboto,system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s,box-shadow .15s}

@@ -247,8 +247,16 @@ function wfDbg(level, source, message, meta) {
     const to = byId[q.get("to")], fromK = q.get("from");
     if (to && fromK) { S.to = to; S.from = fromK === "me" ? "me" : byId[fromK] || null; openDirections(); }
     else if (to) selectPlace(to, { fly: true });
-    else if (!q.get("floor")) { wf.setFloor(WF.cfg.default_floor); showHome(); zoomBuilding(true); }
-    else showHome();
+    else {
+      // A normal venue URL opens directly onto the current venue. The building
+      // chooser remains available from the NavMe logo, but should not cover the
+      // model automatically on every fresh visit.
+      if (!q.get("floor")) wf.setFloor(WF.cfg.default_floor);
+      S.mode = "home";
+      setUxMode("places");
+      closeSheet();
+      if (!q.get("floor")) zoomBuilding(true);
+    }
     if (q.get("view") === "3d") setTimeout(() => toggle3D(true), 300);
   }
   function resolveShareRef(v) {
@@ -535,20 +543,43 @@ function wfDbg(level, source, message, meta) {
       const which = target === $("fromQ") ? "from" : "to";
       if (it.me) { S[which] = "me"; if (which === "from" && !wf.lastLoc) startLocalize(true); }
       else if (it.poi) { S[which] = it.poi; pushRecent(it.poi.id); if (which === "from") S.locMeta = null; }
-      target.blur(); syncDirFields(); computeRoute(); mpFocusSelection(which);
+      target.blur(); syncDirFields();
+      if (!S.from || !S.to) openDirections();
+      else computeRoute();
+      mpFocusSelection(which);
     }
   }
   function closeAc() { $("acList").hidden = true; document.body.classList.remove("ac-open"); [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
   function acKeys(input, extraFn) {
+    const prepareSearchSurface = () => {
+      // The campus/Explore sheet and the autocomplete are alternative surfaces.
+      // Keeping both open makes the search results overlap the campus cards on mobile.
+      if (input === $("q") && !$("sheet").hidden && $("sheet").classList.contains("venue-info")) closeSheet();
+      // The start/destination autocomplete likewise replaces the directions prompt
+      // while the visitor is choosing a POI. computeRoute/openDirections restores the
+      // appropriate next panel after a selection is made.
+      if ((input === $("fromQ") || input === $("toQ")) && S.mode === "dir" && !$("sheet").hidden) closeSheet();
+    };
+    input.addEventListener("pointerdown", prepareSearchSurface);
+    input.addEventListener("click", () => {
+      prepareSearchSurface();
+      if ($("acList").hidden) renderAc(input, extraFn && extraFn());
+    });
     input.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown") { e.preventDefault(); if ($("acList").hidden) renderAc(input, extraFn && extraFn()); moveAc(1); }
+      if (e.key === "ArrowDown") { e.preventDefault(); if ($("acList").hidden) { prepareSearchSurface(); renderAc(input, extraFn && extraFn()); } moveAc(1); }
       else if (e.key === "ArrowUp") { e.preventDefault(); moveAc(-1); }
       else if (e.key === "Enter") { e.preventDefault(); if (acSel < 0) acSel = acItems.findIndex(x => x.poi || x.me); pickAc(acSel); }
       else if (e.key === "Escape") { closeAc(); input.blur(); }
     });
-    input.addEventListener("input", () => renderAc(input, extraFn && extraFn()));
-    input.addEventListener("focus", () => { input.select(); renderAc(input, extraFn && extraFn()); closePop(); });
-    input.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== input) closeAc(); }, 150));
+    input.addEventListener("input", () => { prepareSearchSurface(); renderAc(input, extraFn && extraFn()); });
+    input.addEventListener("focus", () => { input.select(); prepareSearchSurface(); renderAc(input, extraFn && extraFn()); closePop(); });
+    input.addEventListener("blur", () => setTimeout(() => {
+      const active = document.activeElement;
+      // Moving between the main search and either directions field is one continuous
+      // autocomplete flow. Do not let the previous input's delayed blur close the new
+      // field's results.
+      if (active !== $("q") && active !== $("fromQ") && active !== $("toQ")) closeAc();
+    }, 150));
   }
   function bindSearch() {
     const q = $("q");
@@ -563,10 +594,9 @@ function wfDbg(level, source, message, meta) {
     $("btnDirQuick").onclick = () => { setUxMode("places"); S.to = S.place || null; S.from = wf.lastLoc ? "me" : null; openDirections(); };
     if ($("bldgChip")) $("bldgChip").onclick = () => { showBuildingPicker(); try { $("q").focus(); } catch (e) {} };
     if ($("btnBrand")) $("btnBrand").onclick = () => { showBuildingPicker(); };
-    // Initial chrome: mobile starts on buildings unless deep-linked
-    const uq = new URLSearchParams(location.search);
-    const deep = !!(uq.get("to") || uq.get("from") || uq.get("me") || uq.get("mode") === "dir");
-    setUxMode(isMobileUx() && !deep ? "buildings" : "places");
+    // Start inside the current venue. The NavMe logo is the explicit entry point
+    // for building information and the multi-building chooser.
+    setUxMode("places");
   }
 
   // ---------------- chips ----------------
@@ -683,7 +713,7 @@ function wfDbg(level, source, message, meta) {
     if (S.categoryFloor !== "__all__" && !floors.includes(S.categoryFloor)) S.categoryFloor = "__all__";
     if (floors.length < 2) return "";
     const button = (id, label) => `<button type="button" class="ac-floor${S.categoryFloor === id ? " on" : ""}" data-category-floor="${esc(id)}" aria-pressed="${S.categoryFloor === id}">${esc(label)}</button>`;
-    return `<div class="category-floor-filter"><span class="ms" aria-hidden="true">layers</span><div class="ac-floor-scroll" role="group" aria-label="${esc(t("viewer.floor"))}">${button("__all__", t("viewer.allFloors"))}${floors.map(id => button(id, wf.floorLabel(id))).join("")}</div></div>`;
+    return `<div class="category-floor-filter"><div class="ac-floor-scroll" role="group" aria-label="${esc(t("viewer.floor"))}">${button("__all__", t("viewer.allFloors"))}${floors.map(id => button(id, wf.floorLabel(id))).join("")}</div></div>`;
   }
   function showCategoryList(items, title, state) {
     const toolbar = categoryFloorToolbar(items);
@@ -1252,7 +1282,7 @@ function wfDbg(level, source, message, meta) {
     S.mode = "dir"; document.body.classList.add("dir");
     $("searchBox").hidden = true; $("dirBox").hidden = false; closeAc();
     syncDirFields(); applyPadding();
-    if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); return; }
+    if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); closeSheet(); if ($("acList").hidden) $("toQ").click(); return; }
     if (!S.from) {
       // MP mode: no 2D map to tap, but "Pick on map" still exists there as a dollhouse
       // pick-and-walk (see pickOnMapMp()) — and GPS has real meaning (on-site visitor).
@@ -1267,7 +1297,7 @@ function wfDbg(level, source, message, meta) {
       if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       S.dirFocus = "from";
       try { $("fromQ").classList.add("dir-focus-input"); $("toQ").classList.remove("dir-focus-input"); } catch (e) {}
-      $("fromQ").focus(); return;
+      $("fromQ").focus(); closeSheet(); if ($("acList").hidden) $("fromQ").click(); return;
     }
     computeRoute(startNav);
   }
