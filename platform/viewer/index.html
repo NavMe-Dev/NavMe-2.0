@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
-<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
 <link rel="stylesheet" href="ui.css?v=20261026routeactions1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
@@ -38,7 +38,7 @@
 <script src="tour_modes_config.js?v=20260930access2"></script>
 <script src="access_config.js?v=20260930access2"></script>
 <script src="bundle_preview.js?v=20260930access2"></script>
-<script src="https://js.arcgis.com/4.34/"></script>
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="https://js.arcgis.com/4.34/"><\/script>');</script>
 </head>
 <body class="booting">
 <div id="viewDiv" role="application" aria-label="Map" data-i18n-aria-label="viewer.map"></div>
@@ -343,8 +343,8 @@
 <script src="wf-config.js"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
 <script src="wf-boot.js?v=20261026unccmp1"></script>
-<script src="wf_mesh_overlay.js?v=20261005overlay8"></script>
-<script src="app.js?v=20261026navmeshwait1"></script>
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="wf_mesh_overlay.js?v=20261005overlay8"><\/script>');</script>
+<script>document.write('<script src="'+(new URLSearchParams(location.search).get("mp")==="1"?'mp_app.js?v=20261026light1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
 <script src="category_markers.js?v=20261024weather1"></script>
 <script src="mp_preview.js?v=20261026turns1"></script>
