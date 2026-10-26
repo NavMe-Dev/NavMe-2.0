@@ -28,9 +28,11 @@
 <script src="vendor/ngraph.path.min.js"></script>
 <script src="vendor/turf.min.js"></script>
 <script src="vendor/fuse.min.js"></script>
-<script src="vendor/recast-navigation.js"></script>
+<!-- Keep the established eager Recast runtime in the regular map viewer. Only mp=1
+     defers it, preventing its WASM/binary import from competing with Matterport startup. -->
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/recast-navigation.js"><\/script>');</script>
 <script src="wf_navmesh_route.js?v=20261026turns1"></script>
-<script src="wf_navmesh_bridge.js?v=20261009partialfix1"></script>
+<script src="wf_navmesh_bridge.js?v=20261026lazy1"></script>
 <script src="navmesh_route.js?v=20260930access2"></script>
 <script src="routing.js?v=20261026turns1"></script>
 <script src="tour_modes_config.js?v=20260930access2"></script>

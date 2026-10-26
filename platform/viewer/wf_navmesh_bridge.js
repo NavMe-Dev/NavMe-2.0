@@ -16,12 +16,28 @@
   var WF = window.WFNav = window.WFNav || {};
   var cfg = null;          // { floors:[{id,label,elevation}], modelToLL(x,y) }
   var ready = false;
+  var runtimePromise = null;
+
+  function ensureRuntime() {
+    if (window.NavMeshRT) return Promise.resolve();
+    if (runtimePromise) return runtimePromise;
+    runtimePromise = new Promise(function (resolve, reject) {
+      var script = document.createElement("script");
+      script.src = "vendor/recast-navigation.js";
+      script.async = true;
+      script.onload = function () { window.NavMeshRT ? resolve() : reject(new Error("recast runtime unavailable")); };
+      script.onerror = function () { reject(new Error("recast runtime download failed")); };
+      document.head.appendChild(script);
+    });
+    return runtimePromise;
+  }
 
   /** slug: building slug. opts.modelToLL(x, y) -> [lon, lat]. opts.floors as above. */
   WF.initNavmesh = async function (slug, opts) {
     opts = opts || {};
     cfg = { floors: opts.floors || [], modelToLL: opts.modelToLL,
             levelYs: opts.levelYs || [], sweeps: opts.sweeps || [] };
+    await ensureRuntime();
     var r = await fetch("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug) + "/navmesh-url",
                         { headers: opts.headers || {} });
     if (!r.ok) throw new Error("no navmesh for " + slug + " (" + r.status + ")");

@@ -50,7 +50,7 @@ require([
   window.WF.ready.then(() => { CFG = window.WF.cfg; const F = CFG.files;
     const lightMp = isMpMode();
     return Promise.all([J(D(F.georef)), lightMp ? Promise.resolve(null) : J(D(F.floors)), J(D(F.nav_graph)), lightMp ? Promise.resolve(null) : J(D(F.walkgrid)), J(D(F.pois)), lightMp ? Promise.resolve({nodes:[],edges:[]}) : J(D(F.mp_graph_raw)),
-      F.navmesh ? J(D(F.navmesh)).catch(() => null) : Promise.resolve(null),
+      F.navmesh && !lightMp ? J(D(F.navmesh)).catch(() => null) : Promise.resolve(null),
       // Live NavMe POIs (Supabase). These are the real places; the published pois.json
       // holds pipeline-detected entrances. Null on failure so the viewer still loads.
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(wfSlug()) + "/navme-pois").catch(() => null),
@@ -454,6 +454,7 @@ require([
     function initRouting() {
       const { nav, walkgrid, pois, rawGraph, navmesh } = R2;
       let navmeshLoadPromise = null;
+      let navmeshWarmTimer = null;
       let routeRequestId = 0;
       WFRouting.modelToLL = modelToLL;
       WFRouting.init(nav, walkgrid, navmesh);
@@ -522,9 +523,15 @@ require([
           });
         }
       }
-      // Load the Recast navmesh in the background; doRoute uses it as soon as it is ready
-      // and falls back to the sweep graph until then.
-      if (window.WFNav) {
+      // Build the Recast loader lazily. In mp=1, importing its runtime + binary while
+      // Matterport is constructing the campus creates a large transient memory peak on
+      // phones. Warm it only after the model settles; a Directions request can start it
+      // immediately and waits for it below.
+      function ensureNavmesh() {
+        if (!window.WFNav) return null;
+        if (WFNav.navmeshReady()) return Promise.resolve();
+        if (navmeshLoadPromise) return navmeshLoadPromise;
+        if (navmeshWarmTimer) { clearTimeout(navmeshWarmTimer); navmeshWarmTimer = null; }
         navmeshLoadPromise = WFNav.initNavmesh(wfSlug(), {
           floors: pois._derivedFloors
             || (CFG.floors || []).map(f => ({ id: f.id, label: f.label || f.id, elevation: f.elevation })),
@@ -543,6 +550,15 @@ require([
             doRoute(lastRouteArgs.fromKey, lastRouteArgs.toPoiId, lastRouteArgs.opts);
           }
         }).catch(e => console.warn("[navmesh] not available:", e.message || e));
+        return navmeshLoadPromise;
+      }
+      if (window.WFNav) {
+        if (!isMpMode()) ensureNavmesh();
+        else {
+          const warm = () => { navmeshWarmTimer = setTimeout(() => { navmeshWarmTimer = null; ensureNavmesh(); }, 3000); };
+          if (window.__mpBackgroundReady) warm();
+          else window.addEventListener("mp-background-ready", warm, { once: true });
+        }
       }
       const poiById = {}; pois.pois.forEach(p => poiById[p.id] = p);
       // Floor labels come from Building.floors.label (platform's own Postgres, plain text —
@@ -758,6 +774,7 @@ require([
 
       function doRoute(fromKey, toPoiId, opts = {}) {
         const requestId = opts._requestId || ++routeRequestId;
+        if (window.WFNav && fromKey !== "__loc" && !WFNav.navmeshReady()) ensureNavmesh();
         // Production needs longer than localhost to download and import the Recast
         // binary. Do not silently lock in a graph route merely because the visitor
         // selected a destination during that short window. Wait once; graph fallback
