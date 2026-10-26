@@ -128,6 +128,7 @@ function wfDbg(level, source, message, meta) {
       thumbs = new Set(a);
       // Add associated scan images without resetting the selected tab or sheet height.
       if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
+      if (S.route && (S.mode === "dir" || S.mode === "nav")) renderDirections(S.route);
     }).catch(() => { });
     // map chrome: hide ArcGIS default widgets except attribution
     wf.view2d.ui.components = ["attribution"];
@@ -380,10 +381,10 @@ function wfDbg(level, source, message, meta) {
     fillShareSelects();
     let kind = "view";
     if ((S.mode === "dir" || S.mode === "nav") && S.from && S.to) kind = "dir";
-    else if (S.place || S.to) kind = "dir"; // prefer sharing a direction when a destination exists
+    else if (S.place || S.to) kind = "place";
     setShareKind(kind);
     const nat = $("shNative");
-    if (nat) nat.hidden = !(navigator.share && !isDesk());
+    if (nat) nat.hidden = !navigator.share;
     m.hidden = false;
     if (window.WFi18n && WFi18n.applyDom) WFi18n.applyDom(m);
     ($("shCopy") || $("shClose")).focus();
@@ -1226,8 +1227,15 @@ function wfDbg(level, source, message, meta) {
     if (x === "me") return (S.locMeta && S.locMeta.label) || t("viewer.currentLocation");
     return x ? x.name : "";
   }
+  function directionFieldLabel(x) {
+    const name = nameOf(x);
+    if (!x || x === "me") return name;
+    const building = cat(x) && cat(x).label;
+    return building && String(building).trim().toLowerCase() !== String(name).trim().toLowerCase()
+      ? `${name} · ${building}` : name;
+  }
   function syncDirFields() {
-    $("fromQ").value = nameOf(S.from); $("toQ").value = nameOf(S.to);
+    $("fromQ").value = directionFieldLabel(S.from); $("toQ").value = directionFieldLabel(S.to);
     document.querySelectorAll(".mode").forEach(b => { const on = (b.dataset.mode === "stepfree") === S.stepFree; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
     renderFromMeta();
   }
@@ -1344,6 +1352,18 @@ function wfDbg(level, source, message, meta) {
     S.route = r; S.navSteps = condense(r);
     markPlace(null);
     renderDirections(r);
+    // mp=1 deliberately skips nav_graph.json at startup. Fetch only the compact
+    // sweep coordinates already resident in Matterport, then repaint this same
+    // route so nearest-sweep thumbnails appear without restoring the heavy graph.
+    if (isMpMode() && window.MpPreview && MpPreview.thumbnailSweepNodes
+        && (!wf.nav.nodes || !wf.nav.nodes.some(n => n.kind === "sweep"))) {
+      const activeRoute = r;
+      MpPreview.thumbnailSweepNodes().then(nodes => {
+        if (!nodes || !nodes.length || S.route !== activeRoute) return;
+        wf.nav.nodes = nodes;
+        renderDirections(activeRoute);
+      }).catch(() => {});
+    }
     if (pendingNav) { pendingNav = false; startNav(); }
   }
   /** S.route plus the extra fields MpPreview's tour/walk engine wants: destination name,

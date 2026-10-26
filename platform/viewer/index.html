@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261026routeheader2">
+<link rel="stylesheet" href="ui.css?v=20261026sharelocation1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
 <script src="vendor/fuse.min.js"></script>
@@ -233,25 +233,25 @@
   <div id="shareSheet" class="loc-modal" hidden role="dialog" aria-modal="true" aria-labelledby="shTitle">
     <div class="loc-panel share-panel">
       <header class="loc-head">
-        <h2 id="shTitle" data-i18n="viewer.shareTitle">Share</h2>
+        <h2 id="shTitle" data-i18n="viewer.shareTitle">Share Location</h2>
         <button type="button" id="shClose" class="loc-close" aria-label="Close" data-i18n-aria-label="common.close"><span class="ms">close</span></button>
       </header>
-      <p class="muted loc-chooser-hint" data-i18n="viewer.shareHint">Choose what the link opens — map view, a place, or a from→to direction.</p>
+      <p class="muted loc-chooser-hint" data-i18n="viewer.shareHint">Choose what you want to share.</p>
       <div class="share-kinds" role="radiogroup" aria-label="What to share">
         <label class="share-kind" id="shKindViewLab">
           <input type="radio" name="shareKind" value="view" id="shKindView">
           <span class="share-kind-ic"><span class="ms">map</span></span>
-          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindView">This map view</strong><span class="muted" data-i18n="viewer.shareKindViewHint">Floor, style, and camera only</span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindView">Share Map View</strong><span class="muted" data-i18n="viewer.shareKindViewHint">Share this map's position and view</span></span>
         </label>
         <label class="share-kind" id="shKindPlaceLab" hidden>
           <input type="radio" name="shareKind" value="place" id="shKindPlace">
           <span class="share-kind-ic"><span class="ms">place</span></span>
-          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindPlace">This place</strong><span class="muted" id="shPlaceName"></span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindPlace">Share a Place</strong><span class="muted" id="shPlaceName"></span></span>
         </label>
         <label class="share-kind" id="shKindDirLab">
           <input type="radio" name="shareKind" value="dir" id="shKindDir">
           <span class="share-kind-ic dir"><span class="ms">directions</span></span>
-          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindDir">Directions</strong><span class="muted" data-i18n="viewer.shareKindDirHint">From → to route the recipient can follow</span></span>
+          <span class="share-kind-txt"><strong data-i18n="viewer.shareKindDir">Share Directions</strong><span class="muted" data-i18n="viewer.shareKindDirHint">Share a route the recipient can follow</span></span>
         </label>
       </div>
       <div id="shareDirFields" class="share-dir" hidden>
@@ -260,8 +260,8 @@
         <label class="share-field"><span data-i18n="viewer.shareTo">To</span>
           <select id="shTo" aria-label="To"></select></label>
       </div>
-      <p class="share-preview muted" id="shPreview" aria-live="polite"></p>
-      <div class="loc-actions">
+      <p class="share-preview muted" id="shPreview" aria-live="polite" hidden></p>
+      <div class="loc-actions share-actions">
         <button type="button" class="pill primary" id="shCopy"><span class="ms">content_copy</span><span data-i18n="viewer.copyLink">Copy link</span></button>
         <button type="button" class="pill" id="shNative" hidden><span class="ms">share</span><span data-i18n="viewer.shareNative">Share…</span></button>
         <button type="button" class="pill" id="shCancel" data-i18n="common.cancel">Cancel</button>
@@ -328,13 +328,13 @@
 <script>document.write('<script src="'+(new URLSearchParams(location.search).get("mp")==="1"?'mp_app.js?v=20261026friendlyroute1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
 <script src="category_markers.js?v=20261026alldollhouse1"></script>
-<script src="mp_preview.js?v=20261026turns1"></script>
+<script src="mp_preview.js?v=20261026routethumbs1"></script>
 <script src="mp_background.js?v=20261024intro2"></script>
 <script src="threed_nav.js?v=20261026turns1"></script>
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20261026mpmode1"></script>
 <script src="explore.js?v=20261024featured1"></script>
-<script src="ui.js?v=20261026routeheader1"></script>
+<script src="ui.js?v=20261026routethumbs2"></script>
 <script src="weather.js?v=20261024weather1"></script>
 </body>
 </html>

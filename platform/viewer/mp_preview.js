@@ -553,6 +553,21 @@ function wfDbg(level, source, message, meta) {
     return result;
   }
 
+  // Compact route-photo bridge for the lightweight mp=1 runtime. The public UI
+  // previously found the nearest thumbnail through nav_graph.json; that graph is
+  // intentionally absent from Matterport-only startup. Reuse Showcase's already
+  // loaded sweep metadata instead, with the same NavMe Z-up coordinates expected
+  // by ui.js, so no additional multi-megabyte graph download is needed.
+  async function thumbnailSweepNodes() {
+    if (!mpSdk) return [];
+    const sweeps = await rtReadSweeps(mpSdk);
+    return sweeps.map(s => ({
+      id: s.sid, kind: "sweep",
+      x: s.position.x, y: -s.position.z, z: s.position.y,
+      floor: sweepFloorId(s.position.y)
+    }));
+  }
+
   async function rtReadSweepsUncached(sdk) {
     try {
       if (sdk && sdk.Model && typeof sdk.Model.getData === "function") {
@@ -2954,6 +2969,7 @@ function wfDbg(level, source, message, meta) {
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView, toggleHomeView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo, moveTo,
-    currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection
+    currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection,
+    thumbnailSweepNodes
   };
 })();
