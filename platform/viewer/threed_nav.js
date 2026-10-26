@@ -69,6 +69,8 @@
   const FACE_MIN_PITCH_DEG      = -58;
   const ARRIVE_RADIUS_M         = 2;
   const LEG_ARRIVE_M            = 3;
+  const KEY_TURN_DEG            = 16;
+  const KEY_TURN_SHARPNESS      = 1 - Math.cos(KEY_TURN_DEG * Math.PI / 180);
 
   // Module state
   let mpSdk = null, sdkPromise = null, openGen = 0;
@@ -743,7 +745,7 @@
       if (len1 < 0.5 || len2 < 0.5) continue;
       var dot = (dx1*dx2+dz1*dz2)/(len1*len2);
       var sharpness = 1 - dot; // 0 = straight, 2 = U-turn
-      if (sharpness > 0.1) scored.push({ i: i, sharpness: sharpness });
+      if (sharpness > KEY_TURN_SHARPNESS) scored.push({ i: i, sharpness: sharpness });
     }
     scored.sort(function(a,b){ return b.sharpness - a.sharpness; });
     var keptIdx = {};

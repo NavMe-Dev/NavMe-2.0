@@ -148,8 +148,11 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 .prow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--txt2);margin:4px 0 10px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
 .pill{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px!important;border-radius:18px!important;border:1px solid var(--line)!important;color:var(--blue-d)!important;font-weight:500!important;white-space:nowrap;flex:none}
-/* Start Preview / View in AR / Share row — smaller, always on one line. */
-.actions-row1{flex-wrap:nowrap!important}
+/* Route actions wrap as complete touch targets instead of being horizontally
+   clipped on phones. Text buttons share each row; the icon-only Share remains
+   compact. Longer translated labels naturally move onto their own row. */
+.actions-row1{flex-wrap:wrap!important;overflow-x:visible}
+.actions-row1 .pill-sm:not(.pill-icon){flex:1 1 auto;justify-content:center}
 .pill-sm{height:30px;padding:0 12px!important;font-size:13px}
 .pill-sm .ms{font-size:16px}
 .pill-icon{padding:0!important;width:30px;justify-content:center}
@@ -158,6 +161,9 @@ h1.pname{font-size:1.55em;font-weight:400;margin:4px 0 2px;line-height:1.2}
 body.mp-bg-mode .actions-row1 .pill-sm{height:44px;padding:0 18px!important;font-size:15px}
 body.mp-bg-mode .actions-row1 .pill-sm .ms{font-size:20px}
 body.mp-bg-mode .actions-row1 .pill-icon{width:44px}
+@media(max-width:380px){
+  body.mp-bg-mode .actions-row1 .pill-sm{padding-inline:14px!important;font-size:14px}
+}
 /* Step-free condition/routing is untouched — only its visible label is hidden. */
 .badge.sf{display:none!important}
 .badge.st{display:none!important}

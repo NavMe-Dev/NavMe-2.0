@@ -96,9 +96,9 @@
 
   function turnWord(deg) {
     var a = Math.abs(deg);
-    if (a < 20) return null;                      // not a real turn, just drift
-    if (a < 50) return deg > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
-    if (a < 120) return deg > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
+    if (a < 10) return null;                      // not a real turn, just drift
+    if (a < 40) return deg > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
+    if (a < 110) return deg > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
     return deg > 0 ? t("viewer.dirSharpRight") : t("viewer.dirSharpLeft");
   }
 
@@ -193,14 +193,14 @@
    *   pitch >= ELEVATOR_MIN_DEG (default 75, i.e. the 80-100 deg vertical case) -> elevator
    *   pitch in [STAIR_MIN_DEG, ELEVATOR_MIN_DEG)  (default 35-75)               -> stairs
    *   otherwise                                                                  -> flat walking
-   *   heading change >= MIN_TURN_DEG (default 30) at a vertex                    -> a turn
+   *   heading change >= MIN_TURN_DEG (default 20) at a vertex                    -> a turn
    * Consecutive segments of the same kind are merged, so one staircase is one step
    * rather than one instruction per tread.
    */
   function guidance(path, opts) {
     opts = opts || {};
     var floors = opts.floors || [];
-    var MIN_TURN_DEG = opts.minTurnDeg != null ? opts.minTurnDeg : 30;
+    var MIN_TURN_DEG = opts.minTurnDeg != null ? opts.minTurnDeg : 20;
     var STAIR_MIN_DEG = opts.stairMinDeg != null ? opts.stairMinDeg : 35;
     var ELEVATOR_MIN_DEG = opts.elevatorMinDeg != null ? opts.elevatorMinDeg : 75;
     if (!path || path.length < 2) return [];
@@ -249,16 +249,16 @@
     function turnArrow(d) {
       var m = Math.abs(d), right = d > 0;
       if (m < MIN_TURN_DEG) return { arrow: "\u2191", dir: "straight", rotate: 0 };          // up
-      if (m < 60)  return { arrow: right ? "\u2197" : "\u2196", dir: right ? "slight-right" : "slight-left", rotate: Math.round(d) };
-      if (m < 120) return { arrow: right ? "\u2192" : "\u2190", dir: right ? "right" : "left", rotate: Math.round(d) };
-      if (m < 160) return { arrow: right ? "\u2198" : "\u2199", dir: right ? "sharp-right" : "sharp-left", rotate: Math.round(d) };
+      if (m < 50)  return { arrow: right ? "\u2197" : "\u2196", dir: right ? "slight-right" : "slight-left", rotate: Math.round(d) };
+      if (m < 110) return { arrow: right ? "\u2192" : "\u2190", dir: right ? "right" : "left", rotate: Math.round(d) };
+      if (m < 150) return { arrow: right ? "\u2198" : "\u2199", dir: right ? "sharp-right" : "sharp-left", rotate: Math.round(d) };
       return { arrow: "\u21B6", dir: "u-turn", rotate: Math.round(d) };
     }
     function turnWordFor(d) {
       var m = Math.abs(d);
       if (m < MIN_TURN_DEG) return null;
-      if (m < 60) return d > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
-      if (m < 120) return d > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
+      if (m < 50) return d > 0 ? t("viewer.dirBearRight") : t("viewer.dirBearLeft");
+      if (m < 110) return d > 0 ? t("viewer.dirTurnRight") : t("viewer.dirTurnLeft");
       return d > 0 ? t("viewer.dirSharpRight") : t("viewer.dirSharpLeft");
     }
 

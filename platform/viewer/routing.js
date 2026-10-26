@@ -137,7 +137,7 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
     }
     return true;
   }
-  const COLLINEAR_COS = 0.92; // ~23° max turn to treat as collinear shortcut
+  const COLLINEAR_COS = Math.cos(13 * Math.PI / 180); // 13° max turn to treat as collinear shortcut
   function canShortcut(pts, i, k) {
     if (pts[k].floor !== pts[i].floor) return false;
     for (let m = i + 1; m < k; m++) {
@@ -322,14 +322,14 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
       else if (prevBrg !== null && brg !== null && i > 0) {
         let t = ((brg - prevBrg + 540) % 360) - 180;
         const at = Math.abs(t);
-        if (at >= 25) {
+        if (at >= 15) {
           if (acc > 0.5) out.push({ type: 'walk', text: `Walk ${Math.round(acc)} m`, dist: acc }); acc = 0;
           const side = t > 0 ? 'right' : 'left';
-          const turnText = at > 150 ? wfRoutingT('viewer.dirTurnAround')
+          const turnText = at > 140 ? wfRoutingT('viewer.dirTurnAround')
             : wfRoutingT(side === 'right'
-              ? (at < 60 ? 'viewer.dirBearRight' : 'viewer.dirTurnRight')
-              : (at < 60 ? 'viewer.dirBearLeft' : 'viewer.dirTurnLeft'));
-          out.push({ type: 'turn', text: turnText, dir: at > 150 ? 'uturn' : (at < 60 ? 'slight-' + side : side), pt: { x: p.x, y: p.y, z: p.z, floor: p.floor } });
+              ? (at < 50 ? 'viewer.dirBearRight' : 'viewer.dirTurnRight')
+              : (at < 50 ? 'viewer.dirBearLeft' : 'viewer.dirTurnLeft'));
+          out.push({ type: 'turn', text: turnText, dir: at > 140 ? 'uturn' : (at < 50 ? 'slight-' + side : side), pt: { x: p.x, y: p.y, z: p.z, floor: p.floor } });
         }
       }
       // Interior doors that rode on LOS-smoothed path but were dropped from Tour geometry.

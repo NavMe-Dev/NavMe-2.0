@@ -861,7 +861,9 @@ function wfDbg(level, source, message, meta) {
       if (len1 < 0.5 || len2 < 0.5) continue;
       const dot = (dx1*dx2 + dy1*dy2) / (len1 * len2);
       const sharpness = 1 - dot; // 0 = straight, 2 = U-turn
-      if (sharpness > 0.1) scored.push({ pt: pts[i], sharpness, i });
+      // Keep route stops for turns of about 16° or more (10° lower than the
+      // previous ~26° threshold), then snap each retained point to a real sweep.
+      if (sharpness > 1 - Math.cos(16 * Math.PI / 180)) scored.push({ pt: pts[i], sharpness, i });
     }
     scored.sort((a, b) => b.sharpness - a.sharpness);
     const keptIdx = new Set(scored.slice(0, maxTurns).map(s => s.i));
