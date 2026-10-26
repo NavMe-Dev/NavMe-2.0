@@ -8,6 +8,24 @@
   const R = 6378137;
   let CFG, currentFloor, lastLoc = null, lastRoute = null;
 
+  // ui.js needs only these three Turf operations in Matterport mode. Keeping the
+  // tiny spherical formulas here avoids downloading/parsing the 536 KB Turf bundle.
+  if (!window.turf) window.turf = {
+    point: coordinates => ({ geometry: { coordinates } }),
+    bearing(a, b) {
+      const p=a.geometry.coordinates, q=b.geometry.coordinates, d2r=Math.PI/180;
+      const p1=p[1]*d2r, p2=q[1]*d2r, dl=(q[0]-p[0])*d2r;
+      return Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))*180/Math.PI;
+    },
+    destination(origin, distance, bearing, opts) {
+      const p=origin.geometry.coordinates, radius=(opts&&opts.units)==="kilometers"?6371.0088:6371008.8;
+      const angular=distance/radius, br=bearing*Math.PI/180, lat1=p[1]*Math.PI/180, lon1=p[0]*Math.PI/180;
+      const lat2=Math.asin(Math.sin(lat1)*Math.cos(angular)+Math.cos(lat1)*Math.sin(angular)*Math.cos(br));
+      const lon2=lon1+Math.atan2(Math.sin(br)*Math.sin(angular)*Math.cos(lat1),Math.cos(angular)-Math.sin(lat1)*Math.sin(lat2));
+      return { geometry: { coordinates: [lon2*180/Math.PI,lat2*180/Math.PI] } };
+    }
+  };
+
   class Layer {
     constructor(opts) { Object.assign(this, opts || {}); this.items = []; }
     add(x) { this.items.push(x); return x; }
@@ -41,8 +59,8 @@
   window.WF.ready.then(async () => {
     CFG = WF.cfg;
     const D = f => WF.D(f), F = CFG.files;
-    const [georef, nav, published, navmePois, categories, stairs, shops, arRef, translations] = await Promise.all([
-      J(D(F.georef)), J(D(F.nav_graph)), J(D(F.pois)),
+    const [georef, navmePois, categories, stairs, shops, arRef, translations] = await Promise.all([
+      J(D(F.georef)),
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-pois").catch(() => null),
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-categories").catch(() => []),
       J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-stair-chains").catch(() => []),
@@ -62,10 +80,9 @@
       const dx = X - A[0][2], dy = Y - A[1][2];
       return [(A[1][1] * dx - A[0][1] * dy) / det, (-A[1][0] * dx + A[0][0] * dy) / det];
     };
-    WFRouting.modelToLL = modelToLL;
-    WFRouting.init(nav, null, null);
-
     const ordered = (CFG.floors || []).slice().sort((a, b) => (a.ordinal || 0) - (b.ordinal || 0));
+    const nav = { floors: {} };
+    ordered.forEach(f => { nav.floors[f.id] = { label: f.label || f.id }; });
     const heights = (navmePois || []).map(p => p.y).filter(Number.isFinite);
     const bands = window.WFNavmeshRoute ? WFNavmeshRoute.deriveLevels(heights, ordered.length) : null;
     const floorFor = z => {
@@ -77,12 +94,11 @@
       return (ordered.reduce((a, f) => Math.abs((f.elevation || 0)-z) < Math.abs((a.elevation || 0)-z) ? f : a, ordered[0] || {id:"F1"})).id;
     };
     const names = translations.poi_names || {};
-    const pois = (navmePois || published.pois || []).map(p => {
+    const pois = (navmePois || []).map(p => {
       if (p.x == null || p.z == null) return p;
       const o = { id:String(p.id), name:p.name, names:names[String(p.id)] || null, category:p.category || "room",
         x:p.x, y:-p.z, z:p.y, floor:floorFor(p.y), sdk:{x:p.x,y:p.y,z:p.z} };
       o.lonlat = modelToLL(o.x, o.y);
-      const snap = WFRouting.snap(o.x, o.y, o.floor); if (snap && snap.node) o.nearest_node = snap.node.id;
       if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null)
         o.sdk.expected = {x:p.expected_pos_x,y:p.expected_pos_y,z:p.expected_pos_z};
       return o;
@@ -99,17 +115,21 @@
       navPromise = WFNav.initNavmesh(slug(), {
         floors: derivedFloors || ordered.map(f => ({id:f.id,label:f.label||f.id,elevation:f.elevation})),
         levelYs: heights,
-        sweeps: nav.nodes.filter(n => n.kind === "sweep").map(n => ({id:n.id,x:n.x,y:n.y,z:n.z})), modelToLL
+        // Matterport's live Sweep collection supplies navigation stops later; no
+        // 4.7 MB NavMe graph is needed merely to open the Dollhouse.
+        sweeps: [], modelToLL
       }).catch(e => console.warn("[navmesh] not available:", e.message || e));
       return navPromise;
     }
-    const warm = () => { warmTimer = setTimeout(() => { warmTimer=null; ensureNavmesh(); }, 3000); };
-    if (window.__mpBackgroundReady) warm(); else addEventListener("mp-background-ready", warm, {once:true});
-
     function route(fromKey, toKey, opts) {
       opts = opts || {};
       const ticket = opts._ticket || ++requestId;
-      const from = byId[fromKey], to = byId[toKey];
+      const to = byId[toKey];
+      let from = byId[fromKey];
+      if (fromKey === "__loc" && lastLoc) {
+        const fm = ordered.find(f => f.id === lastLoc.floor) || ordered[0] || { elevation: 0 };
+        from = { name: "My location", sdk: { x: lastLoc.x, y: fm.elevation || 0, z: -lastLoc.y } };
+      }
       if (!from || !to) return null;
       if (!WFNav.navmeshReady() && !opts._waited) {
         const p = ensureNavmesh();
@@ -123,8 +143,7 @@
       if (WFNav.navmeshReady() && from.sdk && to.sdk) {
         const nr=WFNav.routeNavmesh(from.sdk,to.sdk); if(nr && !nr.error && !nr.partial) r=nr;
       }
-      if (!r && from.nearest_node && to.nearest_node) r=WFRouting.route(from.nearest_node,to.nearest_node,{stepFree:!!opts.stepFree});
-      if (!r) { if(window.wf.onRoute) window.wf.onRoute(null,"We couldn't find a route to your destination."); return null; }
+      if (!r) { if(window.wf.onRoute) window.wf.onRoute(null,"We couldn't find a NavMesh route to your destination."); return null; }
       r.fromName=from.name; r.toName=to.name; r.toPoi=to.id;
       if (!r.instructions) r.instructions=(r.steps||[]).map(s=>({text:s.text,type:s.type,arrow:s.arrow,dir:s.dir,turn_deg:s.turn_deg,
         pt:s.point?{x:s.point.x,y:-s.point.z,z:s.point.y,floor:s.floor}:null,icon:s.arrow,dist:s.dist_m||0,sweep:s.sweep}));

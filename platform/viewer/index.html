@@ -24,17 +24,14 @@
 <link rel="stylesheet" href="dev.css">
 <link rel="stylesheet" href="ui.css?v=20261026routeactions1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
-<script src="vendor/ngraph.graph.min.js"></script>
-<script src="vendor/ngraph.path.min.js"></script>
-<script src="vendor/turf.min.js"></script>
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
 <script src="vendor/fuse.min.js"></script>
 <!-- Keep the established eager Recast runtime in the regular map viewer. Only mp=1
      defers it, preventing its WASM/binary import from competing with Matterport startup. -->
 <script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="vendor/recast-navigation.js"><\/script>');</script>
 <script src="wf_navmesh_route.js?v=20261026turns1"></script>
 <script src="wf_navmesh_bridge.js?v=20261026lazy1"></script>
-<script src="navmesh_route.js?v=20260930access2"></script>
-<script src="routing.js?v=20261026turns1"></script>
+<script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="navmesh_route.js?v=20260930access2"><\/script><script src="routing.js?v=20261026turns1"><\/script>');</script>
 <script src="tour_modes_config.js?v=20260930access2"></script>
 <script src="access_config.js?v=20260930access2"></script>
 <script src="bundle_preview.js?v=20260930access2"></script>
@@ -344,7 +341,7 @@
 <script src="wf_debug.js?v=20260930access2"></script>
 <script src="wf-boot.js?v=20261026unccmp1"></script>
 <script>if(new URLSearchParams(location.search).get("mp")!=="1")document.write('<script src="wf_mesh_overlay.js?v=20261005overlay8"><\/script>');</script>
-<script>document.write('<script src="'+(new URLSearchParams(location.search).get("mp")==="1"?'mp_app.js?v=20261026light1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
+<script>document.write('<script src="'+(new URLSearchParams(location.search).get("mp")==="1"?'mp_app.js?v=20261026ondemand1':'app.js?v=20261026navmeshwait1')+'"><\/script>');</script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
 <script src="category_markers.js?v=20261024weather1"></script>
 <script src="mp_preview.js?v=20261026turns1"></script>
