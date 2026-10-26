@@ -128,7 +128,9 @@ function wfDbg(level, source, message, meta) {
       thumbs = new Set(a);
       // Add associated scan images without resetting the selected tab or sheet height.
       if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
+      if (S.mode === "place" && S.place) selectPlace(S.place, { fly: false, sheet: $("sheet").dataset.state || "half" });
       if (S.route && (S.mode === "dir" || S.mode === "nav")) renderDirections(S.route);
+      hydrateMatterportPoiPhotos();
     }).catch(() => { });
     // map chrome: hide ArcGIS default widgets except attribution
     wf.view2d.ui.components = ["attribution"];
@@ -143,7 +145,11 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.watch("extent", placeMe);
     ["resize", "orientationchange"].forEach(e => window.addEventListener(e, () => { applyPadding(); placeMe(); }));
     window.addEventListener("wf-weather-updated", () => { applyPadding(); placeMe(); });
-    window.addEventListener("wf-venue-info", () => { if (S.mode === "home" && $("venueTabPanel")) renderVenueTab(); });
+    window.addEventListener("wf-venue-info", () => {
+      const info = window.WFVenueInfo && WFVenueInfo.get();
+      if (info && info.building_slug && info.name) buildingVenueNames.set(info.building_slug, info.name);
+      if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
+    });
     window.addEventListener("wf-pois-updated", () => {
       POIS = wf.pois.slice(); byId = {}; POIS.forEach(p => byId[p.id] = p); buildSearchIndex();
       if (S.mode === "home" && $("venueTabPanel")) { ensureExplore(); renderVenueTab(); }
@@ -424,8 +430,13 @@ function wfDbg(level, source, message, meta) {
   wfShare = share;
   // ---------------- search + autocomplete ----------------
   let acTarget = null, acItems = [], acSel = -1;
-  const recent = () => { try { return JSON.parse(localStorage.getItem("wf_recent") || "[]").filter(id => byId[id]); } catch (e) { return []; } };
-  const pushRecent = (id) => { const r = [id].concat(recent().filter(x => x !== id)).slice(0, 6); localStorage.setItem("wf_recent", JSON.stringify(r)); };
+  const recent = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("wf_recent") || "[]");
+      return (Array.isArray(stored) ? stored : []).filter(id => byId[id]).slice(0, 3);
+    } catch (e) { return []; }
+  };
+  const pushRecent = (id) => { const r = [id].concat(recent().filter(x => x !== id)).slice(0, 3); localStorage.setItem("wf_recent", JSON.stringify(r)); };
   // ---- campus: other buildings of the venue (search across buildings, markers on the map) ----
   let REMOTE = [], rfuse = null;
   function loadCampus() {
@@ -479,12 +490,12 @@ function wfDbg(level, source, message, meta) {
       const txt = input.value; const list = $("acList"); acItems = [];
       let buildings = allBuildings();
       const qtxt = (txt || "").trim().toLowerCase();
-      if (qtxt) buildings = buildings.filter(b => ((b.name || "") + " " + (b.address || "") + " " + (b.slug || "")).toLowerCase().includes(qtxt));
+      if (qtxt) buildings = buildings.filter(b => (buildingDisplayName(b) + " " + (b.address || "") + " " + (b.slug || "")).toLowerCase().includes(qtxt));
       let html = `<li class="hdr" role="presentation">${esc(t("viewer.chooseBuilding"))}</li>`;
       buildings.forEach(b => {
         acItems.push({ building: b });
         const floors = (b.floors && b.floors.length) ? t("viewer.floorsShort", { n: b.floors.length }) : "";
-        html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(b.name || b.slug)}</b><div class="s">${esc([floors, b.address].filter(Boolean).join(" · "))}</div></span></li>`;
+        html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(buildingDisplayName(b))}</b><div class="s">${esc([floors, b.address].filter(Boolean).join(" · "))}</div></span></li>`;
       });
       if (!buildings.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
       list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
@@ -504,15 +515,6 @@ function wfDbg(level, source, message, meta) {
     if (!res) {
       const rc = recent();
       if (rc.length) { html += `<li class="hdr" role="presentation">${esc(t("viewer.recent"))}</li>`; rc.forEach(id => { acItems.push({ poi: byId[id] }); html += itemHtml(byId[id], true, acItems.length - 1); }); }
-      // Browse every place, grouped by floor (outdoor/entrances first on each floor)
-      const ordOf = f => ((WF.cfg.floors.find(x => x.id === f) || {}).ordinal ?? 0);
-      const floorsSeen = [...new Set(POIS.map(p => p.floor))].sort((a, b) => ordOf(b) - ordOf(a));
-      floorsSeen.forEach(f => {
-        const items = POIS.filter(p => p.floor === f && !rc.includes(p.id)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-        if (!items.length) return;
-        html += `<li class="hdr" role="presentation">${esc(t("viewer.allPlaces", { floor: wf.floorLabel(f), n: items.length }))}</li>`;
-        items.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
-      });
       // Cross-building places only on the building-picker screen; places mode stays in-building.
       if (input === $("q") && S.uxMode === "buildings") (WF.others || []).forEach(b => {
         const items = REMOTE.filter(p => p._remote.slug === b.slug).sort((a, c) => a.name.localeCompare(c.name, undefined, { numeric: true }));
@@ -749,6 +751,34 @@ function wfDbg(level, source, message, meta) {
       : `<span class="badge st" title="${esc(t("viewer.stepsTitle"))}"><span class="ms">stairs</span>${short ? t("viewer.stepsShort") : t("viewer.stepsOnRoute")}</span>`;
   }
   function thumbFor(nodeId) { return thumbs.has(nodeId) ? WF.D(`thumbs/${nodeId}.jpg`) : null; }
+  let poiPhotoHydrateTimer = 0;
+  function hydrateMatterportPoiPhotos(attempt) {
+    attempt = attempt || 0;
+    if (!isMpMode() || !thumbs.size || !window.MpPreview || !MpPreview.thumbnailSweepNodes) return;
+    MpPreview.thumbnailSweepNodes().then(nodes => {
+      const photographed = (nodes || []).filter(n => n && n.id && thumbs.has(n.id) && Number.isFinite(n.x) && Number.isFinite(n.y) && Number.isFinite(n.z));
+      if (!photographed.length) {
+        if (attempt < 5) poiPhotoHydrateTimer = setTimeout(() => hydrateMatterportPoiPhotos(attempt + 1), 2000);
+        return;
+      }
+      POIS.forEach(p => {
+        if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || !Number.isFinite(p.z)) return;
+        const sameFloor = photographed.filter(n => !p.floor || !n.floor || n.floor === p.floor);
+        const candidates = sameFloor.length ? sameFloor : photographed;
+        let best = null, bestD = Infinity;
+        candidates.forEach(n => {
+          const dx = n.x - p.x, dy = n.y - p.y, dz = n.z - p.z;
+          const d = dx * dx + dy * dy + dz * dz;
+          if (d < bestD) { bestD = d; best = n; }
+        });
+        if (best) p.nearest_node = best.id;
+      });
+      if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
+      if (S.mode === "place" && S.place) selectPlace(S.place, { fly: false, sheet: $("sheet").dataset.state || "half" });
+    }).catch(() => {
+      if (attempt < 5) poiPhotoHydrateTimer = setTimeout(() => hydrateMatterportPoiPhotos(attempt + 1), 2000);
+    });
+  }
   /** This POI's own scan thumbnail plus any nearby sweeps' thumbnails (walking outward
    *  through the nav graph), for a small photo gallery on the place card. Thumbnails only
    *  exist for POI/stair sweeps (see steps/thumbs.py), so most POIs will only ever turn up
@@ -784,6 +814,26 @@ function wfDbg(level, source, message, meta) {
       }
     }
     return out.slice(0, limit);
+  }
+  function poiGalleryUrls(p, shop, limit) {
+    const urls = [], seen = new Set();
+    const add = value => {
+      if (value && typeof value === "object") value = value.url || value.image_url || value.src;
+      if (typeof value !== "string") return;
+      value = value.trim();
+      if (!/^(https?:\/\/|\/(?!\/)|\.\.?\/)/i.test(value) || seen.has(value)) return;
+      seen.add(value); urls.push(value);
+    };
+    add(p && p.photo_url);
+    const exploreState = exploreController && exploreController.get();
+    if (p && exploreState && exploreState.status === "ready" && exploreState.venue === venueSlug()) {
+      const meta = (exploreState.data.pois || []).find(item => String(item.id) === String(p.id));
+      add(meta && meta.image_url);
+    }
+    add(shop && shop.cover_image_url);
+    if (shop && Array.isArray(shop.gallery_images)) shop.gallery_images.forEach(add);
+    nearbyThumbs(p, limit || 8).forEach(add);
+    return urls.slice(0, limit || 8);
   }
   /** 09:00 -> "9:00 AM". Falsy input (e.g. a closed day's null open/close) -> "". */
   function fmtHm(hm) {
@@ -917,8 +967,8 @@ function wfDbg(level, source, message, meta) {
     $("q").value = p.name; $("btnClearQ").hidden = false;
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
     markPlace(p);
-    const c = cat(p), galleryUrls = nearbyThumbs(p, 6);
     const shop = (window.WF.shopsByPoiId || {})[String(p.id)] || null;
+    const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, 8);
     setSheet(`
       <h1 class="pname">${esc(shop ? shop.name : p.name)}</h1>
       <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
@@ -927,9 +977,8 @@ function wfDbg(level, source, message, meta) {
         <button class="pill pill-sm" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
         <button class="pill pill-sm pill-icon" id="pShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
-      ${p.photo_url ? `<img class="photo" src="${esc(p.photo_url)}" alt="${esc(t("viewer.photoOf", { name: p.name }))}">`
-        : galleryUrls.length > 1 ? `<div class="photo-gallery">${galleryUrls.map(u => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">`).join("")}</div>`
-        : galleryUrls.length === 1 ? `<img class="photo" src="${esc(galleryUrls[0])}" alt="${esc(t("viewer.photoNear", { name: p.name }))}">` : ""}
+      ${galleryUrls.length > 1 ? `<div class="photo-gallery" aria-label="${esc(t("viewer.photoOf", { name: p.name }))}">${galleryUrls.map((u, i) => `<img class="photo gallery-img" src="${esc(u)}" alt="${esc(i === 0 ? t("viewer.photoOf", { name: p.name }) : t("viewer.photoNear", { name: p.name }))}" loading="lazy" decoding="async">`).join("")}</div>`
+        : galleryUrls.length === 1 ? `<img class="photo" src="${esc(galleryUrls[0])}" alt="${esc(t("viewer.photoOf", { name: p.name }))}" loading="lazy" decoding="async">` : ""}
       ${shop ? shopSectionHtml(shop) : ""}
       <ul class="facts">
         <li><span class="ms">location_on</span><div>${esc(wf.floorLabel(p.floor))}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
@@ -992,6 +1041,30 @@ function wfDbg(level, source, message, meta) {
     const cur = WF.building ? [WF.building] : [];
     return cur.concat(WF.others || []);
   }
+  const buildingVenueNames = new Map();
+  let buildingVenueNamesPromise = null;
+  function buildingDisplayName(building) {
+    return buildingVenueNames.get(building.slug) || building.name || building.slug;
+  }
+  function loadBuildingVenueNames() {
+    if (buildingVenueNamesPromise) return buildingVenueNamesPromise;
+    const base = ((window.WF_CONFIG && WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
+    buildingVenueNamesPromise = Promise.all(allBuildings().map(async building => {
+      try {
+        const response = await fetch(base + "buildings/" + encodeURIComponent(building.slug) + "/venue-info");
+        if (!response.ok) return;
+        const info = await response.json();
+        if (info && info.building_slug === building.slug && typeof info.name === "string" && info.name.trim()) {
+          buildingVenueNames.set(building.slug, info.name.trim());
+        }
+      } catch (_) { /* The manifest name remains the safe fallback. */ }
+    })).then(() => {
+      if (S.mode === "home" && S.uxMode === "buildings" && !$("sheet").hidden) {
+        showBuildingPicker($("q").value);
+      }
+    });
+    return buildingVenueNamesPromise;
+  }
 
   function isMobileUx() { return window.innerWidth < 700; }
   function currentBuildingMeta() {
@@ -1007,7 +1080,7 @@ function wfDbg(level, source, message, meta) {
     const chip = $("bldgChip");
     const dirBtn = $("btnDirQuick");
     const meta = currentBuildingMeta();
-    if ($("bldgChipName")) $("bldgChipName").textContent = (meta && (meta.name || meta.slug)) || "Building";
+    if ($("bldgChipName")) $("bldgChipName").textContent = meta ? buildingDisplayName(meta) : "Building";
     if ($("bldgChipSub")) {
       const floors = meta && meta.floors ? (Array.isArray(meta.floors) ? meta.floors.length : meta.floors) : (WF.cfg && WF.cfg.floors && WF.cfg.floors.length);
       $("bldgChipSub").textContent = floors ? t("viewer.floorsShort", { n: floors }) : "";
@@ -1045,7 +1118,7 @@ function wfDbg(level, source, message, meta) {
   function buildingCardsHtml(filterTxt) {
     const q = (filterTxt || "").trim().toLowerCase();
     let buildings = allBuildings();
-    if (q) buildings = buildings.filter(b => ((b.name || "") + " " + (b.address || "") + " " + (b.slug || "")).toLowerCase().includes(q));
+    if (q) buildings = buildings.filter(b => (buildingDisplayName(b) + " " + (b.address || "") + " " + (b.slug || "")).toLowerCase().includes(q));
     const curSlug = (WF.building && WF.building.slug) || (new URLSearchParams(location.search).get("b")) || "";
     if (!buildings.length) return `<div class="muted" style="padding:12px 4px">${esc(t("viewer.noMatches", { q: filterTxt || "" }))}</div>`;
     return `<div class="bgal">` + buildings.map(b => {
@@ -1053,7 +1126,7 @@ function wfDbg(level, source, message, meta) {
       const floors = (b.floors && b.floors.length) ? t("viewer.floorsShort", { n: b.floors.length }) : "";
       return `<article class="bcard${isCur ? " current" : ""}" data-bslug="${esc(b.slug)}" tabindex="0" role="button" aria-current="${isCur ? "page" : "false"}">
         <div class="thumb"><span class="ms fill">apartment</span></div>
-        <div class="meta"><div class="name">${esc(b.name || b.slug)}</div>
+        <div class="meta"><div class="name">${esc(buildingDisplayName(b))}</div>
           ${b.address ? `<div class="addr">${esc(b.address)}</div>` : ""}
           <div class="tags">${floors ? `<span class="tag">${esc(floors)}</span>` : ""}${isCur ? `<span class="tag on">${esc(t("viewer.currentBuilding"))}</span>` : `<span class="tag">${esc(t("viewer.openBuilding") || "Open")}</span>`}</div></div>
         <span class="ms go">chevron_right</span></article>`;
@@ -1075,6 +1148,7 @@ function wfDbg(level, source, message, meta) {
       <div class="pophead sm">${esc(t("viewer.chooseBuilding"))}</div>
       ${buildingCardsHtml(filterTxt)}`, isMobileUx() ? "half" : "half");
     bindBuildingCards();
+    void loadBuildingVenueNames();
   }
   function currentVenueInfo() {
     const info = window.WFVenueInfo && window.WFVenueInfo.get();
@@ -1092,7 +1166,10 @@ function wfDbg(level, source, message, meta) {
         if (!response.ok) throw new Error("Explore unavailable");
         return response.json();
       },
-      apply: () => { if (S.mode === "home" && $("venueTabPanel")) renderVenueTab(); }
+      apply: () => {
+        if (S.mode === "home" && $("venueTabPanel")) renderVenueTab();
+        if (S.mode === "place" && S.place) selectPlace(S.place, { fly: false, sheet: $("sheet").dataset.state || "half" });
+      }
     });
     if (exploreController) void exploreController.load(venueSlug());
   }
@@ -1539,10 +1616,12 @@ function wfDbg(level, source, message, meta) {
         // Routing/navigation logic is untouched — this only adds a display, same as
         // the stairs/elevator case already did.
         const sw = s.pt ? nearestSweep(s.pt) : null, th = sw && thumbFor(sw.id);
-        if (th) extra = `<div class="fcard plain"><img src="${th}" alt="${esc(t("viewer.viewAtTurn") || "View at this turn")}"></div>`;
+        if (th) {
+          extra = `<div class="fcard plain"><img src="${th}" alt="${esc(t("viewer.viewAtTurn") || "View at this turn")}" loading="lazy"></div>`;
+        }
       }
       return `<li class="${s.type}" data-i="${i}" tabindex="0" role="button" aria-label="${esc(t("viewer.stepN", { n: i + 1, text: s.text }))}${s.dist > 0.5 ? esc(t("viewer.afterMetres", { m: Math.round(s.dist) })) : ""}"><span class="si"><span class="ms ${s.type === "arrive" ? "fill" : ""}">${s.icon}</span></span>
-        <div style="flex:1;min-width:0"><div class="st1">${esc(s.text)}</div>${s.dist > 0.5 ? `<div class="st2">${fmtDist(s.dist)}</div>` : ""}${extra}</div></li>`;
+        <div class="step-body"><div class="step-copy"><div class="st1">${esc(s.text)}</div>${s.dist > 0.5 ? `<div class="st2">${fmtDist(s.dist)}</div>` : ""}</div>${extra}</div></li>`;
     }).join("");
     const tm = tourModeFlags();
     const bundleBtn = tm.bundle_scene
