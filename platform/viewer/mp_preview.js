@@ -255,7 +255,7 @@ function wfDbg(level, source, message, meta) {
     }
   }
 
-  function showcaseUrl(key, startSweep) {
+  function showcaseUrl(key, startSweep, options) {
     // dh=1: Dollhouse must be enabled in the embed itself, or Mode.moveTo(DOLLHOUSE) from the
     // SDK silently no-ops during the tour's cinematic opening shot (matches threed_nav.js's dh=1).
     // f=0: hides Showcase's own floor-selector control. Without this, Inside mode starts
@@ -270,7 +270,12 @@ function wfDbg(level, source, message, meta) {
     // already uses for its own chromeless walkthrough. None of these are reachable via CSS/DOM:
     // the iframe is cross-origin (my.matterport.com), so hiding them is only possible through
     // Showcase's own embed parameters, never by styling into the iframe from this page.
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
+    // Large spaces can exceed iOS WebKit's per-tab memory budget when Quickstart,
+    // model decoding and our own camera animation all peak together. Matterport's
+    // documented embed example uses play=1 without qs=1, so the mobile stability
+    // path intentionally follows that gentler native startup.
+    const quickstart = !(options && options.nativeStartup);
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1${quickstart ? "&qs=1" : ""}&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
     return u;
@@ -2598,7 +2603,14 @@ function wfDbg(level, source, message, meta) {
       return fail();
     }
     if (!current()) return false;
-    const url = showcaseUrl(applicationKey, null);
+    const nativeStartup = (() => {
+      const cfg = (window.WF && window.WF.cfg) || {};
+      const building = (window.WF && window.WF.building) || {};
+      const slug = String(building.slug || cfg.slug || cfg.building || "").toLowerCase();
+      const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
+      return mobile && slug === "uncc-main-campus";
+    })();
+    const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
     mpSdk = null;
     const loadP = waitIframeLoad(iframe, gen);
@@ -2616,7 +2628,9 @@ function wfDbg(level, source, message, meta) {
     if (!sdk) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
     // Optional labels observe this existing camera; their data request never
     // participates in startup readiness and never remounts the Matterport scene.
-    try {
+    // On large mobile spaces mount them after Showcase has settled, avoiding a
+    // competing request/layout burst while WebGL textures are being decoded.
+    const mountCategoryMarkers = () => { try {
       if (window.WFCategoryMarkers) categoryMarkers = window.WFCategoryMarkers.mount({
         sdk, iframe, container: iframe.parentElement,
         config: (window.WF_CONFIG && window.WF_CONFIG.categoryMarkers) || {},
@@ -2631,7 +2645,8 @@ function wfDbg(level, source, message, meta) {
           return response.json();
         },
       });
-    } catch (_) { console.warn("[Category markers] optional layer unavailable"); }
+    } catch (_) { console.warn("[Category markers] optional layer unavailable"); } };
+    if (!nativeStartup) mountCategoryMarkers();
     setStatus("Waiting for twin to be ready…");
     // Let Matterport's own entrance animation remain visible. STARTING means
     // the transition into the model has begun; PLAYING means interaction is ready.
@@ -2673,12 +2688,12 @@ function wfDbg(level, source, message, meta) {
     try {
       const Mode = sdk.Mode;
       if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
-      if (Mode && Mode.moveTo && Mode.Mode) {
+      if (!nativeStartup && Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
         await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
       }
     } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
-    await frameWholeBuilding(sdk);
+    if (!nativeStartup) await frameWholeBuilding(sdk);
     if (!current()) return false;
     // Keep preparation and hidden controls through the visible fly-in. Only
     // completed mode/camera setup and UI readiness can finish startup.
@@ -2690,7 +2705,7 @@ function wfDbg(level, source, message, meta) {
     try {
       const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
       const transition = sdk.Camera && sdk.Camera.TransitionType;
-      await sdk.Mode.moveTo(inside, { transition: (transition && transition.FLY) || undefined });
+      if (!nativeStartup) await sdk.Mode.moveTo(inside, { transition: (transition && transition.FLY) || undefined });
     } catch (e) {
       if (!current()) return false;
       console.warn("[MpBackground] enter inside failed", e && e.name);
@@ -2699,6 +2714,11 @@ function wfDbg(level, source, message, meta) {
     if (!current()) return false;
     if (startup) startup.modelReady(gen);
     else document.body.classList.add("mp-frame-loaded");
+    if (nativeStartup) {
+      const mountWhenIdle = () => { if (current()) mountCategoryMarkers(); };
+      if (window.requestIdleCallback) window.requestIdleCallback(mountWhenIdle, { timeout: 5000 });
+      else setTimeout(mountWhenIdle, 2500);
+    }
     setStatus("");
     return true;
   }

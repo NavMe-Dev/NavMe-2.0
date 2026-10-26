@@ -223,3 +223,21 @@ test('failed Inside transition retains the working dollhouse and displays recove
   assert.equal(c.loader.classList.contains('err'), false);
   assert.deepEqual(shown, ["We couldn't open the walkthrough right now. You can still explore the 3D view."]);
 });
+
+test('UNCC mobile uses native Matterport startup and defers category markers', async () => {
+  const c = modelContext();
+  let urlOptions = null, idleTask = null, markerMounts = 0;
+  c.deps.window.WF = { ready: Promise.resolve(), cfg: { slug: 'uncc-main-campus' } };
+  c.deps.window.matchMedia = () => ({ matches: true });
+  c.deps.window.WFCategoryMarkers = { mount() { markerMounts++; return { dispose() {} }; } };
+  c.deps.window.requestIdleCallback = fn => { idleTask = fn; };
+  c.deps.showcaseUrl = (_key, _sweep, options) => { urlOptions = options; return 'https://example.invalid/native'; };
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  c.load.resolve(); c.playing.resolve(true);
+  assert.equal(await result, true);
+  assert.equal(urlOptions.nativeStartup, true);
+  assert.deepEqual(c.calls, ['unsubscribe']);
+  assert.equal(markerMounts, 0);
+  idleTask();
+  assert.equal(markerMounts, 1);
+});

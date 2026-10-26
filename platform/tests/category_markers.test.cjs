@@ -37,10 +37,12 @@ test('multiple floors use the highest Y; disconnected horizontal clusters are re
   assert.deepEqual(result.diagnostics[0].groups, [2, 1]);
   assert.equal(result.diagnostics[0].reason, 'distant-clusters');
 });
-test('visibility is strictly dollhouse-only, including during route/tour transitions', () => {
+test('visibility follows Dollhouse mode even while directions or navigation UI is open', () => {
   const visible = { background: true, rendered: true, mode: 'mode.dollhouse', uiMode: 'home' };
   assert.equal(M.isVisible(visible), true);
-  for (const next of [{ mode: 'mode.inside' }, { mode: 'mode.floorplan' }, { background: false }, { rendered: false }, { transitioning: true }, { blocked: true }, { fullscreenTour: true }, { failed: true }, { uiMode: 'nav' }, { uiMode: 'dir' }]) assert.equal(M.isVisible({ ...visible, ...next }), false);
+  assert.equal(M.isVisible({ ...visible, uiMode: 'nav' }), true);
+  assert.equal(M.isVisible({ ...visible, uiMode: 'dir' }), true);
+  for (const next of [{ mode: 'mode.inside' }, { mode: 'mode.floorplan' }, { background: false }, { rendered: false }, { transitioning: true }, { blocked: true }, { fullscreenTour: true }, { failed: true }]) assert.equal(M.isVisible({ ...visible, ...next }), false);
 });
 test('projection accounts for iframe cropping and rejects behind-camera and offscreen labels', () => {
   const pose = { position: { x: 0, y: 0, z: 10 }, rotation: { x: 0, y: 0 } };
@@ -161,12 +163,12 @@ test('Safari back/forward cache restores labels without another data fetch', asy
   assert.equal(h.requests(), 1);
   h.controller.dispose();
 });
-test('existing chip filters are respected without querying Supabase again', async () => {
+test('opening a filtered POI list keeps every Dollhouse category marker visible', async () => {
   const h = harness(async () => ({ building_slug: 'gcu', categories: [category(), category('b', 'B')], pois: [poi('one', 0, 0, -10, { category_ids: ['a', 'b'] })] }));
   await h.flush(); assert.equal(h.container.children[0].children.length, 2);
   h.context.filter = 'b'; h.controller.refresh(); await h.flush();
-  assert.equal(h.container.children[0].children.length, 1);
-  assert.equal(h.container.children[0].children[0].attributes['aria-label'], 'B');
+  assert.equal(h.container.children[0].children.length, 2);
+  assert.deepEqual(h.container.children[0].children.map(button => button.attributes['aria-label']).sort(), ['A', 'B']);
   assert.equal(h.requests(), 1);
   h.controller.dispose();
 });

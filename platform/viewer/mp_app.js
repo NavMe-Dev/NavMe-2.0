@@ -143,7 +143,13 @@
       if (WFNav.navmeshReady() && from.sdk && to.sdk) {
         const nr=WFNav.routeNavmesh(from.sdk,to.sdk); if(nr && !nr.error && !nr.partial) r=nr;
       }
-      if (!r) { if(window.wf.onRoute) window.wf.onRoute(null,"We couldn't find a NavMesh route to your destination."); return null; }
+      if (!r) {
+        const message = window.WFi18n
+          ? WFi18n.t("viewer.noRoute")
+          : "We couldn't find a route to your destination. Try choosing another starting point or destination.";
+        if(window.wf.onRoute) window.wf.onRoute(null, message);
+        return null;
+      }
       r.fromName=from.name; r.toName=to.name; r.toPoi=to.id;
       if (!r.instructions) r.instructions=(r.steps||[]).map(s=>({text:s.text,type:s.type,arrow:s.arrow,dir:s.dir,turn_deg:s.turn_deg,
         pt:s.point?{x:s.point.x,y:-s.point.z,z:s.point.y,floor:s.floor}:null,icon:s.arrow,dist:s.dist_m||0,sweep:s.sweep}));

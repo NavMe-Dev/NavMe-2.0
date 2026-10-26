@@ -68,8 +68,7 @@
   }
   function isVisible(state) {
     return !!state && state.background === true && state.rendered === true && state.mode === "mode.dollhouse"
-      && !state.transitioning && !state.blocked && !state.fullscreenTour && !state.failed
-      && !["dir", "nav"].includes(state.uiMode);
+      && !state.transitioning && !state.blocked && !state.fullscreenTour && !state.failed;
   }
   function project(position, pose, iframeRect, containerRect, size, convert) {
     if (!pose || !pose.position || !pose.rotation || !size.w || !size.h) return null;
@@ -190,9 +189,10 @@
       entries.forEach(entry => entry.button.remove()); entries = [];
       if (!source || !context || context.venue !== venue || !Array.isArray(context.pois)) return;
       const ids = new Set(context.pois.filter(p => p.hidden !== true && p.is_active !== false).map(p => String(p.id)));
-      const categories = context.filter && context.filter !== "__all__"
-        ? (source.categories || []).filter(c => String(c.name || "").trim().toLowerCase() === context.filter)
-        : source.categories;
+      // The list/chip filter controls which POIs appear in the sheet, not which
+      // category landmarks remain visible in the Dollhouse. Keeping the complete
+      // marker set prevents a tag click from making every other landmark disappear.
+      const categories = source.categories;
       const result = calculate(categories, (source.pois || []).filter(p => ids.has(String(p.id))), { ...config, venue });
       result.diagnostics.forEach(report);
       for (const marker of result.markers) {
@@ -226,7 +226,10 @@
       const bundle = doc.getElementById("bundleOverlay");
       return { ...context, mode: mode && pose && pose.mode && mode !== pose.mode ? null : (mode || (pose && pose.mode)), transitioning,
         background: body.contains("mp-bg-mode"), rendered: body.contains("mp-frame-loaded"),
-        blocked: body.contains("nav") || body.contains("dir") || body.contains("n3d-open")
+        // Directions can temporarily return Showcase to Dollhouse (for example,
+        // while choosing a start point). Markers belong to that view and should
+        // remain visible; only a separate heavy 3D overlay blocks them.
+        blocked: body.contains("n3d-open")
           || !!(bundle && !bundle.hidden && bundle.style.display !== "none"),
         fullscreenTour: !!win.__WF_MP_TOUR_PAGE || !!win.__WF_NAV_WALKTHROUGH_PAGE,
         failed: !!doc.querySelector("#mpBgLoading.err") };

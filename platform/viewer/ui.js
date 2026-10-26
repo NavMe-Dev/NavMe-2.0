@@ -1206,13 +1206,18 @@ function wfDbg(level, source, message, meta) {
 
   // ---------------- directions ----------------
   function bindDirections() {
-    const meOpt = () => [{ me: true, icon: "my_location", color: "#1a73e8", label: t("viewer.yourLocation"), sub: wf.lastLoc ? t("viewer.yourLocationSub", { floor: wf.floorLabel(wf.lastLoc.floor) }) : t("viewer.tapMapSet") }];
-    acKeys($("fromQ"), meOpt); acKeys($("toQ"), meOpt);
+    // Starting points are map-picked for now. Do not advertise GPS/photo location
+    // in autocomplete while those acquisition methods are intentionally disabled.
+    const noLocationOption = () => [];
+    acKeys($("fromQ"), noLocationOption); acKeys($("toQ"), noLocationOption);
     $("btnDirBack").onclick = closeDirections;
     if ($("btnDirX")) $("btnDirX").onclick = closeDirections;
     $("btnSwap").onclick = () => { const tmp = S.from; S.from = S.to; S.to = tmp; if (S.from !== "me") S.locMeta = null; syncDirFields(); computeRoute(); };
     document.querySelectorAll(".mode").forEach(b => b.onclick = () => { S.stepFree = b.dataset.mode === "stepfree"; syncDirFields(); computeRoute(); });
-    if ($("btnLocateMe")) $("btnLocateMe").onclick = (e) => { e.preventDefault(); e.stopPropagation(); openLocateChooser(); };
+    if ($("btnLocateMe")) $("btnLocateMe").onclick = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      isMpMode() ? pickOnMapMp() : startLocalize(true);
+    };
     if ($("fromNotRight")) $("fromNotRight").onclick = () => { S.locMeta = null; syncDirFields(); startLocalize(S.mode === "dir"); };
     bindLocateChooser();
     bindLocateModal();
@@ -1291,14 +1296,10 @@ function wfDbg(level, source, message, meta) {
     if (!S.from) {
       // MP mode: no 2D map to tap, but "Pick on map" still exists there as a dollhouse
       // pick-and-walk (see pickOnMapMp()) — and GPS has real meaning (on-site visitor).
-      setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseStart"))}</div>
+      setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.pickOnMap"))}</div>
         <div class="actions">
-          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+          <button class="pill primary" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
         </div>`, "peek");
-      if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
-      if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
       if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       S.dirFocus = "from";
       try { $("fromQ").classList.add("dir-focus-input"); $("toQ").classList.remove("dir-focus-input"); } catch (e) {}
@@ -1319,13 +1320,9 @@ function wfDbg(level, source, message, meta) {
     if (S.from === "me" && !wf.lastLoc) {
       setSheet(`<div class="warn"><span class="ms">my_location</span><div><strong>${esc(t("viewer.locNotSetTitle"))}</strong><br>${esc(t("viewer.locNotSet"))}</div></div>
         <div class="actions">
-          <button class="pill primary" id="dLocateMe"><span class="ms">my_location</span>${esc(t("viewer.locateMe"))}</button>
-          <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+          <button class="pill primary" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
           ${isMpMode() ? "" : `<button class="pill" id="dUseEnt"><span class="ms">door_open</span>${esc(t("viewer.startAtEntrance"))}</button>`}
         </div>`, "peek");
-      if ($("dLocateMe")) $("dLocateMe").onclick = () => openLocateChooser();
-      if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
       if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
       if ($("dUseEnt")) $("dUseEnt").onclick = () => { S.from = mainEntrance() || byId.poi_main_entrance; S.locMeta = null; syncDirFields(); computeRoute(startNav); };
       return;
@@ -1534,20 +1531,22 @@ function wfDbg(level, source, message, meta) {
         : `<button class="pill" id="dBundle" disabled title="${esc(t("viewer.bundleUnavailable") || "Bundle not configured")}"><span class="ms">apartment</span>${esc(t("viewer.bundleScene") || "Bundle scene")}</button>`)
       : "";
     setSheet(`
-      <div class="sum"><span class="big ${r.stairs_rise_m > 0 ? "st" : ""}">${fmtMin(r.time_s)}</span><span class="muted">(${fmtDist(r.total_m)})</span>
-        ${r.stairs_rise_m > 0 ? `<span class="badge st"><span class="ms">stairs</span>${esc(t("viewer.stairsRise", { m: r.stairs_rise_m.toFixed(1) }))}</span>` : `<span class="badge sf"><span class="ms">accessible</span>${esc(t("viewer.stepFreeBadge"))}</span>`}
-        ${floors.length > 1 ? `<span class="badge floor"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: floors.length }))}</span>` : ""}</div>
+      <div class="route-head">
+        <div class="sum"><span class="big ${r.stairs_rise_m > 0 ? "st" : ""}">${fmtMin(r.time_s)}</span><span class="muted">(${fmtDist(r.total_m)})</span>
+          ${r.stairs_rise_m > 0 ? `<span class="badge st"><span class="ms">stairs</span>${esc(t("viewer.stairsRise", { m: r.stairs_rise_m.toFixed(1) }))}</span>` : `<span class="badge sf"><span class="ms">accessible</span>${esc(t("viewer.stepFreeBadge"))}</span>`}
+          ${floors.length > 1 ? `<span class="badge floor"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: floors.length }))}</span>` : ""}</div>
+        <button class="route-share" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
+      </div>
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
       <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
-      <div class="actions actions-row1">
+      <div class="actions actions-row1 route-actions-primary">
         ${tm.embed_showcase ? `<button class="pill primary pill-sm" id="dTourMp"><span class="ms">play_circle</span>${esc(t("viewer.tourInterior") || "Preview")}</button>` : ""}
         <button class="pill ${tm.embed_showcase ? "" : "primary"} pill-sm" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Walkthrough") : t("viewer.start"))}</button>
         ${isMpMode() ? "" : `<button class="pill pill-sm" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
-        ${isMpMode() ? `<button class="pill pill-sm" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
-        <button class="pill pill-sm pill-icon" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
+        ${isMpMode() ? `<button class="pill pill-sm route-action-wide" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
       </div>
-      <div class="actions">
-        ${tm.embed_showcase ? `<button class="pill" id="dWalkNav"><span class="ms">directions_walk</span>${esc(t("viewer.walkthroughWayfinding") || "Wayfinding")}</button>` : ""}
+      <div class="actions route-actions-secondary">
+        ${tm.embed_showcase ? `<button class="pill route-action-wide" id="dWalkNav"><span class="ms">directions_walk</span>${esc(t("viewer.walkthroughWayfinding") || "Wayfinding")}</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
         <button class="pill" id="dStartAr" hidden><span class="ms">view_in_ar</span>${esc(t("viewer.startAr"))}</button>
@@ -1995,13 +1994,9 @@ function wfDbg(level, source, message, meta) {
     const heading = t("viewer." + (titleKey ? titleKey[1] : "geoFailedTitle"));
     setSheet(`<div class="warn"><span class="ms">my_location</span><div><strong>${esc(heading)}</strong><br>${esc(msg)}</div></div>
       <div class="actions">
-        <button class="pill primary" id="dRetryGps"><span class="ms">my_location</span>${esc(t("viewer.tryAgainGps"))}</button>
-        <button class="pill" id="dUseCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-        <button class="pill" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
+        <button class="pill primary" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
         <button class="pill" id="dSearchFrom"><span class="ms">search</span>${esc(t("viewer.searchStart"))}</button>
       </div>`, "half");
-    if ($("dRetryGps")) $("dRetryGps").onclick = () => locateMe();
-    if ($("dUseCam")) $("dUseCam").onclick = () => openLocateModal();
     if ($("dSetMe")) $("dSetMe").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
     if ($("dSearchFrom")) $("dSearchFrom").onclick = () => { $("fromQ").focus(); };
   }
@@ -2017,24 +2012,9 @@ function wfDbg(level, source, message, meta) {
     if ($("lcPickMap")) $("lcPickMap").onclick = () => { closeLocateChooser(); isMpMode() ? pickOnMapMp() : startLocalize(true); };
   }
   function openLocateChooser() {
-    const m = $("locateChooser");
-    if (!m) {
-      // Fallback if markup missing: sheet-based chooser (still no permission yet)
-      setSheet(`<div class="muted" style="padding:4px 0 8px">${esc(t("viewer.locateChooserHint"))}</div>
-        <div class="actions" style="flex-direction:column;align-items:stretch">
-          <button class="pill primary" id="dLcGps"><span class="ms">my_location</span>${esc(t("viewer.useMyLocation"))}</button>
-          <button class="pill" id="dLcCam"><span class="ms">photo_camera</span>${esc(t("viewer.useCamera"))}</button>
-          <button class="pill" id="dLcMap"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
-        </div>`, "half");
-      if ($("dLcGps")) $("dLcGps").onclick = () => locateMe();
-      if ($("dLcCam")) $("dLcCam").onclick = () => openLocateModal();
-      if ($("dLcMap")) $("dLcMap").onclick = () => isMpMode() ? pickOnMapMp() : startLocalize(true);
-      return;
-    }
-    m.hidden = false;
-    if (window.WFi18n) WFi18n.applyDom(m);
-    const focusBtn = $("lcGps") || $("lcClose");
-    if (focusBtn) try { focusBtn.focus(); } catch (e) { }
+    // Keep one entry point for callers, but map-pick is the only enabled location
+    // method at present, so avoid an unnecessary one-option chooser.
+    isMpMode() ? pickOnMapMp() : startLocalize(true);
   }
   function closeLocateChooser() { const m = $("locateChooser"); if (m) m.hidden = true; }
 
