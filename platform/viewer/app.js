@@ -191,12 +191,15 @@ require([
       new Graphic({ geometry: sitePt, symbol: { type: "simple-marker", style: "circle", size: 14, color: [230, 60, 40], outline: { color: "white", width: 2 } } }),
       new Graphic({ geometry: sitePt, symbol: { type: "text", text: CFG.name || "", color: "white", haloColor: [0, 0, 0, 0.8], haloSize: 1.5, yoffset: 14, font: { size: 13, weight: "bold" } } })]);
     // 2D stays straight top-down: no tilt, no rotation. Anything pitched belongs in 3D.
-    const view2d = new MapView({ container: "viewDiv", map: map2d, center: [CFG.center.lon, CFG.center.lat], zoom: 17,
+    // Never attach ArcGIS to the DOM in Matterport mode. A hidden/display:none
+    // container still lets MapView allocate and retain a WebGL renderer; running that
+    // beside Showcase is enough to make memory-constrained phones reload the tab.
+    const view2d = new MapView({ container: isMpMode() ? null : "viewDiv", map: map2d, center: [CFG.center.lon, CFG.center.lat], zoom: 17,
       constraints: { lods: TileInfo.create({ numLODs: 24 }).lods, maxZoom: 23, snapToZoom: false, rotationEnabled: false },
       rotation: 0, popupEnabled: false,
       padding: { left: window.innerWidth > 900 ? 300 : 0 } });
     view2d.watch("rotation", (r) => { if (r) view2d.rotation = 0; });
-    if (window.WFMeshOverlay) {
+    if (!isMpMode() && window.WFMeshOverlay) {
       WFMeshOverlay.init({ georef: georef, glbUrl: D("model_full.glb"), view2d: view2d });
     }
     let view3d = null, activeView = view2d, currentFloor = CFG.default_floor || FIDS[0], localizing = false, lastLoc = null;
@@ -450,6 +453,8 @@ require([
     // =====================================================================
     function initRouting() {
       const { nav, walkgrid, pois, rawGraph, navmesh } = R2;
+      let navmeshLoadPromise = null;
+      let routeRequestId = 0;
       WFRouting.modelToLL = modelToLL;
       WFRouting.init(nav, walkgrid, navmesh);
       const N = WFRouting.nodes();
@@ -520,7 +525,7 @@ require([
       // Load the Recast navmesh in the background; doRoute uses it as soon as it is ready
       // and falls back to the sweep graph until then.
       if (window.WFNav) {
-        WFNav.initNavmesh(wfSlug(), {
+        navmeshLoadPromise = WFNav.initNavmesh(wfSlug(), {
           floors: pois._derivedFloors
             || (CFG.floors || []).map(f => ({ id: f.id, label: f.label || f.id, elevation: f.elevation })),
           levelYs: (pois._navme || []).map(p => p.y).filter(v => v != null),
@@ -752,6 +757,19 @@ require([
       }
 
       function doRoute(fromKey, toPoiId, opts = {}) {
+        const requestId = opts._requestId || ++routeRequestId;
+        // Production needs longer than localhost to download and import the Recast
+        // binary. Do not silently lock in a graph route merely because the visitor
+        // selected a destination during that short window. Wait once; graph fallback
+        // remains available only after navmesh initialization genuinely fails.
+        if (window.WFNav && navmeshLoadPromise && !WFNav.navmeshReady() && !opts._navmeshWaited) {
+          $("routeSummary").textContent = "Preparing the navigation route…";
+          Promise.resolve(navmeshLoadPromise).then(
+            () => { if (requestId === routeRequestId) doRoute(fromKey, toPoiId, { ...opts, _requestId: requestId, _navmeshWaited: true }); },
+            () => { if (requestId === routeRequestId) doRoute(fromKey, toPoiId, { ...opts, _requestId: requestId, _navmeshWaited: true }); }
+          );
+          return null;
+        }
         const to = poiById[toPoiId]; if (!to) { $("routeSummary").textContent = "Select where you'd like to go to start navigation."; return null; }
         let fromNode, fromName, warn = null; startInfo = null;
         if (fromKey === "__loc") {
@@ -809,7 +827,7 @@ require([
       }
 
       $("btnRoute").onclick = () => { const p = poiFromText(toInput.value || ""); if (p) doRoute(fromSel.value, p.id, { stepFree: $("stepFree").checked }); else $("routeSummary").textContent = "Pick a destination from the list"; };
-      $("btnClear").onclick = () => { lastRoute = null; drawRoute(); $("routeSummary").textContent = ""; $("steps").innerHTML = ""; };
+      $("btnClear").onclick = () => { routeRequestId++; lastRoute = null; drawRoute(); $("routeSummary").textContent = ""; $("steps").innerHTML = ""; };
       $("showGraph").onchange = () => { graphLayer.visible = $("showGraph").checked; drawGraph(); };
       $("showNavmesh").onchange = () => { navmeshLayer.visible = $("showNavmesh").checked; drawNavmesh(); };
       $("btnExport").onclick = () => {
@@ -1092,6 +1110,14 @@ require([
     window.wf.exitHeavyOverlay = () => {
       const restore3D = heavyOverlayWas3D;
       heavyOverlayWas3D = false;
+      // The permanent Matterport background already owns the visible renderer.
+      // Reattaching the hidden ArcGIS view here recreated the second WebGL context
+      // after every Preview/Walkthrough close and brought the mobile reload back.
+      if (isMpMode()) {
+        try { view2d.container = null; } catch (e) {}
+        activeView = view2d;
+        return;
+      }
       if (!restore3D) {
         try { view2d.container = "viewDiv"; } catch (e) {}
         return;
