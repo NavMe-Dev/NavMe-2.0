@@ -60,8 +60,19 @@ function wfDbg(level, source, message, meta) {
   };
   const CHIP_PALETTE = [[26, 115, 232], [161, 66, 244], [24, 128, 56], [227, 116, 0], [66, 133, 244], [0, 137, 123], [25, 103, 210], [194, 24, 91]];
   function applyDynamicCategories() {
-    if (!wf.categories || !wf.categories.length) return;
-    const sorted = wf.categories.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.name).localeCompare(String(b.name)));
+    let categories = wf.categories || [];
+    // Older published buildings can have synced POIs but no saved category list.
+    // Recover their actual categories instead of displaying unrelated defaults.
+    if (!categories.length) {
+      const defaults = new Set(CHIP_KEYS.map(([key]) => key));
+      const names = [...new Set(POIS.map(p => String(p.category || "").trim().toLowerCase()).filter(Boolean))];
+      if (!names.some(name => name !== "general" && !defaults.has(name))) return;
+      categories = names.filter(name => name !== "general").map(name => ({
+        name: name.replace(/\b\w/g, letter => letter.toUpperCase()).replace(/\b(Bhm|Pg|Ug)\b/g, word => word.toUpperCase()),
+        icon_key: /block/.test(name) ? "building2" : /basketball/.test(name) ? "volleyball" : /library/.test(name) ? "book-open" : /cafeteria/.test(name) ? "coffee" : "map-pin"
+      }));
+    }
+    const sorted = categories.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.name).localeCompare(String(b.name)));
     Object.keys(CAT_BASE).forEach(k => delete CAT_BASE[k]);
     CHIP_KEYS.length = 0;
     catNamesByKey = {};
