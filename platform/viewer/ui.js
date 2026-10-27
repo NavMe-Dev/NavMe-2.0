@@ -755,6 +755,7 @@ function wfDbg(level, source, message, meta) {
   }
   function thumbFor(nodeId) { return thumbs.has(nodeId) ? WF.D(`thumbs/${nodeId}.jpg`) : null; }
   let poiPhotoHydrateTimer = 0;
+  let poiPhotoNodes = [];
   function hydrateMatterportPoiPhotos(attempt) {
     attempt = attempt || 0;
     if (!isMpMode() || !thumbs.size || !window.MpPreview || !MpPreview.thumbnailSweepNodes) return;
@@ -764,6 +765,7 @@ function wfDbg(level, source, message, meta) {
         if (attempt < 5) poiPhotoHydrateTimer = setTimeout(() => hydrateMatterportPoiPhotos(attempt + 1), 2000);
         return;
       }
+      poiPhotoNodes = photographed;
       POIS.forEach(p => {
         if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || !Number.isFinite(p.z)) return;
         const sameFloor = photographed.filter(n => !p.floor || !n.floor || n.floor === p.floor);
@@ -782,11 +784,8 @@ function wfDbg(level, source, message, meta) {
       if (attempt < 5) poiPhotoHydrateTimer = setTimeout(() => hydrateMatterportPoiPhotos(attempt + 1), 2000);
     });
   }
-  /** This POI's own scan thumbnail plus any nearby sweeps' thumbnails (walking outward
-   *  through the nav graph), for a small photo gallery on the place card. Thumbnails only
-   *  exist for POI/stair sweeps (see steps/thumbs.py), so most POIs will only ever turn up
-   *  their own single photo — that's expected, not a bug; the search just also catches the
-   *  occasional POI with a neighbouring stair/POI sweep photo nearby. */
+  /** Scan photos near this POI. Matterport mode has no eager nav graph, so use
+   *  its hydrated sweep positions to find additional same-floor views within 12 m. */
   function nearbyThumbs(p, limit) {
     limit = limit || 6;
     const out = [], seen = new Set();
@@ -797,6 +796,15 @@ function wfDbg(level, source, message, meta) {
       if (url) out.push(url);
     };
     tryAdd(p.nearest_node);
+    if (isMpMode() && [p.x, p.y, p.z].every(Number.isFinite)) {
+      poiPhotoNodes
+        .filter(n => p.floor && n.floor === p.floor)
+        .map(n => ({ node: n, distance: (n.x - p.x) ** 2 + (n.y - p.y) ** 2 + (n.z - p.z) ** 2 }))
+        .filter(item => item.distance <= 12 ** 2)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, limit)
+        .forEach(item => tryAdd(item.node.id));
+    }
     if (wf.nav && Array.isArray(wf.nav.edges) && p.nearest_node) {
       const adj = {};
       wf.nav.edges.forEach(e => {
@@ -828,6 +836,8 @@ function wfDbg(level, source, message, meta) {
       seen.add(value); urls.push(value);
     };
     add(p && p.photo_url);
+    if (p && Array.isArray(p.photo_urls)) p.photo_urls.forEach(add);
+    if (p && Array.isArray(p.gallery_images)) p.gallery_images.forEach(add);
     const exploreState = exploreController && exploreController.get();
     if (p && exploreState && exploreState.status === "ready" && exploreState.venue === venueSlug()) {
       const meta = (exploreState.data.pois || []).find(item => String(item.id) === String(p.id));
