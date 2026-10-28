@@ -248,7 +248,7 @@ function wfDbg(level, source, message, meta) {
       const title = S.filter === ALL_CAT ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === S.filter) || [, S.filter])[1];
       showCategoryList(categorySourceItems(), title, $("sheet").dataset.state || "half");
     } else if (S.mode === "about") about();
-    else if (S.mode === "language") showLanguageSheet();
+    else if (S.mode === "language") showLanguageSheet({ preservePosition: true });
     else if (S.mode === "recent") showRecentSearches();
     else if (S.mode === "help") showHelp();
     if (S.mode === "dir" || S.mode === "nav") syncDirFields();
@@ -730,8 +730,16 @@ function wfDbg(level, source, message, meta) {
     return S.filter === ALL_CAT ? POIS.slice() : POIS.filter(p => p.category === S.filter);
   }
   function categoryFloorToolbar(items) {
-    const ordinal = id => ((((WF.cfg.floors || []).find(f => f.id === id)) || {}).ordinal ?? 0);
-    const floors = [...new Set(items.map(p => p.floor).filter(Boolean))].sort((a, b) => ordinal(a) - ordinal(b));
+    const ordinal = id => ((((WF.cfg.floors || []).find(f => String(f.id) === String(id))) || {}).ordinal ?? 0);
+    // Numbered labels are the visible order, even when imported ordinals differ.
+    const floorNumber = id => {
+      const match = /^(?:floor|level)\s+(-?\d+(?:\.\d+)?)$/i.exec(String(wf.floorLabel(id)).trim());
+      return match ? Number(match[1]) : null;
+    };
+    const floors = [...new Set(items.map(p => p.floor).filter(Boolean))].sort((a, b) =>
+      (floorNumber(a) !== null && floorNumber(b) !== null ? floorNumber(a) - floorNumber(b) : ordinal(a) - ordinal(b)) ||
+      String(wf.floorLabel(a)).localeCompare(String(wf.floorLabel(b)), undefined, { numeric: true })
+    );
     if (S.categoryFloor !== "__all__" && !floors.includes(S.categoryFloor)) S.categoryFloor = "__all__";
     if (floors.length < 2) return "";
     const button = (id, label) => `<button type="button" class="ac-floor${S.categoryFloor === id ? " on" : ""}" data-category-floor="${esc(id)}" aria-pressed="${S.categoryFloor === id}">${esc(label)}</button>`;
@@ -1797,10 +1805,6 @@ function wfDbg(level, source, message, meta) {
     $("navPrev").disabled = target <= 0;
     $("navNext").disabled = target >= total - 1;
     window.MpPreview.walkToIndex(target, updateMpRemaining);
-    if (target >= total - 1) {
-      $("navDist").textContent = t("viewer.arrived");
-      announceArrivalOnce();
-    }
   }
   function bindNav() {
     // mp mode: step the Matterport camera one real scan point per click (mpNavStep —
@@ -1886,7 +1890,12 @@ function wfDbg(level, source, message, meta) {
     $("navDist").textContent = left > 0.5 ? fmtDist(left) : (s.type === "arrive" ? t("viewer.arrived") : t("viewer.now"));
     // Advancing to the next instruction is the explicit Next click's job (navGo) — this
     // only announces the one-time "Destination reached" once the final leg's flight lands.
-    if (left <= 0.5 && s.type === "arrive") announceArrivalOnce();
+    const landedAtDestination = info.landed === true && window.MpPreview &&
+      info.index === window.MpPreview.totalSweepStops() - 1;
+    if (landedAtDestination) {
+      $("navDist").textContent = t("viewer.arrived");
+      announceArrivalOnce();
+    }
   }
   /** Icon/text/thumb/ETA chrome only — no camera move, no S.sim, no walkToIndex. */
   function updateNavBannerChrome(i) {
@@ -1906,10 +1915,8 @@ function wfDbg(level, source, message, meta) {
     $("navEta").textContent = fmtMin(remT);
     $("navRem").textContent = `${fmtDist(rem) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
     $("navPrev").disabled = i <= 0; $("navNext").disabled = i >= n - 1;
-    // Non-mp mode keeps its own existing "You have arrived at X" toast at the end
-    // of navGo() below — this one is specifically for mp mode's auto-advance,
-    // which never goes through that code path.
-    if (s.type === "arrive" && isMpMode()) announceArrivalOnce();
+    // Selecting an arrival instruction updates chrome only. The camera's confirmed
+    // final landing triggers the arrival card in updateMpRemaining().
   }
   function navGo(i) {
     updateNavBannerChrome(i);
@@ -1940,7 +1947,7 @@ function wfDbg(level, source, message, meta) {
       else v.goTo({ center: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], zoom: TOUR_ZOOM, rotation: 0 }, { duration: 800 }).catch(() => { });
       placeMe();
     }
-    if (s.type === "arrive") toast(t("viewer.youArrived", { name: nameOf(S.to) }));
+    if (s.type === "arrive" && !isMpMode()) toast(t("viewer.youArrived", { name: nameOf(S.to) }));
   }
   function exitNav() {
     if (isMpMode() && window.MpPreview && window.MpPreview.cancelWalkTo) window.MpPreview.cancelWalkTo();
@@ -2579,8 +2586,12 @@ function wfDbg(level, source, message, meta) {
       <li><span class="ms">search</span><div>Search: Fuse.js (Apache-2.0) · Icons: Material Symbols (Apache-2.0) · Font: Roboto (Apache-2.0)</div></li>
       <li><span class="ms">keyboard</span><div>Keyboard: <b>/</b> search · <b>↑↓ Enter</b> pick · <b>Esc</b> close · <b>← →</b> steps while navigating</div></li></ul>`, "half");
   }
-  function showLanguageSheet() {
+  function showLanguageSheet({ preservePosition = false } = {}) {
     if (!window.WFi18n) return;
+    const body = $("sheetBody");
+    const scrollTop = preservePosition ? body.scrollTop : 0;
+    const focusedLanguage = preservePosition && body.contains(document.activeElement)
+      ? document.activeElement.dataset.lang : null;
     S.mode = "language";
     const cur = WFi18n.getLocale();
     const rows = WFi18n.enabledCatalog().map(c => `
@@ -2589,6 +2600,11 @@ function wfDbg(level, source, message, meta) {
       </button></li>`).join("");
     setSheet(`<h1 class="pname">${esc(t("common.language"))}</h1><ul class="facts lang-list">${rows}</ul>`, "half");
     $("sheetBody").querySelectorAll(".lang-pick").forEach(b => b.onclick = () => WFi18n.setLocale(b.dataset.lang));
+    if (focusedLanguage) {
+      const button = Array.from(body.querySelectorAll(".lang-pick")).find(b => b.dataset.lang === focusedLanguage);
+      if (button) button.focus({ preventScroll: true });
+    }
+    body.scrollTop = scrollTop;
   }
 
   // ---------------- toast ----------------

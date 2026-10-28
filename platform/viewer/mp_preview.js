@@ -2921,7 +2921,7 @@ function wfDbg(level, source, message, meta) {
         if (gen !== walkGen) { clearInterval(tickTimer); return; }
         const frac = Math.min(1, (Date.now() - start) / Math.max(1, tFly));
         const interp = fromRemaining + (toRemaining - fromRemaining) * frac;
-        try { onStep({ index: targetIdx, remainingM: interp, nextLegM: nextLegDistM(targetIdx) }); } catch (_) { /* ignore */ }
+        try { onStep({ index: targetIdx, remainingM: interp, nextLegM: nextLegDistM(targetIdx), landed: false }); } catch (_) { /* ignore */ }
       }, 120);
     }
     try {
@@ -2938,13 +2938,14 @@ function wfDbg(level, source, message, meta) {
     if (tickTimer) clearInterval(tickTimer);
     if (gen !== walkGen) return false;
     try { await faceAlongRoute(targetIdx); } catch (_) { /* ignore */ }
+    if (gen !== walkGen) return false;
     stepI = targetIdx;
     updateStep();
     try { await updateDirArrow(targetIdx); } catch (_) { /* ignore */ }
     try { updateDistHud(targetIdx); } catch (_) { /* ignore */ }
     try { updateTourInstruction(sweepNodes[targetIdx], isLastStop); } catch (_) { /* ignore */ }
     if (typeof onStep === "function") {
-      try { onStep({ index: targetIdx, remainingM: toRemaining, nextLegM: nextLegDistM(targetIdx) }); } catch (_) { /* ignore */ }
+      try { onStep({ index: targetIdx, remainingM: toRemaining, nextLegM: nextLegDistM(targetIdx), landed: true }); } catch (_) { /* ignore */ }
     }
     return true;
   }
