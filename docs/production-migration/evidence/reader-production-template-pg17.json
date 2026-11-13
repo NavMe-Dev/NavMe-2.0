@@ -1,0 +1,17 @@
+{
+  "postgres_major": 17,
+  "production_template_validated": true,
+  "execution": "isolated verified clone; fixture verifier and fresh probe names; full transaction rolled back",
+  "production_writes": false,
+  "exit_code": 0,
+  "checks": [
+    {
+      "inside_role_count": 2,
+      "login_inherits_reader": true
+    },
+    {
+      "remaining_probe_roles": 0,
+      "remaining_probe_policies": 0
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 Paths mirror the static export layout, so the viewer works against the API or a static host:
   /api/v1/public/venues/{venue}/manifest.json
   /api/v1/public/buildings/{slug}/data/{file}      (config.json, pois.json, nav_graph.json, indoor_F1.geojson, …)"""
-import json, mimetypes
+import json, mimetypes, logging
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -14,6 +14,7 @@ from ..services.publish import current_version
 from ..services import navgraph, bundle_storage, navme
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
+logger = logging.getLogger(__name__)
 
 
 def building_or_404(db, slug):
@@ -37,13 +38,17 @@ def venue_manifest(db, venue_slug):
         mv = current_version(db, b)
         if not mv: continue
         try:
-            raw = bundle_storage.read_bundle_file(Path(mv.path), b.slug, mv.version, "config.json")
-        except FileNotFoundError:
-            continue  # this building's local+Storage copies are both gone — skip rather than 500 the whole manifest
-        cfg = json.loads(raw)
-        items.append({"slug": b.slug, "name": b.name, "address": b.address, "center": cfg["center"], "bounds": cfg["bounds"],
-                      "floors": [{"id": f["id"], "label": f["label"], "short": f["short"]} for f in cfg["floors"]],
-                      "version": mv.version, "data": f"buildings/{b.slug}/data/"})
+            raw = bundle_storage.read_bundle_file(bundle_storage.local_version_dir(mv.path, b.slug, mv.version), b.slug, mv.version, "config.json")
+            cfg = json.loads(raw)
+            item = {"slug": b.slug, "name": b.name, "address": b.address, "center": cfg["center"], "bounds": cfg["bounds"],
+                    "floors": [{"id": f["id"], "label": f["label"], "short": f["short"]} for f in cfg["floors"]],
+                    "version": mv.version, "data": f"buildings/{b.slug}/data/"}
+        except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError):
+            # A missing published bundle is an outage, not an empty venue. Do
+            # not silently hide recovered buildings or manufacture replacement data.
+            logger.error("Published config unavailable for building %s version %s", b.slug, mv.version)
+            raise HTTPException(503, "published venue data unavailable", headers={"Retry-After": "30"}) from None
+        items.append(item)
     return {"schema": "wayfinding.venue/v1", "slug": v.slug if v else "all", "name": v.name if v else "All buildings",
             "branding": (v.branding if v else {}) or {}, "buildings": items}
 
@@ -71,7 +76,7 @@ def buildings(db: Session = Depends(get_db)):
 def data_file(slug: str, path: str, db: Session = Depends(get_db)):
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "building not published yet")
-    root = Path(mv.path).resolve(); f = (root / path).resolve()
+    root = bundle_storage.local_version_dir(mv.path, b.slug, mv.version).resolve(); f = (root / path).resolve()
     if root not in f.parents:
         raise HTTPException(404, "not found")
     mt = "application/json" if f.suffix in (".json", ".geojson") else (mimetypes.guess_type(f.name)[0] or "application/octet-stream")
@@ -93,7 +98,7 @@ def public_route(slug: str, r: schemas.RouteIn, db: Session = Depends(get_db)):
     """Server-side route between two published POIs (the viewer normally routes client-side)."""
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "not published")
-    root = Path(mv.path)
+    root = bundle_storage.local_version_dir(mv.path, b.slug, mv.version)
     try:
         nav = json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "nav_graph.json"))
         pois = {p["id"]: p for p in json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "pois.json"))["pois"]}
@@ -126,7 +131,7 @@ def public_matterport(slug: str, request: Request, access: str | None = None, db
     mv = current_version(db, b)
     if mv:
         try:
-            published_cfg = json.loads(bundle_storage.read_bundle_file(Path(mv.path), slug, mv.version, "config.json"))
+            published_cfg = json.loads(bundle_storage.read_bundle_file(bundle_storage.local_version_dir(mv.path, slug, mv.version), slug, mv.version, "config.json"))
         except Exception:
             published_cfg = None
     policy = access_svc.resolve_access_policy(b.pipeline_config, published_cfg)
@@ -157,7 +162,8 @@ def runtime_config():
     from ..services import debug_log as dbg
     s = get_settings()
     from ..services import chat as chat_svc
-    return {"vps_enabled": bool(s.vps_url), "vps_endpoint": "/api/v1/public/vps/localize" if s.vps_url else None,
+    return {"read_only": bool(s.wf_read_only),
+            "vps_enabled": bool(s.vps_url), "vps_endpoint": "/api/v1/public/vps/localize" if s.vps_url else None,
             "matterport_sdk": bool(s.matterport_sdk_key),
             "debug_enabled": bool(dbg.global_enabled()),
             "debug_status_url": "/api/v1/public/debug/status",
@@ -561,7 +567,9 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         return []
-    rows = db.query(models.POI).filter_by(building_id=b.id, source="supabase").all()
+    if not current_version(db, b):
+        return []
+    rows = db.query(models.POI).filter_by(building_id=b.id, source="supabase", published=True).all()
     pois = []
     for r in rows:
         extra = r.extra or {}

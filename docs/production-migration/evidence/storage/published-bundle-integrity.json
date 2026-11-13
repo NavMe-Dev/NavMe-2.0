@@ -1,0 +1,509 @@
+{
+  "recorded_at": "2026-11-13T12:03:09.085694+00:00",
+  "scope": "Read-only published storage integrity; not a database backup or merge approval",
+  "bundles": [
+    {
+      "slug": "gcu",
+      "version": 5,
+      "schema": "wayfinding.building/v1",
+      "matterport_model_id": "jdjvM17BPEh",
+      "counts": {
+        "floors": 5,
+        "pois": 131,
+        "nodes": 1073,
+        "edges": 3842
+      },
+      "config_stats_match": true,
+      "duplicate_node_ids": 0,
+      "duplicate_poi_ids": 0,
+      "edges_missing_nodes": 0,
+      "pois_missing_nearest_node": 0,
+      "pois_null_nearest_node": 0,
+      "pois_invalid_nonnull_nearest_node": 0,
+      "pois_nearest_node_on_other_floor": 0,
+      "pois_missing_floor": 0,
+      "nodes_missing_floor": 0,
+      "invalid_poi_lonlat": 0,
+      "invalid_node_lonlat": 0,
+      "nonpositive_floor_heights": [
+        {
+          "id": "F2",
+          "height": -0.39
+        }
+      ],
+      "decreasing_floor_elevations": [
+        {
+          "from": "F2",
+          "to": "F3"
+        }
+      ],
+      "unpruned_graph_components": 1,
+      "largest_component_nodes": 1073,
+      "georef_model_matches": true,
+      "floors_content_inspected": true,
+      "checksums": {
+        "config.json": {
+          "bytes": 3249,
+          "sha256": "a4254053f531079b38c91a114d6f53d81a6fb2268523c56fa16e83e9d81fa19f"
+        },
+        "pois.json": {
+          "bytes": 75221,
+          "sha256": "c7b8d802310b87ccbcfd9a5925bfcf571b7589d0dffd46bf004d5bfe87afa96f"
+        },
+        "nav_graph.json": {
+          "bytes": 1187773,
+          "sha256": "a349bf3aa79e2595d84cb45e7a326737c4c89382f7f29b95c518e45c855070f7"
+        },
+        "georef.json": {
+          "bytes": 914,
+          "sha256": "f15bdc2615710415a9d9c10c241f9c4e35421cde95721acc852f9d8cf1b9ea40"
+        },
+        "floors.json": {
+          "bytes": 3002196,
+          "sha256": "380a8b3125fa62780a254a7b1a105f1d90ae7a7cc85108a53581dc32ab411865"
+        }
+      },
+      "floor_asset_ids_match_config": true,
+      "floor_corner_coordinates_valid": true,
+      "referenced_assets": [
+        {
+          "file": "buildings_osm.geojson",
+          "status": 200,
+          "bytes": "222592",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "floor_F1.webp",
+          "status": 200,
+          "bytes": "1586626",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F2.webp",
+          "status": 200,
+          "bytes": "349956",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F3.webp",
+          "status": 200,
+          "bytes": "275562",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F4.webp",
+          "status": 200,
+          "bytes": "192452",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F5.webp",
+          "status": 200,
+          "bytes": "199130",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floors.json",
+          "status": 200,
+          "bytes": "3002196",
+          "content_type": "application/json"
+        },
+        {
+          "file": "georef.json",
+          "status": 200,
+          "bytes": "914",
+          "content_type": "application/json"
+        },
+        {
+          "file": "indoor_F1.geojson",
+          "status": 200,
+          "bytes": "117710",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F2.geojson",
+          "status": 200,
+          "bytes": "128835",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F3.geojson",
+          "status": 200,
+          "bytes": "81427",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F4.geojson",
+          "status": 200,
+          "bytes": "54315",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F5.geojson",
+          "status": 200,
+          "bytes": "32815",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "media_panels.json",
+          "status": 200,
+          "bytes": "78",
+          "content_type": "application/json"
+        },
+        {
+          "file": "model_F1.glb",
+          "status": 200,
+          "bytes": "4570100",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F2.glb",
+          "status": 200,
+          "bytes": "6156604",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F3.glb",
+          "status": 200,
+          "bytes": "7299064",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F4.glb",
+          "status": 200,
+          "bytes": "7978020",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_full.glb",
+          "status": 200,
+          "bytes": "8653832",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_glb.json",
+          "status": 200,
+          "bytes": "281",
+          "content_type": "application/json"
+        },
+        {
+          "file": "mp_graph_raw.json",
+          "status": 200,
+          "bytes": "4503566",
+          "content_type": "application/json"
+        },
+        {
+          "file": "nav_graph.json",
+          "status": 200,
+          "bytes": "1187773",
+          "content_type": "application/json"
+        },
+        {
+          "file": "navmesh.json",
+          "status": 200,
+          "bytes": "313379",
+          "content_type": "application/json"
+        },
+        {
+          "file": "pois.json",
+          "status": 200,
+          "bytes": "75221",
+          "content_type": "application/json"
+        },
+        {
+          "file": "site_shell.geojson",
+          "status": 200,
+          "bytes": "11547",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "thumbs/index.json",
+          "status": 200,
+          "bytes": "16502",
+          "content_type": "application/json"
+        },
+        {
+          "file": "walkgrid.json",
+          "status": 200,
+          "bytes": "14720910",
+          "content_type": "application/json"
+        }
+      ],
+      "referenced_asset_count": 27,
+      "unavailable_assets": []
+    },
+    {
+      "slug": "uncc-main-campus",
+      "version": 2,
+      "schema": "wayfinding.building/v1",
+      "matterport_model_id": "kQBN52JqFE9",
+      "counts": {
+        "floors": 7,
+        "pois": 170,
+        "nodes": 4900,
+        "edges": 15783
+      },
+      "config_stats_match": true,
+      "duplicate_node_ids": 0,
+      "duplicate_poi_ids": 0,
+      "edges_missing_nodes": 0,
+      "pois_missing_nearest_node": 20,
+      "pois_null_nearest_node": 20,
+      "pois_invalid_nonnull_nearest_node": 0,
+      "pois_nearest_node_on_other_floor": 0,
+      "pois_missing_floor": 0,
+      "nodes_missing_floor": 0,
+      "invalid_poi_lonlat": 0,
+      "invalid_node_lonlat": 0,
+      "nonpositive_floor_heights": [
+        {
+          "id": "F5",
+          "height": -7.47
+        }
+      ],
+      "decreasing_floor_elevations": [
+        {
+          "from": "F5",
+          "to": "F6"
+        }
+      ],
+      "unpruned_graph_components": 1,
+      "largest_component_nodes": 4900,
+      "georef_model_matches": true,
+      "floors_content_inspected": false,
+      "checksums": {
+        "config.json": {
+          "bytes": 3174,
+          "sha256": "546050d8de34067aac77a377324c3ec758085cfb86e276ccf3f4e5e795d11ba6"
+        },
+        "pois.json": {
+          "bytes": 96858,
+          "sha256": "451e9fb2559b3ff277de8231ce29ccad54faa181e6fdf2fe5621616ffee9b7e8"
+        },
+        "nav_graph.json": {
+          "bytes": 4766733,
+          "sha256": "a966ec368ca92da23134849c709471dfc3732d979ac318d49b9134d0401c5b63"
+        },
+        "georef.json": {
+          "bytes": 880,
+          "sha256": "a3bf7ecd5aac635e3881616382228d2b87a2995c9e0600a3a26665fc7b5ffd28"
+        }
+      },
+      "referenced_assets": [
+        {
+          "file": "buildings_osm.geojson",
+          "status": 200,
+          "bytes": "31658",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "floor_F1.webp",
+          "status": 200,
+          "bytes": "181022",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F2.webp",
+          "status": 200,
+          "bytes": "202510",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F3.webp",
+          "status": 200,
+          "bytes": "444344",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F4.webp",
+          "status": 200,
+          "bytes": "312768",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F5.webp",
+          "status": 200,
+          "bytes": "213314",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F6.webp",
+          "status": 200,
+          "bytes": "80114",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floor_F7.webp",
+          "status": 200,
+          "bytes": "27022",
+          "content_type": "image/webp"
+        },
+        {
+          "file": "floors.json",
+          "status": 200,
+          "bytes": "38566047",
+          "content_type": "application/json"
+        },
+        {
+          "file": "georef.json",
+          "status": 200,
+          "bytes": "880",
+          "content_type": "application/json"
+        },
+        {
+          "file": "indoor_F1.geojson",
+          "status": 200,
+          "bytes": "87420",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F2.geojson",
+          "status": 200,
+          "bytes": "201389",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F3.geojson",
+          "status": 200,
+          "bytes": "642811",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F4.geojson",
+          "status": 200,
+          "bytes": "200554",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F5.geojson",
+          "status": 200,
+          "bytes": "195270",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F6.geojson",
+          "status": 200,
+          "bytes": "103910",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "indoor_F7.geojson",
+          "status": 200,
+          "bytes": "107591",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "media_panels.json",
+          "status": 200,
+          "bytes": "91",
+          "content_type": "application/json"
+        },
+        {
+          "file": "model_F1.glb",
+          "status": 200,
+          "bytes": "32736244",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F2.glb",
+          "status": 200,
+          "bytes": "31616464",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F3.glb",
+          "status": 200,
+          "bytes": "23705844",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F4.glb",
+          "status": 200,
+          "bytes": "34470040",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F5.glb",
+          "status": 200,
+          "bytes": "29119504",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_F6.glb",
+          "status": 200,
+          "bytes": "34544312",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_full.glb",
+          "status": 200,
+          "bytes": "35134744",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "model_glb.json",
+          "status": 200,
+          "bytes": "329",
+          "content_type": "application/json"
+        },
+        {
+          "file": "mp_graph_raw.json",
+          "status": 200,
+          "bytes": "15849595",
+          "content_type": "application/json"
+        },
+        {
+          "file": "nav_graph.json",
+          "status": 200,
+          "bytes": "4766733",
+          "content_type": "application/json"
+        },
+        {
+          "file": "navmesh.json",
+          "status": 200,
+          "bytes": "1060235",
+          "content_type": "application/json"
+        },
+        {
+          "file": "pois.json",
+          "status": 200,
+          "bytes": "96858",
+          "content_type": "application/json"
+        },
+        {
+          "file": "site_shell.geojson",
+          "status": 200,
+          "bytes": "88332",
+          "content_type": "application/octet-stream"
+        },
+        {
+          "file": "thumbs/index.json",
+          "status": 200,
+          "bytes": "35162",
+          "content_type": "application/json"
+        },
+        {
+          "file": "walkgrid.json",
+          "status": 400
+        }
+      ],
+      "referenced_asset_count": 33,
+      "unavailable_assets": [
+        {
+          "file": "walkgrid.json",
+          "status": 400
+        }
+      ]
+    }
+  ],
+  "remote_checked_at": "2026-11-13T12:00:24.390463+00:00",
+  "limits": {
+    "max_json_read_bytes": 6000001,
+    "core_json_reads_attempted": 8,
+    "config_reads": 4,
+    "asset_HEAD_requests": 60,
+    "walkgrid_error_probes": 2,
+    "raw_json_in_git": false,
+    "uncc_floors_content": "not inspected: 38,566,047 bytes exceeds bound"
+  }
+}

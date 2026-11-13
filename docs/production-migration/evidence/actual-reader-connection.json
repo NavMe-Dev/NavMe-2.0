@@ -1,0 +1,33 @@
+{
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "actual_reader_authenticated": true,
+  "client_tls": true,
+  "identity": {
+    "current_user": "navme_wayfinding_live_v1",
+    "session_user": "navme_wayfinding_live_v1",
+    "read_only": "on",
+    "statement_timeout": "30s",
+    "lock_timeout": "5s"
+  },
+  "role_memberships": [
+    {
+      "rolname": "navme_wayfinding_public_reader_v1",
+      "admin_option": false,
+      "inherit_option": true,
+      "set_option": true
+    }
+  ],
+  "dangerous_role_attributes": {
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcreatedb": false,
+    "rolcreaterole": false,
+    "rolreplication": false
+  },
+  "mutation_privileges": 0,
+  "sequence_privileges": 0,
+  "unrelated_public_column_access": 0,
+  "reachable_custom_security_definer": 0,
+  "production_writes": false,
+  "pass": true
+}

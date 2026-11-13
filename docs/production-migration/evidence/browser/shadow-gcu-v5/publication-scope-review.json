@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-11-13T13:33:06.874718+00:00",
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "scope": "Read-only GCU publication/privacy baseline; no secret values or private user records inspected",
+  "platform_poi_counts": [
+    {
+      "source": "auto",
+      "published": true,
+      "count": 82
+    },
+    {
+      "source": "matterport_room",
+      "published": true,
+      "count": 49
+    },
+    {
+      "source": "supabase",
+      "published": true,
+      "count": 99
+    }
+  ],
+  "canonical_cms_pois": {
+    "is_active_true": 235
+  },
+  "public_curated_poi_ids": 99,
+  "translated_poi_ids": 235,
+  "translation_ids_outside_current_mirror": 136,
+  "interpretation": "All canonical CMS rows inspected are active; live metadata and published mirror have different scopes. No inactive/draft inference from differing counts."
+}

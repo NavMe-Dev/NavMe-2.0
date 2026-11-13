@@ -1,0 +1,69 @@
+{
+  "postgrest": {
+    "db_schema": "public,graphql_public",
+    "max_rows": 1000,
+    "db_extra_search_path": "public, extensions",
+    "db_pool": null
+  },
+  "pooler": [
+    {
+      "identifier": "kzpvhzyefdtrtidrbuxb",
+      "database_type": "PRIMARY",
+      "db_host": "aws-0-ap-southeast-1.pooler.supabase.com",
+      "db_port": 6543,
+      "default_pool_size": null,
+      "max_client_conn": null,
+      "pool_mode": "transaction"
+    }
+  ],
+  "backups": {
+    "region": "ap-southeast-1",
+    "walg_enabled": true,
+    "pitr_enabled": false,
+    "backups": [
+      {
+        "id": 2245883379,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-12T18:13:02.200Z"
+      },
+      {
+        "id": 2235879358,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-11T18:13:05.902Z"
+      },
+      {
+        "id": 2225885775,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-10T18:09:32.007Z"
+      },
+      {
+        "id": 2215951509,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-09T18:09:34.281Z"
+      },
+      {
+        "id": 2206093770,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-08T18:09:32.846Z"
+      },
+      {
+        "id": 2196288604,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-07T18:10:12.889Z"
+      },
+      {
+        "id": 2186563088,
+        "is_physical_backup": true,
+        "status": "COMPLETED",
+        "inserted_at": "2026-11-06T18:09:33.535Z"
+      }
+    ],
+    "physical_backup_data": {}
+  }
+}

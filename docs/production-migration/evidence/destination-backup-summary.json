@@ -1,0 +1,45 @@
+{
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "completed_at": "2026-11-13T12:51:34.994401+00:00",
+  "server_version": "PostgreSQL 17.11 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+  "endpoint_host": "aws-0-ap-southeast-1.pooler.supabase.com",
+  "endpoint_port": 5432,
+  "client_tls_verified": true,
+  "read_only": "on",
+  "isolation": "repeatable read",
+  "archive_retains_owners_and_acls": true,
+  "role_passwords_included": false,
+  "production_writes": false,
+  "isolated_restore_verified": false,
+  "storage_object_bytes_included": false,
+  "table_count": 130,
+  "archive_directory_readable": true,
+  "archive_fully_decoded": true,
+  "files": {
+    "destination.dump": {
+      "bytes": 6995284,
+      "sha256": "4f1781bb50419e25cafb8938a6cf7c3ef5e3bc7851613f2769b6c97c6ccb08bf"
+    },
+    "roles-without-passwords.sql": {
+      "bytes": 5900,
+      "sha256": "664f8c0ffbcd98fd7d8ba52774d882b46f1a95c3b8331d7a910e26919a1c9a75"
+    },
+    "schema.sql": {
+      "bytes": 1038457,
+      "sha256": "3eb72d4f654ca6d9ce783d818bb73ea6b48fefa2b522006ca12db6f1b174172b"
+    },
+    "snapshot-inventory.json": {
+      "bytes": 17969,
+      "sha256": "004edc3b3b8fa156410cc9f72e37f263fca2bbd9259ea4397c9d5ed9218b72f1"
+    },
+    "source-requirements.json": {
+      "bytes": 1493,
+      "sha256": "6227a4eb1c5d8446d7c64ca48f2df01a134c37650f9944245b115266e772f8d3"
+    }
+  },
+  "finalization_note": "Initial schema-only decoding lacked explicit output flag; corrected and finalized offline without repeating the production dump. Initial diagnostic retained privately.",
+  "public_tables": 82,
+  "public_rows": 20121,
+  "roles": 30,
+  "publications": 2
+}

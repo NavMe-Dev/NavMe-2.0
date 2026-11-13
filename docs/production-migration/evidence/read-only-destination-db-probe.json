@@ -1,0 +1,22 @@
+{
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "mode": "read-only shadow",
+  "settings": {
+    "default_transaction_read_only": "on",
+    "transaction_read_only": "on",
+    "statement_timeout": "30s",
+    "lock_timeout": "5s"
+  },
+  "worker_inline": false,
+  "production_writes": false,
+  "jobs_status_counts": [
+    {
+      "kind": "onboard",
+      "status": "succeeded",
+      "count": 1
+    }
+  ],
+  "migration_revision": [
+    "0001"
+  ]
+}

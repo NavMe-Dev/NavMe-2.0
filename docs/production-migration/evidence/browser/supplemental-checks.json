@@ -1,0 +1,33 @@
+{
+  "recorded_at": "2026-11-13T11:56:12.909988+00:00",
+  "anonymous_admin": {
+    "method": "GET",
+    "url": "https://wayfinding.navme.space/api/v1/admin/buildings",
+    "status": 401,
+    "expected": 401,
+    "result": "PASS"
+  },
+  "independent_arcgis_probe": {
+    "ready": false,
+    "error": "WebGL2 is required but not supported.",
+    "elapsedMs": 17.799999999813735,
+    "recordedAt": "2026-11-13T11:52:49.111Z",
+    "failedRequests": [
+      {
+        "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+        "error": "net::ERR_ABORTED"
+      }
+    ]
+  },
+  "viewer_failure_regression": {
+    "cases": 8,
+    "passed": 8,
+    "failed": 0,
+    "scope": "isolated browser fixtures, desktop/mobile, dictionary loaded/unloaded, HTTP503/network interruption"
+  },
+  "frontend_builds": {
+    "dashboard": "PASS",
+    "2d": "PASS",
+    "3d_typecheck_and_build": "PASS"
+  }
+}

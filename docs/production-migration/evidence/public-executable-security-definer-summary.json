@@ -1,0 +1,24 @@
+{
+  "source": "captured destination metadata; independent role effective privilege audit still required on restored PG17",
+  "public_callable_security_definer_count": 3,
+  "functions": [
+    {
+      "name": "st_estimatedextent",
+      "argument_types": "text, text, text, boolean",
+      "schema": "public",
+      "extension_owned": true
+    },
+    {
+      "name": "st_estimatedextent",
+      "argument_types": "text, text, text",
+      "schema": "public",
+      "extension_owned": true
+    },
+    {
+      "name": "st_estimatedextent",
+      "argument_types": "text, text",
+      "schema": "public",
+      "extension_owned": true
+    }
+  ]
+}

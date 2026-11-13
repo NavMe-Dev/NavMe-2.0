@@ -72,6 +72,13 @@ def test_235_pois_visible_and_repeat_sync_idempotent(building, monkeypatch):
     assert (first["created"], first["updated"], first["skipped"]) == (235, 0, 0)
     second = navme_sync.sync_pois(db, b, get_settings()); db.commit()
     assert (second["created"], second["updated"]) == (0, 235)
+    # A complete sync remains draft-only until the building is published.
+    draft_response = TestClient(app).get(f"/api/v1/public/dashboard/buildings/{b.slug}/navme-pois")
+    assert draft_response.status_code == 200 and draft_response.json() == []
+    db.add(models.MapVersion(building_id=b.id, version=1,
+                            path=str(get_settings().published_dir / b.slug / "v1"),
+                            is_current=True, summary={}))
+    db.commit()
     response = TestClient(app).get(f"/api/v1/public/dashboard/buildings/{b.slug}/navme-pois")
     assert response.status_code == 200
     assert len(response.json()) == 235

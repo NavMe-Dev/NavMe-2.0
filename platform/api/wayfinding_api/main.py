@@ -1,9 +1,15 @@
 """FastAPI application. OpenAPI docs at /api/docs."""
 from pathlib import Path
-from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+import logging
+import re
+import threading
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.concurrency import run_in_threadpool
 from . import __version__
 from .config import get_settings
 from .routers import auth, public, admin, vps, scan_plans
@@ -11,7 +17,24 @@ from .routers import auth, public, admin, vps, scan_plans
 
 def create_app() -> FastAPI:
     s = get_settings()
-    app = FastAPI(title="Wayfinding Platform API", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url="/api/redoc")
+
+    @asynccontextmanager
+    async def lifespan(app):
+        from .db import dispose_engine
+        stop = threading.Event()
+        worker = None
+        if s.worker_inline and not (s.wf_read_only or s.db_read_only):
+            from .services.jobs import start_inline_worker
+            worker = await run_in_threadpool(start_inline_worker, stop_event=stop)
+        try:
+            yield
+        finally:
+            stop.set()
+            if worker:
+                await run_in_threadpool(worker.join, timeout=10)
+            dispose_engine()
+
+    app = FastAPI(title="Wayfinding Platform API", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url="/api/redoc", lifespan=lifespan)
     origins = [o.strip() for o in s.cors_origins.split(",")]
     app.add_middleware(
         CORSMiddleware,
@@ -24,8 +47,28 @@ def create_app() -> FastAPI:
     for r in (auth.router, public.router, admin.files_router, admin.router, scan_plans.router, scan_plans.files_router, vps.router):
         app.include_router(r)
 
+    @app.exception_handler(SQLAlchemyError)
+    async def database_unavailable(request: Request, exc: SQLAlchemyError):
+        # Never emit the exception string: DBAPI/ORM errors can contain the
+        # connection URL, submitted SQL values, or private record contents.
+        logging.getLogger(__name__).error("Database request failed (%s)", type(exc).__name__)
+        return JSONResponse(status_code=503, content={"detail": "database unavailable"},
+                            headers={"Retry-After": "5"})
+
     @app.middleware("http")
     async def _dbg_http_middleware(request, call_next):
+        if s.wf_read_only and request.method not in {"GET", "HEAD", "OPTIONS"}:
+            # Query POSTs are retained for routing; every mutation is rejected
+            # before dependencies run, including feedback that writes via REST
+            # instead of the PostgreSQL connection. No admin/bootstrap/job writes.
+            query_post = request.method == "POST" and (
+                request.url.path == "/api/v1/auth/login"
+                or re.fullmatch(r"/api/v1/public/buildings/[a-z0-9-]+/route", request.url.path)
+                or re.fullmatch(r"/api/v1/public/dashboard/buildings/[a-z0-9-]+/route-by-coords", request.url.path)
+            )
+            if not query_post:
+                return JSONResponse(status_code=503, content={"detail": "application is read-only"},
+                                    headers={"Retry-After": "60"})
         from .services import debug_log as dbg
         try:
             resp = await call_next(request)
@@ -47,12 +90,22 @@ def create_app() -> FastAPI:
         from .db import engine
         with engine().connect() as c:
             pg = c.execute(text("select postgis_version()")).scalar()
+            missing = c.execute(text("""
+                SELECT name FROM unnest(ARRAY[
+                    'users', 'venues', 'buildings', 'floors', 'pois',
+                    'control_points', 'nav_graphs', 'map_versions', 'jobs'
+                ]) AS name WHERE to_regclass(name) IS NULL
+            """)).scalars().all()
+            if missing:
+                logging.getLogger(__name__).error("Required application schema is unavailable")
+                raise HTTPException(503, "database schema unavailable", headers={"Retry-After": "5"})
         return {"ok": True, "version": __version__, "postgis": pg}
 
-    if s.worker_inline:
-        from .services.jobs import start_inline_worker
-        @app.on_event("startup")
-        def _w(): start_inline_worker()
+    @app.get("/api/live")
+    def live():
+        """Process liveness only; /api/health remains database readiness."""
+        return {"ok": True, "version": __version__}
+
     # optional single-process static hosting (dev / small installs); in docker Caddy serves these
     # Shared UI locale dictionaries (viewer + admin language switchers). Prefer platform/locales,
     # else viewer/locales symlink, else admin/locales.

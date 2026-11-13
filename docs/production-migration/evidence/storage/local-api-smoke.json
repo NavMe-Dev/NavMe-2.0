@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/api/health",
+    "status": 200,
+    "elapsed_ms": 13.432,
+    "ok": true
+  },
+  {
+    "path": "/api/v1/public/venues/all/manifest.json",
+    "status": 200,
+    "elapsed_ms": 3.59,
+    "schema": "wayfinding.venue/v1",
+    "buildings": [
+      {
+        "slug": "gcu",
+        "version": 1,
+        "floor_count": 5
+      },
+      {
+        "slug": "uncc-main-campus",
+        "version": 2,
+        "floor_count": 7
+      }
+    ]
+  }
+]

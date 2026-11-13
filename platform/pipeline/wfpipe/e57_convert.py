@@ -35,11 +35,11 @@ except Exception as e:  # pragma: no cover
 
 
 def require_libs():
+    # Open3D is an optional acceleration/meshing dependency. The documented
+    # NumPy voxel and heightfield paths below work without it.
     missing = []
     if not _HAS_PYE57:
         missing.append(f"pye57 (import error: {_PYE57_ERR})")
-    if not _HAS_O3D:
-        missing.append(f"open3d (import error: {_O3D_ERR})")
     if missing:
         raise RuntimeError(
             "E57 conversion requires: " + "; ".join(missing) +

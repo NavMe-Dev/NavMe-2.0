@@ -1,0 +1,115 @@
+{
+  "counts": {
+    "jobs": 1,
+    "pois": 230,
+    "users": 2,
+    "floors": 5,
+    "venues": 0,
+    "buildings": 1,
+    "nav_graphs": 1,
+    "map_versions": 5,
+    "control_points": 0
+  },
+  "alembic": [
+    "0001"
+  ],
+  "buildings": [
+    {
+      "id": 1,
+      "name": "GCU ( OMR) with Library",
+      "slug": "gcu",
+      "status": "published",
+      "created_at": "2026-10-09T10:42:56.836951+00:00",
+      "updated_at": "2026-10-09T18:13:29.308035+00:00",
+      "matterport_model_id": "jdjvM17BPEh"
+    }
+  ],
+  "extensions": [
+    {
+      "name": "plpgsql",
+      "schema": "pg_catalog",
+      "version": "1.0"
+    },
+    {
+      "name": "pg_stat_statements",
+      "schema": "extensions",
+      "version": "1.11"
+    },
+    {
+      "name": "uuid-ossp",
+      "schema": "extensions",
+      "version": "1.1"
+    },
+    {
+      "name": "pgcrypto",
+      "schema": "extensions",
+      "version": "1.3"
+    },
+    {
+      "name": "supabase_vault",
+      "schema": "vault",
+      "version": "0.3.1"
+    },
+    {
+      "name": "postgis",
+      "schema": "public",
+      "version": "3.3.7"
+    },
+    {
+      "name": "btree_gist",
+      "schema": "extensions",
+      "version": "1.7"
+    }
+  ],
+  "map_versions": [
+    {
+      "id": 1,
+      "path": "var/data/published/gcu/v1",
+      "version": 1,
+      "created_at": "2026-10-09T10:49:20.715155+00:00",
+      "is_current": false,
+      "building_id": 1
+    },
+    {
+      "id": 2,
+      "path": "var/data/published/gcu/v2",
+      "version": 2,
+      "created_at": "2026-10-09T10:58:27.28051+00:00",
+      "is_current": false,
+      "building_id": 1
+    },
+    {
+      "id": 3,
+      "path": "var/data/published/gcu/v3",
+      "version": 3,
+      "created_at": "2026-10-09T11:04:56.167286+00:00",
+      "is_current": false,
+      "building_id": 1
+    },
+    {
+      "id": 4,
+      "path": "var/data/published/gcu/v4",
+      "version": 4,
+      "created_at": "2026-10-09T11:08:42.398986+00:00",
+      "is_current": false,
+      "building_id": 1
+    },
+    {
+      "id": 5,
+      "path": "var/data/published/gcu/v5",
+      "version": 5,
+      "created_at": "2026-10-09T11:14:16.510414+00:00",
+      "is_current": true,
+      "building_id": 1
+    }
+  ],
+  "data_api_config": [
+    {
+      "setting": [
+        "session_preload_libraries=supautils, safeupdate",
+        "statement_timeout=8s",
+        "lock_timeout=8s"
+      ]
+    }
+  ]
+}

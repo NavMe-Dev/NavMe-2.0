@@ -1,0 +1,12 @@
+[
+  {
+    "version": 1,
+    "status": 400,
+    "sample": "{\"statusCode\":\"404\",\"error\":\"not_found\",\"message\":\"Object not found\",\"code\":\"NoSuchKey\"}"
+  },
+  {
+    "version": 2,
+    "status": 400,
+    "sample": "{\"statusCode\":\"404\",\"error\":\"not_found\",\"message\":\"Object not found\",\"code\":\"NoSuchKey\"}"
+  }
+]

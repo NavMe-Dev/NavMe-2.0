@@ -1,0 +1,541 @@
+{
+  "recorded_at": "2026-11-13T11:50:29.457Z",
+  "base_url": "https://wayfinding.navme.space",
+  "browser_version": "124.0.6367.119",
+  "scope": "Read-only live baseline; no production mutations",
+  "summary": {
+    "executed": 32,
+    "passed": 17,
+    "failed": 15,
+    "blocked": [
+      "venue/building/floor/POI interaction",
+      "search and routing",
+      "admin authentication and authorization",
+      "real data rendering timings"
+    ]
+  },
+  "api": [
+    {
+      "name": "backend health",
+      "path": "/api/health",
+      "status": 500,
+      "expected": 200,
+      "elapsedMs": 310.11745800000006,
+      "validJson": false,
+      "check": {
+        "name": "backend health",
+        "status": "FAIL",
+        "detail": "HTTP 500"
+      }
+    },
+    {
+      "name": "published venue manifest",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 500,
+      "expected": 200,
+      "elapsedMs": 261.00708299999997,
+      "validJson": false,
+      "check": {
+        "name": "published venue manifest",
+        "status": "FAIL",
+        "detail": "HTTP 500"
+      }
+    },
+    {
+      "name": "missing venue",
+      "path": "/api/v1/public/venues/navme-qa-nonexistent/manifest.json",
+      "status": 500,
+      "expected": 404,
+      "elapsedMs": 258.46783300000004,
+      "validJson": false,
+      "check": {
+        "name": "missing venue",
+        "status": "FAIL",
+        "detail": "HTTP 500"
+      }
+    },
+    {
+      "name": "admin HTML",
+      "path": "/admin/",
+      "status": 200,
+      "expected": 200,
+      "elapsedMs": 243.3170419999999,
+      "validJson": false,
+      "check": {
+        "name": "admin HTML",
+        "status": "PASS",
+        "detail": "HTTP 200"
+      }
+    }
+  ],
+  "devices": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "public HTML",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "name": "no horizontal overflow",
+          "status": "PASS",
+          "detail": "1440px document / 1440px viewport"
+        },
+        {
+          "name": "ArcGIS loader available",
+          "status": "PASS",
+          "detail": "Loader availability alone does not establish map rendering"
+        },
+        {
+          "name": "map and application initialized",
+          "status": "FAIL",
+          "detail": "ready=false, canvas=0, UI=true"
+        },
+        {
+          "name": "human-readable startup error",
+          "status": "FAIL",
+          "detail": "Startup failure shown"
+        },
+        {
+          "name": "retry control present",
+          "status": "PASS",
+          "detail": "1 visible retry button(s)"
+        },
+        {
+          "name": "retry recovers map",
+          "status": "FAIL",
+          "detail": "failure persists after reload"
+        }
+      ],
+      "performance": {
+        "domContentLoadedMs": 2563.7000000001863,
+        "loadEventMs": 4937.799999999814,
+        "responseEndMs": 292
+      },
+      "resource_timings": [
+        {
+          "path": "https://js.arcgis.com/4.34/",
+          "durationMs": 109.29999999981374,
+          "transferSize": 0
+        },
+        {
+          "path": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "durationMs": 255,
+          "transferSize": 325
+        }
+      ],
+      "retry_button_bounds": [
+        {
+          "width": 71.828125,
+          "height": 21,
+          "x": 684.078125,
+          "y": 498.90625
+        }
+      ],
+      "map_ready": false,
+      "map_canvas_count": 0,
+      "floor_button_count": 0,
+      "sdk_loader_available": true,
+      "console_unique": [
+        "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+        "Allow attribute will take precedence over 'allowfullscreen'.",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 500 ()",
+        "Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]",
+        "[wf] required data failed Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]"
+      ],
+      "failed_requests": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "responses": [
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        }
+      ]
+    },
+    {
+      "name": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "checks": [
+        {
+          "name": "public HTML",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "name": "no horizontal overflow",
+          "status": "PASS",
+          "detail": "768px document / 768px viewport"
+        },
+        {
+          "name": "ArcGIS loader available",
+          "status": "PASS",
+          "detail": "Loader availability alone does not establish map rendering"
+        },
+        {
+          "name": "map and application initialized",
+          "status": "FAIL",
+          "detail": "ready=false, canvas=0, UI=true"
+        },
+        {
+          "name": "human-readable startup error",
+          "status": "FAIL",
+          "detail": "Startup failure shown"
+        },
+        {
+          "name": "retry control present",
+          "status": "PASS",
+          "detail": "1 visible retry button(s)"
+        },
+        {
+          "name": "retry recovers map",
+          "status": "FAIL",
+          "detail": "failure persists after reload"
+        }
+      ],
+      "performance": {
+        "domContentLoadedMs": 3004.0999999996275,
+        "loadEventMs": 3244.2999999998137,
+        "responseEndMs": 256
+      },
+      "resource_timings": [
+        {
+          "path": "https://js.arcgis.com/4.34/",
+          "durationMs": 115.5,
+          "transferSize": 0
+        },
+        {
+          "path": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "durationMs": 227.1000000005588,
+          "transferSize": 325
+        }
+      ],
+      "retry_button_bounds": [
+        {
+          "width": 71.828125,
+          "height": 21,
+          "x": 348.078125,
+          "y": 560.90625
+        }
+      ],
+      "map_ready": false,
+      "map_canvas_count": 0,
+      "floor_button_count": 0,
+      "sdk_loader_available": true,
+      "console_unique": [
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+        "Allow attribute will take precedence over 'allowfullscreen'.",
+        "Failed to load resource: the server responded with a status of 500 ()",
+        "Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]",
+        "[wf] required data failed Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]"
+      ],
+      "failed_requests": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "responses": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        }
+      ]
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        {
+          "name": "public HTML",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "name": "no horizontal overflow",
+          "status": "PASS",
+          "detail": "390px document / 390px viewport"
+        },
+        {
+          "name": "ArcGIS loader available",
+          "status": "PASS",
+          "detail": "Loader availability alone does not establish map rendering"
+        },
+        {
+          "name": "map and application initialized",
+          "status": "FAIL",
+          "detail": "ready=false, canvas=0, UI=true"
+        },
+        {
+          "name": "human-readable startup error",
+          "status": "FAIL",
+          "detail": "Startup failure shown"
+        },
+        {
+          "name": "retry control present",
+          "status": "PASS",
+          "detail": "1 visible retry button(s)"
+        },
+        {
+          "name": "retry recovers map",
+          "status": "FAIL",
+          "detail": "failure persists after reload"
+        }
+      ],
+      "performance": {
+        "domContentLoadedMs": 2494.7999999998137,
+        "loadEventMs": 2717.7000000001863,
+        "responseEndMs": 252.59999999962747
+      },
+      "resource_timings": [
+        {
+          "path": "https://js.arcgis.com/4.34/",
+          "durationMs": 105.20000000018626,
+          "transferSize": 0
+        },
+        {
+          "path": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "durationMs": 261.80000000074506,
+          "transferSize": 325
+        }
+      ],
+      "retry_button_bounds": [
+        {
+          "width": 71.828125,
+          "height": 21,
+          "x": 159.078125,
+          "y": 470.90625
+        }
+      ],
+      "map_ready": false,
+      "map_canvas_count": 0,
+      "floor_button_count": 0,
+      "sdk_loader_available": true,
+      "console_unique": [
+        "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+        "Allow attribute will take precedence over 'allowfullscreen'.",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 500 ()",
+        "Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]",
+        "[wf] required data failed Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]"
+      ],
+      "failed_requests": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "responses": [
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        }
+      ]
+    },
+    {
+      "name": "small-mobile",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "checks": [
+        {
+          "name": "public HTML",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "name": "no horizontal overflow",
+          "status": "PASS",
+          "detail": "360px document / 360px viewport"
+        },
+        {
+          "name": "ArcGIS loader available",
+          "status": "PASS",
+          "detail": "Loader availability alone does not establish map rendering"
+        },
+        {
+          "name": "map and application initialized",
+          "status": "FAIL",
+          "detail": "ready=false, canvas=0, UI=true"
+        },
+        {
+          "name": "human-readable startup error",
+          "status": "FAIL",
+          "detail": "Startup failure shown"
+        },
+        {
+          "name": "retry control present",
+          "status": "PASS",
+          "detail": "1 visible retry button(s)"
+        },
+        {
+          "name": "retry recovers map",
+          "status": "FAIL",
+          "detail": "failure persists after reload"
+        }
+      ],
+      "performance": {
+        "domContentLoadedMs": 2474.7999999998137,
+        "loadEventMs": 2705.699999999255,
+        "responseEndMs": 274.8999999994412
+      },
+      "resource_timings": [
+        {
+          "path": "https://js.arcgis.com/4.34/",
+          "durationMs": 229.79999999981374,
+          "transferSize": 0
+        },
+        {
+          "path": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "durationMs": 228.5,
+          "transferSize": 325
+        }
+      ],
+      "retry_button_bounds": [
+        {
+          "width": 71.828125,
+          "height": 21,
+          "x": 144.078125,
+          "y": 448.90625
+        }
+      ],
+      "map_ready": false,
+      "map_canvas_count": 0,
+      "floor_button_count": 0,
+      "sdk_loader_available": true,
+      "console_unique": [
+        "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details.",
+        "Allow attribute will take precedence over 'allowfullscreen'.",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 500 ()",
+        "Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]",
+        "[wf] required data failed Error: 500 /api/v1/public/venues/all/manifest.json\n    at https://wayfinding.navme.space/wf-boot.js?[redacted]\n    at async https://wayfinding.navme.space/wf-boot.js?[redacted]"
+      ],
+      "failed_requests": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "responses": [
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/",
+          "status": 301
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/api/v1/public/venues/all/manifest.json",
+          "status": 500
+        }
+      ]
+    }
+  ]
+}

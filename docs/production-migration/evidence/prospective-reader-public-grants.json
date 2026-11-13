@@ -1,0 +1,36 @@
+{
+  "schema_public_grants": [
+    {
+      "nspname": "public",
+      "privilege_type": "USAGE"
+    }
+  ],
+  "relation_public_grants": [
+    {
+      "nspname": "extensions",
+      "relname": "pg_stat_statements",
+      "privilege_type": "SELECT"
+    },
+    {
+      "nspname": "extensions",
+      "relname": "pg_stat_statements_info",
+      "privilege_type": "SELECT"
+    },
+    {
+      "nspname": "public",
+      "relname": "geography_columns",
+      "privilege_type": "SELECT"
+    },
+    {
+      "nspname": "public",
+      "relname": "geometry_columns",
+      "privilege_type": "SELECT"
+    },
+    {
+      "nspname": "public",
+      "relname": "spatial_ref_sys",
+      "privilege_type": "SELECT"
+    }
+  ],
+  "production_writes": false
+}

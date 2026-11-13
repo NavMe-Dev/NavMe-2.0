@@ -1,0 +1,6 @@
+{
+  "actual_startup_readiness_exit": 0,
+  "stdout": "Database startup readiness passed",
+  "stderr_lines": 0,
+  "production_writes": false
+}
