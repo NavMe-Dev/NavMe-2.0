@@ -1,4 +1,6 @@
-# Release report — recovery verified; production push blocked
+# Release report — local walkthrough fixed; production push blocked
+
+**Local recovery update, 2026-11-13:** The screenshot's exact `/gcu-omr` failure is fixed locally. Matterport rejected `127.0.0.1` with `KeyReferrerMismatchError`, while the same key/model worked on `localhost`. Browser entry pages now redirect IP loopback addresses to localhost, preserving the complete path/query. The original link renders the real walkthrough on desktop and mobile; the platform admin also loads. Search and a real 22.5 m route pass. A separate ArcGIS camera call in Matterport category/floor controls was fixed; the final replay has no page errors. **197 platform tests passed, 2 skipped**, including 15 origin regressions; three camera regression cases also pass. The read-only GCU v5 Matterport preview works separately. See [local walkthrough recovery](17-local-walkthrough-recovery.md). This is separate from public Render deployment, which remains blocked below. Deploy the current reviewed recovery branch, including these fixes, rather than only the original `616b4a9` commit.
 
 Updated 2026-11-13, Asia/Kolkata, after explicit autonomous **GO-LIVE** authorization. **The requested platform is not yet recovered live.** The tested public read-only recovery is local commit **`616b4a9`**. GitHub rejects the production push with **HTTP 403: account `AdhamNG` cannot write to `NavMe-Dev/NavMe-2.0`**. HTTPS and SSH identify the same account; retries after the user's “Ready” replies still failed. No additional go-live approval is required, but repository access must work. GitHub API inspection confirms `pull=true`, `push=false` and no pending matching repository invitation.
 
@@ -29,7 +31,7 @@ Independent suites/proofs are listed separately; repeated subsets are not added 
 
 | Validation | Result | Scope |
 |---|---|---|
-| Platform pytest | **182 passed, 2 skipped** | Local suite, including privacy/startup regressions |
+| Platform pytest | **197 passed, 2 skipped** | Local suite, including privacy/startup and 15 local-origin regressions |
 | Reader authorization suite | **10 passed** | Real isolated PG18 synthetic fixtures; SCRAM/denied writes |
 | Exact PG17 reader/template rehearsal | **PASS** | Restored destination; frozen records/sequences preserved |
 | Destination full restore | **130/130 table digests + metadata PASS** | Isolated matching PG17 |

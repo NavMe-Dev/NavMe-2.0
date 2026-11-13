@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-11-13T14:57:49.049Z",
+  "scope": "Refreshed local Matterport category/floor verification after ArcGIS-only camera guard",
+  "pageErrors": [],
+  "blockedMutations": [],
+  "checks": [
+    {
+      "name": "visible category filter",
+      "status": "PASS",
+      "detail": {
+        "filter": "cafeteria",
+        "items": 9,
+        "expected": 9
+      }
+    },
+    {
+      "name": "visible category floor selection",
+      "status": "PASS",
+      "detail": {
+        "floor": "F3",
+        "selected": "F3",
+        "items": 11
+      }
+    },
+    {
+      "name": "no page errors after category/floor actions",
+      "status": "PASS"
+    }
+  ],
+  "finalUrl": "http://localhost:8780/gcu-omr",
+  "summary": {
+    "executed": 3,
+    "passed": 3,
+    "failed": 0
+  }
+}

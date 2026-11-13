@@ -1,0 +1,55 @@
+{
+  "recordedAt": "2026-11-13T14:54:28.353Z",
+  "scope": "Local GCU Matterport alias controls and admin login UI; no data submissions",
+  "checks": [
+    {
+      "name": "visible category floor selector",
+      "status": "PASS",
+      "detail": {
+        "floor": "F3",
+        "selected": "F3",
+        "visibleItems": 11
+      }
+    },
+    {
+      "name": "search selects authentic local POI",
+      "status": "PASS",
+      "detail": {
+        "id": "5077b25c-edd1-4489-a9be-af4fcf90a828",
+        "floor": "F1"
+      }
+    },
+    {
+      "name": "authentic route through visible directions inputs",
+      "status": "PASS",
+      "detail": {
+        "from": "d327f9ab-4178-4834-9306-830064a2ac6b",
+        "to": "5077b25c-edd1-4489-a9be-af4fcf90a828",
+        "source": "navmesh",
+        "nodes": 2,
+        "instructions": 2,
+        "totalM": 22.5
+      }
+    },
+    {
+      "name": "original admin URL redirects to localhost login",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "url": "http://localhost:8780/admin/",
+        "passwordInputPresent": true
+      }
+    }
+  ],
+  "pageErrors": [
+    "(intermediate value).expand is not a function",
+    "(intermediate value).expand is not a function"
+  ],
+  "blockedMutations": [],
+  "finalUrl": "http://localhost:8780/gcu-omr",
+  "summary": {
+    "executed": 4,
+    "passed": 4,
+    "failed": 0
+  }
+}

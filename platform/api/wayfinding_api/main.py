@@ -7,7 +7,7 @@ import threading
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 from . import __version__
@@ -57,6 +57,18 @@ def create_app() -> FastAPI:
 
     @app.middleware("http")
     async def _dbg_http_middleware(request, call_next):
+        # The configured Matterport SDK key accepts localhost, but rejects IP
+        # loopback referrers. Keep local browser entry points on that origin so
+        # an otherwise healthy walkthrough does not fail SDK authentication.
+        # API requests, assets and deployed domains retain their original URLs.
+        viewer_pages = {"/", "/index.html", "/gcu-omr", "/gcu-omr/", "/walkthrough.html", "/localize.html"}
+        admin_pages = {"/admin", "/admin/", "/admin/index.html"}
+        local_page = ((s.viewer_dir and request.url.path in viewer_pages)
+                      or (s.admin_dir and request.url.path in admin_pages))
+        if (request.method in {"GET", "HEAD"} and local_page
+                and request.url.hostname in {"127.0.0.1", "::1"}):
+            return RedirectResponse(str(request.url.replace(hostname="localhost")), status_code=307,
+                                    headers={"Cache-Control": "no-store"})
         if s.wf_read_only and request.method not in {"GET", "HEAD", "OPTIONS"}:
             # Query POSTs are retained for routing; every mutation is rejected
             # before dependencies run, including feedback that writes via REST

@@ -1317,7 +1317,9 @@ function wfDbg(level, source, message, meta) {
     fitLonLat(cs, isDesk() ? 1.35 : 1.0, instant);
   }
   function fitLonLat(pts, expand, instant) {
-    if (!pts.length) return;
+    // Matterport owns its camera; the lightweight MP adapter has no ArcGIS
+    // Extent operations. Category/floor changes must not invoke those APIs.
+    if (!pts.length || isMpMode()) return;
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     let dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys); const pad = 0.00012;
     const ext = { xmin: Math.min(...xs) - pad, xmax: Math.max(...xs) + pad, ymin: Math.min(...ys) - pad, ymax: Math.max(...ys) + pad, spatialReference: { wkid: 4326 } };

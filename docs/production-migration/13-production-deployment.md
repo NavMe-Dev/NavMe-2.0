@@ -12,7 +12,7 @@ Updated 2026-11-13, Asia/Kolkata, following the user's explicit **“GO-LIVE, ta
 | Repository / branch | `NavMe-Dev/NavMe-2.0` / main, auto-deploy enabled |
 | Existing remote commit | `78e309de5938b46d50f9fd38763d9ea70a209405` |
 | Previous retained live deployment | `dep-dbgre2h42hec73drki50` |
-| Reviewed recovery commit, local only | `616b4a9` on `codex/supabase-readonly-recovery` |
+| Reviewed recovery branch, local only | `codex/supabase-readonly-recovery`, initial code `616b4a9` plus reviewed evidence and local walkthrough fixes |
 | Destination | Existing Supabase `kzpvhzyefdtrtidrbuxb` |
 | Initial recovery scope | Existing GCU v5, public read-only |
 
@@ -39,6 +39,6 @@ The actual reader powers the isolated shadow API: **22 API, 24 privacy/guard and
 5. Require health/manifest 200, GCU v5 and `read_only=true`; repeat 52 real-browser checks and 18 GET-only privacy checks on the actual domain. Never run production mutation probes or publishing scripts.
 6. Record the actual deployment ID, commit and screenshots. Only successful actual-domain acceptance establishes public read-only LIVE. Editing/publishing/feedback and full legacy-security remediation remain distinct unresolved work.
 
-After repository access is corrected, the owner can publish this already reviewed commit from the workspace with `git push origin 616b4a9:main`. No force push is authorized. Repository access has no reliable ETA; a successful subsequent build/configuration activation and production acceptance may take approximately **10–20 minutes**.
+After repository access is corrected, publish the current reviewed HEAD from `codex/supabase-readonly-recovery` using `git push origin HEAD:main`, so the later [local walkthrough fixes](17-local-walkthrough-recovery.md) are included. Confirm the branch and remote revision first; no force push is authorized. Repository access has no reliable ETA; a successful subsequent build/configuration activation and production acceptance may take approximately **10–20 minutes**.
 
 References: [Render deployments](https://render.com/docs/deploys), [health checks](https://render.com/docs/health-checks), [environment variables](https://render.com/docs/configure-environment-variables), [official MCP environment update](https://github.com/render-oss/render-mcp-server/blob/main/pkg/service/tools.go).
