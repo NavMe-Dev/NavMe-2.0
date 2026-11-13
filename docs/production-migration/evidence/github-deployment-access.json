@@ -18,5 +18,11 @@
   "retry_after_user_access_ready_succeeded": false,
   "credentials_saved": false,
   "reader_database_url_activated_on_render": false,
-  "reason": "GitHub repository authorization denies writes for the effective local identity. No bypass or force push attempted."
+  "reason": "GitHub repository authorization denies writes for the effective local identity. No bypass or force push attempted.",
+  "latest_reviewed_runtime_commit": "49eefbc1410fb9f4cd32a3ea2fe1569812b23ede",
+  "latest_push_recorded_at": "2026-11-13T15:01:49.372204+00:00",
+  "latest_https_push_succeeded": false,
+  "latest_https_error_status": 403,
+  "latest_error_account": "AdhamNG",
+  "public_recovery_deployed": false
 }
