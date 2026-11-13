@@ -1,0 +1,22 @@
+{
+  "recorded_date": "2026-11-13",
+  "repository": "NavMe-Dev/NavMe-2.0",
+  "local_reviewed_code_commit": "616b4a960216cd0e500c5dd113480d1f3059eec9",
+  "authenticated_account": "AdhamNG",
+  "https_push_succeeded": false,
+  "https_error_status": 403,
+  "ssh_push_succeeded": false,
+  "repository_api_status": 200,
+  "repository_permissions": {
+    "admin": false,
+    "maintain": false,
+    "push": false,
+    "triage": false,
+    "pull": true
+  },
+  "matching_pending_repository_invitations": 0,
+  "retry_after_user_access_ready_succeeded": false,
+  "credentials_saved": false,
+  "reader_database_url_activated_on_render": false,
+  "reason": "GitHub repository authorization denies writes for the effective local identity. No bypass or force push attempted."
+}

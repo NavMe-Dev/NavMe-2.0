@@ -1,5 +1,7 @@
 # Functional test report
 
+**Latest production status: NOT CUT OVER / HOLD.** A fresh four-request GET baseline at 19:54 IST on 13 November 2026 confirmed homepage 200, `/api/health` 500, venue manifest 500, and runtime config 200 without the new read-only flag. The local release commit `616b4a960216cd0e500c5dd113480d1f3059eec9` is recorded as local context, not as a deployed commit; repository write permission is still unavailable. No full acceptance suite was run against the unchanged broken production deployment. [Final live status and commit context](evidence/browser/production-gcu-v5/final-live-status.json).
+
 **Latest GCU v5 preflight: 52/52 real-data viewer checks pass against the verified read-only destination shadow.** Production verification must repeat against the deployed public URL. The earlier 15 live failures below remain historical outage evidence and have not been relabeled as passes.
 
 ## Latest real-data viewer acceptance

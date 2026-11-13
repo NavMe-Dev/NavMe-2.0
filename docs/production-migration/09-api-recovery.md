@@ -10,7 +10,10 @@ The production request is:
 
 Live Render runtime logs on November 13 show psycopg failing to resolve hostname **`dpg-db32uq3ncjis73e9k3q0-a`**, the expired Render source database. The running service still attempts its old source connection. This is direct evidence of a backend database connectivity failure; an initialized ArcGIS SDK does not resolve it.
 
-Production remains on HOLD. No environment-variable change or deployment was applied to disguise this error, and no missing venue/publication records were fabricated.
+Production cutover remains on HOLD. Non-secret recovery flags were prepared
+on Render, but neither the new application code nor the working reader
+database URL has been activated. No missing venue/publication record was
+fabricated and no source record was merged into production.
 
 ## Request and data dependency chain
 
@@ -31,7 +34,13 @@ The root database failure occurs before usable published venue data can be produ
 - Existing manifest fields and published building identity are preserved when the data is available. Unknown named venues remain HTTP 404. Unpublished buildings remain excluded by the existing publication rule.
 - `/api/health` checks PostGIS and the application tables; `/api/live` independently checks process liveness.
 
-These are recovery/error-reporting changes in the working tree, **not a production data recovery or deployed connectivity fix**.
+These recovery/error-reporting changes are in local commit
+`616b4a960216cd0e500c5dd113480d1f3059eec9`, **not a deployed connectivity fix**.
+GitHub rejected the push with HTTP 403 for the current account. The reviewed
+code cannot reach the existing Render deployment until repository write
+access is restored. The database reader has independently passed all native
+and shadow connection checks; its URL intentionally remains unactivated on
+Render until the new mutation-gated code is available.
 
 ## Actual unchanged-destination shadow verification
 
@@ -75,14 +84,18 @@ The recovery tests cover installed-driver URL selection, TLS override, pool/time
 
 Latest full local platform result: **182 passed, 2 skipped**, including 41 recovery/resilience tests and 10 startup readiness tests; log: `evidence/platform-pytest.txt`. A pre-existing E57 regression initially failed because the documented NumPy fallback was blocked by a mandatory Open3D check. The fallback guard was repaired and the existing real fixture test explicitly exercises it without Open3D. Optional `pye57 0.4.19` was installed in the local venv; no Open3D installation or production dependency change occurred.
 
-## Acceptance still required
+## Remaining acceptance and access gates
 
-- Verified destination backup and restoration to an isolated environment.
-- Reviewed reconciliation of authentic local/recoverable Render data with the occupied destination, including business identity, foreign keys, and publication assets.
-- Successful staging connection from the backend environment with the intended least-privilege role; a separate exact-project read-only database connection has now been verified.
-- Follow the authorized initial read-only recovery scope in `16-initial-recovery-scope.md`; source-data merge and writable/shared-application security changes remain separately gated.
+- Authorized GitHub write access so the reviewed local commit can reach the existing Render service.
+- Activate only the independently credentialed reader URL with the reviewed new code, then verify the Render process's startup/read-only state.
+- Follow the authorized initial read-only recovery scope in `16-read-only-recovery-decision.md`; unknown source records remain quarantined and writable/shared-application security changes remain separately gated.
 - Live HTTP 200 with valid `wayfinding.venue/v1` JSON and the expected published buildings/floors.
 - Correct POIs, graph, asset references, and public/private boundaries under the selected publication versions.
 - Browser desktop/mobile rendering, search, routes, multi-floor behavior, and administrative authorization.
+
+The complete destination backup/restore rehearsal, record preservation,
+matching PG17 reader-role tests, actual native reader connection, local
+startup gate, 22 API checks, and 24 privacy checks have passed. They must not
+be presented as successful live-domain deployment or browser verification.
 
 An HTTP 503 response is a truthful outage signal. It is not a passing manifest release gate.

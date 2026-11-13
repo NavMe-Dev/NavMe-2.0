@@ -80,7 +80,7 @@ These are real PostgreSQL role checks, not live Supabase Auth/HTTP or complete d
 ## Required next security gates
 
 The later, explicitly chosen initial public recovery scope is documented in
-`16-initial-recovery-scope.md`. It uses existing destination GCU v5 unchanged,
+`16-read-only-recovery-decision.md`. It uses existing destination GCU v5 unchanged,
 with no source-data merge and no editing/publishing. The original writable
 project-wide security findings remain open; they are not represented as fixed
 by a scoped reader role.

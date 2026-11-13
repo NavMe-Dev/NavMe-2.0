@@ -1,0 +1,58 @@
+{
+  "recorded_at_utc": "2026-11-13T14:24:21.934649+00:00",
+  "base_url": "https://wayfinding.navme.space",
+  "scope": "Four fresh read-only production baseline GETs; no full browser acceptance and no mutation requests",
+  "bodies_saved": false,
+  "credentials_saved": false,
+  "cutover_confirmed": false,
+  "new_deployment_confirmed": false,
+  "production_commit": null,
+  "local_commit": "616b4a960216cd0e500c5dd113480d1f3059eec9",
+  "local_branch": "codex/supabase-readonly-recovery",
+  "deployment_context": "Root reports HTTPS and SSH repository push rejected with HTTP 403/write permission denied; local release code has not reached remote/Render. No production cutover is claimed.",
+  "shadow_acceptance": {
+    "executed": 52,
+    "passed": 52,
+    "failed": 0,
+    "evidence": "../shadow-gcu-v5/acceptance.json"
+  },
+  "checks": [
+    {
+      "name": "homepage",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "elapsed_ms": 454.86
+    },
+    {
+      "name": "backend_health",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 500,
+      "content_type": "text/plain; charset=utf-8",
+      "valid_json": false,
+      "elapsed_ms": 350.76
+    },
+    {
+      "name": "venue_manifest",
+      "method": "GET",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 500,
+      "content_type": "text/plain; charset=utf-8",
+      "valid_json": false,
+      "elapsed_ms": 266.7
+    },
+    {
+      "name": "public_runtime_flags",
+      "method": "GET",
+      "path": "/api/v1/public/config",
+      "status": 200,
+      "content_type": "application/json",
+      "valid_json": true,
+      "read_only_flag_present": false,
+      "read_only": null,
+      "elapsed_ms": 256.8
+    }
+  ]
+}

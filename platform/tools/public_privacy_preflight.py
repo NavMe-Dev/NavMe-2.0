@@ -87,6 +87,8 @@ def main():
     parser.add_argument('--base', default='http://127.0.0.1:8782')
     parser.add_argument('--output', type=Path, default=Path('platform/var/production-migration/browser/shadow-gcu-v5-metal/privacy-preflight.json'))
     parser.add_argument('--probe-read-only-guard', action='store_true')
+    parser.add_argument('--expect-read-only', action='store_true',
+                        help='Require the public runtime read_only flag, using GET requests only')
     args = parser.parse_args()
     base = args.base.rstrip('/')
     if args.probe_read_only_guard and urllib.parse.urlparse(base).hostname not in ('127.0.0.1', 'localhost', '::1'):
@@ -116,8 +118,8 @@ def main():
         problems = findings(value)
         if endpoint == '/api/v1/public/config':
             guard_confirmed = status == 200 and isinstance(value, dict) and value.get('read_only') is True
-            if args.probe_read_only_guard and not guard_confirmed:
-                problems.append({'issue': 'read-only mode must be explicitly confirmed before mutation-method probes'})
+            if (args.probe_read_only_guard or args.expect_read_only) and not guard_confirmed:
+                problems.append({'issue': 'expected read-only release mode is not active'})
         if endpoint.endswith('/navme-pois') and isinstance(value, list):
             allowed = {'id', 'name', 'floor', 'category', 'x', 'y', 'z', 'expected_pos_x', 'expected_pos_y', 'expected_pos_z'}
             if any(set(row) - allowed for row in value):

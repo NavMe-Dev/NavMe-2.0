@@ -1,0 +1,37 @@
+{
+  "reviewed_commit": "616b4a960216cd0e500c5dd113480d1f3059eec9",
+  "runtime_blockers": [],
+  "checks": {
+    "docker_python_312_compatible": true,
+    "readiness_module_in_existing_package_copy": true,
+    "new_external_runtime_dependencies_required": false,
+    "read_only_skips_workers_and_rejects_automatic_migrations": true,
+    "tcp_listener_follows_database_readiness": true,
+    "pooler_session_limits_and_readonly_explicitly_verified": true,
+    "reviewed_env_database_url_authoritative_over_overlay": true,
+    "actual_reader_tls_identity_and_privileges_pass": true,
+    "actual_reader_api_checks": "22/22",
+    "actual_reader_privacy_checks": "24/24"
+  },
+  "required_activation_flags": {
+    "WF_READ_ONLY": "true",
+    "DB_READ_ONLY": "true",
+    "WORKER_INLINE": "false",
+    "RUN_MIGRATIONS": "false",
+    "DB_STARTUP_CHECK": "true",
+    "DB_SSLMODE": "require"
+  },
+  "production_state_at_review": {
+    "reader_provisioned": true,
+    "reader_url_activated_on_render": false,
+    "new_code_pushed": false,
+    "source_data_dml": 0
+  },
+  "external_deployment_blocker": "GitHub push rejected with HTTP403 for current account; new runtime commit is local only",
+  "non_runtime_documentation_notes": [],
+  "credential_values_included": false,
+  "documentation_corrections_applied": [
+    "Decision-report references updated to16-read-only-recovery-decision.md",
+    "Environment example now includes required read-only/startup flags and WORKER_INLINE=false"
+  ]
+}

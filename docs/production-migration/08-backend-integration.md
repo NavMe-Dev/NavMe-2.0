@@ -28,7 +28,13 @@ The API health endpoint now checks connectivity, PostGIS, and required applicati
 
 ## Recovery environment change set — execution gates remain
 
-No production environment variable was changed. Later in this recovery session, a user-supplied database credential was verified for the exact project's session-pooler connection on port 5432, with client TLS, a read-only transaction, PostgreSQL 17.11, and Alembic revision `0001`. Direct-host DNS was unavailable from this environment. Credentials remain in a restricted local secret file and are never copied into these reports. The running Render backend has not been switched to that connection.
+A user-supplied database credential was verified for the exact project's
+session pooler on port 5432, with client TLS, a read-only transaction,
+PostgreSQL 17.11, and Alembic revision `0001`. Direct-host DNS was unavailable
+from this environment. Credentials remain in restricted local files and are
+never copied into these reports. The non-secret recovery flags were later
+merged into the existing Render configuration, but **the running service has
+not been switched to the reader database URL or the new application code**.
 
 After matching-clone recovery and role verification, an independent production
 reader login was provisioned and verified. The final local shadow uses that
@@ -37,7 +43,10 @@ membership, timeout, and effective privilege checks passed. Activation of that
 credential on Render is a separate reviewed deployment step. No owner
 credential should be used for the recovered public service.
 
-Use the verified **session pooler on port 5432**, subject to staging validation from the actual backend environment, or a verified direct connection if Render networking supports it. The current synchronous SQLAlchemy/psycopg session model is not approved for transaction-pooler cutover without separate validation. Validate libpq startup options and the intended least-privilege backend role with the selected endpoint in staging; successful read-only backup access is a different check.
+Use the verified **session pooler on port 5432**. The actual independent reader
+has passed native and local-shadow tests through this endpoint. Validation
+from the deployed Render process remains necessary after activation. The
+transaction pooler on port 6543 is outside the reviewed configuration.
 
 | Variable | Proposed value / requirement |
 |---|---|
@@ -83,7 +92,27 @@ the gate. The actual read-only startup probe passed; see
 
 `platform/.venv/bin/pytest -q platform/tests` completed with **182 passed, 2 skipped** on the isolated, local `wayfinding_test` database. The integration test harness now refuses nonlocal targets and database names without `_test`, before the existing table-rebuild fixture runs. The dedicated recovery/resilience suite contributes 41 passing tests plus 10 startup readiness tests. See `evidence/platform-pytest.txt`.
 
-No production connectivity switch, destination merge, authentication mutation, migration execution, or deployment occurred at this preparation stage. The later GO-LIVE authorization and precise initial scope are recorded in `16-initial-recovery-scope.md`; they do not waive verification. Destination restoration, the intended reader role on the matching clone, scoped functional acceptance, and a reviewed deployment remain execution gates. Unknown source records remain quarantined, with zero source-data DML proposed for initial recovery. See `03-supabase-inventory.md` for current backup/restoration status.
+The complete destination restoration and matching PG17 role tests passed.
+Production reader provisioning and native verification also passed; the
+actual-reader shadow passed 22 API checks and 24 privacy/authorization checks.
+These are not Render deployment results.
+
+The reviewed runtime commit is
+`616b4a960216cd0e500c5dd113480d1f3059eec9`, still local. GitHub rejected the
+push to `NavMe-Dev/NavMe-2.0` with HTTP 403 for the current `AdhamNG` account.
+The new code is therefore unavailable to Render, and the reader URL remains
+unactivated there. This access failure is the current cutover blocker, not a
+failed database connection or missing implementation. An authorized repository
+write connection is required to publish the reviewed commit. The safe order
+remains new code first, then reader-URL activation and deployment of that exact
+commit; old code must not receive the working reader URL because it lacks the
+application mutation gate.
+
+The GO-LIVE authorization and chosen scope are recorded in
+`16-read-only-recovery-decision.md`. Unknown source records remain quarantined,
+with zero source-data DML for initial recovery. Live domain/API/browser
+verification remains pending cutover. See `03-supabase-inventory.md` and
+`evidence/final-runtime-review.json` for the recovery and runtime evidence.
 
 ## References
 

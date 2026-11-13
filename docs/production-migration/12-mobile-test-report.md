@@ -1,5 +1,7 @@
 # Mobile test report
 
+**Latest live mobile release status: HOLD; production has not been cut over.** The 19:54 IST production baseline on 13 November 2026 still returned health/manifest HTTP 500. The release code remains local because repository write access is unavailable. The passing viewport results below are authentic shadow results, not production results; the full mobile suite was not rerun against the unchanged broken service. [Final live status](evidence/browser/production-gcu-v5/final-live-status.json).
+
 **Latest mobile preflight: PASS for the read-only GCU v5 shadow on all required viewports. Production and physical-device verification remain separate.** A current isolated Chromium 158 runtime with native Metal rendering removed the earlier browser limitation. Each viewport passed 13 real-data viewer assertions, for 52/52 overall.
 
 | Viewport | Map/data identity | Category/floor controls | Search/place details | Routes/navigation | Horizontal fit | Refresh |

@@ -52,6 +52,12 @@ security findings; a reader role does not resolve those application consumers.
    actual public/editing/security state separately. Never call the complete
    release PASS based solely on a working public map.
 
-At creation of this decision record, **no production role, policy, environment
-variable, source branch push or deployment has been changed**. Later execution
-must be recorded with its identifiers and integrity evidence.
+## Execution update
+
+The matching PG17 full restore, exact reader-role rehearsal and actual-reader shadow acceptance passed: all 130 original table fingerprints and metadata match. The shadow API passed 22 checks, privacy/guard passed 24 checks and four-viewport browser acceptance passed 52 checks.
+
+Production migration `20261113135823`, `wayfinding_public_reader_recovery`, added the reader group/grants and ten SELECT-only policies. Independent SCRAM login `navme_wayfinding_live_v1` was provisioned and verified. Every original record across 130 tables remains unchanged; exactly one expected migration-history row was added. Legacy grants and RLS flags remain intact.
+
+Six Render recovery flags were merged. The environment connector automatically triggered `dep-dbrhjhgu01pc73b9cdig` against unchanged old code; it failed and retained the previous live release. The reader database URL has **not** been activated on Render.
+
+The reviewed code is local commit `616b4a9`. GitHub rejected HTTPS/SSH pushes because saved account `AdhamNG` lacks repository write access. Its API confirms `pull=true`, `push=false` and no pending matching invitation. Retries after the user's access-ready messages still failed. Production code deployment and actual-domain acceptance remain pending authorized repository authentication; no additional go-live approval is required. See [deployment status](13-production-deployment.md) and [release report](15-final-release-report.md).

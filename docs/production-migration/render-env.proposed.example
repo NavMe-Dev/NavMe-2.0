@@ -1,7 +1,8 @@
-# REVIEW PROPOSAL ONLY. No production setting has been applied.
-# Obtain the exact secret from project kzpvhzyefdtrtidrbuxb's Connect panel.
+# Reviewed read-only recovery configuration. Flags have been prepared on Render;
+# the independent reader DATABASE_URL must wait until the reviewed code is available.
+# Use only the verified reader connection for project kzpvhzyefdtrtidrbuxb.
 # Keep the real URL in a secret manager / ignored local file, never in Git.
-DATABASE_URL=<verified-direct-or-session-PostgreSQL-URL>
+DATABASE_URL=<verified-independent-reader-session-PostgreSQL-URL>
 DB_SSLMODE=require
 DB_POOL_SIZE=3
 DB_MAX_OVERFLOW=2
@@ -11,7 +12,12 @@ DB_CONNECT_TIMEOUT_SECONDS=10
 DB_STATEMENT_TIMEOUT_MS=30000
 DB_LOCK_TIMEOUT_MS=5000
 RUN_MIGRATIONS=false
+WF_READ_ONLY=true
+DB_READ_ONLY=true
+WORKER_INLINE=false
+DB_STARTUP_CHECK=true
+DB_STARTUP_TIMEOUT_SECONDS=60
 # Preserve existing DOMAIN, PUBLIC_BASE_URL, JWT_SECRET, DATA_DIR,
-# VIEWER_DIR, ADMIN_DIR, WORKER_INLINE, SUPABASE_URL and Storage/Matterport keys.
+# VIEWER_DIR, ADMIN_DIR, SUPABASE_URL and Storage/Matterport keys.
 # Prefer verify-full after the exact host and CA trust are validated.
 # Validate statement timeout against long imports/publishing before release.

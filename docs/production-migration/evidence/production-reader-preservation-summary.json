@@ -1,0 +1,26 @@
+{
+  "captured_at": "2026-11-13T14:01:10.648762+00:00",
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "original_tables_compared": 130,
+  "all_original_records_preserved": true,
+  "application_dml_performed": false,
+  "only_expected_new_history_record": true,
+  "original_migration_history_records_preserved": 21,
+  "expected_added_migration": "20261113135823",
+  "new_migrations": [
+    {
+      "version": "20261113135823",
+      "name": "wayfinding_public_reader_recovery"
+    }
+  ],
+  "new_migration_count": 1,
+  "new_role_count": 2,
+  "new_reader_select_policy_count": 10,
+  "excluded_from_public_summary": [
+    "per-table rows",
+    "role credentials",
+    "SQL statement bodies",
+    "connection strings"
+  ],
+  "scope": "Production database preservation after the explicitly authorized scoped reader-role migration; not evidence of Render deployment or a live public viewer"
+}

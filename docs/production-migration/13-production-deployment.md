@@ -1,45 +1,44 @@
-# Production deployment — HOLD
+# Production deployment — code push pending repository access
 
-Audit date: 2026-11-13, Asia/Kolkata. **No new deployment was triggered. No production database writes, environment changes, DNS changes, service replacements or source upgrades occurred.**
+Updated 2026-11-13, Asia/Kolkata, following the user's explicit **“GO-LIVE, take full decisions on your own”** authorization. The reviewed recovery is committed locally as **`616b4a9`**. GitHub rejected its production push with HTTP 403: `Permission to NavMe-Dev/NavMe-2.0.git denied to AdhamNG`. HTTPS and the existing SSH identity both authenticate as that account. Retries after the user's “Ready” replies have not succeeded. GitHub API inspection confirms `pull=true`, `push=false` and zero pending invitations for this repository. This is repository authorization, not a request for another go-live approval. See [access evidence](evidence/github-deployment-access.json).
 
-The user's follow-up asks for autonomous routine decisions and a live platform. That does not remove the request's critical preservation, verified-backup, reconciliation and security gates. Local-source provenance was explicitly reported as unknown. A release cannot safely proceed through those failures.
+## Existing service and actual changes
 
-## Existing release preserved
-
-| Item | Verified value |
+| Item | Verified state |
 |---|---|
-| Workspace | `tea-d9dsalurnols73d3t4cg` |
-| Web service | `srv-db32v3bncjis73e9l2cg` / navme-wayfinding-platform |
-| Existing live deployment | `dep-dbgre2h42hec73drki50` |
-| Commit | `78e309de5938b46d50f9fd38763d9ea70a209405` |
-| Finished | 2026-10-28 08:50:25 UTC |
-| Branch / auto-deploy | main / enabled on commit |
-| Production domain | `wayfinding.navme.space` |
-| Proposed destination | Existing `kzpvhzyefdtrtidrbuxb` only |
+| Render workspace | `tea-d9dsalurnols73d3t4cg` |
+| Existing service | `srv-db32v3bncjis73e9l2cg` / navme-wayfinding-platform |
+| Domain | `https://wayfinding.navme.space` |
+| Repository / branch | `NavMe-Dev/NavMe-2.0` / main, auto-deploy enabled |
+| Existing remote commit | `78e309de5938b46d50f9fd38763d9ea70a209405` |
+| Previous retained live deployment | `dep-dbgre2h42hec73drki50` |
+| Reviewed recovery commit, local only | `616b4a9` on `codex/supabase-readonly-recovery` |
+| Destination | Existing Supabase `kzpvhzyefdtrtidrbuxb` |
+| Initial recovery scope | Existing GCU v5, public read-only |
 
-Render calls the existing deployment live; this describes deployment state, **not application readiness**. Current health and manifest still fail. No new deployment identifier exists to report. Changes remain in the local working tree; nothing was pushed to the auto-deploy branch.
+The connector merged six nonsecret flags, preserving all other variables: `WF_READ_ONLY=true`, `DB_READ_ONLY=true`, `WORKER_INLINE=false`, `RUN_MIGRATIONS=false`, `DB_STARTUP_CHECK=true`, `DB_STARTUP_TIMEOUT_SECONDS=60`. Its automatic deployment **`dep-dbrhjhgu01pc73b9cdig`**, started 14:08:06 UTC, selected the unchanged old commit and ended **update_failed** at 14:09:10 UTC. The previous live deployment was retained. This is an actual failed old-code deployment attempt, not the reviewed recovery build's result.
 
-## Required release sequence
+**The reader DATABASE_URL has not been activated on Render.** Old code ignores the new HTTP mutation gate, including the REST-backed feedback protection. The new guarded code must be available before the working reader connection is supplied. No new paid resource, source database upgrade, DNS change or replacement production project was created.
 
-1. The exact-project session connection is now verified through the ignored local secret file. Inspect and preserve the existing Render environment through authenticated access; current connector cannot read it and SSH was denied. Validate the intended restricted backend role and connection from Render before cutover.
-2. The **occupied destination** full logical backup is captured and decoded, with checksum and snapshot digests in report 03. Complete its isolated PG17 restore test, including schema, managed extensions, migration history, grants and all occupied data. Preserve Storage bytes separately.
-3. Establish an authoritative source or explicitly approve a bounded reconciliation of the unknown-provenance local copy. Resolve the report's business-identity conflicts and ID collisions; preserve all destination data. Do not create a complete replacement schema or blindly restore into public.
-4. Rehearse the reviewed insert-only/remapping plan against an isolated destination copy on PostgreSQL 17, with per-record preservation digests, FK/sequence/business-identity checks and untouched ConnectLabs data. No executable production merge has been generated while these inputs are unresolved.
-5. Complete the legacy authorization design and staging tests for the critical RLS/RPC issues. The narrow backend security candidate is not remediation of all shared legacy findings.
-6. Validate the exact PostgreSQL direct/session connection, SSL trust, limited role, process/connection budget, statement timeout, ORM queries, read/write boundaries and authentication in staging. Disable automatic startup DDL for the audited occupied database with `RUN_MIGRATIONS=false`.
-7. Run critical API/frontend/mobile feature tests with authentic reviewed publications and a browser capable of ArcGIS WebGL2. Resolve required asset/floor-data defects. Confirm rollback compatibility and capture effective configuration securely.
-8. Present the exact production data/schema/security/configuration changes and review evidence for release approval, as required by the original request. Preserve this report's distinction between prepared values and verified secrets.
-9. Apply only the approved transactional merge/security work, verify destination integrity, update only reviewed Render keys, then deploy the reviewed commit to the **existing** service. Monitor the returned deployment identifier to live and inspect runtime logs.
-10. Verify real production health, expected venue manifest, published assets, ArcGIS rendering, buildings/floors/POIs, search/routes, admin authorization and all four mobile/desktop viewports. Record actual screenshots and timings. Any critical failure keeps the release on HOLD.
+## Completed database and application preparation
 
-## Configuration proposal
+The full destination archive was restored into matching isolated PostgreSQL 17.11/PostGIS 3.3.7 with seven extensions. All 130 table counts/digests, complete role/grant/policy metadata and all 15 archive sequence states match. See [restore verification](destination-restore-preflight.md).
 
-See `render-env.proposed.example` and report 08. Values are a review proposal; the database secret is deliberately absent. The Management API currently advertises transaction pooling on 6543; the application proposal uses a separately verified direct or session connection. Do not assume session-mode support or use an untested transaction endpoint.
+Supabase migration **`20261113135823`**, `wayfinding_public_reader_recovery`, added the NOLOGIN group `navme_wayfinding_public_reader_v1`, scoped SELECT grants and ten SELECT-only RLS policies. Separately provisioned SCRAM login `navme_wayfinding_live_v1` inherits only that group. Actual TLS/read-only/timeouts/privileges passed inspection. No credential appears in migration history or Git.
 
-An HTTP readiness path `/api/health` should be configured after its dependency behavior and Render rollout effect are reviewed. `/api/live` is process liveness only and must not make a broken database deployment appear healthy. Existing domain/JWT/storage settings remain part of the required configuration snapshot.
+Every original record across all 130 tables remains unchanged. Exactly one expected migration-history record was added. No source-derived application INSERT/UPDATE/DELETE, publication overwrite, sequence write, legacy grant change or RLS toggle occurred. The ignored service credential file has mode 0600. See [preservation proof](evidence/production-reader-preservation-summary.json) and [actual reader proof](evidence/actual-reader-connection.json).
 
-## ETA and blockers
+The actual reader powers the isolated shadow API: **22 API, 24 privacy/guard and 52 browser checks passed**. These are shadow results; actual-domain recovery acceptance remains pending.
 
-Local preparation and destination capture have been executed; this is not a plan-only handoff. Administrative connection access is now available, but a reliable go-live ETA cannot be calculated until complete destination restore verification, authoritative data reconciliation and critical legacy security behavior are resolved. A routine deploy may be quick after gates pass, but that is not an estimate for completing this recovery. Do not promise a fixed restoration time based only on passing builds.
+## Authorized continuation
 
-References: [Render deployments](https://render.com/docs/deploys), [health checks](https://render.com/docs/health-checks), [environment-variable save/deploy behavior](https://render.com/docs/configure-environment-variables).
+1. Confirm remote main has not diverged; push the reviewed commit without force. Existing auto-deploy will build it. Do not trigger a duplicate deploy after the push.
+2. Verify the selected commit. With the old DB URL, the new startup check fails before opening HTTP; the previous instance remains. Do not activate the reader URL for old commit `78e309d`.
+3. Merge only reviewed recovery configuration and the private reader URL. Preserve unrelated JWT, Matterport, domain and service secrets. Use the exact-project session pooler, required TLS and bounded five-connection process pool. The environment-update connector automatically triggers deployment; verify it selects the reviewed new commit.
+4. Monitor the new deployment ID, build/runtime logs and readiness. The guarded entrypoint disables migrations/workers and verifies database/PostGIS/schema/read-only sessions before binding HTTP.
+5. Require health/manifest 200, GCU v5 and `read_only=true`; repeat 52 real-browser checks and 18 GET-only privacy checks on the actual domain. Never run production mutation probes or publishing scripts.
+6. Record the actual deployment ID, commit and screenshots. Only successful actual-domain acceptance establishes public read-only LIVE. Editing/publishing/feedback and full legacy-security remediation remain distinct unresolved work.
+
+After repository access is corrected, the owner can publish this already reviewed commit from the workspace with `git push origin 616b4a9:main`. No force push is authorized. Repository access has no reliable ETA; a successful subsequent build/configuration activation and production acceptance may take approximately **10–20 minutes**.
+
+References: [Render deployments](https://render.com/docs/deploys), [health checks](https://render.com/docs/health-checks), [environment variables](https://render.com/docs/configure-environment-variables), [official MCP environment update](https://github.com/render-oss/render-mcp-server/blob/main/pkg/service/tools.go).
