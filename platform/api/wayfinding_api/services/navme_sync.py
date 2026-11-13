@@ -84,6 +84,13 @@ def sync_pois(db, b, cfg) -> dict:
             continue
         key = "gmap_" + re.sub(r"[^a-z0-9]+", "_", sid.lower())[:70]
         poi = by_key.get(key) or by_source.get(sid) or by_key.get("sb_" + sid)
+        # Older pipeline imports incorrectly retired CMS-owned mirrors that
+        # were not present in generated output. Only recover that exact marker
+        # for a valid canonical active row fetched above; deliberate drafts and
+        # source rows that are inactive, absent, or invalid stay unchanged.
+        recover_pipeline_stale = bool(poi is not None and poi.source == "supabase"
+                                      and poi.published is False and not poi.locked
+                                      and (poi.extra or {}).get("stale") is True)
         if poi is None:
             poi = models.POI(building_id=b.id, key=key, locked=False)
             db.add(poi)
@@ -104,6 +111,9 @@ def sync_pois(db, b, cfg) -> dict:
         poi.extra = {**(poi.extra or {}), "gmap_poi_type": ptype, "gmap_src_id": sid,
                      "gmap_metadata": {"src_id": sid},
                      **{key: row.get(key) for key in ("expected_pos_x", "expected_pos_y", "expected_pos_z")}}
+        if recover_pipeline_stale:
+            poi.published = True
+            poi.extra = {key: value for key, value in poi.extra.items() if key != "stale"}
     b.pipeline_config = {**(b.pipeline_config or {}), "navme_categories": categories}
     return {"created": created, "updated": updated, "synced": created + updated,
             "source_total": len(seen), "skipped": len(errors), "errors": errors,

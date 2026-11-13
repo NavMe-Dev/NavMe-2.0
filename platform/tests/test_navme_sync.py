@@ -114,3 +114,72 @@ def test_source_failure_preserves_existing_pois(building, monkeypatch):
     with pytest.raises(HTTPException) as exc: navme_sync.sync_pois(db, b, get_settings())
     assert exc.value.status_code == 502
     assert db.query(models.POI).filter_by(building_id=b.id).one().name == "Keep"
+
+
+def test_active_sync_recovers_only_pipeline_retired_mirrors(building, monkeypatch):
+    db, b = building
+    source_rows = {name: row(poi_name=name) for name in ["active", "draft", "locked", "inactive", "absent", "invalid"]}
+    source_rows["invalid"]["pos_x"] = None
+    original = {}
+    for name, source in source_rows.items():
+        extra = {"gmap_src_id": source["id"], "keep_metadata": name}
+        if name != "draft":
+            extra["stale"] = True
+        poi = models.POI(building_id=b.id, key="existing_" + source["id"], name=name,
+                         floor="F1", source="supabase", published=False, locked=name == "locked", extra=extra)
+        db.add(poi); db.flush(); original[name] = (poi.id, poi.key)
+    db.commit()
+    # Inactive and absent records are not returned by the active-only query.
+    mock_source(monkeypatch, [source_rows[name] for name in ["active", "draft", "locked", "invalid"]])
+    result = navme_sync.sync_pois(db, b, get_settings()); db.commit()
+    assert (result["created"], result["updated"], result["skipped"]) == (0, 3, 1)
+    current = {p.name: p for p in db.query(models.POI).filter_by(building_id=b.id)}
+    assert current["active"].published is True and "stale" not in current["active"].extra
+    assert current["draft"].published is False and "stale" not in current["draft"].extra
+    for name in ["locked", "inactive", "absent", "invalid"]:
+        assert current[name].published is False and current[name].extra["stale"] is True
+    assert current["locked"].locked is True
+    for name, poi in current.items():
+        assert (poi.id, poi.key) == original[name]
+        assert poi.source == "supabase"
+        assert poi.extra["gmap_src_id"] == source_rows[name]["id"]
+        assert poi.extra["keep_metadata"] == name
+    again = navme_sync.sync_pois(db, b, get_settings()); db.commit()
+    assert (again["created"], again["updated"]) == (0, 3)
+    assert db.query(models.POI).filter_by(building_id=b.id).count() == 6
+
+
+@pytest.mark.parametrize("cms_in_pipeline", [False, True])
+def test_pipeline_import_preserves_cms_ownership(building, monkeypatch, tmp_path, cms_in_pipeline):
+    from wayfinding_api.services import workspace
+    db, b = building
+    records = [models.POI(building_id=b.id, key="cms-visible", name="CMS visible", category="CMS category", floor="F1", source="supabase", published=True,
+                          model_x=1, model_y=2, model_z=3, nearest_node="old-node", extra={"gmap_src_id":"stable-cms-id", "keep_metadata":True}),
+               models.POI(building_id=b.id, key="cms-draft", name="CMS draft", floor="F1", source="supabase", published=False),
+               models.POI(building_id=b.id, key="generated-old", name="Old generated", floor="F1", source="auto", published=True)]
+    db.add_all(records); db.commit()
+    (tmp_path/"out").mkdir(); (tmp_path/"work").mkdir()
+    fixture = {
+        "out/georef.json": {}, "work/floors_resolved.json": {"floors": []},
+        "work/mp_model.json": {"data": {"model": {"floors": [], "locations": [], "rooms": []}}},
+        "out/config.json": {"center": {"lat": 1, "lon": 2}, "bounds": [1,1,2,2], "stats": {}},
+        "out/nav_graph.json": {"nodes": [{"id":"new-node"}], "edges": []}, "out/pois.json": {"pois": []},
+    }
+    if cms_in_pipeline:
+        fixture["out/pois.json"]["pois"] = [{"id":"cms-visible", "name":"Pipeline replacement", "category":"generated", "floor":"F2",
+                                             "lonlat":[6,7], "model":{"x":9,"y":9,"z":9}, "nearest_node":"new-node", "source":"auto",
+                                             "step_free_from_parking":True}]
+    for path, value in fixture.items():
+        (tmp_path/path).write_text(json.dumps(value))
+    monkeypatch.setattr(workspace, "ws_dir", lambda building: tmp_path)
+    workspace.import_outputs(db, b)
+    by_key = {p.key: p for p in db.query(models.POI).filter_by(building_id=b.id)}
+    assert by_key["cms-visible"].published is True and "stale" not in by_key["cms-visible"].extra
+    cms = by_key["cms-visible"]
+    assert (cms.name,cms.category,cms.source,cms.floor) == ("CMS visible","CMS category","supabase","F1")
+    assert (cms.model_x,cms.model_y,cms.model_z) == (1,2,3)
+    assert cms.extra == {"gmap_src_id":"stable-cms-id", "keep_metadata":True}
+    if cms_in_pipeline:
+        assert cms.nearest_node == "new-node" and cms.step_free_auto is True
+    assert by_key["cms-draft"].published is False and "stale" not in by_key["cms-draft"].extra
+    assert by_key["generated-old"].published is False and by_key["generated-old"].extra["stale"] is True

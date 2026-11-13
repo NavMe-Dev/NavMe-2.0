@@ -1,0 +1,192 @@
+{
+  "recordedAt": "2026-11-13T15:27:20.470Z",
+  "scope": "Local GCU v1 existing-record repair verification; no browser data writes",
+  "checks": [
+    {
+      "name": "all 235 authentic local POIs reach the viewer",
+      "status": "PASS",
+      "detail": {
+        "building": "gcu",
+        "version": 1,
+        "apiCount": 235,
+        "viewerCount": 235
+      }
+    },
+    {
+      "name": "All category displays 235 records without a floor restriction",
+      "status": "PASS",
+      "detail": {
+        "count": 235,
+        "floor": "__all__"
+      }
+    },
+    {
+      "name": "basketball court list and real POI selection",
+      "status": "PASS",
+      "detail": {
+        "listCount": 8,
+        "selectedPoi": {
+          "id": "c53de227-8395-459e-95cd-ef7362ed780f",
+          "name": "Basketball Court",
+          "category": "basketball court",
+          "floor": "F1"
+        },
+        "floorSelection": null,
+        "camera": {
+          "focusResult": true,
+          "poseSamples": 71,
+          "distanceM": 57.304652096886365
+        }
+      }
+    },
+    {
+      "name": "bhm block list and real POI selection",
+      "status": "PASS",
+      "detail": {
+        "listCount": 28,
+        "selectedPoi": {
+          "id": "e02bfc9d-abec-4921-a452-60d164d53c97",
+          "name": "Gents Toilet 4th Floor BHM Block",
+          "category": "bhm block",
+          "floor": "F3"
+        },
+        "floorSelection": {
+          "floor": "F3",
+          "selected": "F3",
+          "items": 6,
+          "expected": 6
+        },
+        "camera": {
+          "focusResult": true,
+          "poseSamples": 143,
+          "distanceM": 87.2876423458459
+        }
+      }
+    },
+    {
+      "name": "restored POI is searchable",
+      "status": "PASS",
+      "detail": {
+        "poiId": "e02bfc9d-abec-4921-a452-60d164d53c97",
+        "resultCount": 5
+      }
+    },
+    {
+      "name": "route between restored categories",
+      "status": "PASS",
+      "detail": {
+        "outcome": "ROUTE",
+        "source": "navmesh",
+        "nodes": 45,
+        "instructions": 34,
+        "totalM": 147.3,
+        "from": "c53de227-8395-459e-95cd-ef7362ed780f",
+        "to": "e02bfc9d-abec-4921-a452-60d164d53c97"
+      }
+    },
+    {
+      "name": "no page errors or mutation attempts",
+      "status": "PASS",
+      "detail": {
+        "pageErrors": 0,
+        "mutations": 0
+      }
+    }
+  ],
+  "pageErrors": [],
+  "blockedMutations": [],
+  "initial": {
+    "building": "gcu",
+    "version": 1,
+    "apiCount": 235,
+    "viewerCount": 235
+  },
+  "categoryMatrix": [
+    {
+      "category": "basketball court",
+      "apiCount": 8,
+      "viewerCount": 8,
+      "chipPresent": true
+    },
+    {
+      "category": "bhm block",
+      "apiCount": 28,
+      "viewerCount": 28,
+      "chipPresent": true
+    },
+    {
+      "category": "cafeteria",
+      "apiCount": 18,
+      "viewerCount": 18,
+      "chipPresent": true
+    },
+    {
+      "category": "crystal block",
+      "apiCount": 18,
+      "viewerCount": 18,
+      "chipPresent": true
+    },
+    {
+      "category": "general",
+      "apiCount": 22,
+      "viewerCount": 22,
+      "chipPresent": false
+    },
+    {
+      "category": "help desk",
+      "apiCount": 2,
+      "viewerCount": 2,
+      "chipPresent": true
+    },
+    {
+      "category": "library",
+      "apiCount": 25,
+      "viewerCount": 25,
+      "chipPresent": true
+    },
+    {
+      "category": "maclab",
+      "apiCount": 10,
+      "viewerCount": 10,
+      "chipPresent": true
+    },
+    {
+      "category": "pg block",
+      "apiCount": 23,
+      "viewerCount": 23,
+      "chipPresent": true
+    },
+    {
+      "category": "student service cell",
+      "apiCount": 18,
+      "viewerCount": 18,
+      "chipPresent": true
+    },
+    {
+      "category": "ug block",
+      "apiCount": 43,
+      "viewerCount": 43,
+      "chipPresent": true
+    },
+    {
+      "category": "west block",
+      "apiCount": 20,
+      "viewerCount": 20,
+      "chipPresent": true
+    }
+  ],
+  "routeOutcome": {
+    "outcome": "ROUTE",
+    "source": "navmesh",
+    "nodes": 45,
+    "instructions": 34,
+    "totalM": 147.3,
+    "from": "c53de227-8395-459e-95cd-ef7362ed780f",
+    "to": "e02bfc9d-abec-4921-a452-60d164d53c97"
+  },
+  "summary": {
+    "executed": 7,
+    "passed": 7,
+    "failed": 0
+  }
+}

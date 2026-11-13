@@ -1,4 +1,6 @@
-# Release report — local walkthrough fixed; production push blocked
+# Release report — local walkthrough/categories fixed; production push blocked
+
+**Local category update, 2026-11-13:** The missing Basketball Court/BHM Block entries were existing local CMS mirrors incorrectly marked stale by a pipeline import. The recovery publication filter then hid them. A fresh full local backup passed isolated restore; a bounded repair restored only the visibility/stale flags on 127 existing records. The local API/viewer now expose **235 POIs, Basketball Court 8 and BHM Block 28**. All 536 existing POI records preserve their original content outside those two flags, and the other ten tables are unchanged. Import/sync ownership rules are fixed; **200 platform tests pass, 2 skip**. Final browser verification is **7/7 PASS**, including actual cards, camera focus, floor filtering, restored-name search and a real **147.3 m route**. No page errors or Supabase application-data writes occurred. See [category visibility repair](18-local-category-visibility-repair.md) for proof and screenshots.
 
 **Local recovery update, 2026-11-13:** The screenshot's exact `/gcu-omr` failure is fixed locally. Matterport rejected `127.0.0.1` with `KeyReferrerMismatchError`, while the same key/model worked on `localhost`. Browser entry pages now redirect IP loopback addresses to localhost, preserving the complete path/query. The original link renders the real walkthrough on desktop and mobile; the platform admin also loads. Search and a real 22.5 m route pass. A separate ArcGIS camera call in Matterport category/floor controls was fixed; the final replay has no page errors. **197 platform tests passed, 2 skipped**, including 15 origin regressions; three camera regression cases also pass. The read-only GCU v5 Matterport preview works separately. See [local walkthrough recovery](17-local-walkthrough-recovery.md). This is separate from public Render deployment, which remains blocked below. The runtime fix is commit **`49eefbc`**; its fresh production push was also rejected with HTTP 403 for `AdhamNG`. Deploy the current reviewed recovery branch, including these fixes, rather than only the original `616b4a9` commit.
 
@@ -31,7 +33,7 @@ Independent suites/proofs are listed separately; repeated subsets are not added 
 
 | Validation | Result | Scope |
 |---|---|---|
-| Platform pytest | **197 passed, 2 skipped** | Local suite, including privacy/startup and 15 local-origin regressions |
+| Platform pytest | **200 passed, 2 skipped** | Local suite, including privacy/startup, local-origin and CMS ownership/recovery regressions |
 | Reader authorization suite | **10 passed** | Real isolated PG18 synthetic fixtures; SCRAM/denied writes |
 | Exact PG17 reader/template rehearsal | **PASS** | Restored destination; frozen records/sequences preserved |
 | Destination full restore | **130/130 table digests + metadata PASS** | Isolated matching PG17 |

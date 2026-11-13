@@ -65,7 +65,9 @@ def import_outputs(db: Session, b: models.Building):
         seen.add(p["id"]); row = existing.get(p["id"])
         if row is None:
             row = models.POI(building_id=b.id, key=p["id"], published=True); db.add(row)
-        elif row.locked:
+        elif row.locked or row.source == "supabase":
+            # A matching generated key does not transfer ownership of a CMS
+            # mirror. Refresh routing derivatives without replacing its content.
             row.step_free_auto = p.get("step_free_from_parking")
             if row.nearest_node not in {n["id"] for n in nav["nodes"]}:
                 row.nearest_node = p["nearest_node"]
@@ -78,7 +80,9 @@ def import_outputs(db: Session, b: models.Building):
         row.description = row.description or (p.get("note") or None)
         row.extra = {**(row.extra or {}), "area_m2": p.get("area_m2")}
     for k, row in existing.items():
-        if k not in seen and not row.locked and row.source not in ("admin", "csv"):
+        # The pipeline owns generated POIs only. Dashboard mirrors have their
+        # own active/publication lifecycle and are absent from pipeline output.
+        if k not in seen and not row.locked and row.source not in ("admin", "csv", "supabase"):
             row.published = False; row.extra = {**(row.extra or {}), "stale": True}
     b.status = "ready"
     db.commit()

@@ -1,0 +1,24 @@
+{
+  "captured_at": "2026-11-13T15:16:57.345813+00:00",
+  "scope": "LOCAL loopback wayfinding database only; before bounded CMS stale repair",
+  "server_version": "PostgreSQL 18.6 on aarch64-apple-darwin20.0.0, compiled by clang version 21.1.8, 64-bit",
+  "source_host_is_loopback": true,
+  "gcu_supabase_mirrors_before": {
+    "total": 235,
+    "published": 108,
+    "unpublished": 127,
+    "locked": 0,
+    "unpublished_stale_unlocked": 127
+  },
+  "archive_bytes": 2311581,
+  "archive_sha256": "4616d6acc6189ee4fa3f0703443240a219ce14c8de23f6ba8e1b1d22d298ab4e",
+  "archive_fully_readable": true,
+  "archive_retains_owners_acls": true,
+  "dump_mode": "0o600",
+  "isolated_restore_verified": true,
+  "all_11_frozen_table_counts_and_digests_match": true,
+  "production_writes": false,
+  "proof_phase": "Before the bounded local category-visibility repair",
+  "table_count": 11,
+  "raw_rows_or_credentials_included": false
+}
