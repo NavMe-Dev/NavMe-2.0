@@ -1,0 +1,823 @@
+{
+  "recordedAt": "2026-11-13T16:27:31.473Z",
+  "base": "https://wayfinding.navme.space",
+  "scope": "Read-only authentic GCU v5 viewer acceptance; no production mutations",
+  "browserVersion": "158.0.8127.18",
+  "graphicsBackend": "metal",
+  "summary": {
+    "executed": 52,
+    "passed": 52,
+    "failed": 0
+  },
+  "deployment": {
+    "commit": "6527ba8",
+    "render_deploy": "dep-dbrjjlcipgvc73fq761g",
+    "live_confirmed_utc": "2026-11-13T16:25:56Z"
+  },
+  "devices": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 22089.750792,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 1440,
+            "viewHeight": 900,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 1.008125000000291,
+          "detail": {
+            "document": 1440,
+            "viewport": 1440
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.5821669999968435,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1345.0937920000033,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 68.45091700000194,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1079.911874999998,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1019.135709000002,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 956.5072499999987,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 127.38008299999638,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 874.5833749999947,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 276.03391700000066,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 1.5689580000034766,
+          "detail": {
+            "document": 1440,
+            "viewport": 1440
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 17373.005750000004,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "desktop-map.png",
+        "desktop-2d-map.png",
+        "desktop-floor-selection.png",
+        "desktop-poi.png",
+        "desktop-route.png",
+        "desktop-multi-floor-route.png"
+      ],
+      "mapReadyMs": 25538.177792000002,
+      "timings": {
+        "domContentLoadedMs": 2890.800000000745,
+        "loadEventMs": 3006.7000000029802
+      }
+    },
+    {
+      "name": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 15187.523000000008,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 768,
+            "viewHeight": 1024,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.6784580000094138,
+          "detail": {
+            "document": 768,
+            "viewport": 768
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.4693330000009155,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1311.2560840000078,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 88.48616699999548,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1128.4900409999973,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1032.5500830000092,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 1019.9777080000058,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 222.01716699999815,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 882.411540999994,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 247.10408400000597,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 0.7319169999973383,
+          "detail": {
+            "document": 768,
+            "viewport": 768
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 16280.798792000001,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "tablet-map.png",
+        "tablet-2d-map.png",
+        "tablet-floor-selection.png",
+        "tablet-poi.png",
+        "tablet-route.png",
+        "tablet-multi-floor-route.png"
+      ],
+      "mapReadyMs": 18017.878957999994,
+      "timings": {
+        "domContentLoadedMs": 1901.6000000014901,
+        "loadEventMs": 2015.1000000014901
+      }
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 14795.803499999995,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 390,
+            "viewHeight": 844,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.7472500000003492,
+          "detail": {
+            "document": 390,
+            "viewport": 390
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.4260420000064187,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1206.2492919999931,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 86.7179160000087,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1334.9470000000001,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1045.0207500000106,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 1015.9847080000036,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 211.45620900001086,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 859.1578339999978,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 238.2422910000023,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 2.267250000004424,
+          "detail": {
+            "document": 390,
+            "viewport": 390
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 16282.537541000012,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "mobile-map.png",
+        "mobile-2d-map.png",
+        "mobile-floor-selection.png",
+        "mobile-poi.png",
+        "mobile-route.png",
+        "mobile-multi-floor-route.png"
+      ],
+      "mapReadyMs": 16807.90950000001,
+      "timings": {
+        "domContentLoadedMs": 2157.400000002235,
+        "loadEventMs": 2157.5
+      }
+    },
+    {
+      "name": "small-mobile",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 15187.41625000001,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 360,
+            "viewHeight": 800,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.6812500000232831,
+          "detail": {
+            "document": 360,
+            "viewport": 360
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.5439170000026934,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1302.3202500000189,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 88.31929200000013,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1329.0992909999914,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1026.443666999985,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 999.9621660000121,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 197.67883399999118,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 858.6217919999908,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 238.85733400000026,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 1.2621670000080485,
+          "detail": {
+            "document": 360,
+            "viewport": 360
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 18461.48779100002,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "pageErrors": [],
+      "badResponses": [
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "small-mobile-map.png",
+        "small-mobile-2d-map.png",
+        "small-mobile-floor-selection.png",
+        "small-mobile-poi.png",
+        "small-mobile-route.png",
+        "small-mobile-multi-floor-route.png"
+      ],
+      "mapReadyMs": 17207.411584000016,
+      "timings": {
+        "domContentLoadedMs": 2006.199999999255,
+        "loadEventMs": 2126
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "captured_at": "2026-11-13T16:27:46.088311+00:00",
+  "base_url": "https://wayfinding.navme.space",
+  "live_commit": "6527ba88daa577514385ab65a8fb4830c8bb450a",
+  "deployment": "dep-dbrjjlcipgvc73fq761g",
+  "deployment_finished_utc": "2026-11-13T16:25:56.518Z",
+  "scope": "Actual production asset identity and API readiness after the corrected deployment",
+  "read_only_requests": true,
+  "checks": [
+    {
+      "file": "index.html",
+      "matches_live_commit": true,
+      "sha256": "4413348e8f3fe4f3cfd76497f3b5230685279a30ff3a00e73efd7957fbf8fd09"
+    },
+    {
+      "file": "ui.js",
+      "matches_live_commit": true,
+      "sha256": "48ce48949236aa914f54bf5fcb3553281cb45a7974288bc0842adfa7b370504c"
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "healthy": true
+    },
+    {
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "publication": [
+        {
+          "slug": "gcu",
+          "version": 5
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/public/config",
+      "status": 200,
+      "read_only": true
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-11-13T16:36:48.180330+00:00",
+  "base": "https://wayfinding.navme.space",
+  "commit": "6527ba88daa577514385ab65a8fb4830c8bb450a",
+  "render_deploy": "dep-dbrjjlcipgvc73fq761g",
+  "live_confirmed_utc": "2026-11-13T16:25:56Z",
+  "scope": "Existing published GCU v5, model jdjvM17BPEh, 99 curated public POIs; read-only release",
+  "read_only_confirmed": true,
+  "suites": {
+    "arcgis": {
+      "executed": 52,
+      "passed": 52,
+      "failed": 0
+    },
+    "matterport_desktop": {
+      "executed": 8,
+      "passed": 8,
+      "failed": 0
+    },
+    "matterport_mobile": {
+      "executed": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "get_only_privacy": {
+      "executed": 18,
+      "passed": 18,
+      "failed": 0
+    },
+    "bounded_critical_gets": {
+      "executed": 16,
+      "passed": 16,
+      "failed": 0,
+      "http_503": 0
+    }
+  },
+  "summary": {
+    "executed": 101,
+    "passed": 101,
+    "failed": 0
+  },
+  "production_mutation_probes_sent": false,
+  "final_runs_http_503": 0,
+  "limitations": [
+    "Chrome viewport/touch emulation on native Apple M2 Metal; no physical iOS/Android acceptance",
+    "Admin login UI and anonymous/invalid-token rejection only; no administrator authentication/edit/publish claims",
+    "Optional AR launch and prototype SDK config return404; existing Matterport bootstrap3.0/deprecation warning remains",
+    "Not a full-project Supabase RLS/security clearance or a load/capacity test",
+    "Existing published floor geometry/accessibility metadata limits remain; UNCC is not in this release"
+  ],
+  "preserved_observations": [
+    "initial-live-attempt-summary.json",
+    "matterport-observation-timing.json",
+    "critical-read-burst-geometry-bound.json"
+  ],
+  "dataset_scope": {
+    "published_building": "gcu",
+    "published_version": 5,
+    "public_curated_pois": 99,
+    "active_canonical_cms_pois": 235,
+    "separate_repaired_local_public_mirror_pois": 235,
+    "scope_note": "The existing published 99-record public mirror, live active canonical metadata, and repaired local mirror remain distinct preserved datasets."
+  }
+}

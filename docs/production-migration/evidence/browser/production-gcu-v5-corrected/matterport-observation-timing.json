@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-11-13T16:30:57.005Z",
+  "classification": "Test observed completion class before existing loader transition ended; final retry retained the loader-hidden assertion and passed",
+  "summary": {
+    "executed": 3,
+    "passed": 2,
+    "failed": 1
+  },
+  "checks": [
+    {
+      "name": "production origin and authentic GCU v5 dataset",
+      "status": "PASS",
+      "detail": {
+        "origin": "https://wayfinding.navme.space",
+        "version": 5,
+        "poiCount": 99,
+        "model": "jdjvM17BPEh"
+      }
+    },
+    {
+      "name": "Matterport connects and completes model/UI startup",
+      "status": "FAIL",
+      "error": "SDK or model/UI startup not complete"
+    },
+    {
+      "name": "no unhandled page errors or mutation attempts",
+      "status": "PASS",
+      "detail": {
+        "pageErrors": 0,
+        "mutations": 0
+      }
+    }
+  ],
+  "snapshot": {
+    "bodyClasses": "mp-bg-mode mp-open weather-visible ux-places mp-frame-loaded mp-startup-complete",
+    "startup": {
+      "pending": false,
+      "generation": 1
+    },
+    "backgroundReady": true,
+    "wfReady": true,
+    "loader": {
+      "hidden": false,
+      "error": false,
+      "message": "Preparing your experience\u2026",
+      "retry": false
+    }
+  },
+  "sdkTimeline": [
+    {
+      "ms": 8725,
+      "event": "sdk.connect.resolved",
+      "hasAppState": true,
+      "hasMode": true,
+      "hasSweep": true
+    },
+    {
+      "ms": 8733,
+      "event": "sdk.phase",
+      "phase": "appphase.loading"
+    },
+    {
+      "ms": 9378,
+      "event": "sdk.phase",
+      "phase": "appphase.playing"
+    },
+    {
+      "ms": 11564,
+      "event": "startup.modelReady",
+      "generation": 1,
+      "pending": true
+    }
+  ]
+}

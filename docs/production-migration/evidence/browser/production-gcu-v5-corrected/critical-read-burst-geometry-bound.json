@@ -1,0 +1,176 @@
+{
+  "recordedAt": "2026-11-13T16:33:51.545838+00:00",
+  "base": "https://wayfinding.navme.space",
+  "scope": "Bounded critical public GETs after browser checks; not a load test",
+  "concurrency": 4,
+  "rounds": 2,
+  "response_bodies_saved": false,
+  "checks": [
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "bytes": 620,
+      "valid_json": true,
+      "elapsed_ms": 2563.0,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "status": 200,
+      "bytes": 3249,
+      "valid_json": true,
+      "elapsed_ms": 1155.7,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "status": 200,
+      "bytes": 75221,
+      "valid_json": true,
+      "elapsed_ms": 1405.3,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/floors.json",
+      "status": 200,
+      "bytes": 2000001,
+      "error": "Response exceeded bounded inspection size",
+      "elapsed_ms": 1174.4,
+      "result": "FAIL"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "status": 200,
+      "bytes": 1187773,
+      "valid_json": true,
+      "elapsed_ms": 1284.6,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "status": 200,
+      "bytes": 25740,
+      "valid_json": true,
+      "elapsed_ms": 1478.2,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "status": 200,
+      "bytes": 1135,
+      "valid_json": true,
+      "elapsed_ms": 841.2,
+      "result": "PASS"
+    },
+    {
+      "round": 1,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "status": 200,
+      "bytes": 134714,
+      "valid_json": true,
+      "elapsed_ms": 2782.3,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "bytes": 620,
+      "valid_json": true,
+      "elapsed_ms": 1125.2,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "status": 200,
+      "bytes": 3249,
+      "valid_json": true,
+      "elapsed_ms": 1115.2,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "status": 200,
+      "bytes": 75221,
+      "valid_json": true,
+      "elapsed_ms": 1140.1,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/floors.json",
+      "status": 200,
+      "bytes": 2000001,
+      "error": "Response exceeded bounded inspection size",
+      "elapsed_ms": 1391.6,
+      "result": "FAIL"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "status": 200,
+      "bytes": 1187773,
+      "valid_json": true,
+      "elapsed_ms": 1191.0,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "status": 200,
+      "bytes": 25740,
+      "valid_json": true,
+      "elapsed_ms": 1490.3,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "status": 200,
+      "bytes": 1135,
+      "valid_json": true,
+      "elapsed_ms": 816.7,
+      "result": "PASS"
+    },
+    {
+      "round": 2,
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "status": 200,
+      "bytes": 134714,
+      "valid_json": true,
+      "elapsed_ms": 2238.5,
+      "result": "PASS"
+    }
+  ],
+  "summary": {
+    "executed": 16,
+    "passed": 14,
+    "failed": 2,
+    "http_503": 0
+  }
+}

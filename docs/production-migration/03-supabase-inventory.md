@@ -156,4 +156,28 @@ The private per-table comparison stays in the ignored recovery directory.
 Neither this preservation check nor successful shadow-API testing is evidence
 that the Render reader URL was activated or the production viewer deployed.
 
+## Post-activation production preservation — PASS
+
+After the independently confirmed Render deployment went live at **16:01:55 UTC
+/ 21:31:55 IST**, another strictly read-only, TLS-protected, repeatable-read
+comparison completed at **16:04:02 UTC / 21:34:02 IST**. It compared the exact
+occupied project with the original exported-snapshot inventory and the prior
+production-reader preservation checkpoint, using the confirmed UTC and
+`extra_float_digits=0` serialization settings.
+
+All **130 original table scopes matched**, with **zero drift**. Every original
+record remained unchanged, including all **21 original migration-history
+records**. History now contains **22 records**, with only the known added reader
+migration **`20261113135823`**; its identity matches the prior authorized reader
+checkpoint. No baseline was rewritten and this comparison performed no DML.
+
+Sanitized counts and booleans only:
+[`evidence/post-activation-preservation-summary.json`](evidence/post-activation-preservation-summary.json).
+The per-table proof remains private under
+`post-activation-preservation-20261113T160353Z/`. Deployment and viewer behavior
+are verified separately in reports 10–13; database preservation is not used to
+infer browser success. The earlier **127-row local visibility repair affected
+only local PostgreSQL 18**, not this production Supabase dataset. No uncertain
+local records were merged into production.
+
 References: [Supabase backup behavior and Storage exclusion](https://supabase.com/docs/guides/platform/backups), [backup inventory API](https://supabase.com/docs/reference/api/v1-list-all-backups), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).

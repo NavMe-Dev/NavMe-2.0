@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-11-13T16:20:40.044843+00:00",
+  "scope": "Initial live read-only acceptance on a787 release; preserved failures pending corrected deployment",
+  "arcgis": {
+    "executed": 40,
+    "passed": 36,
+    "failed": 4
+  },
+  "matterport_desktop": {
+    "executed": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "matterport_mobile": {
+    "executed": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "privacy": {
+    "executed": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "release_validation": "HOLD: initial database pool timeouts and accessible mode-label race"
+}

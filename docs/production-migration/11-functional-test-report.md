@@ -1,10 +1,46 @@
 # Functional test report
 
-**Latest production status: NOT CUT OVER / HOLD.** A fresh four-request GET baseline at 19:54 IST on 13 November 2026 confirmed homepage 200, `/api/health` 500, venue manifest 500, and runtime config 200 without the new read-only flag. The local release commit `616b4a960216cd0e500c5dd113480d1f3059eec9` is recorded as local context, not as a deployed commit; repository write permission is still unavailable. No full acceptance suite was run against the unchanged broken production deployment. [Final live status and commit context](evidence/browser/production-gcu-v5/final-live-status.json).
+**Latest corrected production result: 101/101 scoped checks PASS.** The real `https://wayfinding.navme.space` deployment `dep-dbrjjlcipgvc73fq761g` / `6527ba8` was explicitly confirmed LIVE at 16:25:56 UTC on 13 November 2026. New acceptance ran from 16:27–16:35 UTC in fresh browser contexts, with heavyweight browsers sequential. The final runs had no HTTP 503s. [Sanitized final summary](evidence/browser/production-gcu-v5-corrected/summary.json).
 
-**Latest GCU v5 preflight: 52/52 real-data viewer checks pass against the verified read-only destination shadow.** Production verification must repeat against the deployed public URL. The earlier 15 live failures below remain historical outage evidence and have not been relabeled as passes.
+| Final production suite | Executed | Passed | Failed |
+|---|---:|---:|---:|
+| Bare-root ArcGIS, four viewports | 52 | 52 | 0 |
+| Exact `/gcu-omr` Matterport, desktop | 8 | 8 | 0 |
+| Exact `/gcu-omr` Matterport, mobile | 7 | 7 | 0 |
+| GET-only public privacy/authorization/runtime | 18 | 18 | 0 |
+| Bounded critical public GETs, four clients | 16 | 16 | 0 |
+| Final scoped total | 101 | 101 | 0 |
 
-## Latest real-data viewer acceptance
+The production scope is the **existing published GCU v5 / 99 curated POIs**, with `read_only=true`. The 235 active canonical CMS metadata records and the separately repaired 235-record local mirror remain preserved, distinct datasets; this acceptance covers the existing 99-record public mirror. All four ArcGIS viewports passed 13 assertions each, including real map rendering, categories/floors, visible search and directions, route geometry, navigation, multi-floor routing, language changes, overflow and refresh. The selected same-floor route was 192.7 m with 38 nodes and 26 instructions; the F2→F1 route had nine instructions. Start/Next/exit advanced index 1→2 and returned to directions. [Exact 52 checks](evidence/browser/production-gcu-v5-corrected/arcgis-acceptance.json).
+
+| Production viewport | Result | Initial map readiness | Search/selection | Same-floor directions | Multi-floor flow | Refresh |
+|---|---|---:|---:|---:|---:|---:|
+| 1440×900 | 13/13 PASS | 25,538 ms | 1,019 ms | 957 ms | 875 ms | 17,373 ms |
+| 768×1024 | 13/13 PASS | 18,018 ms | 1,033 ms | 1,020 ms | 882 ms | 16,281 ms |
+| 390×844 | 13/13 PASS | 16,808 ms | 1,045 ms | 1,016 ms | 859 ms | 16,283 ms |
+| 360×800 | 13/13 PASS | 17,207 ms | 1,026 ms | 1,000 ms | 859 ms | 18,461 ms |
+
+These are individual Chromium 158/native Metal measurements on a Mac. Startup includes navigation, authentic assets and UI initialization; interaction flows include browser waits and screenshot capture. They are not pure route-calculation timings, production capacity estimates, or physical-phone measurements.
+
+Both production-domain Matterport sessions connected the real SDK, reached PLAYING, completed model/UI startup and hid the loader. Basketball Court exposed eight real POIs and BHM Block 28; actual selections opened their cards and the SDK acknowledged camera focus. Desktop also loaded the anonymous admin login UI without submitting a form. [Desktop eight checks](evidence/browser/production-gcu-v5-corrected/matterport-desktop.json), [mobile seven checks](evidence/browser/production-gcu-v5-corrected/matterport-mobile.json), [desktop model](evidence/browser/production-gcu-v5-corrected/matterport-desktop.png), [mobile model](evidence/browser/production-gcu-v5-corrected/matterport-mobile.png).
+
+The privacy run confirmed 99 allowlisted curated records, no scanned private/credential/draft fields, `read_only=true`, protected anonymous/invalid-token reads 401, and traversal 404. It sent GETs only. The final bounded burst sent 16 GETs to eight critical endpoints with at most four clients: all HTTP 200 and valid bounded JSON, zero 503s, 0.79–3.63 s per response. It is not a load test. [Privacy evidence](evidence/browser/production-gcu-v5-corrected/privacy-preflight.json), [bounded reads](evidence/browser/production-gcu-v5-corrected/critical-read-burst.json).
+
+Earlier attempts remain separate. The first activated release executed 40 ArcGIS assertions (36 passed/four failed) before the connection-lifetime and late-i18n fixes. A corrected-release desktop Matterport probe initially sampled the loader between the completion class and its existing fade/`transitionend`; its full retry retained the hidden-loader assertion and passed. An initial bounded burst returned HTTP 200 for all 16 reads, but two large `floors.json` responses exceeded its 2 MB inspection bound; the final bounded burst used the small public floor metadata endpoint. Full geometry was already loaded by the 52 browser checks. [Initial release summary](evidence/browser/production-gcu-v5-corrected/initial-live-attempt-summary.json), [loader timing observation](evidence/browser/production-gcu-v5-corrected/matterport-observation-timing.json), [size-bound observation](evidence/browser/production-gcu-v5-corrected/critical-read-burst-geometry-bound.json).
+
+No production mutation probe, login, data edit, or publication was performed. Existing optional AR/prototype SDK-config 404s and Matterport bootstrap 3.0/deprecation warnings remain recorded. Physical devices, admin editing/publishing, all accessible routes, unrelated venues and whole-project Supabase/RLS security are outside this passing scope. Local 235-POI and earlier shadow results below remain distinct.
+
+Reproduce with `platform/tools/viewer_acceptance.cjs`, `platform/tools/matterport_acceptance.cjs`, `platform/tools/public_privacy_preflight.py --expect-read-only` and `platform/tools/public_read_burst.py`, using a fresh evidence directory and the production base/target environment arguments. Both browser tools block NavMe/Supabase mutations and fail the process on assertion failures. Do not use the privacy tool's loopback-only mutation-probe flag on production.
+
+## Earlier pre-cutover and destination-shadow results
+
+The following evidence predates the corrected production acceptance above.
+
+**Earlier pre-cutover production status: NOT CUT OVER / HOLD.** A fresh four-request GET baseline at 19:54 IST on 13 November 2026 confirmed homepage 200, `/api/health` 500, venue manifest 500, and runtime config 200 without the new read-only flag. The local release commit `616b4a960216cd0e500c5dd113480d1f3059eec9` is recorded as local context, not as a deployed commit; repository write permission is still unavailable. No full acceptance suite was run against the unchanged broken production deployment. [Final live status and commit context](evidence/browser/production-gcu-v5/final-live-status.json).
+
+**Earlier GCU v5 preflight: 52/52 real-data viewer checks pass against the verified read-only destination shadow.** That shadow result preceded live acceptance and remains a separate observation. The earlier 15 live failures below remain historical outage evidence and have not been relabeled as passes.
+
+## Earlier destination-shadow viewer acceptance
 
 Chromium 158.0.8127.18 was downloaded into isolated temporary storage and used native Apple M2 Metal WebGL2. Tests read the actual destination through `127.0.0.1:8782`, without database writes, login, editing, publishing, or network mutations. All four viewport runs passed 13 checks each: correct GCU v5/model identity and rendered active view; initial horizontal fit; actual POI graphics; visible map-mode switching; category filtering; visible category floor selection; autocomplete search and POI selection; directions input and same-floor route geometry; navigation start/Next/exit; a multi-floor route; French/English UI switching; post-navigation fit; and refresh.
 
@@ -78,7 +114,7 @@ Production frontend compilation passed, using existing installed dependencies wi
 
 The commands were also rerun sequentially because the dashboard and child builds share `dashboard/dist`. Warnings remain for large JavaScript chunks, mixed dynamic/static imports, and duplicate `elevator`/`statue` switch cases in `Mini3dGtaEmbed.ts`. They did not fail compilation and have not been shown to cause the production outage.
 
-## Unexecuted critical feature checks
+## Checks unavailable during the earlier outage
 
 Published venue loading, real building/floor selection, POI categories, search, route calculation/instructions, accessible routes, multi-floor navigation, map controls, translated functional flows, and published/draft separation are blocked by the missing working manifest and data. Admin login/logout, editing, asset management, and publishing require an isolated destination copy and approved test identities. The existing `platform/tools/e2e_screens.py` changes a POI and publishes; it was deliberately not run against production.
 
@@ -88,4 +124,4 @@ Database interruption/recovery, pool behavior, and record integrity are covered 
 
 Sanitized shareable results: [live baseline JSON](evidence/browser/live-baseline.json), [supplemental checks](evidence/browser/supplemental-checks.json), and screenshots in `evidence/browser/`. Full local console/request evidence, test output, build logs, and independent ArcGIS diagnostic are in ignored `platform/var/production-migration/browser/`.
 
-Run `PLAYWRIGHT_MODULE=/path/to/playwright node platform/tools/production_smoke.cjs` for read-only baseline checks. It saves its report and exits nonzero when any assertion fails; the captured 15 failures must not be treated as a successful release smoke. Run `PLAYWRIGHT_MODULE=/path/to/playwright node --test platform/tools/viewer_failure.test.cjs` for isolated failure regression tests. The environment requires installed Google Chrome. This session reused the already-installed Playwright package from the sibling ConnectLabs checkout; no dependency or lockfile was changed. A WebGL2-capable test browser and authentic recovered data are still required for map acceptance.
+Run `PLAYWRIGHT_MODULE=/path/to/playwright node platform/tools/production_smoke.cjs` for read-only baseline checks. It saves its report and exits nonzero when any assertion fails; the captured 15 failures must not be treated as a successful release smoke. Run `PLAYWRIGHT_MODULE=/path/to/playwright node --test platform/tools/viewer_failure.test.cjs` for isolated failure regression tests. The environment requires installed Google Chrome. This session reused the already-installed Playwright package from the sibling ConnectLabs checkout; no dependency or lockfile was changed. Those map-acceptance requirements were later satisfied by the corrected production run above.

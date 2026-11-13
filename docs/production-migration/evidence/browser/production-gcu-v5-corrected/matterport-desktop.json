@@ -1,0 +1,142 @@
+{
+  "recordedAt": "2026-11-13T16:32:35.309Z",
+  "finishedAt": "2026-11-13T16:32:50.858Z",
+  "target": "https://wayfinding.navme.space/gcu-omr",
+  "scope": "Actual production-domain Matterport acceptance; NavMe/Supabase mutation requests blocked",
+  "browser": "158.0.8127.18",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "checks": [
+    {
+      "name": "production origin and authentic GCU v5 dataset",
+      "status": "PASS",
+      "detail": {
+        "origin": "https://wayfinding.navme.space",
+        "version": 5,
+        "poiCount": 99,
+        "model": "jdjvM17BPEh"
+      }
+    },
+    {
+      "name": "Matterport connects and completes model/UI startup",
+      "status": "PASS",
+      "detail": {
+        "backgroundReady": true,
+        "loaderHidden": true,
+        "observedPlaying": true
+      }
+    },
+    {
+      "name": "basketball court visible list count",
+      "status": "PASS",
+      "detail": {
+        "filter": "basketball court",
+        "count": 8,
+        "floor": "__all__"
+      }
+    },
+    {
+      "name": "basketball court real POI card and SDK camera focus",
+      "status": "PASS",
+      "detail": {
+        "poiId": "c53de227-8395-459e-95cd-ef7362ed780f",
+        "sdkFocus": true
+      }
+    },
+    {
+      "name": "bhm block visible list count",
+      "status": "PASS",
+      "detail": {
+        "filter": "bhm block",
+        "count": 28,
+        "floor": "__all__"
+      }
+    },
+    {
+      "name": "bhm block real POI card and SDK camera focus",
+      "status": "PASS",
+      "detail": {
+        "poiId": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+        "sdkFocus": true
+      }
+    },
+    {
+      "name": "production admin login UI loads without authentication",
+      "status": "PASS",
+      "detail": {
+        "status": 200,
+        "passwordInputVisible": true
+      }
+    },
+    {
+      "name": "no unhandled page errors or mutation attempts",
+      "status": "PASS",
+      "detail": {
+        "pageErrors": 0,
+        "mutations": 0
+      }
+    }
+  ],
+  "summary": {
+    "executed": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "pageErrors": [],
+  "badResponses": [
+    {
+      "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+      "method": "GET",
+      "status": 404
+    },
+    {
+      "url": "https://wayfinding.navme.space/data/sdk_config.json",
+      "method": "GET",
+      "status": 404
+    }
+  ],
+  "blockedMutations": [],
+  "startup": {
+    "url": "https://wayfinding.navme.space/gcu-omr",
+    "building": "gcu",
+    "version": 5,
+    "poiCount": 99,
+    "configModel": "jdjvM17BPEh",
+    "backgroundReady": true,
+    "wfReady": true,
+    "sdkPresent": true,
+    "loader": {
+      "hidden": true,
+      "error": false,
+      "message": "Preparing your experience\u2026",
+      "retry": false
+    }
+  },
+  "sdkTimeline": [
+    {
+      "ms": 6233,
+      "event": "sdk.connect.resolved",
+      "hasAppState": true,
+      "hasMode": true,
+      "hasSweep": true
+    },
+    {
+      "ms": 6301,
+      "event": "sdk.phase",
+      "phase": "appphase.loading"
+    },
+    {
+      "ms": 6983,
+      "event": "sdk.phase",
+      "phase": "appphase.playing"
+    },
+    {
+      "ms": 8945,
+      "event": "startup.modelReady",
+      "generation": 1,
+      "pending": true
+    }
+  ]
+}

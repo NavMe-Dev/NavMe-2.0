@@ -1,5 +1,13 @@
 # Independent read-only release privacy review
 
+**Latest production review: 18/18 GET-only checks PASS**, after corrected deploy `dep-dbrjjlcipgvc73fq761g` / `6527ba8` went LIVE at 16:25:56 UTC on 13 November 2026. The actual public URL returned `read_only=true`, 99 allowlisted curated GCU v5 POIs, expected public configuration/metadata, anonymous and invalid-token admin/auth reads 401, and traversal 404. No scanned response exposed private user/login/password/hash fields, database URLs, service-role tokens, modern secret-key prefixes or explicit draft/unpublished objects. Bodies and credential values were not saved. **No production mutation probe was sent.** [Exact production privacy checks](evidence/browser/production-gcu-v5-corrected/privacy-preflight.json).
+
+The real production browser run also passed 52 ArcGIS and 15 Matterport/admin-login-UI assertions without mutation attempts or unhandled page errors; the final 16-GET bounded burst returned all 200 with zero 503s. These are scoped observations for the existing read-only GCU v5/99 release, not administrator edit/publish validation or whole-project Supabase security clearance. Legacy RLS findings and live active-CMS metadata scope remain as described below. [Final scoped summary](evidence/browser/production-gcu-v5-corrected/summary.json).
+
+The mode-label fix now updates the stored `data-i18n-aria-label` key when the active view changes and resynchronizes after boot translation, preserving the proper target label on later language passes. Three isolated source-driven regressions cover 2D, 3D, translation failure and a later French DOM pass; the unchanged live 52-check suite passed the visible mode control on every viewport. It changes no publication or access policy.
+
+## Earlier destination-shadow review
+
 Reviewed 13 November 2026 against the verified destination shadow on `127.0.0.1:8782`. **Scoped public-response/authorization checks: PASS, 24/24. This is not a full Supabase security clearance.** No production data or configuration was changed by this review.
 
 ## Actual response and authorization evidence
