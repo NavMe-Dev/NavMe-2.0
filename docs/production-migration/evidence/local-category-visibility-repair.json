@@ -1,0 +1,41 @@
+{
+  "committed_at": "2026-11-13T15:24:52.765622+00:00",
+  "scope": "LOCAL loopback wayfinding.gcu CMS mirrors only",
+  "local_transaction_committed": true,
+  "changed_rows": 127,
+  "fields_changed": [
+    "published false->true",
+    "extra.stale removed"
+  ],
+  "all_235_source_ids_exactly_match_active_canonical_GCU": true,
+  "active_GCU_jobs": 0,
+  "all_536_POI_rows_match_exact_expected_two_flag_transformation": true,
+  "all_original_235_POI_fields_other_than_two_allowed_flags_preserved": true,
+  "all_other_10_tables_rows_and_digests_unchanged": true,
+  "poi_row_count_before": 536,
+  "poi_row_count_after": 536,
+  "gcu_mirror_total_after": 235,
+  "gcu_mirror_published_after": 235,
+  "gcu_mirror_stale_after": 0,
+  "category_counts_after": {
+    "basketball court": 8,
+    "bhm block": 28,
+    "cafeteria": 18,
+    "crystal block": 18,
+    "general": 22,
+    "help desk": 2,
+    "library": 25,
+    "maclab": 10,
+    "pg block": 23,
+    "student service cell": 18,
+    "ug block": 43,
+    "west block": 20
+  },
+  "backup_sha256": "4616d6acc6189ee4fa3f0703443240a219ce14c8de23f6ba8e1b1d22d298ab4e",
+  "ids_names_categories_coordinates_updated_at_all_other_extras_preserved": true,
+  "inserted_rows": 0,
+  "deleted_rows": 0,
+  "production_writes": false,
+  "supabase_DML": false,
+  "full_sync_import_publish_performed": false
+}

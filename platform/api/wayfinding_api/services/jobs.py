@@ -1,10 +1,11 @@
 """Onboarding job runner. Jobs are rows in `jobs`; a worker process (`wayfinding worker`) claims queued
 jobs with SELECT … FOR UPDATE SKIP LOCKED, runs the wfpipe steps in the building workspace, streams the
 log into the row and imports the outputs into the DB."""
-import threading, time, traceback
+import threading, time, traceback, logging
 from datetime import datetime, timezone
 from pathlib import Path
 from sqlalchemy import text
+from sqlalchemy.exc import OperationalError, InterfaceError, TimeoutError as PoolTimeoutError
 from ..db import SessionLocal
 from .. import models
 from .workspace import ws_dir, pipeline_config, import_outputs
@@ -62,14 +63,30 @@ def run_job(job_id: int):
     j.finished_at = datetime.now(timezone.utc); j.step = None; db.commit(); db.close()
 
 
-def worker_loop(poll=2.0, once=False):
-    while True:
-        db = SessionLocal()
+def worker_loop(poll=2.0, once=False, stop_event=None):
+    stop_event = stop_event or threading.Event()
+    failures = 0
+    while not stop_event.is_set():
+        db = None
         try:
+            db = SessionLocal()
             jid = claim(db)
             kind = db.get(models.Job, jid).kind if jid else None
+            failures = 0
+        except (OperationalError, InterfaceError, PoolTimeoutError) as exc:
+            # Retry polling, never replay a job's writes. A transient connection
+            # failure must not permanently terminate the only inline worker.
+            if db is not None:
+                db.rollback()
+            logging.getLogger(__name__).warning("Worker database unavailable (%s)", type(exc).__name__)
+            if once:
+                raise
+            failures = min(failures + 1, 5)
+            stop_event.wait(min(30.0, poll * 2 ** failures))
+            continue
         finally:
-            db.close()
+            if db is not None:
+                db.close()
         if jid:
             # A crash inside one job must not kill the worker thread — otherwise every
             # later job sits queued forever until the server is restarted.
@@ -93,7 +110,7 @@ def worker_loop(poll=2.0, once=False):
         elif once:
             return
         else:
-            time.sleep(poll)
+            stop_event.wait(poll)
 
 
 def requeue_orphans():
@@ -112,6 +129,6 @@ def requeue_orphans():
         db.close()
 
 
-def start_inline_worker():
+def start_inline_worker(stop_event=None):
     requeue_orphans()
-    t = threading.Thread(target=worker_loop, daemon=True, name="inline-worker"); t.start(); return t
+    t = threading.Thread(target=worker_loop, kwargs={"stop_event": stop_event}, daemon=True, name="inline-worker"); t.start(); return t

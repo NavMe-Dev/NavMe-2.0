@@ -1,0 +1,18 @@
+{
+  "target": "local development only; no production acceptance",
+  "health_status": 200,
+  "manifest_status": 200,
+  "manifest_schema": "wayfinding.venue/v1",
+  "buildings": [
+    {
+      "slug": "gcu",
+      "version": 1,
+      "floors": 5
+    },
+    {
+      "slug": "uncc-main-campus",
+      "version": 2,
+      "floors": 7
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "recorded_at_utc": "2026-11-13T12:06:42Z",
+  "scope": "read-only final live status; no deployment applied",
+  "requests": [
+    {
+      "path": "/",
+      "http_status": 200,
+      "elapsed_ms": 359.4
+    },
+    {
+      "path": "/api/health",
+      "http_status": 500,
+      "elapsed_ms": 281.4
+    },
+    {
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "http_status": 500,
+      "elapsed_ms": 307.5
+    }
+  ]
+}

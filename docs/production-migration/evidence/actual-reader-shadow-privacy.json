@@ -1,0 +1,216 @@
+{
+  "recordedAt": "2026-11-13T14:03:48.170262+00:00",
+  "base": "http://127.0.0.1:8782",
+  "scope": "Public payload privacy, authorization, and optional loopback read-only guard",
+  "response_bodies_saved": false,
+  "read_only_guard_confirmed": true,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "status": 200,
+      "expected": 200,
+      "rows": 99,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "status": 200,
+      "expected": 200,
+      "rows": 11,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/navme-floors",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/ar-experience-ref",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/matterport",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/shops",
+      "status": 200,
+      "expected": 200,
+      "rows": 5,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/config",
+      "status": 200,
+      "expected": 200,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/buildings",
+      "status": 401,
+      "expected": 401,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status": 401,
+      "expected": 401,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/buildings/gcu/pois",
+      "status": 401,
+      "expected": 401,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/venues/navme-qa-nonexistent/manifest.json",
+      "status": 404,
+      "expected": 404,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/%2e%2e/%2e%2e/%2e%2e/.env",
+      "status": 404,
+      "expected": 404,
+      "rows": null,
+      "privacy_findings": [],
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/buildings",
+      "identity": "invalid bearer token",
+      "status": 401,
+      "expected": 401,
+      "result": "PASS"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "identity": "invalid bearer token",
+      "status": 401,
+      "expected": 401,
+      "result": "PASS"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/admin/buildings/gcu",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/admin/buildings/gcu",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/buildings/gcu/pois",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/bootstrap-admin",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/feedback",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/public/dashboard/buildings/gcu/sync-pois",
+      "status": 503,
+      "expected": 503,
+      "result": "PASS"
+    }
+  ],
+  "summary": {
+    "executed": 24,
+    "passed": 24,
+    "failed": 0
+  }
+}

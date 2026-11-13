@@ -1,6 +1,8 @@
 # Secrets — never commit the live root .env
 /.env
 /.env.local
+/.env.production-migration
+/dashboard/.env.production-migration
 # Subdir .env files and local overrides (but NOT the symlinks dashboard/.env and platform/.env)
 dashboard/.env.local
 dashboard/.env.*.local

@@ -393,6 +393,7 @@ require([
         if (window.WFMeshOverlay) WFMeshOverlay.setMode("2d");
         $("btnDim").textContent = "Switch to 3D"; status("2D · " + (window.wf.styleLabel || "Esri World Imagery (no API key)"));
       }
+      window.dispatchEvent(new Event("wf-view-change"));
     };
 
     // ---------- Localize (manual tap v0) ----------

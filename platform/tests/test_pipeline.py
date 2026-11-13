@@ -65,8 +65,11 @@ def test_step_registry_is_consistent():
         assert hasattr(mod, "run") and all(d in runner.STEPS and runner.ORDER.index(d) < runner.ORDER.index(n) for d in deps)
 
 
-def test_e57_ingest_produces_obj_and_colorplan(tmp_path):
+def test_e57_ingest_produces_obj_and_colorplan(tmp_path, monkeypatch):
     from wfpipe.steps import ingest as ingest_step
+    from wfpipe import e57_convert
+    # Exercise the documented headless fallback even when Open3D is installed.
+    monkeypatch.setattr(e57_convert, "_HAS_O3D", False)
     from pathlib import Path
     src = Path(__file__).resolve().parents[1] / "fixtures" / "e57_synth" / "synth_two_floor.e57"
     if not src.exists():

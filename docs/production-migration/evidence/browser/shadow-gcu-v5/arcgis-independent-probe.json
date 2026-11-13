@@ -1,0 +1,15 @@
+{
+  "ready": true,
+  "canvasCount": 1,
+  "layerLoaded": true,
+  "layerLoadStatus": "loaded",
+  "diagnosticOnly": true,
+  "elapsedMs": 1123.699999999255,
+  "recordedAt": "2026-11-13T13:04:51.140Z",
+  "failedRequests": [
+    {
+      "url": "https://wayfinding.navme.space/ar_webxr/launch.js",
+      "error": "net::ERR_ABORTED"
+    }
+  ]
+}

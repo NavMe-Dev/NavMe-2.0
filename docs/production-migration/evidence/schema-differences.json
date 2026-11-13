@@ -1,0 +1,608 @@
+{
+  "production_apply_approved": false,
+  "tables": {
+    "public.alembic_version": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 1,
+      "destination_estimated_rows": 1,
+      "destination_row_count": 1,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.buildings": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 2,
+      "destination_estimated_rows": 1,
+      "destination_row_count": 1,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.control_points": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 0,
+      "destination_estimated_rows": 0,
+      "destination_row_count": 0,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.floors": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 12,
+      "destination_estimated_rows": 5,
+      "destination_row_count": 5,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.jobs": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 11,
+      "destination_estimated_rows": 1,
+      "destination_row_count": 1,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.map_versions": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 3,
+      "destination_estimated_rows": 5,
+      "destination_row_count": 5,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.nav_graphs": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 5,
+      "destination_estimated_rows": 1,
+      "destination_row_count": 1,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.navme_access_buildings": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_access_floors": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_accounts": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 41
+    },
+    "public.navme_app_manifest": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_ar_events": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1022
+    },
+    "public.navme_ar_sessions": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 53
+    },
+    "public.navme_blocks": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_categories": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 74
+    },
+    "public.navme_complaints": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_connections": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_electronic_assets": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_facilities": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_feedback": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 5
+    },
+    "public.navme_floor_edits": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_floors": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 16
+    },
+    "public.navme_gmap_buildings": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 2
+    },
+    "public.navme_gmap_floors": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_gmap_georef": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_gmap_navmesh": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_gmap_pois": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1542
+    },
+    "public.navme_guided_tour_stops": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_guided_tours": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_logins": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 43
+    },
+    "public.navme_media": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 194
+    },
+    "public.navme_model_alignments": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_nav_matrices": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_nav_matrix_items": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_nav_popups": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_navnode": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 7102
+    },
+    "public.navme_navnode_backup_2026_09_25": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_organizations": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.navme_pj_pois": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_poi_categories": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 20
+    },
+    "public.navme_pois": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 566
+    },
+    "public.navme_project_api_credentials": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_project_features": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 45
+    },
+    "public.navme_project_members": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_saved_places": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_shop": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 5
+    },
+    "public.navme_snapshots": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.navme_stair_chains": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 25
+    },
+    "public.navme_tenant_languages": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 40
+    },
+    "public.navme_user_logs": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 152
+    },
+    "public.navme_users": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 173
+    },
+    "public.pois": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 536,
+      "destination_estimated_rows": 230,
+      "destination_row_count": 230,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.spatial_blueprints": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_building_experiences": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_building_members": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.spatial_buildings": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_companies": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 9
+    },
+    "public.spatial_equipment": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 21
+    },
+    "public.spatial_floors": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_markers": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 52
+    },
+    "public.spatial_occupancies": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 10
+    },
+    "public.spatial_profiles": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.spatial_ref_sys": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 8500,
+      "destination_estimated_rows": 8500,
+      "destination_row_count": 8500,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": false,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "extension-managed; do not merge records"
+    },
+    "public.spatial_room_polygons": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 52
+    },
+    "public.spatial_room_viewpoints": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 52
+    },
+    "public.spatial_scan_floors": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_scans": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 1
+    },
+    "public.spatial_spaces": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 52
+    },
+    "public.treasure_cheat_unlocks": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_cheats": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_collections": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_items": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_levels": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_player_progress": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_players": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_project_features": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_task_completions": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_task_token_collections": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_task_tokens": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.treasure_tasks": {
+      "category": "destination-only",
+      "action": "preserve unchanged",
+      "destination_row_count": 0
+    },
+    "public.users": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 2,
+      "destination_estimated_rows": 2,
+      "destination_row_count": 2,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    },
+    "public.venues": {
+      "category": "existing and structurally compatible",
+      "source_row_count": 0,
+      "destination_estimated_rows": 0,
+      "destination_row_count": 0,
+      "differences": {
+        "source_only_columns": [],
+        "destination_only_columns": [],
+        "changed_columns": [],
+        "source_only_constraints": [],
+        "destination_only_constraints": [],
+        "source_only_indexes": [],
+        "destination_only_indexes": []
+      },
+      "rls": {
+        "source": false,
+        "destination": true,
+        "action": "preserve destination; security changes require separate approval"
+      },
+      "action": "identity and relationship reconciliation required"
+    }
+  },
+  "source_extensions": [
+    {
+      "extname": "plpgsql",
+      "extversion": "1.0"
+    },
+    {
+      "extname": "postgis",
+      "extversion": "3.6.4"
+    }
+  ],
+  "limitations": [
+    "Source is local PostgreSQL 18.6, not an authenticated Render production export.",
+    "Destination row estimates are not exact baselines; use the independently captured count report.",
+    "Structural compatibility does not approve data transfer, RLS changes, or application cutover.",
+    "PostgreSQL 18 NOT NULL catalog rows are normalized through the exact column attnotnull comparison.",
+    "Extension function/version, role grant, trigger and policy differences require separate review."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "clone": "navme_destination_restore_test",
+  "postgres_major": 17,
+  "candidate_applied": true,
+  "real_scram_login_verified": true,
+  "wrong_password_denied": true,
+  "production_role_created": false,
+  "production_writes": false,
+  "observations": [
+    {
+      "current_user": "navme_wayfinding_live_v1",
+      "transaction_read_only": "on",
+      "postgis": "3.3 USE_GEOS=1 USE_PROJ=1 USE_STATS=1",
+      "revision": "0001",
+      "role_memberships": 1,
+      "reader_inherited": true
+    },
+    {
+      "users": 2,
+      "venues": 0,
+      "buildings": 1,
+      "floors": 5,
+      "pois": 230,
+      "control_points": 0,
+      "nav_graphs": 1,
+      "map_versions": 5,
+      "jobs": 1,
+      "alembic_version": 1
+    },
+    {
+      "table_mutation_privileges": 0,
+      "sequence_privileges": 0,
+      "schema_create": false,
+      "nonextension_security_definer": 0
+    },
+    {
+      "negative_update_denied_even_when_readonly_disabled": true
+    }
+  ],
+  "pass": true
+}

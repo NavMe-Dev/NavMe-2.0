@@ -1,0 +1,266 @@
+{
+  "captured_at": "2026-11-13T14:03:51.681126+00:00",
+  "origin": "http://127.0.0.1:8782",
+  "scope": "existing destination GCU v5; local shadow; warm cache; no production writes",
+  "checks": 22,
+  "passed": 22,
+  "all_expected_statuses": true,
+  "observations": [
+    {
+      "label": "/api/live",
+      "method": "GET",
+      "path": "/api/live",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 62.971,
+      "bytes": 29,
+      "pass": true
+    },
+    {
+      "label": "/api/health",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 1599.427,
+      "bytes": 79,
+      "pass": true
+    },
+    {
+      "label": "/api/v1/public/venues/all/manifest.json",
+      "method": "GET",
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 562.975,
+      "bytes": 620,
+      "pass": true,
+      "schema": "wayfinding.venue/v1",
+      "published_buildings": [
+        {
+          "slug": "gcu",
+          "version": 5,
+          "floors": 5
+        }
+      ]
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/data/config.json",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 669.497,
+      "bytes": 3249,
+      "pass": true
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/data/pois.json",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 384.294,
+      "bytes": 75221,
+      "pass": true,
+      "poi_count": 131
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 694.999,
+      "bytes": 1187773,
+      "pass": true,
+      "node_count": 1073,
+      "edge_count": 3842
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/data/georef.json",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/georef.json",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 496.365,
+      "bytes": 914,
+      "pass": true
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/data/indoor_F1.geojson",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/data/indoor_F1.geojson",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 460.51,
+      "bytes": 117710,
+      "pass": true
+    },
+    {
+      "label": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 311.672,
+      "bytes": 25740,
+      "pass": true,
+      "items": 99
+    },
+    {
+      "label": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 220.885,
+      "bytes": 1135,
+      "pass": true,
+      "items": 11
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/navme-floors",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/navme-floors",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 224.171,
+      "bytes": 1828,
+      "pass": true,
+      "array_lengths": {
+        "floors": 5
+      }
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/translations",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 467.018,
+      "bytes": 134714,
+      "pass": true,
+      "array_lengths": {
+        "poi_names": 235,
+        "category_names": 11
+      }
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/venue-info",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/venue-info",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 679.099,
+      "bytes": 233,
+      "pass": true,
+      "array_lengths": {}
+    },
+    {
+      "label": "/api/v1/public/buildings/gcu/explore",
+      "method": "GET",
+      "path": "/api/v1/public/buildings/gcu/explore",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 644.354,
+      "bytes": 152339,
+      "pass": true,
+      "array_lengths": {
+        "pois": 235,
+        "facilities": 0
+      }
+    },
+    {
+      "label": "same_floor, step_free=False",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/route",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 609.08,
+      "bytes": 914,
+      "pass": true,
+      "length_m": 106.8,
+      "floors": [
+        "F1"
+      ],
+      "geometry_points": 3
+    },
+    {
+      "label": "same_floor, step_free=True",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/route",
+      "status": 404,
+      "expected_status": 404,
+      "elapsed_ms": 378.714,
+      "bytes": 35,
+      "pass": true
+    },
+    {
+      "label": "different_floor, step_free=False",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/route",
+      "status": 200,
+      "expected_status": 200,
+      "elapsed_ms": 222.458,
+      "bytes": 3061,
+      "pass": true,
+      "length_m": 178.8,
+      "floors": [
+        "F1",
+        "F2"
+      ],
+      "geometry_points": 21
+    },
+    {
+      "label": "different_floor, step_free=True",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/route",
+      "status": 404,
+      "expected_status": 404,
+      "elapsed_ms": 237.549,
+      "bytes": 35,
+      "pass": true
+    },
+    {
+      "label": "invalid POI",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/route",
+      "status": 404,
+      "expected_status": 404,
+      "elapsed_ms": 230.673,
+      "bytes": 24,
+      "pass": true
+    },
+    {
+      "label": "missing venue",
+      "method": "GET",
+      "path": "/api/v1/public/venues/__invalid_probe__/manifest.json",
+      "status": 404,
+      "expected_status": 404,
+      "elapsed_ms": 174.538,
+      "bytes": 26,
+      "pass": true
+    },
+    {
+      "label": "anonymous admin denial",
+      "method": "GET",
+      "path": "/api/v1/admin/buildings",
+      "status": 401,
+      "expected_status": 401,
+      "elapsed_ms": 1.614,
+      "bytes": 30,
+      "pass": true
+    },
+    {
+      "label": "read-only mutation gate (invalid body)",
+      "method": "POST",
+      "path": "/api/v1/public/buildings/gcu/feedback",
+      "status": 503,
+      "expected_status": 503,
+      "elapsed_ms": 0.604,
+      "bytes": 37,
+      "pass": true
+    }
+  ]
+}

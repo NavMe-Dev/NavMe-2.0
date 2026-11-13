@@ -1,0 +1,116 @@
+{
+  "captured_date": "2026-11-13",
+  "workspace_id": "tea-d9dsalurnols73d3t4cg",
+  "service": {
+    "autoDeploy": "yes",
+    "autoDeployTrigger": "commit",
+    "branch": "main",
+    "createdAt": "2026-10-07T11:39:58.63739Z",
+    "dashboardUrl": "https://dashboard.render.com/web/srv-db32v3bncjis73e9l2cg",
+    "id": "srv-db32v3bncjis73e9l2cg",
+    "name": "navme-wayfinding-platform",
+    "notifyOnFail": "default",
+    "ownerId": "tea-d9dsalurnols73d3t4cg",
+    "repo": "https://github.com/NavMe-Dev/NavMe-2.0",
+    "rootDir": "",
+    "serviceDetails": {
+      "buildPlan": "starter",
+      "cache": {
+        "profile": "no-cache"
+      },
+      "env": "docker",
+      "envSpecificDetails": {
+        "dockerCommand": "",
+        "dockerContext": "platform",
+        "dockerfilePath": "platform/deploy/Dockerfile.api"
+      },
+      "healthCheckPath": "",
+      "ipAllowList": [
+        {
+          "cidrBlock": "0.0.0.0/0",
+          "description": "everywhere"
+        }
+      ],
+      "maintenanceMode": {
+        "enabled": false,
+        "uri": ""
+      },
+      "numInstances": 1,
+      "openPorts": [
+        {
+          "port": 10000,
+          "protocol": "TCP"
+        }
+      ],
+      "plan": "0.5c-512mb",
+      "previews": {
+        "generation": "off"
+      },
+      "pullRequestPreviewsEnabled": "no",
+      "region": "oregon",
+      "renderSubdomainPolicy": "enabled",
+      "runtime": "docker",
+      "sshAddress": "srv-db32v3bncjis73e9l2cg@ssh.oregon.render.com",
+      "url": "https://navme-wayfinding-platform-mawd.onrender.com"
+    },
+    "slug": "navme-wayfinding-platform-mawd",
+    "suspended": "not_suspended",
+    "suspenders": [],
+    "type": "web_service",
+    "updatedAt": "2026-10-28T08:50:25.596374Z"
+  },
+  "source_database": {
+    "connectionPool": "none",
+    "createdAt": "2026-10-07T11:39:20.824623Z",
+    "dashboardUrl": "https://dashboard.render.com/d/dpg-db32uq3ncjis73e9k3q0-a",
+    "databaseName": "navme_wayfinding_db_ge2o",
+    "databaseUser": "navme_wayfinding_db_ge2o_user",
+    "diskAutoscalingEnabled": false,
+    "expiresAt": "2026-11-06T11:39:20.824623Z",
+    "highAvailabilityEnabled": false,
+    "id": "dpg-db32uq3ncjis73e9k3q0-a",
+    "ipAllowList": [],
+    "name": "navme-wayfinding-db",
+    "plan": "free",
+    "readReplicas": [],
+    "region": "oregon",
+    "role": "primary",
+    "status": "suspended",
+    "suspended": "suspended",
+    "suspenders": [
+      "billing"
+    ],
+    "updatedAt": "2026-11-06T13:23:18.580545Z",
+    "version": "16"
+  },
+  "live_deploy": {
+    "id": "dep-dbgre2h42hec73drki50",
+    "commit": "78e309de5938b46d50f9fd38763d9ea70a209405",
+    "status": "live",
+    "finished_at": "2026-10-28T08:50:25.595014Z"
+  },
+  "source_query": "Blocked by empty external IP allowlist; suspended source not bypassed",
+  "environment_inspection": "MCP has no read-environment operation; authenticated SSH attempt rejected publickey after official host fingerprint verification",
+  "failure_logs": [
+    {
+      "timestamp": "2026-11-13T11:51:00.770448709Z",
+      "message": "sqlalchemy.exc.OperationalError: (psycopg.OperationalError) failed to resolve host 'dpg-db32uq3ncjis73e9k3q0-a': [Errno -2] Name or service not known"
+    },
+    {
+      "timestamp": "2026-11-13T11:51:04.729807271Z",
+      "message": "psycopg.OperationalError: failed to resolve host 'dpg-db32uq3ncjis73e9k3q0-a': [Errno -2] Name or service not known"
+    },
+    {
+      "timestamp": "2026-11-13T11:51:04.730217832Z",
+      "message": "sqlalchemy.exc.OperationalError: (psycopg.OperationalError) failed to resolve host 'dpg-db32uq3ncjis73e9k3q0-a': [Errno -2] Name or service not known"
+    },
+    {
+      "timestamp": "2026-11-13T11:52:48.491852442Z",
+      "message": "psycopg.OperationalError: failed to resolve host 'dpg-db32uq3ncjis73e9k3q0-a': [Errno -2] Name or service not known"
+    },
+    {
+      "timestamp": "2026-11-13T11:52:48.492357176Z",
+      "message": "sqlalchemy.exc.OperationalError: (psycopg.OperationalError) failed to resolve host 'dpg-db32uq3ncjis73e9k3q0-a': [Errno -2] Name or service not known"
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "recordedAt": "2026-11-13T14:57:09.214538+00:00",
+  "scope": "Local Matterport origin diagnosis and fix validation; reader shadow clearly separate; no production changes",
+  "application_key_values_included": false,
+  "native_matterport_guest_read_traffic_allowed": true,
+  "navme_supabase_mutations_sent": false,
+  "checks": [
+    {
+      "label": "before-ip-origin",
+      "recordedAt": "2026-11-13T14:46:14.696Z",
+      "requested_url": "http://127.0.0.1:8780/gcu-omr",
+      "final_origin_path": "http://127.0.0.1:8780/gcu-omr",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "building": "gcu",
+      "publication_version": 1,
+      "poi_count": 108,
+      "query": {
+        "building": "gcu",
+        "mp": "1"
+      },
+      "background_ready": false,
+      "startup_pending": true,
+      "loader_hidden": false,
+      "loader_error": true,
+      "sdk_present": false,
+      "timeline": [
+        {
+          "ms": 983,
+          "event": "sdk.connect.called"
+        },
+        {
+          "ms": 1793,
+          "event": "sdk.connect.rejected",
+          "exception_type": "KeyReferrerMismatchError"
+        },
+        {
+          "ms": 1793,
+          "event": "startup.fail",
+          "generation": 1
+        },
+        {
+          "ms": 1793,
+          "event": "startup.fail",
+          "generation": 1
+        },
+        {
+          "ms": 1793,
+          "event": "startup.fail",
+          "generation": 1
+        }
+      ],
+      "page_errors": [],
+      "failed_responses": [
+        {
+          "url": "http://127.0.0.1:8780/ar_webxr/launch.js",
+          "method": "GET",
+          "status": 404
+        },
+        {
+          "url": "https://my.matterport.com/api/v1/user/",
+          "method": "GET",
+          "status": 400
+        }
+      ],
+      "blocked_mutations": []
+    },
+    {
+      "label": "before-localhost-control",
+      "recordedAt": "2026-11-13T14:47:11.679Z",
+      "requested_url": "http://localhost:8780/gcu-omr",
+      "final_origin_path": "http://localhost:8780/gcu-omr",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "building": "gcu",
+      "publication_version": 1,
+      "poi_count": 108,
+      "query": {
+        "building": "gcu",
+        "mp": "1"
+      },
+      "background_ready": true,
+      "startup_pending": false,
+      "loader_hidden": true,
+      "loader_error": false,
+      "sdk_present": true,
+      "timeline": [
+        {
+          "ms": 741,
+          "event": "sdk.connect.called"
+        },
+        {
+          "ms": 2549,
+          "event": "sdk.connect.resolved"
+        },
+        {
+          "ms": 2554,
+          "event": "sdk.phase",
+          "phase": "appphase.loading"
+        },
+        {
+          "ms": 3338,
+          "event": "sdk.phase",
+          "phase": "appphase.playing"
+        },
+        {
+          "ms": 3367,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 5629,
+          "event": "startup.modelReady",
+          "generation": 1
+        },
+        {
+          "ms": 5629,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 5630,
+          "event": "startup.uiReady",
+          "generation": 1
+        }
+      ],
+      "page_errors": [],
+      "failed_responses": [
+        {
+          "url": "http://localhost:8780/ar_webxr/launch.js",
+          "method": "GET",
+          "status": 404
+        }
+      ],
+      "blocked_mutations": []
+    },
+    {
+      "label": "after-desktop",
+      "recordedAt": "2026-11-13T14:52:14.707Z",
+      "requested_url": "http://127.0.0.1:8780/gcu-omr",
+      "final_origin_path": "http://localhost:8780/gcu-omr",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "building": "gcu",
+      "publication_version": 1,
+      "poi_count": 108,
+      "query": {
+        "building": "gcu",
+        "mp": "1",
+        "floor": null,
+        "style": null
+      },
+      "background_ready": true,
+      "startup_pending": false,
+      "loader_hidden": true,
+      "loader_error": false,
+      "sdk_present": true,
+      "timeline": [
+        {
+          "ms": 891,
+          "event": "sdk.connect.called"
+        },
+        {
+          "ms": 2226,
+          "event": "sdk.connect.resolved"
+        },
+        {
+          "ms": 2238,
+          "event": "sdk.phase",
+          "phase": "appphase.loading"
+        },
+        {
+          "ms": 3516,
+          "event": "sdk.phase",
+          "phase": "appphase.playing"
+        },
+        {
+          "ms": 3543,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 5628,
+          "event": "startup.modelReady",
+          "generation": 1
+        },
+        {
+          "ms": 5628,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 5629,
+          "event": "startup.uiReady",
+          "generation": 1
+        }
+      ],
+      "page_errors": [],
+      "failed_responses": [
+        {
+          "url": "http://localhost:8780/ar_webxr/launch.js",
+          "method": "GET",
+          "status": 404
+        }
+      ],
+      "blocked_mutations": []
+    },
+    {
+      "label": "after-mobile",
+      "recordedAt": "2026-11-13T14:52:14.706Z",
+      "requested_url": "http://127.0.0.1:8780/gcu-omr?[redacted]",
+      "final_origin_path": "http://localhost:8780/gcu-omr",
+      "status": 200,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "building": "gcu",
+      "publication_version": 1,
+      "poi_count": 108,
+      "query": {
+        "building": "gcu",
+        "mp": "1",
+        "floor": "F1",
+        "style": "map"
+      },
+      "background_ready": true,
+      "startup_pending": false,
+      "loader_hidden": true,
+      "loader_error": false,
+      "sdk_present": true,
+      "timeline": [
+        {
+          "ms": 1938,
+          "event": "sdk.connect.called"
+        },
+        {
+          "ms": 2898,
+          "event": "sdk.connect.resolved"
+        },
+        {
+          "ms": 2902,
+          "event": "sdk.phase",
+          "phase": "appphase.loading"
+        },
+        {
+          "ms": 4587,
+          "event": "sdk.phase",
+          "phase": "appphase.playing"
+        },
+        {
+          "ms": 4620,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 8168,
+          "event": "startup.modelReady",
+          "generation": 1
+        },
+        {
+          "ms": 8168,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 8170,
+          "event": "startup.uiReady",
+          "generation": 1
+        }
+      ],
+      "page_errors": [],
+      "failed_responses": [
+        {
+          "url": "http://localhost:8780/ar_webxr/launch.js",
+          "method": "GET",
+          "status": 404
+        }
+      ],
+      "blocked_mutations": []
+    },
+    {
+      "label": "reader-shadow-v5",
+      "recordedAt": "2026-11-13T14:54:29.573Z",
+      "requested_url": "http://localhost:8782/gcu-omr",
+      "final_origin_path": "http://localhost:8782/gcu-omr",
+      "status": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "building": "gcu",
+      "publication_version": 5,
+      "poi_count": 99,
+      "query": {
+        "building": "gcu",
+        "mp": "1",
+        "floor": null,
+        "style": null
+      },
+      "background_ready": true,
+      "startup_pending": false,
+      "loader_hidden": true,
+      "loader_error": false,
+      "sdk_present": true,
+      "timeline": [
+        {
+          "ms": 3123,
+          "event": "sdk.connect.called"
+        },
+        {
+          "ms": 4688,
+          "event": "sdk.connect.resolved"
+        },
+        {
+          "ms": 5035,
+          "event": "sdk.phase",
+          "phase": "appphase.loading"
+        },
+        {
+          "ms": 6280,
+          "event": "sdk.phase",
+          "phase": "appphase.playing"
+        },
+        {
+          "ms": 6317,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 8593,
+          "event": "startup.modelReady",
+          "generation": 1
+        },
+        {
+          "ms": 8593,
+          "event": "startup.modelVisible",
+          "generation": 1
+        },
+        {
+          "ms": 8594,
+          "event": "startup.uiReady",
+          "generation": 1
+        }
+      ],
+      "page_errors": [],
+      "failed_responses": [
+        {
+          "url": "http://localhost:8782/ar_webxr/launch.js",
+          "method": "GET",
+          "status": 404
+        }
+      ],
+      "blocked_mutations": []
+    }
+  ]
+}

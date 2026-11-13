@@ -6,13 +6,29 @@ get_settings() is lru_cached — call get_settings.cache_clear() after overlay s
 (or restart via scripts/dev_server.sh restart).
 """
 from functools import lru_cache
+import os
 from pathlib import Path
+from typing import Literal
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     database_url: str = "postgresql+psycopg://wayfinding:wayfinding_dev@localhost:5432/wayfinding"
+    # Per API/worker process. Include all processes when sizing the server budget.
+    db_pool_size: int = Field(default=3, ge=1, le=100)
+    db_max_overflow: int = Field(default=2, ge=0, le=100)
+    db_pool_timeout_seconds: int = Field(default=5, ge=1)
+    db_pool_recycle_seconds: int = Field(default=300, ge=1)
+    db_connect_timeout_seconds: int = Field(default=10, ge=1)
+    db_statement_timeout_ms: int = Field(default=30000, ge=1)
+    db_lock_timeout_ms: int = Field(default=5000, ge=1)
+    # Empty preserves the connection URL's libpq setting. Use require or verify-full
+    # for hosted connections; never put a database password in frontend settings.
+    db_sslmode: Literal["", "disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = ""
+    db_read_only: bool = False            # enforce PostgreSQL session read-only mode (shadow/recovery)
+    wf_read_only: bool = False            # also block application mutations, including REST-backed feedback
     jwt_secret: str = "change-me"
     jwt_expire_minutes: int = 720
     data_dir: Path = Path("./var/data")
@@ -68,11 +84,20 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     s = Settings()
+    read_only_database_url = None
+    if s.wf_read_only or s.db_read_only:
+        # Recovery connections must use the explicitly reviewed process secret.
+        # A stale runtime overlay must not redirect a cutover back to its source.
+        read_only_database_url = os.environ.get("DATABASE_URL")
+        if not read_only_database_url:
+            raise ValueError("Read-only recovery requires an explicit DATABASE_URL environment variable")
     try:
         from .services import runtime_config as rt
         rt.apply_overlays_to_settings(s)
     except Exception:
         pass
+    if read_only_database_url is not None:
+        s.database_url = read_only_database_url
     for d in (s.buildings_dir, s.published_dir, s.uploads_dir, s.scan_plans_dir):
         d.mkdir(parents=True, exist_ok=True)
     return s

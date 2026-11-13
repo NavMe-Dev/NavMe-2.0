@@ -66,6 +66,27 @@ def test_public_unpublished_is_404(client):
     assert client.get("/api/v1/public/buildings/b1/data/config.json").status_code == 404
 
 
+def test_public_dashboard_pois_hide_drafts_and_unpublished_buildings(client, tmp_path):
+    with SessionLocal() as db:
+        published = models.Building(slug="privacy-published", name="Published fixture")
+        draft = models.Building(slug="privacy-unpublished", name="Unpublished fixture")
+        db.add_all([published, draft]); db.flush()
+        db.add(models.MapVersion(building_id=published.id, version=1, path=str(tmp_path), is_current=True, summary={}))
+        for building, key, visible, source in [
+            (published, "visible", True, "supabase"),
+            (published, "hidden-draft", False, "supabase"),
+            (published, "other-source", True, "auto"),
+            (draft, "unpublished-building-poi", True, "supabase"),
+        ]:
+            db.add(models.POI(building_id=building.id, key=key, name=key, category="room", floor="F1", published=visible, source=source))
+        db.commit()
+    response = client.get("/api/v1/public/dashboard/buildings/privacy-published/navme-pois")
+    assert response.status_code == 200
+    assert [poi["name"] for poi in response.json()] == ["visible"]
+    response = client.get("/api/v1/public/dashboard/buildings/privacy-unpublished/navme-pois")
+    assert response.status_code == 200 and response.json() == []
+
+
 @pytest.mark.skipif(not (GREENLAND_WS / "out/config.json").exists(), reason="Greenland workspace not onboarded")
 def test_import_publish_route_greenland(client, auth):
     from wayfinding_api.config import get_settings

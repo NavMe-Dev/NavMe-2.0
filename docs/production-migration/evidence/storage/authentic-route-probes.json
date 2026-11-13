@@ -1,0 +1,138 @@
+[
+  {
+    "slug": "gcu",
+    "version": 5,
+    "kind": "same_floor",
+    "step_free": false,
+    "elapsed_ms": 7.941,
+    "from_poi_id": "poi_door_inf_k44f9320u03gnusfgyirp",
+    "to_poi_id": "poi_door_inf_itiuruwztr4xu5094i3xm",
+    "from_floor": "F1",
+    "to_floor": "F1",
+    "result": "ROUTE",
+    "length_m": 106.8,
+    "eta_s": 90,
+    "stair_edges": 1,
+    "elevator_edges": 0,
+    "floors": [
+      "F1"
+    ],
+    "endpoints_match": true,
+    "geometry_points": 14
+  },
+  {
+    "slug": "gcu",
+    "version": 5,
+    "kind": "same_floor",
+    "step_free": true,
+    "elapsed_ms": 4.944,
+    "from_poi_id": "poi_door_inf_k44f9320u03gnusfgyirp",
+    "to_poi_id": "poi_door_inf_itiuruwztr4xu5094i3xm",
+    "from_floor": "F1",
+    "to_floor": "F1",
+    "result": "NO ROUTE"
+  },
+  {
+    "slug": "gcu",
+    "version": 5,
+    "kind": "different_floor",
+    "step_free": false,
+    "elapsed_ms": 7.403,
+    "from_poi_id": "poi_door_inf_k44f9320u03gnusfgyirp",
+    "to_poi_id": "poi_door_hksuewc2snx6kx8gwdrh892sb",
+    "from_floor": "F1",
+    "to_floor": "F2",
+    "result": "ROUTE",
+    "length_m": 178.8,
+    "eta_s": 157,
+    "stair_edges": 2,
+    "elevator_edges": 0,
+    "floors": [
+      "F1",
+      "F2"
+    ],
+    "endpoints_match": true,
+    "geometry_points": 21
+  },
+  {
+    "slug": "gcu",
+    "version": 5,
+    "kind": "different_floor",
+    "step_free": true,
+    "elapsed_ms": 4.825,
+    "from_poi_id": "poi_door_inf_k44f9320u03gnusfgyirp",
+    "to_poi_id": "poi_door_hksuewc2snx6kx8gwdrh892sb",
+    "from_floor": "F1",
+    "to_floor": "F2",
+    "result": "NO ROUTE"
+  },
+  {
+    "slug": "uncc-main-campus",
+    "version": 2,
+    "kind": "same_floor",
+    "step_free": false,
+    "elapsed_ms": 34.474,
+    "from_poi_id": "poi_613htqkzf6",
+    "to_poi_id": "poi_stairs_4_F1",
+    "from_floor": "F1",
+    "to_floor": "F1",
+    "result": "ROUTE",
+    "length_m": 138.9,
+    "eta_s": 117,
+    "stair_edges": 1,
+    "elevator_edges": 0,
+    "floors": [
+      "F1"
+    ],
+    "endpoints_match": true,
+    "geometry_points": 21
+  },
+  {
+    "slug": "uncc-main-campus",
+    "version": 2,
+    "kind": "same_floor",
+    "step_free": true,
+    "elapsed_ms": 20.16,
+    "from_poi_id": "poi_613htqkzf6",
+    "to_poi_id": "poi_stairs_4_F1",
+    "from_floor": "F1",
+    "to_floor": "F1",
+    "result": "NO ROUTE"
+  },
+  {
+    "slug": "uncc-main-campus",
+    "version": 2,
+    "kind": "different_floor",
+    "step_free": false,
+    "elapsed_ms": 40.426,
+    "from_poi_id": "poi_613htqkzf6",
+    "to_poi_id": "poi_door_inf_mbcq0fh9138gawfshsm1u",
+    "from_floor": "F1",
+    "to_floor": "F2",
+    "result": "ROUTE",
+    "length_m": 393.5,
+    "eta_s": 367,
+    "stair_edges": 12,
+    "elevator_edges": 0,
+    "floors": [
+      "F1",
+      "F2",
+      "F4",
+      "F3"
+    ],
+    "endpoints_match": true,
+    "geometry_points": 148
+  },
+  {
+    "slug": "uncc-main-campus",
+    "version": 2,
+    "kind": "different_floor",
+    "step_free": true,
+    "elapsed_ms": 20.393,
+    "from_poi_id": "poi_613htqkzf6",
+    "to_poi_id": "poi_door_inf_mbcq0fh9138gawfshsm1u",
+    "from_floor": "F1",
+    "to_floor": "F2",
+    "result": "NO ROUTE"
+  }
+]

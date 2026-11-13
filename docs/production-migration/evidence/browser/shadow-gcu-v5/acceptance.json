@@ -1,0 +1,1710 @@
+{
+  "recordedAt": "2026-11-13T13:19:41.585Z",
+  "base": "http://127.0.0.1:8782",
+  "scope": "Read-only authentic GCU v5 viewer acceptance; no production mutations",
+  "browserVersion": "158.0.8127.18",
+  "graphicsBackend": "metal",
+  "devices": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 12226.122625,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 1440,
+            "viewHeight": 900,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.899290999999721,
+          "detail": {
+            "document": 1440,
+            "viewport": 1440
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.6637090000003809,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1750.1895840000016,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 57.53204199999891,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1325.2613749999982,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1045.878291000001,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 988.7517910000024,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 483.4217080000017,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 899.820042000003,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 17.141708000002836,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 0.6519589999988966,
+          "detail": {
+            "document": 1440,
+            "viewport": 1440
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 3746.802416999999,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5106fc0-layer-37') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5106fc4-layer-44') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5106fbf-layer-36') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5106fb3-layer-25') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5106fc2-layer-40') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5106fc4-layer-43') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5106fb6-layer-29') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5106fc3-layer-41') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5106fc1-layer-38') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5106fc1-layer-39') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5106fbc-layer-31') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5106fbd-layer-32') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5106fbf-layer-35') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5106fbc-layer-30') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5106fb0-layer-23') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5106fb5-layer-28') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5106fb1-layer-24') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5106fb4-layer-26') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5106fc3-layer-42') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5106fb4-layer-27') {warning: Object}"
+        },
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30374/46913",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30375/46913",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30374/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30374/46915",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30375/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7593/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2931",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/esri/widgets/Attribution/t9n/Attribution_fr.json",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/121500/187653",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30374/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15187/23457",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30375/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30374/46913",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7593/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15187/23456",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30375/46913",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3797/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2931",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30376/46913",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30376/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/7/58/92",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5864",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "badResponses": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "desktop-map.png",
+        "desktop-2d-map.png",
+        "desktop-floor-selection.png",
+        "desktop-poi.png",
+        "desktop-route.png",
+        "desktop-multi-floor-route.png"
+      ],
+      "htmlStatus": 200,
+      "mapReadyMs": 12821.11475,
+      "timings": {
+        "domContentLoadedMs": 307,
+        "loadEventMs": 526.4000000003725
+      }
+    },
+    {
+      "name": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 6549.2979159999995,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 768,
+            "viewHeight": 1024,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.6706249999988358,
+          "detail": {
+            "document": 768,
+            "viewport": 768
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.44291599999996834,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1213.9362909999982,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 87.3015000000014,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1130.5337500000023,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1055.7879580000008,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 1010.8209170000046,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 200.80479099999502,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 886.994832999997,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 17.050999999999476,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 0.7881669999987935,
+          "detail": {
+            "document": 768,
+            "viewport": 768
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 3877.572957999997,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d510ccad-layer-35') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d510ccb3-layer-42') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d510cca9-layer-27') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d510ccae-layer-36') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d510ccb4-layer-43') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d510cca9-layer-28') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d510ccb1-layer-40') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d510ccaa-layer-29') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d510cca7-layer-24') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d510ccb0-layer-39') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d510ccac-layer-32') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d510cca5-layer-23') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d510ccb0-layer-38') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d510ccab-layer-31') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d510cca8-layer-26') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d510ccaf-layer-37') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d510ccb5-layer-44') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d510cca7-layer-25') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d510ccb2-layer-41') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d510ccaa-layer-30') {warning: Object}"
+        },
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2931",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/949/1465",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/10/474/732",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/3/3/5",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15186/23457",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15186/23456",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7592/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/esri/widgets/Attribution/t9n/Attribution_fr.json",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/3/3/5",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30373/46915",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "badResponses": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "tablet-map.png",
+        "tablet-2d-map.png",
+        "tablet-floor-selection.png",
+        "tablet-poi.png",
+        "tablet-route.png",
+        "tablet-multi-floor-route.png"
+      ],
+      "htmlStatus": 200,
+      "mapReadyMs": 7079.69125,
+      "timings": {
+        "domContentLoadedMs": 306.7999999988824,
+        "loadEventMs": 519.5999999996275
+      }
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 6218.204375000001,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 390,
+            "viewHeight": 844,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 0.6340419999978621,
+          "detail": {
+            "document": 390,
+            "viewport": 390
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 0.420166000003519,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1188.2117919999946,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 84.46970800000418,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1428.116375000005,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1071.5210000000006,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 1006.7967499999941,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 210.6865420000031,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 876.7492910000001,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 12.797708999998576,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 0.7849580000038259,
+          "detail": {
+            "document": 390,
+            "viewport": 390
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 3880.544167,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d511185b-layer-35') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5111860-layer-41') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d511185c-layer-36') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5111861-layer-43') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5111861-layer-42') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5111857-layer-28') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5111858-layer-30') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5111856-layer-27') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d511185f-layer-39') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d511185f-layer-40') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5111857-layer-29') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d511185a-layer-32') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5111852-layer-23') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5111854-layer-24') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d511185e-layer-38') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5111859-layer-31') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5111856-layer-26') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d511185d-layer-37') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5111862-layer-44') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5111855-layer-25') {warning: Object}"
+        },
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5114e90-layer-26') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5114e92-layer-28') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5114f12-layer-43') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5114e8e-layer-24') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5114e94-layer-31') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5114f11-layer-41') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5114f10-layer-38') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5114f0e-layer-36') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5114f11-layer-40') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5114e8f-layer-25') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5114e94-layer-32') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5114f0f-layer-37') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5114e93-layer-29') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5114f0d-layer-35') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5114f12-layer-42') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5114e8d-layer-23') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5114e91-layer-27') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5114f12-layer-44') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5114e93-layer-30') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5114f10-layer-39') {warning: Object}"
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/3/3/5",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7592/11729",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1897/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/948/1466",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/948/1465",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7592/11727",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5863",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/esri/widgets/Attribution/t9n/Attribution_fr.json",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "badResponses": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "mobile-map.png",
+        "mobile-2d-map.png",
+        "mobile-floor-selection.png",
+        "mobile-poi.png",
+        "mobile-route.png",
+        "mobile-multi-floor-route.png"
+      ],
+      "htmlStatus": 200,
+      "mapReadyMs": 6772.727333000003,
+      "timings": {
+        "domContentLoadedMs": 310,
+        "loadEventMs": 573.8000000007451
+      }
+    },
+    {
+      "name": "small-mobile",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "checks": [
+        {
+          "name": "authentic GCU v5 map initializes",
+          "status": "PASS",
+          "elapsedMs": 7083.218000000001,
+          "detail": {
+            "slug": "gcu",
+            "version": 5,
+            "model": "jdjvM17BPEh",
+            "viewReady": true,
+            "viewWidth": 360,
+            "viewHeight": 800,
+            "activeMode": "3D",
+            "updating": false,
+            "canvases": 1,
+            "layers": 23,
+            "pois": 99,
+            "floors": 5,
+            "currentFloor": "F1",
+            "poiGraphics": 60
+          }
+        },
+        {
+          "name": "no horizontal overflow on initial map",
+          "status": "PASS",
+          "elapsedMs": 1.2891250000102445,
+          "detail": {
+            "document": 360,
+            "viewport": 360
+          }
+        },
+        {
+          "name": "POI markers are present in the rendered map",
+          "status": "PASS",
+          "elapsedMs": 1.391749999995227,
+          "detail": {
+            "count": 99,
+            "graphics": 60
+          }
+        },
+        {
+          "name": "visible map mode control switches to 2D",
+          "status": "PASS",
+          "elapsedMs": 1301.0059589999873,
+          "detail": {
+            "previousMode": "3D",
+            "is3D": false,
+            "ready": true,
+            "canvasCount": 1
+          }
+        },
+        {
+          "name": "category filtering through visible controls",
+          "status": "PASS",
+          "elapsedMs": 107.03854199999478,
+          "detail": {
+            "filter": "basketball court",
+            "mode": "list",
+            "items": 8,
+            "expected": 8
+          }
+        },
+        {
+          "name": "floor selection through visible category floor controls",
+          "status": "PASS",
+          "elapsedMs": 1341.106208000012,
+          "detail": {
+            "floor": "F2",
+            "selected": "F2",
+            "visibleCount": 27
+          }
+        },
+        {
+          "name": "search and POI selection through autocomplete",
+          "status": "PASS",
+          "elapsedMs": 1095.3261249999923,
+          "detail": {
+            "selectedPoiId": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "directionControl": true
+          }
+        },
+        {
+          "name": "same-floor directions and route geometry",
+          "status": "PASS",
+          "elapsedMs": 1301.0584999999992,
+          "detail": {
+            "from": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+            "to": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+            "nodes": 38,
+            "routeGraphics": 4,
+            "instructionCount": 26,
+            "totalM": 192.7,
+            "source": "navmesh",
+            "pair": {
+              "from": {
+                "id": "02e6c45a-e87d-47b0-95e0-2c25437dcfb2",
+                "name": "Advance computer Lab",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "name": "1st Floor Wash Room - Ladies [14]",
+                "floor": "F2"
+              }
+            }
+          }
+        },
+        {
+          "name": "navigation starts, advances, and exits",
+          "status": "PASS",
+          "elapsedMs": 226.35504200001014,
+          "detail": {
+            "before": 1,
+            "advanced": 2,
+            "canAdvance": true,
+            "mode": "dir"
+          }
+        },
+        {
+          "name": "multi-floor route on authentic published data",
+          "status": "PASS",
+          "elapsedMs": 867.8344590000052,
+          "detail": {
+            "floors": [
+              "F2",
+              "F1"
+            ],
+            "routeGraphics": 4,
+            "source": "navmesh",
+            "instructionCount": 9,
+            "pair": {
+              "from": {
+                "id": "7290e9ad-6207-4aef-b678-affe1fc1db5b",
+                "floor": "F2"
+              },
+              "to": {
+                "id": "aef7e163-0d0e-4711-9990-3629c8f27bbc",
+                "floor": "F1"
+              }
+            }
+          }
+        },
+        {
+          "name": "language interface switches and returns to English",
+          "status": "PASS",
+          "elapsedMs": 14.750291999996989,
+          "detail": {
+            "lang": "fr",
+            "aria": "Ouvrir le menu"
+          }
+        },
+        {
+          "name": "no horizontal overflow after navigation",
+          "status": "PASS",
+          "elapsedMs": 0.6512499999953434,
+          "detail": {
+            "document": 360,
+            "viewport": 360
+          }
+        },
+        {
+          "name": "refresh retains a working published map",
+          "status": "PASS",
+          "elapsedMs": 3229.2832909999997,
+          "detail": {
+            "version": 5
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5115fae-layer-35') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5115faf-layer-36') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5115fb5-layer-43') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5115fab-layer-28') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 walls/doors', id: '1a1d5115fb3-layer-40') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5115fab-layer-29') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5115fb4-layer-42') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5115fb0-layer-37') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 walls/doors', id: '1a1d5115fa7-layer-24') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5115fb5-layer-44') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5115fb1-layer-38') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 units', id: '1a1d5115fac-layer-31') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 walls/doors', id: '1a1d5115fa9-layer-26') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F2 units', id: '1a1d5115fa8-layer-25') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5115faa-layer-27') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F3 units', id: '1a1d5115fb2-layer-39') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F5 walls/doors', id: '1a1d5115fad-layer-32') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F1 units', id: '1a1d5115fa6-layer-23') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 units', id: '1a1d5115fb3-layer-41') {warning: Object}"
+        },
+        {
+          "type": "warning",
+          "message": "[esri.layers.GeoJSONLayer] #load() Some fields types couldn't be inferred from the features and were dropped (title: 'Indoor F4 walls/doors', id: '1a1d5115fac-layer-30') {warning: Object}"
+        },
+        {
+          "type": "error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "A parser-blocking, cross site (i.e. different eTLD+1) script, https://js.arcgis.com/4.34/, is invoked via document.write. The network request for this script MAY be blocked by the browser in this or a future page load due to poor network connectivity. If blocked in this page load, it will be confirmed in a subsequent console message. See https://www.chromestatus.com/feature/5718547946799104 for more details."
+        },
+        {
+          "type": "warning",
+          "message": "Allow attribute will take precedence over 'allowfullscreen'."
+        },
+        {
+          "type": "warning",
+          "message": "[esri.views.MapView] \ud83d\uded1 DEPRECATED - Function: `watch` is deprecated in favor of reactiveUtils.watch()\n\t\ud83d\udee0\ufe0f Replacement: reactiveUtils.watch\n\t\u2699\ufe0f Version: 4.32\n\t\ud83d\udd17 See https://arcg.is/1vaqf42#watch for more details."
+        }
+      ],
+      "pageErrors": [],
+      "failedRequests": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15187/23457",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7593/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15188/23456",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30376/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7594/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3797/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/949/1466",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2931",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/949/1465",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/948/1466",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/10/474/732",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3796/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/15/15187/23457",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7593/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/16/30376/46914",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/14/7594/11728",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/13/3797/5864",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2932",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/949/1466",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/12/1898/2931",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/11/949/1465",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer/tile/10/474/732",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "https://js.arcgis.com/4.34/esri/widgets/Attribution/t9n/Attribution_fr.json",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "badResponses": [
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:8782/ar_webxr/launch.js",
+          "status": 404
+        }
+      ],
+      "blockedMutations": [],
+      "screenshots": [
+        "small-mobile-map.png",
+        "small-mobile-2d-map.png",
+        "small-mobile-floor-selection.png",
+        "small-mobile-poi.png",
+        "small-mobile-route.png",
+        "small-mobile-multi-floor-route.png"
+      ],
+      "htmlStatus": 200,
+      "mapReadyMs": 7620.640458999995,
+      "timings": {
+        "domContentLoadedMs": 322,
+        "loadEventMs": 607.8000000007451
+      }
+    }
+  ],
+  "summary": {
+    "executed": 52,
+    "passed": 52,
+    "failed": 0
+  }
+}

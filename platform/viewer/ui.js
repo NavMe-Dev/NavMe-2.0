@@ -147,6 +147,19 @@ function wfDbg(level, source, message, meta) {
     // map chrome: hide ArcGIS default widgets except attribution
     wf.view2d.ui.components = ["attribution"];
     wf.on3DCreated = (v) => { v.ui.components = ["attribution"]; };
+    // The initial 3D switch can finish before this UI binds. Synchronize both
+    // existing and later views so the public mode label and map controls agree.
+    const syncViewMode = () => {
+      const on3d = wf.is3D();
+      const view = wf.view();
+      if (view && view.ui) view.ui.components = ["attribution"];
+      if ($("btn3D")) {
+        $("btn3D").textContent = on3d ? "2D" : "3D";
+        $("btn3D").setAttribute("aria-label", on3d ? t("viewer.switch2d") : t("viewer.switch3d"));
+      }
+    };
+    window.addEventListener("wf-view-change", syncViewMode);
+    syncViewMode();
     const uiLayer = new wf.esri.GraphicsLayer({ title: "UI markers" }); wf.map2d.add(uiLayer); S.uiLayer = uiLayer;
     applyDynamicCategories();
     buildChips(); bindSearch(); bindDirections(); bindControls(); bindSheet(); bindDrawer(); bindNav();
@@ -1304,7 +1317,9 @@ function wfDbg(level, source, message, meta) {
     fitLonLat(cs, isDesk() ? 1.35 : 1.0, instant);
   }
   function fitLonLat(pts, expand, instant) {
-    if (!pts.length) return;
+    // Matterport owns its camera; the lightweight MP adapter has no ArcGIS
+    // Extent operations. Category/floor changes must not invoke those APIs.
+    if (!pts.length || isMpMode()) return;
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     let dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys); const pad = 0.00012;
     const ext = { xmin: Math.min(...xs) - pad, xmax: Math.max(...xs) + pad, ymin: Math.min(...ys) - pad, ymax: Math.max(...ys) + pad, spatialReference: { wkid: 4326 } };

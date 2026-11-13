@@ -23,6 +23,22 @@ import httpx
 from ..config import get_settings
 
 
+def local_version_dir(stored_path: str, slug: str, version: int) -> Path:
+    """Use a private local cache in read-only shadow mode without rewriting DB paths.
+
+    Existing publications can point at the production container's /data path.
+    A native shadow must not create or overwrite that absolute directory.
+    """
+    settings = get_settings()
+    if not (settings.wf_read_only or settings.db_read_only):
+        return Path(stored_path)
+    root = settings.published_dir.resolve()
+    target = (root / slug / f"v{version}").resolve()
+    if root not in target.parents:
+        raise ValueError("Invalid publication cache path")
+    return target
+
+
 def is_enabled() -> bool:
     s = get_settings()
     return bool(s.supabase_url and s.supabase_service_role_key and s.supabase_storage_bucket)

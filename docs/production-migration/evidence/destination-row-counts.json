@@ -1,0 +1,330 @@
+[
+  {
+    "table_name": "public.spatial_ref_sys",
+    "rows": 8500
+  },
+  {
+    "table_name": "public.alembic_version",
+    "rows": 1
+  },
+  {
+    "table_name": "public.buildings",
+    "rows": 1
+  },
+  {
+    "table_name": "public.control_points",
+    "rows": 0
+  },
+  {
+    "table_name": "public.floors",
+    "rows": 5
+  },
+  {
+    "table_name": "public.jobs",
+    "rows": 1
+  },
+  {
+    "table_name": "public.map_versions",
+    "rows": 5
+  },
+  {
+    "table_name": "public.nav_graphs",
+    "rows": 1
+  },
+  {
+    "table_name": "public.navme_access_buildings",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_access_floors",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_accounts",
+    "rows": 41
+  },
+  {
+    "table_name": "public.navme_app_manifest",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_ar_events",
+    "rows": 1022
+  },
+  {
+    "table_name": "public.navme_ar_sessions",
+    "rows": 53
+  },
+  {
+    "table_name": "public.navme_blocks",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_categories",
+    "rows": 74
+  },
+  {
+    "table_name": "public.navme_complaints",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_connections",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_electronic_assets",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_facilities",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_feedback",
+    "rows": 5
+  },
+  {
+    "table_name": "public.navme_floor_edits",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_floors",
+    "rows": 16
+  },
+  {
+    "table_name": "public.navme_gmap_buildings",
+    "rows": 2
+  },
+  {
+    "table_name": "public.navme_gmap_floors",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_gmap_georef",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_gmap_navmesh",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_gmap_pois",
+    "rows": 1542
+  },
+  {
+    "table_name": "public.navme_guided_tour_stops",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_guided_tours",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_logins",
+    "rows": 43
+  },
+  {
+    "table_name": "public.navme_media",
+    "rows": 194
+  },
+  {
+    "table_name": "public.navme_model_alignments",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_nav_matrices",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_nav_matrix_items",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_nav_popups",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_navnode",
+    "rows": 7102
+  },
+  {
+    "table_name": "public.navme_navnode_backup_2026_09_25",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_organizations",
+    "rows": 1
+  },
+  {
+    "table_name": "public.navme_pj_pois",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_poi_categories",
+    "rows": 20
+  },
+  {
+    "table_name": "public.navme_pois",
+    "rows": 566
+  },
+  {
+    "table_name": "public.navme_project_api_credentials",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_project_features",
+    "rows": 45
+  },
+  {
+    "table_name": "public.navme_project_members",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_saved_places",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_shop",
+    "rows": 5
+  },
+  {
+    "table_name": "public.navme_snapshots",
+    "rows": 0
+  },
+  {
+    "table_name": "public.navme_stair_chains",
+    "rows": 25
+  },
+  {
+    "table_name": "public.navme_tenant_languages",
+    "rows": 40
+  },
+  {
+    "table_name": "public.navme_user_logs",
+    "rows": 152
+  },
+  {
+    "table_name": "public.navme_users",
+    "rows": 173
+  },
+  {
+    "table_name": "public.pois",
+    "rows": 230
+  },
+  {
+    "table_name": "public.treasure_cheat_unlocks",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_cheats",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_collections",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_items",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_levels",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_player_progress",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_players",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_project_features",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_task_completions",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_task_token_collections",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_task_tokens",
+    "rows": 0
+  },
+  {
+    "table_name": "public.treasure_tasks",
+    "rows": 0
+  },
+  {
+    "table_name": "public.users",
+    "rows": 2
+  },
+  {
+    "table_name": "public.venues",
+    "rows": 0
+  },
+  {
+    "table_name": "public.spatial_profiles",
+    "rows": 0
+  },
+  {
+    "table_name": "public.spatial_buildings",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_building_members",
+    "rows": 0
+  },
+  {
+    "table_name": "public.spatial_floors",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_scans",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_scan_floors",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_spaces",
+    "rows": 52
+  },
+  {
+    "table_name": "public.spatial_markers",
+    "rows": 52
+  },
+  {
+    "table_name": "public.spatial_companies",
+    "rows": 9
+  },
+  {
+    "table_name": "public.spatial_occupancies",
+    "rows": 10
+  },
+  {
+    "table_name": "public.spatial_blueprints",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_room_polygons",
+    "rows": 52
+  },
+  {
+    "table_name": "public.spatial_room_viewpoints",
+    "rows": 52
+  },
+  {
+    "table_name": "public.spatial_building_experiences",
+    "rows": 1
+  },
+  {
+    "table_name": "public.spatial_equipment",
+    "rows": 21
+  }
+]
