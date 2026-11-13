@@ -56,6 +56,8 @@ def test_optional_endpoint_handles_failures_without_raw_backend_details(monkeypa
         def query(self, model): return self
         def filter_by(self, **filters): return self
         def first(self): return SimpleNamespace(slug='gcu')
+        def expunge_all(self): pass
+        def close(self): pass
     monkeypatch.setattr(public, 'get_settings', lambda: SimpleNamespace(supabase_url='https://test.invalid', supabase_anon_key='test'))
     def fail(*args): raise RuntimeError('private backend detail')
     monkeypatch.setattr(category_markers, 'marker_data', fail)

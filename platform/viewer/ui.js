@@ -154,8 +154,10 @@ function wfDbg(level, source, message, meta) {
       const view = wf.view();
       if (view && view.ui) view.ui.components = ["attribution"];
       if ($("btn3D")) {
+        const targetKey = on3d ? "viewer.switch2d" : "viewer.switch3d";
         $("btn3D").textContent = on3d ? "2D" : "3D";
-        $("btn3D").setAttribute("aria-label", on3d ? t("viewer.switch2d") : t("viewer.switch3d"));
+        $("btn3D").setAttribute("data-i18n-aria-label", targetKey);
+        $("btn3D").setAttribute("aria-label", t(targetKey));
       }
     };
     window.addEventListener("wf-view-change", syncViewMode);
@@ -215,6 +217,9 @@ function wfDbg(level, source, message, meta) {
         if (!ok) throw new Error("Background not ready");
       }
       try { if (window.WFi18n) WFi18n.applyDom(); } catch (_) {}
+      // Translation reapplies the static aria label. Restore the active view's
+      // target mode even when the initial 3D switch finished before UI startup.
+      syncViewMode();
       // Apply links after the SDK is available, preserving destination/floor context.
       try { await applyDeepLink(); }
       catch (e) { console.warn("applyDeepLink", e); showHome(); }

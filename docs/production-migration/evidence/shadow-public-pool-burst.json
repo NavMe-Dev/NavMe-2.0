@@ -1,0 +1,233 @@
+{
+  "scope": "loopback actual-reader shadow only; concurrent GETs; no application writes",
+  "clients": 12,
+  "requests": 32,
+  "seconds": 2.719,
+  "passed": 32,
+  "results": [
+    {
+      "repeat": 0,
+      "path": "/api/health",
+      "seconds": 0.243,
+      "status": 200,
+      "bytes": 79
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "seconds": 1.487,
+      "status": 200,
+      "bytes": 620
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "seconds": 1.489,
+      "status": 200,
+      "bytes": 3249
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "seconds": 1.232,
+      "status": 200,
+      "bytes": 75221
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "seconds": 1.362,
+      "status": 200,
+      "bytes": 1187773
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/matterport",
+      "seconds": 1.487,
+      "status": 200,
+      "bytes": 118
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "seconds": 0.719,
+      "status": 200,
+      "bytes": 25740
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "seconds": 0.37,
+      "status": 200,
+      "bytes": 1135
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/navme-floors",
+      "seconds": 1.183,
+      "status": 200,
+      "bytes": 1828
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "seconds": 1.342,
+      "status": 200,
+      "bytes": 134714
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/category-marker-data",
+      "seconds": 1.588,
+      "status": 200,
+      "bytes": 46290
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/explore",
+      "seconds": 1.479,
+      "status": 200,
+      "bytes": 152339
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/weather",
+      "seconds": 2.038,
+      "status": 200,
+      "bytes": 328
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/venue-info",
+      "seconds": 1.306,
+      "status": 200,
+      "bytes": 233
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/shops",
+      "seconds": 0.559,
+      "status": 200,
+      "bytes": 13801
+    },
+    {
+      "repeat": 0,
+      "path": "/api/v1/public/buildings/gcu/ar-experience-ref",
+      "seconds": 0.317,
+      "status": 200,
+      "bytes": 180
+    },
+    {
+      "repeat": 1,
+      "path": "/api/health",
+      "seconds": 0.207,
+      "status": 200,
+      "bytes": 79
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "seconds": 0.215,
+      "status": 200,
+      "bytes": 620
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/data/config.json",
+      "seconds": 0.599,
+      "status": 200,
+      "bytes": 3249
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "seconds": 0.216,
+      "status": 200,
+      "bytes": 75221
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/data/nav_graph.json",
+      "seconds": 0.217,
+      "status": 200,
+      "bytes": 1187773
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/matterport",
+      "seconds": 0.589,
+      "status": 200,
+      "bytes": 118
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+      "seconds": 0.309,
+      "status": 200,
+      "bytes": 25740
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+      "seconds": 0.215,
+      "status": 200,
+      "bytes": 1135
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/navme-floors",
+      "seconds": 0.403,
+      "status": 200,
+      "bytes": 1828
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/translations",
+      "seconds": 0.661,
+      "status": 200,
+      "bytes": 134714
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/category-marker-data",
+      "seconds": 0.983,
+      "status": 200,
+      "bytes": 46290
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/explore",
+      "seconds": 0.522,
+      "status": 200,
+      "bytes": 152339
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/weather",
+      "seconds": 0.692,
+      "status": 200,
+      "bytes": 328
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/venue-info",
+      "seconds": 1.058,
+      "status": 200,
+      "bytes": 233
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/shops",
+      "seconds": 0.552,
+      "status": 200,
+      "bytes": 13801
+    },
+    {
+      "repeat": 1,
+      "path": "/api/v1/public/buildings/gcu/ar-experience-ref",
+      "seconds": 0.617,
+      "status": 200,
+      "bytes": 180
+    }
+  ]
+}

@@ -17,6 +17,17 @@ router = APIRouter(prefix="/api/v1/public", tags=["public"])
 logger = logging.getLogger(__name__)
 
 
+def _release_read_session(db: Session):
+    """Return the connection before network, file streaming or routing work.
+
+    Loaded scalar values remain available on detached records. Detach before
+    closing so rollback cannot expire them and trigger an accidental new query.
+    The dependency's final close is deliberately safe to repeat.
+    """
+    db.expunge_all()
+    db.close()
+
+
 def building_or_404(db, slug):
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b: raise HTTPException(404, "unknown building")
@@ -33,24 +44,31 @@ def venue_manifest(db, venue_slug):
         if not v:
             raise HTTPException(404, "unknown venue")
         bs = v.buildings
-    items = []
+    venue = {"slug": v.slug if v else "all", "name": v.name if v else "All buildings",
+             "branding": (v.branding if v else {}) or {}}
+    publications = []
     for b in bs:
         mv = current_version(db, b)
         if not mv: continue
+        publications.append({"slug": b.slug, "name": b.name, "address": b.address,
+                             "version": mv.version, "path": mv.path})
+    _release_read_session(db)
+    items = []
+    for publication in publications:
+        slug, version = publication["slug"], publication["version"]
         try:
-            raw = bundle_storage.read_bundle_file(bundle_storage.local_version_dir(mv.path, b.slug, mv.version), b.slug, mv.version, "config.json")
+            raw = bundle_storage.read_bundle_file(bundle_storage.local_version_dir(publication["path"], slug, version), slug, version, "config.json")
             cfg = json.loads(raw)
-            item = {"slug": b.slug, "name": b.name, "address": b.address, "center": cfg["center"], "bounds": cfg["bounds"],
+            item = {"slug": slug, "name": publication["name"], "address": publication["address"], "center": cfg["center"], "bounds": cfg["bounds"],
                     "floors": [{"id": f["id"], "label": f["label"], "short": f["short"]} for f in cfg["floors"]],
-                    "version": mv.version, "data": f"buildings/{b.slug}/data/"}
+                    "version": version, "data": f"buildings/{slug}/data/"}
         except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError, KeyError, TypeError):
             # A missing published bundle is an outage, not an empty venue. Do
             # not silently hide recovered buildings or manufacture replacement data.
-            logger.error("Published config unavailable for building %s version %s", b.slug, mv.version)
+            logger.error("Published config unavailable for building %s version %s", slug, version)
             raise HTTPException(503, "published venue data unavailable", headers={"Retry-After": "30"}) from None
         items.append(item)
-    return {"schema": "wayfinding.venue/v1", "slug": v.slug if v else "all", "name": v.name if v else "All buildings",
-            "branding": (v.branding if v else {}) or {}, "buildings": items}
+    return {"schema": "wayfinding.venue/v1", **venue, "buildings": items}
 
 
 @router.get("/venues")
@@ -76,7 +94,10 @@ def buildings(db: Session = Depends(get_db)):
 def data_file(slug: str, path: str, db: Session = Depends(get_db)):
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "building not published yet")
-    root = bundle_storage.local_version_dir(mv.path, b.slug, mv.version).resolve(); f = (root / path).resolve()
+    version = mv.version
+    root = bundle_storage.local_version_dir(mv.path, b.slug, version)
+    _release_read_session(db)
+    root = root.resolve(); f = (root / path).resolve()
     if root not in f.parents:
         raise HTTPException(404, "not found")
     mt = "application/json" if f.suffix in (".json", ".geojson") else (mimetypes.guess_type(f.name)[0] or "application/octet-stream")
@@ -87,7 +108,7 @@ def data_file(slug: str, path: str, db: Session = Depends(get_db)):
     # gone. Recover from Supabase Storage and re-cache locally. No-op (raises
     # immediately) unless bundle_storage is configured. See services/bundle_storage.py.
     try:
-        local_file = bundle_storage.cache_bundle_file(root, slug, mv.version, path)
+        local_file = bundle_storage.cache_bundle_file(root, slug, version, path)
     except FileNotFoundError:
         raise HTTPException(404, "not found")
     return FileResponse(local_file, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
@@ -98,18 +119,20 @@ def public_route(slug: str, r: schemas.RouteIn, db: Session = Depends(get_db)):
     """Server-side route between two published POIs (the viewer normally routes client-side)."""
     b = building_or_404(db, slug); mv = current_version(db, b)
     if not mv: raise HTTPException(404, "not published")
-    root = bundle_storage.local_version_dir(mv.path, b.slug, mv.version)
+    version, georef = mv.version, b.georef
+    root = bundle_storage.local_version_dir(mv.path, b.slug, version)
+    _release_read_session(db)
     try:
-        nav = json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "nav_graph.json"))
-        pois = {p["id"]: p for p in json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "pois.json"))["pois"]}
+        nav = json.loads(bundle_storage.read_bundle_file(root, slug, version, "nav_graph.json"))
+        pois = {p["id"]: p for p in json.loads(bundle_storage.read_bundle_file(root, slug, version, "pois.json"))["pois"]}
     except FileNotFoundError:
         raise HTTPException(404, "building not published yet")
     if r.from_key not in pois or r.to_key not in pois: raise HTTPException(404, "unknown POI")
     try:
-        navmesh = json.loads(bundle_storage.read_bundle_file(root, slug, mv.version, "navmesh.json"))
+        navmesh = json.loads(bundle_storage.read_bundle_file(root, slug, version, "navmesh.json"))
     except FileNotFoundError:
         navmesh = None
-    res = navgraph.route(nav, pois[r.from_key]["nearest_node"], pois[r.to_key]["nearest_node"], r.step_free, georef=b.georef, navmesh=navmesh)
+    res = navgraph.route(nav, pois[r.from_key]["nearest_node"], pois[r.to_key]["nearest_node"], r.step_free, georef=georef, navmesh=navmesh)
     if not res: raise HTTPException(404, "no route" + (" without steps" if r.step_free else ""))
     return res
 
@@ -129,6 +152,9 @@ def public_matterport(slug: str, request: Request, access: str | None = None, db
 
     published_cfg = None
     mv = current_version(db, b)
+    # All Building/MapVersion scalar fields are loaded before detaching; access
+    # policy and PIN checks still run before returning any client credentials.
+    _release_read_session(db)
     if mv:
         try:
             published_cfg = json.loads(bundle_storage.read_bundle_file(bundle_storage.local_version_dir(mv.path, slug, mv.version), slug, mv.version, "config.json"))
@@ -505,6 +531,9 @@ def public_explore(slug: str, db: Session = Depends(get_db)):
         url = (p.photo_url or "").strip()
         return f"/api/v1/public/buildings/{slug}/data/{url}" if url.startswith("media/") else url
     images = {str((p.extra or {}).get("gmap_src_id") or p.key): photo_url(p) for p in rows if p.photo_url}
+    if not (cfg.supabase_url and cfg.supabase_anon_key):
+        floors = {f.fid: f.label for f in b.floors}
+    _release_read_session(db)
     if cfg.supabase_url and cfg.supabase_anon_key:
         try:
             result = explore.metadata(cfg, b)
@@ -513,7 +542,6 @@ def public_explore(slug: str, db: Session = Depends(get_db)):
                                 status_code=503, headers={"Cache-Control": "no-store"})
         result = {**result, "pois": [{**p, "image_url": images.get(p["id"])} for p in result["pois"]]}
     else:
-        floors = {f.fid: f.label for f in b.floors}
         result = {"building_slug": slug, "source": "published", "facilities": [], "pois": [
             {"id": str((p.extra or {}).get("gmap_src_id") or p.key), "name": p.name,
              "floor_name": floors.get(p.floor), "image_url": photo_url(p)} for p in rows]}
@@ -524,7 +552,9 @@ def public_explore(slug: str, db: Session = Depends(get_db)):
 def public_weather(slug: str, db: Session = Depends(get_db)):
     """Outdoor weather for the venue's WGS84 location, never visitor GPS."""
     from ..services.weather import venue_weather
-    result = venue_weather(building_or_404(db, slug))
+    b = building_or_404(db, slug)
+    _release_read_session(db)
+    result = venue_weather(b)
     return JSONResponse(result, headers={"Cache-Control": "private, max-age=" + str(result["cache_seconds"])})
 
 
@@ -532,7 +562,9 @@ def public_weather(slug: str, db: Session = Depends(get_db)):
 def public_venue_info(slug: str, db: Session = Depends(get_db)):
     """Display metadata only: no Matterport credentials, writes, or renamed IDs."""
     from ..services.venue_info import venue_info
-    return venue_info(building_or_404(db, slug))
+    b = building_or_404(db, slug)
+    _release_read_session(db)
+    return venue_info(b)
 
 
 @router.get("/buildings/{slug}/category-marker-data")
@@ -542,6 +574,7 @@ def category_marker_data(slug: str, db: Session = Depends(get_db)):
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         raise HTTPException(404, "unknown building")
+    _release_read_session(db)
     cfg = get_settings()
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         return {"building_slug": b.slug, "categories": [], "pois": []}
@@ -614,6 +647,7 @@ def building_shops(slug: str, db: Session = Depends(get_db)):
     # store the dashboard's own casing ("GCU") — same case-insensitive match
     # navme-gmap/sync already uses for navme_categories, for the same reason.
     ptype = navme.poi_type(b)
+    _release_read_session(db)
     q = urllib.parse.urlencode({
         "select": "*", "is_active": "is.true",
         "poi_type": f"ilike.{navme.pg_value(ptype)}",
@@ -675,6 +709,7 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
     if not b:
         return empty
     ptype = navme.poi_type(b)
+    _release_read_session(db)
     q = urllib.parse.urlencode({
         "select": "experience_ref,walkthrough_mode,project_url,walkthrough_url",
         "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
@@ -719,6 +754,7 @@ def building_translations(slug: str, db: Session = Depends(get_db)):
     if not b:
         return empty
     ptype = navme.poi_type(b)
+    _release_read_session(db)
     headers = {"apikey": cfg.supabase_anon_key, "Authorization": f"Bearer {cfg.supabase_anon_key}"}
 
     def _get(url):
@@ -762,6 +798,7 @@ def building_navme_floors(slug: str, db: Session = Depends(get_db)):
     if not b:
         raise HTTPException(404, "unknown building")
     ptype = navme.poi_type(b)
+    _release_read_session(db)
     q = urllib.parse.urlencode({
         "select": "id,name,slice_y,sort_order,floor_names",
         "poi_type": f"ilike.{navme.pg_value(ptype)}",

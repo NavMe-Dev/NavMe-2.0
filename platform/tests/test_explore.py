@@ -78,6 +78,8 @@ def test_optional_endpoint_hides_backend_details_on_failure(monkeypatch):
         def all(self):return []
     class DB:
         def query(self,*args):return Query()
+        def expunge_all(self):pass
+        def close(self):pass
     def fail(*args):raise RuntimeError('private provider detail')
     monkeypatch.setattr(public, 'building_or_404', lambda db,slug:building(slug))
     monkeypatch.setattr(public, 'get_settings', lambda:SimpleNamespace(supabase_url='https://project.supabase.co',supabase_anon_key='configured'))
