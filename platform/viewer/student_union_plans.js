@@ -108,8 +108,8 @@
     $('fpFloor').onchange=()=>selectFloor($('fpFloor').value).catch(error);
     $('fpPoi').onchange=()=>{if($('fpPoi').value)selectPoi($('fpPoi').value).catch(error);};
     $('fpZoomIn').onclick=()=>zoom(.75);$('fpZoomOut').onclick=()=>zoom(1.33);$('fpFit').onclick=fit;$('fpClose').onclick=close;
-    const button=document.createElement('button');button.id='btnFloorplans';button.type='button';button.textContent='2D floor plans';button.setAttribute('aria-pressed','false');
-    button.onclick=()=>document.body.classList.contains('floorplan-open')?close():open().catch(error);document.body.append(button);
+    const button=document.createElement('button');button.id='btnFloorplans';button.type='button';button.textContent='2D';button.className='fab txt';button.setAttribute('aria-label','Open 2D floor plans');button.setAttribute('aria-pressed','false');
+    button.onclick=()=>document.body.classList.contains('floorplan-open')?close():open().catch(error);$('btnMe').before(button);
     window.addEventListener('wf-place-selected',event=>{if(document.body.classList.contains('floorplan-open'))selectPoi(event.detail.id,false).catch(error);});
     window.addEventListener('wf-route-changed',event=>drawRoute(event.detail));
     window.WFPlanViewer={open,close,selectFloor,selectPoi,drawRoute,get activeFloor(){return activeFloor;}};
