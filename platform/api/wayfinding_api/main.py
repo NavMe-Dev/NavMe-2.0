@@ -12,7 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 from . import __version__
 from .config import get_settings
-from .routers import auth, public, admin, vps, scan_plans, floorplans
+from .routers import auth, public, admin, vps, scan_plans, floorplans, plan_navigation
 
 
 def create_app() -> FastAPI:
@@ -44,7 +44,7 @@ def create_app() -> FastAPI:
         allow_credentials=False,
         expose_headers=["*"],
     )
-    for r in (auth.router, public.router, admin.files_router, admin.router, scan_plans.router, scan_plans.files_router, vps.router, floorplans.router):
+    for r in (auth.router, public.router, admin.files_router, admin.router, scan_plans.router, scan_plans.files_router, vps.router, plan_navigation.router, floorplans.router):
         app.include_router(r)
 
     @app.exception_handler(SQLAlchemyError)

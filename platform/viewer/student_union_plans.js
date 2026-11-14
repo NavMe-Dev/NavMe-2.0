@@ -1,14 +1,16 @@
 /* Student Union diagram labels/divisions and separate scan-derived assets in NavMe.
  * Reuses wfUI selection/search, existing floor IDs and the actual navigation mesh.
- * Does not modify campus geometry, publication records or Matterport state. */
+ * Keeps published geometry/POIs unchanged; navigation reuses the existing SDK. */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   const NS = 'http://www.w3.org/2000/svg';
-  let catalog, base, activeFloor, meta, svg, selectedPoi, lastRoute, ticket = 0;
+  let catalog, base, activeFloor, meta, svg, selectedPoi, lastRoute, planAsset, ticket = 0;
   const official = () => catalog?.presentation === 'official_labels_divisions';
   let view = [40, 180, 1080, 1080], pan = null;
-  const cache = new Map(), metadata = new Map();
+  const cache = new Map(), metadata = new Map(), viewSnapshots = new Map();
+  const disposers=[];let navigation=null,gestureUntil=0;
+  const pointers=new Map();let pinchDistance=null;
   async function json(url) { const r = await fetch(url); if (!r.ok) throw Error('Floor plan unavailable'); return r.json(); }
   function screenPoint(event) { return new DOMPoint(event.clientX,event.clientY).matrixTransform(svg.getScreenCTM().inverse()); }
   function applyView() { if (svg) svg.setAttribute('viewBox',view.join(' ')); }
@@ -61,6 +63,7 @@
       const height=width*view[3]/view[2];
       view=[label.position[0]-width/2,label.position[1]-height/2,width,height];applyView();
     }
+    window.dispatchEvent(new CustomEvent('wf-plan-label-selected',{detail:{id:String(id)}}));
     return true;
   }
   function labelForPlace(id) {
@@ -81,13 +84,21 @@
     return true;
   }
   function bindCanvas() {
-    svg.addEventListener('wheel',event=>{event.preventDefault();zoom(Math.exp(event.deltaY*.001),screenPoint(event));},{passive:false});
+    svg.addEventListener('wheel',event=>{gestureUntil=Date.now()+450;event.preventDefault();zoom(Math.exp(event.deltaY*.001),screenPoint(event));},{passive:false});
     svg.addEventListener('pointerdown',event=>{
+      pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+      if(pointers.size===2){const [a,b]=[...pointers.values()];pinchDistance=Math.hypot(a.x-b.x,a.y-b.y);pan=null;gestureUntil=Date.now()+700;return;}
       if (event.target.closest('[data-poi-id],[data-label-id]')) return;
-      const matrix=svg.getScreenCTM();pan={x:event.clientX,y:event.clientY,box:view.slice(),scale:matrix.a};svg.setPointerCapture(event.pointerId);
+      const matrix=svg.getScreenCTM();pan={x:event.clientX,y:event.clientY,box:view.slice(),scale:Math.hypot(matrix.a,matrix.b)};svg.setPointerCapture(event.pointerId);
     });
-    svg.addEventListener('pointermove',event=>{if(!pan)return;view=[pan.box[0]-(event.clientX-pan.x)/pan.scale,pan.box[1]-(event.clientY-pan.y)/pan.scale,pan.box[2],pan.box[3]];applyView();});
-    const stop=()=>{pan=null;};svg.addEventListener('pointerup',stop);svg.addEventListener('pointercancel',stop);
+    svg.addEventListener('pointermove',event=>{
+      if(pointers.has(event.pointerId))pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+      if(pointers.size===2){const [a,b]=[...pointers.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinchDistance&&d>0)zoom(pinchDistance/d,screenPoint({clientX:(a.x+b.x)/2,clientY:(a.y+b.y)/2}));pinchDistance=d;gestureUntil=Date.now()+700;return;}
+      if(!pan)return;if(Math.hypot(event.clientX-pan.x,event.clientY-pan.y)>6)gestureUntil=Date.now()+450;
+      const matrix=svg.getScreenCTM().inverse();const from=new DOMPoint(pan.x,pan.y).matrixTransform(matrix),to=new DOMPoint(event.clientX,event.clientY).matrixTransform(matrix);
+      view=[pan.box[0]-(to.x-from.x),pan.box[1]-(to.y-from.y),pan.box[2],pan.box[3]];applyView();
+    });
+    const stop=event=>{pointers.delete(event.pointerId);if(pinchDistance)gestureUntil=Date.now()+700;pinchDistance=null;pan=null;};svg.addEventListener('pointerup',stop);svg.addEventListener('pointercancel',stop);
     svg.querySelectorAll('[data-label-id]').forEach(el=>{
       el.onclick=()=>void selectLabel(el.dataset.labelId);
       el.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();void selectLabel(el.dataset.labelId);}};
@@ -98,6 +109,9 @@
     });
   }
   async function selectFloor(id) {
+    if(activeFloor&&svg)viewSnapshots.set(activeFloor,view.slice());
+    if(id!==activeFloor)navigation?.floorChanged();
+    pointers.clear();pan=null;pinchDistance=null;
     if (!catalog.floors.some(f=>f.floor_id===id)) throw Error('Unknown floor');
     const request=++ticket;
     $('fpStatus').textContent='Loading floor plan…';
@@ -105,10 +119,10 @@
       const floor=catalog.floors.find(f=>f.floor_id===id);
       const [m,r]=await Promise.all([json(base+'floors/'+id+'/'+(official()?floor.label_metadata:'metadata.json')),fetch(base+'floors/'+id+'/'+(official()?floor.label_plan:'floorplan.svg'))]);
       if(!r.ok)throw Error('Floor drawing unavailable');
-      const text=await r.text();return {meta:m,text};
+      const text=await r.text();const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));const sha256=[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,'0')).join('');return {meta:m,text,asset:{path:'floors/'+id+'/'+(official()?floor.label_plan:'floorplan.svg'),sha256}};
     })().catch(e=>{cache.delete(id);throw e;}));
     const data=await cache.get(id); if(request!==ticket)return;
-    activeFloor=id;meta=data.meta;metadata.set(id,meta);
+    activeFloor=id;meta=data.meta;planAsset=data.asset;metadata.set(id,meta);
     const doc=new DOMParser().parseFromString(data.text,'image/svg+xml');
     if (doc.querySelector('parsererror')||doc.querySelector('script,foreignObject')) throw Error('Invalid floor drawing');
     svg=document.importNode(doc.documentElement,true);
@@ -119,6 +133,7 @@
     const geometry=svg.querySelector('#plan-geometry');
     if(!geometry)throw Error('Floor geometry unavailable');
     svg.replaceChildren(...svg.querySelectorAll(':scope > style'),geometry);$('fpStage').replaceChildren(svg);bindCanvas();fit();
+    if(viewSnapshots.has(id)){view=viewSnapshots.get(id).slice();applyView();}
     $('fpFloor').value=id;$('fpStatus').dataset.provisional=String(!official()&&id==='M');
     $('fpStatus').textContent=official()?'University floor plan · Labels and divisions':id==='M'?'Mezzanine: provisional geometry and elevation. Partial scan; manual review required.':'Partial scan. White areas have no reconstructed geometry. Room identities are not verified.';
     $('fpPoi').replaceChildren(new Option(official()?'Find a label':'Select a mapped place',''),...(official()?meta.labels||[]:meta.pois||[]).map(p=>new Option(p.text||p.name,p.id)));
@@ -131,6 +146,7 @@
     $('sheetClose')?.click();
     await selectFloor(id||activeFloor||'L1');
     for (const f of catalog.floors) if(!metadata.has(f.floor_id))json(base+'floors/'+f.floor_id+'/'+(official()?f.label_metadata:'metadata.json')).then(m=>metadata.set(f.floor_id,m)).catch(()=>{});
+    await navigation?.mapOpened();
     return true;
   }
   function close() { $('unionFloorplanViewer').hidden=true;document.body.classList.remove('floorplan-open');$('btnFloorplans').setAttribute('aria-pressed','false'); }
@@ -139,6 +155,8 @@
     const panel=document.createElement('section');panel.id='unionFloorplanViewer';panel.hidden=true;panel.setAttribute('aria-label','Student Union 2D floor plans');
     panel.innerHTML='<div class="fp-stage" id="fpStage"></div><div class="fp-toolbar"><label>Building<select id="fpBuilding"><option value="student-union">Student Union</option></select></label><label>Floor<select id="fpFloor"></select></label><label class="fp-poi-label"><span id="fpLabelCaption">Mapped places</span><select id="fpPoi"><option value="">Select a mapped place</option></select></label><p class="fp-status" id="fpStatus" role="status"></p><div class="fp-tools"><button id="fpZoomIn" aria-label="Zoom in on floor plan">+</button><button id="fpZoomOut" aria-label="Zoom out on floor plan">−</button><button id="fpFit">Fit</button><button id="fpClose" aria-label="Close floor plans">×</button></div><p class="fp-route-note" id="fpRouteNote"></p></div>';
     document.body.append(panel);
+    const toolbarObserver=new ResizeObserver(()=>{panel.style.setProperty('--fp-toolbar-height',Math.ceil(panel.querySelector('.fp-toolbar').getBoundingClientRect().height)+'px');});
+    toolbarObserver.observe(panel.querySelector('.fp-toolbar'));disposers.push(()=>toolbarObserver.disconnect());
     $('fpFloor').replaceChildren(...catalog.floors.map(f=>new Option(f.label+(!official()&&f.floor_id==='M'?' (review)':''),f.floor_id)));
     $('fpFloor').onchange=()=>selectFloor($('fpFloor').value).catch(error);
     $('fpPoi').onchange=()=>{if($('fpPoi').value)(official()?selectLabel($('fpPoi').value,true):selectPoi($('fpPoi').value)).catch(error);};
@@ -147,7 +165,15 @@
     button.onclick=()=>document.body.classList.contains('floorplan-open')?close():open().catch(error);$('btnMe').before(button);
     window.addEventListener('wf-place-selected',event=>{if(document.body.classList.contains('floorplan-open'))selectPoi(event.detail.id,false).catch(error);});
     window.addEventListener('wf-route-changed',event=>drawRoute(event.detail));
-    window.WFPlanViewer={open,close,selectFloor,selectPoi,selectLabel,drawRoute,get activeFloor(){return activeFloor;}};
+    const validPoint=point=>{if(!svg||!Number.isFinite(point.x)||!Number.isFinite(point.y))return false;const local=svg.createSVGPoint();local.x=point.x;local.y=point.y;return [...svg.querySelectorAll('.outline,.division')].some(el=>typeof el.isPointInFill==='function'&&el.isPointInFill(local));};
+    const regionPolygon=id=>{const el=svg?.querySelector('[id="'+CSS.escape(id)+'"]');if(!el?.points)return null;return [[...el.points].map(p=>[p.x,p.y])];};
+    function showPosition(point){
+      if(!svg)return;svg.querySelector('#fpUserPosition')?.remove();
+      const marker=document.createElementNS(NS,'circle');marker.id='fpUserPosition';marker.setAttribute('cx',point.x);marker.setAttribute('cy',point.y);marker.setAttribute('r','9');marker.setAttribute('fill','#1a73e8');marker.setAttribute('stroke','white');marker.setAttribute('stroke-width','3');marker.setAttribute('vector-effect','non-scaling-stroke');marker.setAttribute('pointer-events','none');marker.setAttribute('aria-label','Last verified 3D position');svg.append(marker);
+    }
+    if(window.WFPlanNavigationUI)navigation=WFPlanNavigationUI.mount({base,catalog,getState:()=>({floorId:activeFloor,metadata:meta,svg,planAsset,view:view.slice()}),validPoint,regionPolygon,screenPoint,gestureBlocked:()=>Date.now()<gestureUntil,selectFloor,open,close,showPosition,onDispose:fn=>disposers.push(fn)});
+    window.WFPlanViewer={open,close,selectFloor,selectPoi,selectLabel,drawRoute,get activeFloor(){return activeFloor;},get navigation(){return navigation;}};
+    window.addEventListener('pagehide',event=>{if(!event.persisted){navigation?.dispose();disposers.splice(0).forEach(fn=>fn());}else navigation?.floorChanged();});
     if(new URLSearchParams(location.search).get('plan')==='student-union')open().catch(error);
   }
   if (!window.WF?.ready) return;

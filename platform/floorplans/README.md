@@ -37,9 +37,15 @@ platform/.venv/bin/python scripts/floorplans/package_runtime.py
 Rebuilding the separate scan geometry with `generate_student_union.py` requires
 the original local MatterPak workspace; run the label builder again afterward.
 Raw DOCX/EMF references, occupancy information and private audit files are never
-packaged. `runtime-manifest.json` records the hashes of all 58 public assets.
+packaged. `runtime-manifest.json` records the hashes of all public assets.
 
 Browser verification: `scripts/floorplans/verify_viewer.cjs`, with optional
 `BASE_URL`, `PLAYWRIGHT_MODULE`, `EVIDENCE_DIR` and `REPORT_PATH`. It verifies all
 104 labels on desktop/mobile, source partitions, keyboard selection, zoom/pan,
 absence of unregistered route overlays and the unrelated-campus behavior.
+
+The navigation release additionally packages `navigation-context.json`: placed
+source candidates, coverage and authored walls, with zero approved registrations.
+The dedicated navigation API validates drawing hashes before serving it.
+Calibration drafts and navigation audit/screenshots are excluded. Production
+read-only mode remains in effect; floor calibration must be validated separately.

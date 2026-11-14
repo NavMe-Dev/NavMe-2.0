@@ -295,10 +295,19 @@
     "audit/",
     "raw DOCX/EMF",
     "local source inventory",
-    "reference comparisons"
+    "reference comparisons",
+    "navigation-evidence/",
+    "floorplan-calibration-drafts/"
   ],
   "complete_floor_count": 0,
   "provisional_levels": [
     "M"
+  ],
+  "supporting_files": [
+    {
+      "path": "navigation-context.json",
+      "bytes": 1134186,
+      "sha256": "4a6e86316ffe320fc22acfde7efcc5e54414a29a44f8b2682977a6a086d8db39"
+    }
   ]
 }

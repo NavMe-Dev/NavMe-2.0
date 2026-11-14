@@ -21,7 +21,18 @@ def package(source=SOURCE, target=TARGET):
     assert {f['floor_id'] for f in catalog['floors']} == {'LL', 'L1', 'M', 'L2', 'L3'}
     assets = sorted(ROOT_ASSETS) + [f"floors/{f['floor_id']}/{name}"
         for f in catalog['floors'] for name in sorted(FLOOR_ASSETS)]
-    manifest = []
+    # Source evidence is public; unpublished calibration files are never bundled.
+    navigation = source / 'navigation-context.json'
+    if navigation.is_file():
+        context = json.loads(navigation.read_text())
+        assert context['model_id'] == catalog['model_id']
+        assert context.get('approved_calibrations') == {}, 'Calibration release needs explicit independent review'
+        for asset, sha in context['plan_versions'].items():
+            candidate = (source / asset).resolve()
+            assert candidate.is_relative_to(source.resolve())
+            assert hashlib.sha256(candidate.read_bytes()).hexdigest() == sha
+        assets.append('navigation-context.json')
+    manifest, supporting = [], []
     for asset in assets:
         src, dest = source / asset, target / asset
         assert src.is_file(), asset
@@ -37,13 +48,13 @@ def package(source=SOURCE, target=TARGET):
             dest.write_text(json.dumps(metadata, indent=2) + '\n')
         else:
             shutil.copyfile(src, dest)
-        manifest.append({'path': asset, 'bytes': dest.stat().st_size,
+        (supporting if asset == 'navigation-context.json' else manifest).append({'path': asset, 'bytes': dest.stat().st_size,
                          'sha256': hashlib.sha256(dest.read_bytes()).hexdigest()})
-    (target / 'runtime-manifest.json').write_text(json.dumps({'assets': manifest,
-        'excluded': ['audit/', 'raw DOCX/EMF', 'local source inventory', 'reference comparisons'],
+    (target / 'runtime-manifest.json').write_text(json.dumps({'assets': manifest, 'supporting_files': supporting,
+        'excluded': ['audit/', 'raw DOCX/EMF', 'local source inventory', 'reference comparisons', 'navigation-evidence/', 'floorplan-calibration-drafts/'],
         'complete_floor_count': 0, 'provisional_levels': ['M']}, indent=2) + '\n')
-    print(f'Packaged {len(assets)} public assets ({sum(f["bytes"] for f in manifest):,} bytes)')
-    return manifest
+    print(f'Packaged {len(assets)} public assets ({sum(f["bytes"] for f in manifest + supporting):,} bytes)')
+    return manifest + supporting
 
 
 if __name__ == '__main__':

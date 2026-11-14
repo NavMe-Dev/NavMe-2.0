@@ -2968,10 +2968,14 @@ function wfDbg(level, source, message, meta) {
     return (n && n.x != null) ? { x: n.x, y: n.y, z: n.z } : null;
   }
 
+  // Yield automatic playback to an explicit floor-plan camera request.
+  // Keep the existing connection, iframe, route and sweep catalog intact.
+  function pauseForPlanNavigation() { if (playing) pause(); cancelWalkTo(); }
+
   window.MpPreview = {
     open, close, showBackground, focusAt, setFloor, zoomBy, resetView, toggleHomeView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo, moveTo,
     currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection,
-    thumbnailSweepNodes
+    thumbnailSweepNodes, pauseForPlanNavigation
   };
 })();

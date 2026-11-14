@@ -26,3 +26,19 @@ body.floorplan-open .sheet .pname{margin-right:46px}
  .fp-toolbar .fp-status,.fp-toolbar .fp-route-note,.fp-toolbar .fp-tools{grid-column:1/-1}
  .fp-toolbar label{font-size:11px}.fp-toolbar .fp-poi-label{grid-column:1/-1}
 }
+.fp-location{border-top:1px solid #dce4e7;padding-top:12px;display:grid;gap:6px}
+.fp-location[hidden],#fp3DContext[hidden]{display:none}
+.fp-location strong{font-size:15px}.fp-location p{font-size:12px;line-height:1.45;margin:3px 0}
+.fp-location-actions{display:flex;gap:6px}.fp-location-actions button{flex:1;font-size:13px}
+.fp-location-actions button:disabled{opacity:.5;cursor:default}
+#fp3DContext{position:fixed;z-index:77;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px);padding:10px 14px;background:white;border:1px solid #dce4e7;border-radius:16px;box-shadow:0 2px 12px #0002;font:14px Roboto,Arial,sans-serif}
+#fp3DContext button{white-space:nowrap;min-height:40px;border:1px solid #cad6db;border-radius:10px;background:white;color:#1a73e8;padding:8px 12px;cursor:pointer}
+.fp-calibration{font-size:12px;line-height:1.5;border-top:1px solid #dce4e7;padding-top:10px;max-height:45vh;overflow:auto}
+.fp-calibration summary{cursor:pointer;color:#24785c}.fp-calibration input:not([type=checkbox]){min-height:36px;width:100%;box-sizing:border-box}
+.fp-calibration label{margin:8px 0}.fp-calibration label:has(input[type=checkbox]){display:flex;align-items:start;gap:6px}
+.fp-calibration button{width:100%;font-size:12px;margin:4px 0}.fp-calibration ol{padding-left:18px}
+@media(max-width:767px){.fp-toolbar .fp-location,.fp-toolbar .fp-calibration{grid-column:1/-1}#fp3DContext{left:auto;right:10px;top:158px;transform:none;font-size:12px;max-width:calc(100vw - 48px)}.fp-location-actions button{min-height:44px}}
+/* Keep interactive geometry clear of the existing search and floor controls. */
+.fp-stage{inset:116px 326px 12px 8px}
+@media(max-width:767px){.fp-stage{inset:156px 0 calc(var(--fp-toolbar-height,280px) + 24px)}}
+@media(min-width:768px){.fp-toolbar{max-height:calc(100dvh - 164px);overflow:auto}}
