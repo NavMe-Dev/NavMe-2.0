@@ -28,7 +28,7 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
 </script>
 <script>if(WFQuery().get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261114directioncategories1">
+<link rel="stylesheet" href="ui.css?v=20261114destinationchips2">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
 <script src="vendor/fuse.min.js"></script>
@@ -81,15 +81,16 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
           <button id="btnDirX" class="ib" aria-label="Close directions" data-i18n-aria-label="viewer.closeDirections"><span class="ms">close</span></button>
         </div>
       </div>
+      <div id="dirCategorySlot"></div>
       <div class="modes" role="radiogroup" aria-label="Travel mode" data-i18n-aria-label="viewer.travelMode">
         <button class="mode on" data-mode="walk" role="radio" aria-checked="true"><span class="ms">directions_walk</span><span data-i18n="viewer.walking">Walking</span></button>
       </div>
     </div>
     <ul id="acList" class="ac" role="listbox" aria-label="Suggestions" data-i18n-aria-label="viewer.suggestions" hidden></ul>
-    <div id="chipsWrap" class="chips-wrap">
+    <div id="homeCategorySlot"><div id="chipsWrap" class="chips-wrap">
       <div id="chips" class="chips" role="toolbar" aria-label="Filter places by category" data-i18n-aria-label="viewer.filterByCategory"></div>
       <button type="button" id="chipsMore" class="chip-more" aria-haspopup="listbox" aria-expanded="false" aria-controls="chipsDropdown" aria-label="More categories" data-i18n-aria-label="viewer.moreCategories"><span class="ms">expand_more</span></button>
-    </div>
+    </div></div>
     <div id="weatherRow" class="weather-row" hidden><div id="weatherBadge" class="weather-badge" role="status" aria-live="polite"><span class="ms" data-weather-icon aria-hidden="true"></span><span data-weather-temperature></span></div></div>
   </header>
 
@@ -340,7 +341,7 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
 <script src="/ar_webxr/launch.js"></script>
 <script src="wf_chat.js?v=20261026mpmode1"></script>
 <script src="explore.js?v=20261024featured1"></script>
-<script src="ui.js?v=20261114directioncategories1"></script>
+<script src="ui.js?v=20261114destinationchips2"></script>
 <script src="weather.js?v=20261024weather1"></script>
 </body>
 </html>
