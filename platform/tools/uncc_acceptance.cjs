@@ -15,6 +15,7 @@ const safeUrl = value => { const u = new URL(value); return u.origin + u.pathnam
   const report = {recordedAt: new Date().toISOString(), base, checks: []};
   try {
     for (const [name, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844]]) {
+      if (process.env.VIEWPORT_NAME && name !== process.env.VIEWPORT_NAME) continue;
       const context = await browser.newContext({viewport: {width, height}, isMobile: width < 768, hasTouch: width < 768});
       const page = await context.newPage();
       const failures = [], errors = [], mutations = [];

@@ -30,3 +30,27 @@ different building. Links without an explicit building retain their default.
 The boot asset version is bumped. Validation: 39 viewer regression checks pass;
 `platform/tools/uncc_acceptance.cjs` verifies actual desktop/mobile UNCC identity,
 SDK startup, curated categories/camera focus, and durable-mesh routing.
+
+## Verified production release
+
+- Repository: `NavMe-Dev/NavMe-2.0`, main; functional fix `2e4c7d7`.
+- Deployed commit: `6d45b611a9d4d9d8abbe6bcf117d2269875c23a0`.
+- Render deployment: `dep-dbs1qfdg1s2s73dutl20`, LIVE at
+  08:35:50 UTC / 14:05:50 IST on 14 November 2026.
+- Actual public `wf-boot.js` and `index.html` match the Git source byte for byte.
+- Post-deploy desktop: **5/5 PASS**, including actual UNCC Matterport render,
+  eight Student Union category entries, acknowledged SDK camera focus, and a
+  complete route on the recovered Recast mesh. See
+  [desktop evidence](evidence/uncc-live/desktop.json).
+- Public privacy/read-only preflight: **18/18 PASS**; UNCC-specific public payload
+  privacy: **6/6 PASS**. GCU retains 99 viewer-visible curated places.
+- No Render error-level logs were returned between activation and the final check.
+
+The mobile test confirms UNCC identity and metadata but its Matterport iframe is
+blocked by the upstream Cloudflare human-verification screen in automated Chrome.
+This is not claimed as a mobile scene-render pass. No verification challenge was
+bypassed. Desktop rendering was checked again after deploy and passed.
+Optional pre-existing `/ar_webxr/launch.js` and `/data/sdk_config.json` 404s remain;
+these did not block the tested desktop map, camera, category, or navmesh flows.
+
+Live link: <https://wayfinding.navme.space/?b=uncc-main-campus&mp=1>.

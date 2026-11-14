@@ -1,0 +1,74 @@
+{
+  "recordedAt": "2026-11-14T08:37:33.349Z",
+  "base": "https://wayfinding.navme.space",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "label": "UNCC publication and curated places",
+      "status": "PASS",
+      "detail": {
+        "slug": "uncc-main-campus",
+        "version": 2,
+        "model": "kQBN52JqFE9",
+        "pois": 20,
+        "categories": 6,
+        "displayFloors": 2,
+        "title": "UNCC Main Campus · NavMe"
+      }
+    },
+    {
+      "viewport": "desktop",
+      "label": "real Matterport scene completes startup",
+      "status": "PASS",
+      "detail": {
+        "model": "kQBN52JqFE9",
+        "sdkPresent": true,
+        "error": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "label": "Student Union category and POI camera focus",
+      "status": "PASS",
+      "detail": {
+        "categoryPlaces": 8,
+        "cameraFocus": true
+      }
+    },
+    {
+      "viewport": "desktop",
+      "label": "durable navmesh loads and computes a campus route",
+      "status": "PASS",
+      "detail": {
+        "ready": true,
+        "from": "101 CHHS",
+        "to": "101A-101E-CHHS Advising Center",
+        "meters": 7,
+        "points": 2
+      }
+    },
+    {
+      "viewport": "desktop",
+      "label": "no unhandled page errors or application writes",
+      "status": "PASS",
+      "detail": {
+        "errors": 0,
+        "mutations": 0,
+        "httpFailures": [
+          {
+            "path": "/ar_webxr/launch.js",
+            "status": 404
+          },
+          {
+            "path": "/data/sdk_config.json",
+            "status": 404
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0
+  }
+}
