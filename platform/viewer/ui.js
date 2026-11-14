@@ -462,6 +462,7 @@ function wfDbg(level, source, message, meta) {
   wfShare = share;
   // ---------------- search + autocomplete ----------------
   let acTarget = null, acItems = [], acSel = -1;
+  const directionCategories = { fromQ: "__all__", toQ: "__all__" };
   const recent = () => {
     try {
       const stored = JSON.parse(localStorage.getItem("wf_recent") || "[]");
@@ -542,10 +543,28 @@ function wfDbg(level, source, message, meta) {
     const txt = input.value;
     // After a building is selected (places mode), main search is this building only.
     const localOnly = input !== $("q") || S.uxMode === "places";
-    const res = search(txt, localOnly);
+    const directionSearch = input === $("fromQ") || input === $("toQ");
+    const selectedCategory = directionSearch ? directionCategories[input.id] : ALL_CAT;
+    let res = search(txt, localOnly);
+    if (directionSearch) {
+      res = (res || POIS.slice()).filter(p => selectedCategory === ALL_CAT || p.category === selectedCategory);
+      syncCategoryButtons(selectedCategory);
+    }
     const list = $("acList"); let html = ""; acItems = [];
     if (extra) extra.forEach(x => { acItems.push(x); html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:${x.color}"><span class="ms fill">${x.icon}</span></span><span class="t"><b>${esc(x.label)}</b><div class="s">${esc(x.sub || "")}</div></span></li>`; });
-    if (!res) {
+    if (directionSearch && !txt.trim()) {
+      const remembered = recent().filter(id => selectedCategory === ALL_CAT || byId[id].category === selectedCategory);
+      if (remembered.length) {
+        html += `<li class="hdr" role="presentation">${esc(t("viewer.recent"))}</li>`;
+        remembered.forEach(id => { acItems.push({ poi: byId[id] }); html += itemHtml(byId[id], true, acItems.length - 1); });
+      }
+      const label = selectedCategory === ALL_CAT ? (t("viewer.allCategories") || "All")
+        : (CHIPS().find(([key]) => key === selectedCategory) || [, selectedCategory])[1];
+      const remaining = res.filter(p => !remembered.includes(p.id));
+      if (remaining.length) html += `<li class="hdr" role="presentation">${esc(label)}</li>`;
+      remaining.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
+      if (!res.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMappedYet", {title: label}))}</li>`;
+    } else if (!res) {
       const rc = recent();
       if (rc.length) { html += `<li class="hdr" role="presentation">${esc(t("viewer.recent"))}</li>`; rc.forEach(id => { acItems.push({ poi: byId[id] }); html += itemHtml(byId[id], true, acItems.length - 1); }); }
       // Cross-building places only on the building-picker screen; places mode stays in-building.
@@ -566,7 +585,7 @@ function wfDbg(level, source, message, meta) {
     list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
     list.querySelectorAll("li[role=option]").forEach((li, i) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
     // position under the active input (directions fields sit lower)
-    const top = $("top").getBoundingClientRect().top, fb = (input === $("q") ? $("searchBox") : input.closest(".dfield")).getBoundingClientRect().bottom;
+    const top = $("top").getBoundingClientRect().top, fb = (directionSearch ? $("chipsWrap") : $("searchBox")).getBoundingClientRect().bottom;
     $("top").style.setProperty("--acTop", Math.round(fb - top + 6) + "px");
   }
   function itemHtml(p, hist, i) {
@@ -625,7 +644,8 @@ function wfDbg(level, source, message, meta) {
       // Moving between the main search and either directions field is one continuous
       // autocomplete flow. Do not let the previous input's delayed blur close the new
       // field's results.
-      if (active !== $("q") && active !== $("fromQ") && active !== $("toQ")) closeAc();
+      const directionChip = S.mode === "dir" && active && active.closest("#chipsWrap, #chipsDropdown");
+      if (active !== $("q") && active !== $("fromQ") && active !== $("toQ") && !directionChip) closeAc();
     }, 150));
   }
   function bindSearch() {
@@ -668,6 +688,15 @@ function wfDbg(level, source, message, meta) {
     $("chipsDropdown").innerHTML = allChipHtml() + chipsHtml;
     bindCategoryButtons($("chipsDropdown"));
     $("chipsMore").onclick = () => setChipsOpen($("chipsDropdown").hidden);
+    syncCategoryButtons(S.mode === "dir" ? directionCategories[S.dirFocus === "from" ? "fromQ" : "toQ"] : S.filter);
+  }
+  function syncCategoryButtons(selected) {
+    document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(button => {
+      const on = button.dataset.cat === selected;
+      button.classList.toggle("on", on); button.setAttribute("aria-pressed", String(on));
+    });
+    $("chipsMore").classList.toggle("active", !!selected && selected !== ALL_CAT);
+    if (S.mode === "dir") document.body.style.setProperty("--dirSheetTop", Math.round($("chipsWrap").getBoundingClientRect().bottom + 8) + "px");
   }
   function bindCategoryButtons(root) {
     root.querySelectorAll(".chip[data-cat]").forEach(button => {
@@ -676,8 +705,17 @@ function wfDbg(level, source, message, meta) {
         event.preventDefault();
         event.stopPropagation();
         setChipsOpen(false);
+        if (S.mode === "dir") {
+          const input = $(S.dirFocus === "from" ? "fromQ" : "toQ");
+          directionCategories[input.id] = button.dataset.cat;
+          input.focus();
+          renderAc(input);
+          closeSheet();
+          return;
+        }
         toggleChip(button.dataset.cat);
       };
+      button.addEventListener("mousedown", event => { if (S.mode === "dir") event.preventDefault(); });
       // Mobile Safari/Chrome can suppress the later click when this fixed dropdown is
       // over a touch-driven Matterport canvas. Handle the completed touch pointer
       // directly, while retaining click for mouse, keyboard and older browsers.
@@ -1457,6 +1495,7 @@ function wfDbg(level, source, message, meta) {
     S.route = null; wf.clearRoute(); document.body.classList.remove("dir");
     $("searchBox").hidden = false; $("dirBox").hidden = true; closeAc();
     if (S.place) selectPlace(S.place, { fly: false }); else showHome();
+    syncCategoryButtons(S.filter);
     applyPadding();
   }
   let pendingNav = false;
