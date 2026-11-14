@@ -520,6 +520,8 @@ function wfDbg(level, source, message, meta) {
   }
   function renderAc(input, extra) {
     acTarget = input;
+    $("acClose").hidden = true;
+    $("acList").classList.remove("direction-results");
     if (input === $("q") && S.uxMode === "buildings") {
       const txt = input.value; const list = $("acList"); acItems = [];
       let buildings = allBuildings();
@@ -582,6 +584,8 @@ function wfDbg(level, source, message, meta) {
       closeAc();
       return;
     }
+    list.classList.toggle("direction-results", directionSearch);
+    $("acClose").hidden = !directionSearch;
     list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
     list.querySelectorAll("li[role=option]").forEach((li, i) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
     // position under the active input (directions fields sit lower)
@@ -615,7 +619,7 @@ function wfDbg(level, source, message, meta) {
       mpFocusSelection(which);
     }
   }
-  function closeAc() { $("acList").hidden = true; document.body.classList.remove("ac-open"); [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
+  function closeAc() { $("acList").hidden = true; $("acClose").hidden = true; document.body.classList.remove("ac-open"); [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
   function acKeys(input, extraFn) {
     const prepareSearchSurface = () => {
       // The campus/Explore sheet and the autocomplete are alternative surfaces.
@@ -645,11 +649,13 @@ function wfDbg(level, source, message, meta) {
       // autocomplete flow. Do not let the previous input's delayed blur close the new
       // field's results.
       const directionChip = S.mode === "dir" && active && active.closest("#chipsWrap, #chipsDropdown");
-      if (active !== $("q") && active !== $("fromQ") && active !== $("toQ") && !directionChip) closeAc();
+      if (active !== $("q") && active !== $("fromQ") && active !== $("toQ") && active !== $("acClose") && !directionChip) closeAc();
     }, 150));
   }
   function bindSearch() {
     const q = $("q");
+    $("acClose").onmousedown = event => event.preventDefault();
+    $("acClose").onclick = () => { const input = acTarget; closeAc(); if (input) input.blur(); };
     acKeys(q);
     q.addEventListener("input", () => { $("btnClearQ").hidden = !q.value; });
     $("btnClearQ").onclick = () => {
