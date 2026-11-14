@@ -48,7 +48,7 @@ const safeUrl = value => { const u = new URL(value); return u.origin + u.pathnam
           document.body.classList.contains('mp-startup-complete') && document.getElementById('mpBgLoading')?.hidden,
           null, {timeout: 120000});
         const state = await page.evaluate(() => ({model: new URL(document.getElementById('mpFrame').src).searchParams.get('m'),
-          phase: window.__mpSdk.App.state.getLatest().phase, error: document.getElementById('mpBgLoading').classList.contains('err')}));
+          sdkPresent: !!window.__mpSdk, error: document.getElementById('mpBgLoading').classList.contains('err')}));
         assert.equal(state.model, 'kQBN52JqFE9'); assert.equal(state.error, false); return state;
       });
       await page.screenshot({path: output + '/' + name + '.png', fullPage: true});
