@@ -10,7 +10,8 @@ function runtime({rejectCore = false} = {}) {
   const metadata = new Promise(resolve => { releaseMetadata = resolve; });
   const events = [], failures = [], errors = [];
   const core = {building_slug: 'campus', pois: [{id: 'p1', name: 'Office', category: 'office', x: 1, y: 0, z: 2}],
-    categories: [{id: 'c1', name: 'Office'}], stair_chains: []};
+    categories: [{id: 'c1', name: 'Office'}], stair_chains: [],
+    georef: {model_to_epsg3857_affine: [[1,0,0],[0,1,0]]}};
   const context = {console: {error: e => errors.push(e), warn() {}}, Event, dispatchEvent: e => events.push(e.type),
     document: {getElementById: () => null}, innerWidth: 1000, innerHeight: 800,
     window: null, WF: {ready: Promise.resolve(), building: {slug: 'campus'},

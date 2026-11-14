@@ -58,18 +58,14 @@
 
   window.WF.ready.then(async () => {
     CFG = WF.cfg;
-    const D = f => WF.D(f), F = CFG.files;
     const metadata = Promise.all([
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/shops").catch(() => []),
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/ar-experience-ref").catch(() => ({})),
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))
     ]);
-    const [georef, viewerData] = await Promise.all([
-      J(D(F.georef)),
-      WF.viewerData || J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/viewer-data")
-    ]);
+    const viewerData = await (WF.viewerData || J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/viewer-data"));
     if (viewerData.building_slug !== slug() || !Array.isArray(viewerData.pois)) throw new Error("Invalid viewer publication");
-    const { pois: navmePois, categories, stair_chains: stairs } = viewerData;
+    const { pois: navmePois, categories, stair_chains: stairs, georef } = viewerData;
 
     const A = georef.model_to_epsg3857_affine;
     const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];

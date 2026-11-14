@@ -635,13 +635,20 @@ def dashboard_viewer_data(slug: str, db: Session = Depends(get_db)):
     serialize pipeline_config, private metadata or unpublished POI records.
     """
     b = building_or_404(db, slug)
-    if not current_version(db, b):
+    version = current_version(db, b)
+    if not version:
         raise HTTPException(404, "building is not published")
     config = b.pipeline_config or {}
     result = {"building_slug": b.slug, "pois": _dashboard_pois(b, db),
               "categories": config.get("navme_categories", []),
               "stair_chains": config.get("navme_stair_chains", [])}
+    root = bundle_storage.local_version_dir(version.path, b.slug, version.version)
+    building_slug, number = b.slug, version.version
     _release_read_session(db)
+    try:
+        result["georef"] = json.loads(bundle_storage.read_bundle_file(root, building_slug, number, "georef.json"))
+    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(503, "published viewer data unavailable", headers={"Retry-After": "30"}) from None
     return result
 
 

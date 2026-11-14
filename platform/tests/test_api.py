@@ -88,6 +88,8 @@ def test_public_dashboard_pois_hide_drafts_and_unpublished_buildings(client, tmp
 
 
 def test_viewer_data_matches_public_projection_and_excludes_drafts(client, tmp_path):
+    georef = {"model_to_epsg3857_affine": [[1, 0, 0], [0, 1, 0]]}
+    (tmp_path / "georef.json").write_text(json.dumps(georef))
     with SessionLocal() as db:
         b = models.Building(slug="bootstrap-published", name="Published fixture")
         draft = models.Building(slug="bootstrap-unpublished", name="Draft fixture")
@@ -103,7 +105,8 @@ def test_viewer_data_matches_public_projection_and_excludes_drafts(client, tmp_p
     response = client.get(root + "viewer-data")
     assert response.status_code == 200
     data = response.json()
-    assert set(data) == {"building_slug", "pois", "categories", "stair_chains"}
+    assert set(data) == {"building_slug", "pois", "categories", "stair_chains", "georef"}
+    assert data["georef"] == georef
     assert data["pois"] == client.get(root + "navme-pois").json()
     assert [p["name"] for p in data["pois"]] == ["visible"]
     assert data["categories"] == client.get(root + "navme-categories").json()
@@ -111,6 +114,8 @@ def test_viewer_data_matches_public_projection_and_excludes_drafts(client, tmp_p
     assert "fixture-secret" not in response.text
     assert client.get("/api/v1/public/dashboard/buildings/bootstrap-unpublished/viewer-data").status_code == 404
     assert client.get("/api/v1/public/dashboard/buildings/missing/viewer-data").status_code == 404
+    (tmp_path / "georef.json").unlink()
+    assert client.get(root + "viewer-data").status_code == 503
 
 
 @pytest.mark.skipif(not (GREENLAND_WS / "out/config.json").exists(), reason="Greenland workspace not onboarded")
