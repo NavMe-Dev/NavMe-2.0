@@ -28,6 +28,8 @@ platform/.env.local*
 # Platform data (large binary/generated files)
 platform/var/data/
 platform/var/media/
+# Local processing/audit outputs. Reviewed public copies live in platform/floorplans/.
+/outputs/
 
 # Platform navmesh dev overrides (committed intentionally if needed)
 platform/viewer/*_navmesh.navmesh

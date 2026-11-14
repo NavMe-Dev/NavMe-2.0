@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -e ./pipeline -e ./api   # editable: the CLI find
 COPY viewer /app/viewer
 COPY admin /app/admin
 COPY locales /app/locales
+COPY floorplans /app/floorplans
+ENV FLOORPLAN_DIR=/app/floorplans/student-union
 COPY deploy/start-api.sh /app/start-api.sh
 RUN chmod +x /app/start-api.sh
 WORKDIR /app/api

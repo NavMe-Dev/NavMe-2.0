@@ -1,0 +1,100 @@
+{
+  "floor_id": "L2",
+  "label": "Second Floor",
+  "source_floor_sequence": 5,
+  "source_floor_id": "rskmewxd5h0whk1zrc7drn8ad",
+  "source_floor_label": "Floor 6 , chhs 4 , mebane 4",
+  "elevation_model_m": 7.06,
+  "elevation_status": "validated by authored doorway threshold heights and sweep positions",
+  "status": "validated_level_partial_coverage",
+  "status_label": "VALIDATED LEVEL / PARTIAL SCAN",
+  "complete_building_geometry": false,
+  "source_scan_count": 87,
+  "source_floor_triangles": 10504,
+  "scanned_surface_area_m2": 867.58,
+  "wall_segment_count": 217,
+  "doorway_count": 19,
+  "window_count": 20,
+  "verified_room_count": 0,
+  "verified_corridor_count": 0,
+  "unclassified_source_space_count": 1,
+  "scan_neighbor_link_count": 86,
+  "poi_count": 2,
+  "staircase_count": 0,
+  "elevator_count": 0,
+  "coordinate_reference": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "bounds_model_xy": [
+    140.0,
+    -20.0,
+    240.0,
+    80.0
+  ],
+  "model_to_svg": [
+    10.0,
+    0,
+    0,
+    -10.0,
+    -1320.0,
+    1020.0
+  ],
+  "svg_size": [
+    1600,
+    1320
+  ],
+  "true_north_verified": false,
+  "global_georeference_verified": false,
+  "vectorization_iou": 0.9512,
+  "raster_resolution_m": 0.05,
+  "maximum_contour_simplification_m": 0.04,
+  "source_mesh_section_z": null,
+  "source_colorplan": "colorplan_005.jpg",
+  "source_alignment_ecc": 0.986685287152548,
+  "manual_review": [
+    "Unscanned rooms/wings are not reconstructed",
+    "No room number, restroom, elevator or staircase identity is inferred from appearance",
+    "Surveyed global control points required before world-map placement"
+  ],
+  "pois": [
+    {
+      "id": "d20ba1af-06bc-49ce-8d2e-0d18c9f1d2f6",
+      "name": "260 Student Union",
+      "floor": "F1",
+      "category": "student union",
+      "x": 204.7901,
+      "y": 7.4779,
+      "z": -6.0642,
+      "expected_pos_x": 204.79008495933206,
+      "expected_pos_y": 7.064283620623975,
+      "expected_pos_z": -6.06416856533795,
+      "model_x": 204.7901,
+      "model_y": 6.0642,
+      "floor_id": "L2",
+      "source_record_floor": "F1",
+      "assignment": "nearest validated physical model elevation",
+      "alignment_distance_to_scanned_surface_m": 0.0
+    },
+    {
+      "id": "8a4dded7-b1b2-4220-9486-13a3c9fc33ab",
+      "name": "Social 704",
+      "floor": "F1",
+      "category": "student union",
+      "x": 188.7921,
+      "y": 7.4779,
+      "z": -26.9443,
+      "expected_pos_x": 188.79209355139426,
+      "expected_pos_y": 7.06994050848468,
+      "expected_pos_z": -26.944342400443645,
+      "model_x": 188.7921,
+      "model_y": 26.9443,
+      "floor_id": "L2",
+      "source_record_floor": "F1",
+      "assignment": "nearest validated physical model elevation",
+      "alignment_distance_to_scanned_surface_m": 0.0
+    }
+  ]
+}

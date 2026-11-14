@@ -1,0 +1,254 @@
+{
+  "assets": [
+    {
+      "path": "building-metadata.json",
+      "bytes": 1357,
+      "sha256": "332fbc7adf0677c378ee040220af7ba1f004faefd34f46abc417f197e6a99eff"
+    },
+    {
+      "path": "floor-inventory.json",
+      "bytes": 2537,
+      "sha256": "797bc6bf732784e54a39b4a3cee4b208dc65789db53a40b31d23a691846edddc"
+    },
+    {
+      "path": "student-union-floorplans.pdf",
+      "bytes": 107012,
+      "sha256": "ae493d167a4772a4f5f97658fa23114bc86482266c5b67e1401f7bbb4db4ecd8"
+    },
+    {
+      "path": "floors/LL/circulation-evidence.geojson",
+      "bytes": 29894,
+      "sha256": "db4009cea36a54641797d45c13c31e30e7262e0fac708184cf81c614148e470c"
+    },
+    {
+      "path": "floors/LL/corridors.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/LL/floorplan.geojson",
+      "bytes": 249301,
+      "sha256": "402e46eee8da3315e12ae75691b4e22e7724c9c2a07c8724cd9814e794ed72da"
+    },
+    {
+      "path": "floors/LL/floorplan.png",
+      "bytes": 431522,
+      "sha256": "e4f3f1822b93faa9ca3701fab6b685fd705ff87e9d78246b2391117f1bd347ef"
+    },
+    {
+      "path": "floors/LL/floorplan.svg",
+      "bytes": 70271,
+      "sha256": "8839954dc2a18a34eedc79b9b4e2df88addd5fac5ba4dc8f5941d5195ba61fd1"
+    },
+    {
+      "path": "floors/LL/metadata.json",
+      "bytes": 1704,
+      "sha256": "4cd66a688ac46e3303543f82ac5c7109434147501b92a883ddb464b49d7c419f"
+    },
+    {
+      "path": "floors/LL/rooms.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/LL/source-spaces.geojson",
+      "bytes": 24555,
+      "sha256": "094a66532448d47158837929825d3c3d6727077ab0f06050959f4c97a9d92351"
+    },
+    {
+      "path": "floors/LL/walls.geojson",
+      "bytes": 137400,
+      "sha256": "7c85764ccc359a3be142679d162c1355f2e55bcfbd0e3563d047c1d71f9739c5"
+    },
+    {
+      "path": "floors/L1/circulation-evidence.geojson",
+      "bytes": 139983,
+      "sha256": "2e7085a0d418c33d173d6f7d528785aff55a360f2a32becba546fa524e7c29e9"
+    },
+    {
+      "path": "floors/L1/corridors.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L1/floorplan.geojson",
+      "bytes": 730830,
+      "sha256": "ada57d238aea4e3101ae2717d931e49437409205ddb0c906efcb4970df48f7c5"
+    },
+    {
+      "path": "floors/L1/floorplan.png",
+      "bytes": 760617,
+      "sha256": "29ca53ef7c4862d6a3f0ec4204bb83c79d681f699b0f1a6655bdc524bc6fff9e"
+    },
+    {
+      "path": "floors/L1/floorplan.svg",
+      "bytes": 169145,
+      "sha256": "328ce6085cd712f5e32f82091ba7fe5809912303561f8a2167537896ab170b24"
+    },
+    {
+      "path": "floors/L1/metadata.json",
+      "bytes": 5130,
+      "sha256": "29136c7d66b67f7a9624090b2e32b766bb41a738132a21e36f234ecc8c81cf7b"
+    },
+    {
+      "path": "floors/L1/rooms.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L1/source-spaces.geojson",
+      "bytes": 12774,
+      "sha256": "a1e23da9841851e2b192dee66199b7c8acec0da31663e42f9abad223cd71abea"
+    },
+    {
+      "path": "floors/L1/walls.geojson",
+      "bytes": 125947,
+      "sha256": "bab6a0206fca49ce1559a4c368ae328abd7a0b7ce9ab10469e68021f7fe8a868"
+    },
+    {
+      "path": "floors/M/circulation-evidence.geojson",
+      "bytes": 19228,
+      "sha256": "de2df9cc71e75242310e43af8992c4411babf141cd34c1b79c689264396d38e6"
+    },
+    {
+      "path": "floors/M/corridors.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/M/floorplan.geojson",
+      "bytes": 311623,
+      "sha256": "33be5325e20216430591f26f35d1b8f02ca4a9fdd366f0e6a7e76e7fcb08ab33"
+    },
+    {
+      "path": "floors/M/floorplan.png",
+      "bytes": 331600,
+      "sha256": "c68d5e50b977232527f70745ca2956531ce24c98e1cd9c26bd71d2e89a064a1f"
+    },
+    {
+      "path": "floors/M/floorplan.svg",
+      "bytes": 73260,
+      "sha256": "e0209a61a4ec9a120f8c57e6274ca91206a15374dfcbe7fc4af5574c47eaa5ec"
+    },
+    {
+      "path": "floors/M/metadata.json",
+      "bytes": 1722,
+      "sha256": "976ebe2d687a97f62991b917ec2f95738baee0efe116671a0ed4606c6cafb9fa"
+    },
+    {
+      "path": "floors/M/rooms.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/M/source-spaces.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/M/walls.geojson",
+      "bytes": 95766,
+      "sha256": "0d46534c3941365433baeeda01bfa9c527435f001d917563e67ddb414f860b34"
+    },
+    {
+      "path": "floors/L2/circulation-evidence.geojson",
+      "bytes": 42105,
+      "sha256": "3ea6cc83aaedd23a1c6dd0f4d355951a17673b2f58579835a640814d67374375"
+    },
+    {
+      "path": "floors/L2/corridors.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L2/floorplan.geojson",
+      "bytes": 455801,
+      "sha256": "2d8d46fa50ff60e2a02c0a10188f156a589cc7da52fd0c2a8e1e0622fe8e7831"
+    },
+    {
+      "path": "floors/L2/floorplan.png",
+      "bytes": 530013,
+      "sha256": "f4bc3129acbad09a7ff46bc85f095d50a28430da3c47fa0088ed32d36edd4eee"
+    },
+    {
+      "path": "floors/L2/floorplan.svg",
+      "bytes": 110214,
+      "sha256": "ff7f558422c70041204fc16a11e03d955c6abfab70e78adec283fb27d4f2dca4"
+    },
+    {
+      "path": "floors/L2/metadata.json",
+      "bytes": 2852,
+      "sha256": "f60975fc4db0c04befc5ded94ea9af8e48b4b613354192a0205722004ee1a797"
+    },
+    {
+      "path": "floors/L2/rooms.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L2/source-spaces.geojson",
+      "bytes": 15719,
+      "sha256": "0869d25ec5041722b2b911ab5975ee131716cc68978b347bdc4e21c2eafabaaf"
+    },
+    {
+      "path": "floors/L2/walls.geojson",
+      "bytes": 124900,
+      "sha256": "24b251028d2b7bd83b4f5c3abaa6d571ad692a28c73cbab2d20f4111ed42c788"
+    },
+    {
+      "path": "floors/L3/circulation-evidence.geojson",
+      "bytes": 63014,
+      "sha256": "ac0569269a999389b6914177ed39a02f76ab5598bc913f1087880c5f944b877e"
+    },
+    {
+      "path": "floors/L3/corridors.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L3/floorplan.geojson",
+      "bytes": 360720,
+      "sha256": "c6f80da8b457d67218fce6342e562d086e81fe715706948790a36ac301a7f105"
+    },
+    {
+      "path": "floors/L3/floorplan.png",
+      "bytes": 432067,
+      "sha256": "6e8beb7cac62d0ba7aa9cf1a52f9ddf12601c8d2f4919078e412d1ce00c5ed7e"
+    },
+    {
+      "path": "floors/L3/floorplan.svg",
+      "bytes": 93668,
+      "sha256": "48421b8d5579c5b656de6e4cfd8626a3e96ed2ae8cf764912badaa86e0c5ee7e"
+    },
+    {
+      "path": "floors/L3/metadata.json",
+      "bytes": 1683,
+      "sha256": "d98016d2787cf838fd58d3928294c3e96547fba99d697769b181a8b257eaceb7"
+    },
+    {
+      "path": "floors/L3/rooms.geojson",
+      "bytes": 300,
+      "sha256": "4e486f0442889ee557965ced8f09e60a3f6f2819b0b3701b00a7616facb2ba03"
+    },
+    {
+      "path": "floors/L3/source-spaces.geojson",
+      "bytes": 20855,
+      "sha256": "255e499599cc6f09b469a269eb7026fc6623dbcf1c7ba2b3d6541cdc7bd7661e"
+    },
+    {
+      "path": "floors/L3/walls.geojson",
+      "bytes": 152467,
+      "sha256": "c1df73a7e30c3efad4a5e2858b35988c3ac814b7511c3e2fdc3fb7f50c44b9f6"
+    }
+  ],
+  "excluded": [
+    "audit/",
+    "raw DOCX/EMF",
+    "local source inventory",
+    "reference comparisons"
+  ],
+  "complete_floor_count": 0,
+  "provisional_levels": [
+    "M"
+  ]
+}

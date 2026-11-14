@@ -1,0 +1,5268 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "coordinate_reference_note": "Local model metres, not RFC 7946 longitude/latitude. No surveyed global georeference is claimed.",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.4951293264624,
+            26.79690452867624
+          ],
+          [
+            153.00418252932133,
+            26.46627674303433
+          ]
+        ]
+      },
+      "properties": {
+        "id": "car7swu6n3ut99gyss8abr08a-0",
+        "source_edge_id": "car7swu6n3ut99gyss8abr08a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.24127181214124,
+            -19.553531759896448
+          ],
+          [
+            173.73330996132069,
+            -20.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mts32ptwa9k2ch6sy011t343d-0",
+        "source_edge_id": "mts32ptwa9k2ch6sy011t343d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            148.94321561208616,
+            21.88803462138121
+          ],
+          [
+            151.9981711323828,
+            24.764173874245408
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ntpw28gwn0mx318gmt8axqisd-0",
+        "source_edge_id": "ntpw28gwn0mx318gmt8axqisd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.95152621246285,
+            25.661726047924706
+          ],
+          [
+            153.00359985594085,
+            25.710751655352258
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ntpw28gwn0mx318gmt8axqisd-1",
+        "source_edge_id": "ntpw28gwn0mx318gmt8axqisd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.00379206908934,
+            33.2234450350604
+          ],
+          [
+            192.00302413186122,
+            32.182305566710305
+          ]
+        ]
+      },
+      "properties": {
+        "id": "n2z4w600bch8bn54nxrw846cd-0",
+        "source_edge_id": "n2z4w600bch8bn54nxrw846cd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.08862201020796,
+            63.767465487922294
+          ],
+          [
+            169.51055512724858,
+            63.76717481864629
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ni4f2f2t4n9pis02nbt9a12sc-0",
+        "source_edge_id": "ni4f2f2t4n9pis02nbt9a12sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.27753167009956,
+            68.96158642257298
+          ],
+          [
+            202.14744833496337,
+            72.37414213289766
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ptp3b72as328eb554eke43dfa-0",
+        "source_edge_id": "ptp3b72as328eb554eke43dfa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.94184634979993,
+            56.34514409692392
+          ],
+          [
+            154.69416569782993,
+            55.60031863036211
+          ]
+        ]
+      },
+      "properties": {
+        "id": "t2tirfdza777ebbatatzeqdid-0",
+        "source_edge_id": "t2tirfdza777ebbatatzeqdid",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.80667442422808,
+            -18.75875303098223
+          ],
+          [
+            203.5666922836296,
+            -20.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "utaktabmgm1s0cczxnk9b89sa-0",
+        "source_edge_id": "utaktabmgm1s0cczxnk9b89sa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            184.39030277746807,
+            3.1791794038634635
+          ],
+          [
+            185.23115342789833,
+            4.291800266625824
+          ]
+        ]
+      },
+      "properties": {
+        "id": "uahupkp6x8cf4mt9gen0i6ydd-0",
+        "source_edge_id": "uahupkp6x8cf4mt9gen0i6ydd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.80663659342807,
+            17.110078584854136
+          ],
+          [
+            155.3998081519497,
+            19.51534596505646
+          ]
+        ]
+      },
+      "properties": {
+        "id": "xiiic5ehu5847hxf6cn6ai0qb-0",
+        "source_edge_id": "xiiic5ehu5847hxf6cn6ai0qb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.5613171343046,
+            -6.570859759181736
+          ],
+          [
+            190.66864593483396,
+            -6.570229296788752
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yir5twkfx5z7agsi6r2z8ys1a-0",
+        "source_edge_id": "yir5twkfx5z7agsi6r2z8ys1a",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.0673604540033,
+            52.74028149028869
+          ],
+          [
+            169.84933329849113,
+            52.73906943206181
+          ]
+        ]
+      },
+      "properties": {
+        "id": "y25qdwswn0ztwpdh28ayg5zfc-0",
+        "source_edge_id": "y25qdwswn0ztwpdh28ayg5zfc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.9178713671819,
+            20.63811788608232
+          ],
+          [
+            157.86995304193215,
+            20.638771104008256
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1tfmupnhm26xd5fgqd55ekh9d-0",
+        "source_edge_id": "1tfmupnhm26xd5fgqd55ekh9d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            164.45769660150364,
+            10.293514733221123
+          ],
+          [
+            164.45860383126225,
+            11.616624890463166
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2a50374daug0g9bi6g3s7hszc-0",
+        "source_edge_id": "2a50374daug0g9bi6g3s7hszc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.86995304193215,
+            20.638771104008256
+          ],
+          [
+            157.19568571044115,
+            21.312520600282582
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2i1zi42gu8eirst0dk9qn5nwd-0",
+        "source_edge_id": "2i1zi42gu8eirst0dk9qn5nwd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.52485403450888,
+            64.70227369832881
+          ],
+          [
+            173.52662214439422,
+            67.22389268136996
+          ]
+        ]
+      },
+      "properties": {
+        "id": "3i89w8bnyar806qqr1yp5ah5b-0",
+        "source_edge_id": "3i89w8bnyar806qqr1yp5ah5b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.7924475764972,
+            54.62586885776914
+          ],
+          [
+            174.8302447210236,
+            54.62515251868223
+          ]
+        ]
+      },
+      "properties": {
+        "id": "8t1qnqi0byigu3r9ggpifuumb-0",
+        "source_edge_id": "8t1qnqi0byigu3r9ggpifuumb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            222.94543086234373,
+            78.46572487417104
+          ],
+          [
+            223.79801619399692,
+            78.46514081689273
+          ]
+        ]
+      },
+      "properties": {
+        "id": "927r37huka53d0z9rq2hre7qd-0",
+        "source_edge_id": "927r37huka53d0z9rq2hre7qd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            146.18616812190345,
+            40.680688770566725
+          ],
+          [
+            146.18576585387453,
+            40.04795886963327
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9tsc2fu1fp4m8bcm3na8rt6kc-0",
+        "source_edge_id": "9tsc2fu1fp4m8bcm3na8rt6kc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.63916348352902,
+            5.38154953394447
+          ],
+          [
+            181.64020343214557,
+            6.8912857333921735
+          ]
+        ]
+      },
+      "properties": {
+        "id": "abwikp6m30maxg7zntirdc9ab-0",
+        "source_edge_id": "abwikp6m30maxg7zntirdc9ab",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.56000675567364,
+            -8.433651787039665
+          ],
+          [
+            191.5613171343046,
+            -6.570859759181736
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bkrb5wp21i8kyphfe98rix4sa-0",
+        "source_edge_id": "bkrb5wp21i8kyphfe98rix4sa",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            221.6671175986575,
+            79.48496843032842
+          ],
+          [
+            223.7987288688501,
+            79.48347599427
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ck421eygf8h7resxwn5arww0d-0",
+        "source_edge_id": "ck421eygf8h7resxwn5arww0d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.56435351463736,
+            36.742263609834225
+          ],
+          [
+            193.56369317950308,
+            35.763741650332776
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ck9txdwkf6iaeean63r54bwqd-0",
+        "source_edge_id": "ck9txdwkf6iaeean63r54bwqd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            175.3115924316599,
+            4.578706692153012
+          ],
+          [
+            176.12677931175898,
+            2.5612969420221607
+          ]
+        ]
+      },
+      "properties": {
+        "id": "eb15fbttq5i5i5yxkmw1d01ma-0",
+        "source_edge_id": "eb15fbttq5i5i5yxkmw1d01ma",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.40337627495984,
+            26.656116925200017
+          ],
+          [
+            152.4951293264624,
+            26.79690452867624
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fbzyktgb18a15zbhz44rfetic-0",
+        "source_edge_id": "fbzyktgb18a15zbhz44rfetic",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.15475443509018,
+            2.889711611271825
+          ],
+          [
+            170.1540304611659,
+            1.8819579592687097
+          ]
+        ]
+      },
+      "properties": {
+        "id": "i3bn5ibqw6chkhh43frcd3thb-0",
+        "source_edge_id": "i3bn5ibqw6chkhh43frcd3thb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            207.52084485769973,
+            -19.043066857157303
+          ],
+          [
+            208.48008311859334,
+            -20.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "kbydyudqqxiixpkm5rtszbhib-0",
+        "source_edge_id": "kbydyudqqxiixpkm5rtszbhib",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.80663659342807,
+            17.110078584854136
+          ],
+          [
+            157.8054989785327,
+            15.376006093337757
+          ]
+        ]
+      },
+      "properties": {
+        "id": "m3gbsspu4tyudrgs3rmbmcb2c-0",
+        "source_edge_id": "m3gbsspu4tyudrgs3rmbmcb2c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.97296944982804,
+            4.291275113369716
+          ],
+          [
+            185.23115342789833,
+            4.291800266625824
+          ]
+        ]
+      },
+      "properties": {
+        "id": "n36zsnbpc31t3fdtk02xcp5fb-0",
+        "source_edge_id": "n36zsnbpc31t3fdtk02xcp5fb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            235.77379535792667,
+            76.97495507087562
+          ],
+          [
+            235.77507625895126,
+            78.82620322635357
+          ]
+        ]
+      },
+      "properties": {
+        "id": "pkn33tqcsubih695pxt9ss95d-0",
+        "source_edge_id": "pkn33tqcsubih695pxt9ss95d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            145.13508634278887,
+            40.68136751708738
+          ],
+          [
+            145.1354783380206,
+            41.28845312020947
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ub3gwex27168s255ygwxes4wd-0",
+        "source_edge_id": "ub3gwex27168s255ygwxes4wd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            142.21289581638612,
+            44.512919986613504
+          ],
+          [
+            143.3206940271773,
+            44.51219384449748
+          ]
+        ]
+      },
+      "properties": {
+        "id": "u3sy4frire4phn4t9q43bxq1b-0",
+        "source_edge_id": "u3sy4frire4phn4t9q43bxq1b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.56435351463736,
+            36.742263609834225
+          ],
+          [
+            192.5732789980423,
+            36.7429324628482
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wue1tb0exwxhn186p7kkc2kdc-0",
+        "source_edge_id": "wue1tb0exwxhn186p7kkc2kdc",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            232.72878629932822,
+            45.196093636452225
+          ],
+          [
+            232.72940092586188,
+            46.075349257717434
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wufu9c4bc8t1ehuy34awpsbkc-0",
+        "source_edge_id": "wufu9c4bc8t1ehuy34awpsbkc",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            177.810134452183,
+            -6.801427260030059
+          ],
+          [
+            171.65402080895657,
+            -6.797214678514675
+          ]
+        ]
+      },
+      "properties": {
+        "id": "xkh1retawu3y7nt2dq6y7n5ca-0",
+        "source_edge_id": "xkh1retawu3y7nt2dq6y7n5ca",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            143.31962418660683,
+            42.880074818183935
+          ],
+          [
+            143.33818263312514,
+            42.863808078844635
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yu3925663hgf4wasrubmx1twd-0",
+        "source_edge_id": "yu3925663hgf4wasrubmx1twd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            145.11692013300538,
+            41.304719647867906
+          ],
+          [
+            145.1354783380206,
+            41.28845312020947
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yu3925663hgf4wasrubmx1twd-1",
+        "source_edge_id": "yu3925663hgf4wasrubmx1twd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.41740133414675,
+            72.38019307871824
+          ],
+          [
+            183.80253168435107,
+            73.26449754310818
+          ]
+        ]
+      },
+      "properties": {
+        "id": "z3pprg7frmizraab6kpp8hbed-0",
+        "source_edge_id": "z3pprg7frmizraab6kpp8hbed",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.48263736437673,
+            56.253704916602
+          ],
+          [
+            183.88509565290872,
+            56.25342613157415
+          ]
+        ]
+      },
+      "properties": {
+        "id": "z3h2fxk6kkw34kcpnkd7cg0yc-0",
+        "source_edge_id": "z3h2fxk6kkw34kcpnkd7cg0yc",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.18984596126515,
+            56.250444207810204
+          ],
+          [
+            189.63955133568248,
+            56.24943998907577
+          ]
+        ]
+      },
+      "properties": {
+        "id": "z3h2fxk6kkw34kcpnkd7cg0yc-1",
+        "source_edge_id": "z3h2fxk6kkw34kcpnkd7cg0yc",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.3913076932558,
+            56.24753383260037
+          ],
+          [
+            192.43398487896766,
+            56.24750426988357
+          ]
+        ]
+      },
+      "properties": {
+        "id": "z3h2fxk6kkw34kcpnkd7cg0yc-2",
+        "source_edge_id": "z3h2fxk6kkw34kcpnkd7cg0yc",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.71463238257155,
+            -11.390185190394254
+          ],
+          [
+            172.71554346039295,
+            -10.085090405460255
+          ]
+        ]
+      },
+      "properties": {
+        "id": "0b34bwah7ki4ew522f68ae9fc-0",
+        "source_edge_id": "0b34bwah7ki4ew522f68ae9fc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.28301581205886,
+            -6.6518017889548435
+          ],
+          [
+            189.00825875572065,
+            -6.65433130363795
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1k90mz3nssbctbqa9rqiy22ib-0",
+        "source_edge_id": "1k90mz3nssbctbqa9rqiy22ib",
+        "kind": "wall",
+        "thickness_m": 0.12,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.40337627495984,
+            26.656116925200017
+          ],
+          [
+            152.35455690219842,
+            26.70501373288966
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2b9t973y6yt4an3nbta025byc-0",
+        "source_edge_id": "2b9t973y6yt4an3nbta025byc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.2613491702112,
+            27.799955458115324
+          ],
+          [
+            151.2458985139583,
+            27.815430621451977
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2b9t973y6yt4an3nbta025byc-1",
+        "source_edge_id": "2b9t973y6yt4an3nbta025byc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            156.2138953177576,
+            33.70023929540217
+          ],
+          [
+            158.55095255164684,
+            36.051455982874046
+          ]
+        ]
+      },
+      "properties": {
+        "id": "53fp4iy4biehmq6a56mhcekaa-0",
+        "source_edge_id": "53fp4iy4biehmq6a56mhcekaa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            159.12491792633833,
+            36.62889882314196
+          ],
+          [
+            160.17708726324096,
+            37.68744290460406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "53fp4iy4biehmq6a56mhcekaa-1",
+        "source_edge_id": "53fp4iy4biehmq6a56mhcekaa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.52485403450888,
+            64.70227369832881
+          ],
+          [
+            169.5112126640621,
+            64.70508796768537
+          ]
+        ]
+      },
+      "properties": {
+        "id": "6kuwt0bsq3pizq4b6q5ux7x4c-0",
+        "source_edge_id": "6kuwt0bsq3pizq4b6q5ux7x4c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.65402080895657,
+            -6.797214678514675
+          ],
+          [
+            170.5176685545449,
+            -7.6460248788832645
+          ]
+        ]
+      },
+      "properties": {
+        "id": "7kmuhd7mqwkfcfkm6fzebc7bd-0",
+        "source_edge_id": "7kmuhd7mqwkfcfkm6fzebc7bd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.84944188466926,
+            52.896658516559214
+          ],
+          [
+            169.84933329849113,
+            52.73906943206181
+          ]
+        ]
+      },
+      "properties": {
+        "id": "8kn32ymmp92b1u0fssr3akhwc-0",
+        "source_edge_id": "8kn32ymmp92b1u0fssr3akhwc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.46826602911923,
+            15.377539200428348
+          ],
+          [
+            148.94321561208616,
+            21.88803462138121
+          ]
+        ]
+      },
+      "properties": {
+        "id": "am8sz3k7867x1ebe1qwaxqh2a-0",
+        "source_edge_id": "am8sz3k7867x1ebe1qwaxqh2a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.66864593483396,
+            -6.570229296788752
+          ],
+          [
+            190.6673588904425,
+            -8.433030331758088
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bm78ugcwiayfxig97uwz34h7c-0",
+        "source_edge_id": "bm78ugcwiayfxig97uwz34h7c",
+        "kind": "wall",
+        "thickness_m": 0.0,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.42301361627355,
+            10.459163846419768
+          ],
+          [
+            178.81429410411798,
+            11.069931014720058
+          ]
+        ]
+      },
+      "properties": {
+        "id": "e43g7sdnds1dhm1g44u0sm8sa-0",
+        "source_edge_id": "e43g7sdnds1dhm1g44u0sm8sa",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.80253168435107,
+            73.26449754310818
+          ],
+          [
+            173.52662214439422,
+            67.22389268136996
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fc6s21421pggue178e9z0y7tb-0",
+        "source_edge_id": "fc6s21421pggue178e9z0y7tb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            143.31962418660683,
+            42.880074818183935
+          ],
+          [
+            143.31964036308213,
+            42.904753199091694
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fwap2e9wieuddqzztrmcftx0b-0",
+        "source_edge_id": "fwap2e9wieuddqzztrmcftx0b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            143.32065836843296,
+            44.4577938556698
+          ],
+          [
+            143.3206940271773,
+            44.51219384449748
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fwap2e9wieuddqzztrmcftx0b-1",
+        "source_edge_id": "fwap2e9wieuddqzztrmcftx0b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            225.19004626300804,
+            -20.0
+          ],
+          [
+            224.8718800619069,
+            -19.681407214657956
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fmn7ffq5de1kbsuzu6fq3rtza-0",
+        "source_edge_id": "fmn7ffq5de1kbsuzu6fq3rtza",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            149.14354737415604,
+            36.690239901181926
+          ],
+          [
+            149.37600997435985,
+            37.05279947170374
+          ]
+        ]
+      },
+      "properties": {
+        "id": "hcz00uqtt51bf1pfakkh01i4c-0",
+        "source_edge_id": "hcz00uqtt51bf1pfakkh01i4c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.55244289266304,
+            -6.850665615605338
+          ],
+          [
+            206.5785758822781,
+            -8.631696639362511
+          ]
+        ]
+      },
+      "properties": {
+        "id": "hcgkpgf7ddd331du3iau784dd-0",
+        "source_edge_id": "hcgkpgf7ddd331du3iau784dd",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            218.9215821950236,
+            49.01154064218736
+          ],
+          [
+            218.92047105277797,
+            47.33096357842909
+          ]
+        ]
+      },
+      "properties": {
+        "id": "i4wwsk8qh41mwwnx8qgb6cb1b-0",
+        "source_edge_id": "i4wwsk8qh41mwwnx8qgb6cb1b",
+        "kind": "wall",
+        "thickness_m": 0.01,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.158537238526,
+            -7.528377484507631
+          ],
+          [
+            185.1591363385581,
+            -6.651717131349708
+          ]
+        ]
+      },
+      "properties": {
+        "id": "qwue32ygsxia4wa25k90sq3md-0",
+        "source_edge_id": "qwue32ygsxia4wa25k90sq3md",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            237.37882601653826,
+            79.28013709313687
+          ],
+          [
+            237.37851218299755,
+            78.82509426049243
+          ]
+        ]
+      },
+      "properties": {
+        "id": "qwq9xdh36sf0w5wri5c9bsb6a-0",
+        "source_edge_id": "qwq9xdh36sf0w5wri5c9bsb6a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            211.07780564041803,
+            71.90250291161153
+          ],
+          [
+            217.23728555741565,
+            71.89821184608505
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rcccxx9gcnz3a18wq2qwc3s3b-0",
+        "source_edge_id": "rcccxx9gcnz3a18wq2qwc3s3b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.97297744152834,
+            0.08489799225456762
+          ],
+          [
+            180.51465561393223,
+            -0.8266151619684431
+          ]
+        ]
+      },
+      "properties": {
+        "id": "tc2wz1bzw7i1m5dix6i64wdac-0",
+        "source_edge_id": "tc2wz1bzw7i1m5dix6i64wdac",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.79786855551848,
+            -3.295850947610316
+          ],
+          [
+            194.7416066966339,
+            -3.295812038813894
+          ]
+        ]
+      },
+      "properties": {
+        "id": "tmactp6k6982tgze66ckqxz5c-0",
+        "source_edge_id": "tmactp6k6982tgze66ckqxz5c",
+        "kind": "wall",
+        "thickness_m": 0.0,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.91399003269336,
+            -13.491241997254106
+          ],
+          [
+            168.9154592981132,
+            -11.38753171832202
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ucr9daessm055ks6q7cxnfd6d-0",
+        "source_edge_id": "ucr9daessm055ks6q7cxnfd6d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.17489016310165,
+            -8.304030868368852
+          ],
+          [
+            183.44788000193392,
+            -8.304226739993306
+          ]
+        ]
+      },
+      "properties": {
+        "id": "uw8u9br1yps78h6u7y5f3yz4b-0",
+        "source_edge_id": "uw8u9br1yps78h6u7y5f3yz4b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.975534753618,
+            -8.304605335012834
+          ],
+          [
+            184.3396553939767,
+            -8.304866593459776
+          ]
+        ]
+      },
+      "properties": {
+        "id": "uw8u9br1yps78h6u7y5f3yz4b-1",
+        "source_edge_id": "uw8u9br1yps78h6u7y5f3yz4b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.56000675567364,
+            -8.433651787039665
+          ],
+          [
+            191.50500716805894,
+            -8.433613496706444
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wc9w3dxxm739mmw39740natsb-0",
+        "source_edge_id": "wc9w3dxxm739mmw39740natsb",
+        "kind": "wall",
+        "thickness_m": 0.08,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.87871010311088,
+            -8.433177473013332
+          ],
+          [
+            190.6673588904425,
+            -8.433030331758088
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wc9w3dxxm739mmw39740natsb-1",
+        "source_edge_id": "wc9w3dxxm739mmw39740natsb",
+        "kind": "wall",
+        "thickness_m": 0.08,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.59944376048296,
+            1.8802087831235073
+          ],
+          [
+            170.1540304611659,
+            1.8819579592687097
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ww5dru10i3rmy31b70te4ip8d-0",
+        "source_edge_id": "ww5dru10i3rmy31b70te4ip8d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            184.38850828801438,
+            -6.089567864882725
+          ],
+          [
+            183.69167222307192,
+            -6.650716048361911
+          ]
+        ]
+      },
+      "properties": {
+        "id": "xcn0w5d2w4n3idtmx4nuqyydb-0",
+        "source_edge_id": "xcn0w5d2w4n3idtmx4nuqyydb",
+        "kind": "wall",
+        "thickness_m": 0.15,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.54425494072254,
+            43.07167228639179
+          ],
+          [
+            192.54330092272605,
+            41.704872687892625
+          ]
+        ]
+      },
+      "properties": {
+        "id": "048ggr3ecgcz7wphgdq5ueuzd-0",
+        "source_edge_id": "048ggr3ecgcz7wphgdq5ueuzd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.27753167009956,
+            68.96158642257298
+          ],
+          [
+            191.0411749642141,
+            74.02252628705594
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1caf6mg1r1gu3i0ehwif4xefd-0",
+        "source_edge_id": "1caf6mg1r1gu3i0ehwif4xefd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            236.79080908233288,
+            80.0
+          ],
+          [
+            234.0266160919284,
+            78.1109461475027
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1c22xhnch038ryhti4b3h5agb-0",
+        "source_edge_id": "1c22xhnch038ryhti4b3h5agb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.97297744152834,
+            0.08489799225456762
+          ],
+          [
+            180.9701433182899,
+            -4.026925828187343
+          ]
+        ]
+      },
+      "properties": {
+        "id": "141buyt6exc8i1a2mzetm7b1c-0",
+        "source_edge_id": "141buyt6exc8i1a2mzetm7b1c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.96854295667137,
+            -6.348774410886245
+          ],
+          [
+            180.9683361334464,
+            -6.648839225110711
+          ]
+        ]
+      },
+      "properties": {
+        "id": "141buyt6exc8i1a2mzetm7b1c-1",
+        "source_edge_id": "141buyt6exc8i1a2mzetm7b1c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.59944376048296,
+            1.8802087831235073
+          ],
+          [
+            175.3115924316599,
+            4.578706692153012
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2470ycpf6nq4xuntb0rs1y5xd-0",
+        "source_edge_id": "2470ycpf6nq4xuntb0rs1y5xd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.08515857361908,
+            9.641750810774507
+          ],
+          [
+            178.60248635215999,
+            9.641398224424588
+          ]
+        ]
+      },
+      "properties": {
+        "id": "948mpxa5a1mb42igksmc36uid-0",
+        "source_edge_id": "948mpxa5a1mb42igksmc36uid",
+        "kind": "wall",
+        "thickness_m": 0.17,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.69167222307192,
+            -6.650716048361911
+          ],
+          [
+            185.1591363385581,
+            -6.651717131349708
+          ]
+        ]
+      },
+      "properties": {
+        "id": "anzzrn6buuwhyu746acsfwc0a-0",
+        "source_edge_id": "anzzrn6buuwhyu746acsfwc0a",
+        "kind": "wall",
+        "thickness_m": 0.12,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            218.57925733078713,
+            59.098200799126055
+          ],
+          [
+            218.57622497989863,
+            54.69658546581286
+          ]
+        ]
+      },
+      "properties": {
+        "id": "h5gqwe1qtydnmam404hupyshb-0",
+        "source_edge_id": "h5gqwe1qtydnmam404hupyshb",
+        "kind": "wall",
+        "thickness_m": 0.02,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.9683361334464,
+            -6.648839225110711
+          ],
+          [
+            180.9680151201589,
+            -7.114321540569061
+          ]
+        ]
+      },
+      "properties": {
+        "id": "kx2rugdww1uxmkkctchwh02sa-0",
+        "source_edge_id": "kx2rugdww1uxmkkctchwh02sa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.51055512724858,
+            63.76717481864629
+          ],
+          [
+            169.5112126640621,
+            64.70508796768537
+          ]
+        ]
+      },
+      "properties": {
+        "id": "kdrcfg9c2904rpczh55cmu01a-0",
+        "source_edge_id": "kdrcfg9c2904rpczh55cmu01a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            235.77507625895126,
+            78.82620322635357
+          ],
+          [
+            237.37851218299755,
+            78.82509426049243
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mxi0fy2ctry16urnck8da75sa-0",
+        "source_edge_id": "mxi0fy2ctry16urnck8da75sa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.2796740960959,
+            57.01685489129395
+          ],
+          [
+            173.7924475764972,
+            54.62586885776914
+          ]
+        ]
+      },
+      "properties": {
+        "id": "pncqf7aiuq7k83zscugwxefgd-0",
+        "source_edge_id": "pncqf7aiuq7k83zscugwxefgd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            217.40312267836308,
+            60.190503488038615
+          ],
+          [
+            214.52192353378604,
+            60.19249189021947
+          ]
+        ]
+      },
+      "properties": {
+        "id": "pds68n7gp7t80h73izg3qw1fc-0",
+        "source_edge_id": "pds68n7gp7t80h73izg3qw1fc",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            146.18576585387453,
+            40.04795886963327
+          ],
+          [
+            146.20294594963636,
+            40.031829343698895
+          ]
+        ]
+      },
+      "properties": {
+        "id": "qxpemiat8mytwf7pmk49gegqa-0",
+        "source_edge_id": "qxpemiat8mytwf7pmk49gegqa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            147.33295622056067,
+            38.97091965939518
+          ],
+          [
+            148.22876127955047,
+            38.129893443276664
+          ]
+        ]
+      },
+      "properties": {
+        "id": "qxpemiat8mytwf7pmk49gegqa-1",
+        "source_edge_id": "qxpemiat8mytwf7pmk49gegqa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            149.34207096182843,
+            37.084663099846544
+          ],
+          [
+            149.37600997435985,
+            37.05279947170374
+          ]
+        ]
+      },
+      "properties": {
+        "id": "qxpemiat8mytwf7pmk49gegqa-2",
+        "source_edge_id": "qxpemiat8mytwf7pmk49gegqa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.24653488418707,
+            28.714283766842037
+          ],
+          [
+            151.2458985139583,
+            27.815430621451977
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rnm3y8gu2q6yugxxa1yxpsb6a-0",
+        "source_edge_id": "rnm3y8gu2q6yugxxa1yxpsb6a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.9683361334464,
+            -6.648839225110711
+          ],
+          [
+            183.69167222307192,
+            -6.650716048361911
+          ]
+        ]
+      },
+      "properties": {
+        "id": "txdhbdm2bxnt42g22011m8axd-0",
+        "source_edge_id": "txdhbdm2bxnt42g22011m8axd",
+        "kind": "wall",
+        "thickness_m": 0.12,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.3343545332864,
+            6.48684585405957
+          ],
+          [
+            181.64020343214557,
+            6.8912857333921735
+          ]
+        ]
+      },
+      "properties": {
+        "id": "uxyhdywmud70qe359f1wyme3c-0",
+        "source_edge_id": "uxyhdywmud70qe359f1wyme3c",
+        "kind": "wall",
+        "thickness_m": 0.03,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            222.94433923672764,
+            76.87150269079602
+          ],
+          [
+            224.00883710935463,
+            76.87077361736158
+          ]
+        ]
+      },
+      "properties": {
+        "id": "u5ic1cz2e3d57qpzm321miwad-0",
+        "source_edge_id": "u5ic1cz2e3d57qpzm321miwad",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.11011125462696,
+            58.61315166391887
+          ],
+          [
+            161.7122374379953,
+            50.574067893128344
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wxps4rg3r1pm7ih8sb136qt7b-0",
+        "source_edge_id": "wxps4rg3r1pm7ih8sb136qt7b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.22922455132837,
+            53.29134906225657
+          ],
+          [
+            183.23097046132014,
+            55.78151781069133
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yx9rwbstwdsgyw69e49yr7pbd-0",
+        "source_edge_id": "yx9rwbstwdsgyw69e49yr7pbd",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            161.9911267613431,
+            44.83295654023651
+          ],
+          [
+            152.17055075805132,
+            54.55607913761008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "zdbhd5xz465w8kbdms2heciac-0",
+        "source_edge_id": "zdbhd5xz465w8kbdms2heciac",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.0254712336534,
+            60.32869420377928
+          ],
+          [
+            204.41804943044895,
+            60.3249536931937
+          ]
+        ]
+      },
+      "properties": {
+        "id": "3d8auhrghhmqghap757fb57xb-0",
+        "source_edge_id": "3d8auhrghhmqghap757fb57xb",
+        "kind": "wall",
+        "thickness_m": 0.05,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            206.54223685962486,
+            60.32348027078337
+          ],
+          [
+            206.64665882518042,
+            60.32340783947996
+          ]
+        ]
+      },
+      "properties": {
+        "id": "3d8auhrghhmqghap757fb57xb-1",
+        "source_edge_id": "3d8auhrghhmqghap757fb57xb",
+        "kind": "wall",
+        "thickness_m": 0.05,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            233.64462268702317,
+            45.195453418068595
+          ],
+          [
+            233.64523740628346,
+            46.074709098679406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5nc8bn8zkr7zfw4w6501d5wab-0",
+        "source_edge_id": "5nc8bn8zkr7zfw4w6501d5wab",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            164.45860383126225,
+            11.616624890463166
+          ],
+          [
+            167.31570230294682,
+            11.614665916877046
+          ]
+        ]
+      },
+      "properties": {
+        "id": "85yur4qtmat5kpf0m2dpmwf1d-0",
+        "source_edge_id": "85yur4qtmat5kpf0m2dpmwf1d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.15475443509018,
+            2.889711611271825
+          ],
+          [
+            169.209921149431,
+            2.8904077304758093
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9xfc6hfythyuig537nsz0pzbb-0",
+        "source_edge_id": "9xfc6hfythyuig537nsz0pzbb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.41740133414675,
+            72.38019307871824
+          ],
+          [
+            191.0411749642141,
+            74.02252628705594
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9nm95s7zac7u1tri77g5ukitc-0",
+        "source_edge_id": "9nm95s7zac7u1tri77g5ukitc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.60248635215999,
+            9.641398224424588
+          ],
+          [
+            179.42301361627355,
+            10.459163846419768
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9xgwigantz0hc4xtwtcykk5wa-0",
+        "source_edge_id": "9xgwigantz0hc4xtwtcykk5wa",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            211.07813184259422,
+            72.36792348129528
+          ],
+          [
+            211.07780564041803,
+            71.90250291161153
+          ]
+        ]
+      },
+      "properties": {
+        "id": "aezsn4r8h2kwmac6si6c1zhad-0",
+        "source_edge_id": "aezsn4r8h2kwmac6si6c1zhad",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.82471540965457,
+            5.382109307984246
+          ],
+          [
+            181.63916348352902,
+            5.38154953394447
+          ]
+        ]
+      },
+      "properties": {
+        "id": "a6muucndnu43aywc1bd0rrc4b-0",
+        "source_edge_id": "a6muucndnu43aywc1bd0rrc4b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            236.88688569447118,
+            80.0
+          ],
+          [
+            237.37882601653826,
+            79.28013709313687
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bez836yansgx91uffwzzd44yc-0",
+        "source_edge_id": "bez836yansgx91uffwzzd44yc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.5732789980423,
+            36.7429324628482
+          ],
+          [
+            192.57261868763774,
+            35.76441050845981
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ceaiwqy4cxetfufk6dme5h25d-0",
+        "source_edge_id": "ceaiwqy4cxetfufk6dme5h25d",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.19568571044115,
+            21.312520600282582
+          ],
+          [
+            155.3998081519497,
+            19.51534596505646
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cyn06xe86zd7e8mcdw100rsha-0",
+        "source_edge_id": "cyn06xe86zd7e8mcdw100rsha",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.46826602911923,
+            15.377539200428348
+          ],
+          [
+            157.8054989785327,
+            15.376006093337757
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ke0g3gr8mbcg1md98y6nh4aqc-0",
+        "source_edge_id": "ke0g3gr8mbcg1md98y6nh4aqc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.74278250521343,
+            29.215548633015366
+          ],
+          [
+            151.24653488418707,
+            28.714283766842037
+          ]
+        ]
+      },
+      "properties": {
+        "id": "npeyntdc5b2hup6ggadp31y5b-0",
+        "source_edge_id": "npeyntdc5b2hup6ggadp31y5b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.91399003269336,
+            -13.491241997254106
+          ],
+          [
+            171.63410570214901,
+            -17.36033042053318
+          ]
+        ]
+      },
+      "properties": {
+        "id": "pym389u1p2xyreu55w1nbhr4d-0",
+        "source_edge_id": "pym389u1p2xyreu55w1nbhr4d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            167.31570230294682,
+            11.614665916877046
+          ],
+          [
+            167.3161495849499,
+            12.266871890039749
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rpeatys4w3zc7bgpzyeu2tinb-0",
+        "source_edge_id": "rpeatys4w3zc7bgpzyeu2tinb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.30308245683074,
+            56.30286616494695
+          ],
+          [
+            178.40852908742846,
+            56.302793533378704
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ryp17ccshkq4xtz28ab2puc2c-0",
+        "source_edge_id": "ryp17ccshkq4xtz28ab2puc2c",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.15220399768194,
+            56.30228129060064
+          ],
+          [
+            179.30179166728692,
+            56.30217825471441
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ryp17ccshkq4xtz28ab2puc2c-1",
+        "source_edge_id": "ryp17ccshkq4xtz28ab2puc2c",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            225.59145388727134,
+            23.101931111061052
+          ],
+          [
+            226.20941928812172,
+            22.40781784665938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "syi2z389hxef0kah44qci808d-0",
+        "source_edge_id": "syi2z389hxef0kah44qci808d",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            211.07813184259422,
+            72.36792348129528
+          ],
+          [
+            202.14744833496337,
+            72.37414213289766
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s66a7eagw8c04847n19bmpfmc-0",
+        "source_edge_id": "s66a7eagw8c04847n19bmpfmc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.0673604540033,
+            52.74028149028869
+          ],
+          [
+            168.06583100061653,
+            50.56959075542326
+          ]
+        ]
+      },
+      "properties": {
+        "id": "u6wnxz17susxqatbrd2b6mu9b-0",
+        "source_edge_id": "u6wnxz17susxqatbrd2b6mu9b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.6458569101463,
+            43.686354495647635
+          ],
+          [
+            162.70160380448175,
+            43.68631615879482
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wy2eftttczq45b03bu0u30frc-0",
+        "source_edge_id": "wy2eftttczq45b03bu0u30frc",
+        "kind": "wall",
+        "thickness_m": 0.07,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.64662578600348,
+            44.83252998772079
+          ],
+          [
+            161.9911267613431,
+            44.83295654023651
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wyg6f5bk4atd4iyih9iuba1ic-0",
+        "source_edge_id": "wyg6f5bk4atd4iyih9iuba1ic",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.5896125055928,
+            60.35532100599003
+          ],
+          [
+            178.51870489395586,
+            60.3518979327628
+          ]
+        ]
+      },
+      "properties": {
+        "id": "wp5mbw927d9wbtwzxde04rbrc-0",
+        "source_edge_id": "wp5mbw927d9wbtwzxde04rbrc",
+        "kind": "wall",
+        "thickness_m": 0.0,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.08525374821986,
+            58.874216976940836
+          ],
+          [
+            168.2796740960959,
+            57.01685489129395
+          ]
+        ]
+      },
+      "properties": {
+        "id": "xy4a5izwzggzxybtx7dqk9qfb-0",
+        "source_edge_id": "xy4a5izwzggzxybtx7dqk9qfb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.64662578600348,
+            44.83252998772079
+          ],
+          [
+            162.6458569101463,
+            43.686354495647635
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ypby8er9u4s03ms4d2d0hc4qa-0",
+        "source_edge_id": "ypby8er9u4s03ms4d2d0hc4qa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.33935850185972,
+            -10.084826260266794
+          ],
+          [
+            170.5176685545449,
+            -7.6460248788832645
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ypwykmmhs0xp3uw82bzfxsgkb-0",
+        "source_edge_id": "ypwykmmhs0xp3uw82bzfxsgkb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.19568571044115,
+            21.312520600282582
+          ],
+          [
+            154.92326718345205,
+            23.583175603721298
+          ]
+        ]
+      },
+      "properties": {
+        "id": "zycw3tmnnzyw8xf4i1449zm4d-0",
+        "source_edge_id": "zycw3tmnnzyw8xf4i1449zm4d",
+        "kind": "wall",
+        "thickness_m": 0.23,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.08515857361908,
+            9.641750810774507
+          ],
+          [
+            178.08613234726224,
+            11.070431111193463
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1pneig9f10ygd9y6gpaghb7ua-0",
+        "source_edge_id": "1pneig9f10ygd9y6gpaghb7ua",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            160.17801238770673,
+            39.04172091569042
+          ],
+          [
+            161.4874478208765,
+            39.040826176324536
+          ]
+        ]
+      },
+      "properties": {
+        "id": "2e8z41ewqpetqu2r6s5wpifgd-0",
+        "source_edge_id": "2e8z41ewqpetqu2r6s5wpifgd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.333983066271,
+            5.916984416613388
+          ],
+          [
+            180.8250811032692,
+            5.916654867346782
+          ]
+        ]
+      },
+      "properties": {
+        "id": "4p8172eb5f6a7a23sg4pkquka-0",
+        "source_edge_id": "4p8172eb5f6a7a23sg4pkquka",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.10921311377513,
+            0.7637167877950757
+          ],
+          [
+            168.46476171377367,
+            3.1158251572380897
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5pegmk888phxsr4np618ibw6d-0",
+        "source_edge_id": "5pegmk888phxsr4np618ibw6d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            145.13508634278887,
+            40.68136751708738
+          ],
+          [
+            146.18616812190345,
+            40.680688770566725
+          ]
+        ]
+      },
+      "properties": {
+        "id": "56ehih8tbfzdac3b8u8ekdcub-0",
+        "source_edge_id": "56ehih8tbfzdac3b8u8ekdcub",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            223.7987288688501,
+            79.48347599427
+          ],
+          [
+            223.79801619399692,
+            78.46514081689273
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9pdwx7mckxrbtde3s5190q34a-0",
+        "source_edge_id": "9pdwx7mckxrbtde3s5190q34a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.69468886729794,
+            32.68144908359632
+          ],
+          [
+            153.69429162872808,
+            32.08737437445143
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bfk3scx478azhqww1nc0zyrhd-0",
+        "source_edge_id": "bfk3scx478azhqww1nc0zyrhd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            221.6671175986575,
+            79.48496843032842
+          ],
+          [
+            221.6674781920281,
+            80.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bfz360zkapzpuh8ur73sashsa-0",
+        "source_edge_id": "bfz360zkapzpuh8ur73sashsa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.23710222318408,
+            -14.962432817769157
+          ],
+          [
+            180.75581832774327,
+            -14.963511768962107
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bqs2byp78bawmsgcee3ptx6yd-0",
+        "source_edge_id": "bqs2byp78bawmsgcee3ptx6yd",
+        "kind": "wall",
+        "thickness_m": 0.4,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.6458569101463,
+            43.686354495647635
+          ],
+          [
+            162.64345448823693,
+            40.19383891379798
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bzsyn2fx8yf67ngmyskwmx19b-0",
+        "source_edge_id": "bzsyn2fx8yf67ngmyskwmx19b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.333983066271,
+            5.916984416613388
+          ],
+          [
+            180.3343545332864,
+            6.48684585405957
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ez7qg695ndy5rays28zug94xd-0",
+        "source_edge_id": "ez7qg695ndy5rays28zug94xd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.11011125462696,
+            58.61315166391887
+          ],
+          [
+            154.69532573035642,
+            57.23071195624464
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ez10yyprfi7t9k0xnhezhu8pc-0",
+        "source_edge_id": "ez10yyprfi7t9k0xnhezhu8pc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.94184634979993,
+            56.34514409692392
+          ],
+          [
+            153.7746400644606,
+            56.176260423599636
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fzz27resmyyz5pg919f32xrpb-0",
+        "source_edge_id": "fzz27resmyyz5pg919f32xrpb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.4583732339105,
+            54.84678900470473
+          ],
+          [
+            152.17055075805132,
+            54.55607913761008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "fzz27resmyyz5pg919f32xrpb-1",
+        "source_edge_id": "fzz27resmyyz5pg919f32xrpb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.71165111728848,
+            -3.2774888450285844
+          ],
+          [
+            188.88848979310674,
+            -3.276220660482032
+          ]
+        ]
+      },
+      "properties": {
+        "id": "gfkcfseextdhzbzhhguwhgbbc-0",
+        "source_edge_id": "gfkcfseextdhzbzhhguwhgbbc",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.3332568089493,
+            -3.2758344423888195
+          ],
+          [
+            188.17003264478325,
+            -3.2757209042395212
+          ]
+        ]
+      },
+      "properties": {
+        "id": "gfkcfseextdhzbzhhguwhgbbc-1",
+        "source_edge_id": "gfkcfseextdhzbzhhguwhgbbc",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.18844172560563,
+            -3.273646920178051
+          ],
+          [
+            185.11380216564996,
+            -3.273595001165048
+          ]
+        ]
+      },
+      "properties": {
+        "id": "gfkcfseextdhzbzhhguwhgbbc-2",
+        "source_edge_id": "gfkcfseextdhzbzhhguwhgbbc",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            207.52084485769973,
+            -19.043066857157303
+          ],
+          [
+            206.5661652636643,
+            -20.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "gq7kuxnemrtmu7x9iw6zq7rrc-0",
+        "source_edge_id": "gq7kuxnemrtmu7x9iw6zq7rrc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.66664157975674,
+            3.7128886566291768
+          ],
+          [
+            172.6681474265742,
+            5.835570060693406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "gzbpe7wz67fqrgssagqmtcx1c-0",
+        "source_edge_id": "gzbpe7wz67fqrgssagqmtcx1c",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            234.0266160919284,
+            78.1109461475027
+          ],
+          [
+            234.02792663298416,
+            80.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "iqykpi8br42mc9ta97p4zcqhd-0",
+        "source_edge_id": "iqykpi8br42mc9ta97p4zcqhd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.54330092272605,
+            41.704872687892625
+          ],
+          [
+            193.55470111986924,
+            41.70416659632451
+          ]
+        ]
+      },
+      "properties": {
+        "id": "izdxaruh52stxb40gy9ehqpbb-0",
+        "source_edge_id": "izdxaruh52stxb40gy9ehqpbb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            161.7122374379953,
+            50.574067893128344
+          ],
+          [
+            162.78036023944986,
+            50.573315227283274
+          ]
+        ]
+      },
+      "properties": {
+        "id": "k7y6hxcndmrfu1p4bwu3r0qkc-0",
+        "source_edge_id": "k7y6hxcndmrfu1p4bwu3r0qkc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            163.7854556201333,
+            50.57260697448402
+          ],
+          [
+            168.06583100061653,
+            50.56959075542326
+          ]
+        ]
+      },
+      "properties": {
+        "id": "k7y6hxcndmrfu1p4bwu3r0qkc-1",
+        "source_edge_id": "k7y6hxcndmrfu1p4bwu3r0qkc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.9154592981132,
+            -11.38753171832202
+          ],
+          [
+            172.71463238257155,
+            -11.390185190394254
+          ]
+        ]
+      },
+      "properties": {
+        "id": "kf39d9iatpa8ifeetmr66i3cd-0",
+        "source_edge_id": "kf39d9iatpa8ifeetmr66i3cd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            233.64523740628346,
+            46.074709098679406
+          ],
+          [
+            232.72940092586188,
+            46.075349257717434
+          ]
+        ]
+      },
+      "properties": {
+        "id": "p7kbb2e22fz7qu8dyyqwe8cyd-0",
+        "source_edge_id": "p7kbb2e22fz7qu8dyyqwe8cyd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            160.17801238770673,
+            39.04172091569042
+          ],
+          [
+            160.17708726324096,
+            37.68744290460406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rf59789sta4184e7tknwathnb-0",
+        "source_edge_id": "rf59789sta4184e7tknwathnb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.9680151201589,
+            -7.114321540569061
+          ],
+          [
+            179.5370532119607,
+            -8.537599037950937
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s74zikri69xreibf6defwtesd-0",
+        "source_edge_id": "s74zikri69xreibf6defwtesd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.93289958124407,
+            16.78493833869231
+          ],
+          [
+            203.8331326674854,
+            17.775061126436736
+          ]
+        ]
+      },
+      "properties": {
+        "id": "tf82dme3rg3tst7nh85fcqnkb-0",
+        "source_edge_id": "tf82dme3rg3tst7nh85fcqnkb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            164.64386671627162,
+            10.293386184065273
+          ],
+          [
+            164.64053997305018,
+            5.494987249614638
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yft42xhy64uizfcyappsesu6c-0",
+        "source_edge_id": "yft42xhy64uizfcyappsesu6c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.22681909267638,
+            0.32376669684599463
+          ],
+          [
+            180.51465561393223,
+            -0.8266151619684431
+          ]
+        ]
+      },
+      "properties": {
+        "id": "y7ukzs0bieqknnyn04xpaazqb-0",
+        "source_edge_id": "y7ukzs0bieqknnyn04xpaazqb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            164.45769660150364,
+            10.293514733221123
+          ],
+          [
+            164.64386671627162,
+            10.293386184065273
+          ]
+        ]
+      },
+      "properties": {
+        "id": "yq1g0gd7qeqrd9xw935hp94tc-0",
+        "source_edge_id": "yq1g0gd7qeqrd9xw935hp94tc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            235.77379535792667,
+            76.97495507087562
+          ],
+          [
+            238.60639579640318,
+            76.97299465836772
+          ]
+        ]
+      },
+      "properties": {
+        "id": "0fmf8pkqz3uxi4cg90tm4bxqa-0",
+        "source_edge_id": "0fmf8pkqz3uxi4cg90tm4bxqa",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            218.16027736311378,
+            70.98151746347574
+          ],
+          [
+            217.23728555741565,
+            71.89821184608505
+          ]
+        ]
+      },
+      "properties": {
+        "id": "07838cukk00ipexcehf3ay21d-0",
+        "source_edge_id": "07838cukk00ipexcehf3ay21d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.74278250521343,
+            29.215548633015366
+          ],
+          [
+            151.07379700882382,
+            29.877765313205348
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-0",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            149.52873036129813,
+            31.40719892801251
+          ],
+          [
+            149.03912558658703,
+            31.891849866282662
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-1",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            147.34855155768386,
+            33.565318614226456
+          ],
+          [
+            146.2966590277841,
+            34.606568062572016
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-2",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            145.13307810737996,
+            35.75837583478968
+          ],
+          [
+            144.68864918740732,
+            36.19830800903416
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-3",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            143.0642894429883,
+            37.80623243069748
+          ],
+          [
+            142.42825219299283,
+            38.435834235882
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-4",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            141.97583755074155,
+            38.88367133261707
+          ],
+          [
+            141.16421696170605,
+            39.68707991911939
+          ]
+        ]
+      },
+      "properties": {
+        "id": "1qm16872ypm0csukp16muq9sc-5",
+        "source_edge_id": "1qm16872ypm0csukp16muq9sc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.5913987182604,
+            0.2805413683800083
+          ],
+          [
+            166.10921311377513,
+            0.7637167877950757
+          ]
+        ]
+      },
+      "properties": {
+        "id": "275afa04bb1pwkq3btp2fa0uc-0",
+        "source_edge_id": "275afa04bb1pwkq3btp2fa0uc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            141.32276940650607,
+            43.61370137254326
+          ],
+          [
+            142.21289581638612,
+            44.512919986613504
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5zrduff3iszkq74k59wgbcmwc-1",
+        "source_edge_id": "5zrduff3iszkq74k59wgbcmwc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.08613234726224,
+            11.070431111193463
+          ],
+          [
+            178.81429410411798,
+            11.069931014720058
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5zgw1m7664ub6ir8tqz5atytc-0",
+        "source_edge_id": "5zgw1m7664ub6ir8tqz5atytc",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.08525374821986,
+            58.874216976940836
+          ],
+          [
+            169.08862201020796,
+            63.767465487922294
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5f1is81s5ypp9cu31cdb1gfrc-0",
+        "source_edge_id": "5f1is81s5ypp9cu31cdb1gfrc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.97296944982804,
+            4.291275113369716
+          ],
+          [
+            185.97217903936306,
+            3.1780448481178065
+          ]
+        ]
+      },
+      "properties": {
+        "id": "b862i5r422dzcd9yi4uryxw6b-0",
+        "source_edge_id": "b862i5r422dzcd9yi4uryxw6b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.24127181214124,
+            -19.553531759896448
+          ],
+          [
+            171.63410570214901,
+            -17.36033042053318
+          ]
+        ]
+      },
+      "properties": {
+        "id": "d0yf088cqbbytg7bryrumkhmc-0",
+        "source_edge_id": "d0yf088cqbbytg7bryrumkhmc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            149.14354737415604,
+            36.690239901181926
+          ],
+          [
+            150.34174277706813,
+            35.92199708745037
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ege14492r87gtwkm07hrp3fsd-0",
+        "source_edge_id": "ege14492r87gtwkm07hrp3fsd",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.56369317950308,
+            35.763741650332776
+          ],
+          [
+            192.57261868763774,
+            35.76441050845981
+          ]
+        ]
+      },
+      "properties": {
+        "id": "e8n1nprxdg5pnpz8mpqre3hcc-0",
+        "source_edge_id": "e8n1nprxdg5pnpz8mpqre3hcc",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.82471540965457,
+            5.382109307984246
+          ],
+          [
+            180.8250811032692,
+            5.916654867346782
+          ]
+        ]
+      },
+      "properties": {
+        "id": "f8mni9p92him0a5m3cr6552td-0",
+        "source_edge_id": "f8mni9p92him0a5m3cr6552td",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.5913987182604,
+            0.2805413683800083
+          ],
+          [
+            169.209921149431,
+            2.8904077304758093
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ggu8rd783racm5btn90bp3sga-0",
+        "source_edge_id": "ggu8rd783racm5btn90bp3sga",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            177.810134452183,
+            -6.801427260030059
+          ],
+          [
+            179.5370532119607,
+            -8.537599037950937
+          ]
+        ]
+      },
+      "properties": {
+        "id": "grx6qa3tu6um7bs52u7f142zc-0",
+        "source_edge_id": "grx6qa3tu6um7bs52u7f142zc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.64345448823693,
+            40.19383891379798
+          ],
+          [
+            162.18998364017241,
+            39.741542505261556
+          ]
+        ]
+      },
+      "properties": {
+        "id": "hgi09wk5qgc8ngc7afhpusytb-0",
+        "source_edge_id": "hgi09wk5qgc8ngc7afhpusytb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            161.50338802192297,
+            39.05672509400676
+          ],
+          [
+            161.4874478208765,
+            39.040826176324536
+          ]
+        ]
+      },
+      "properties": {
+        "id": "hgi09wk5qgc8ngc7afhpusytb-1",
+        "source_edge_id": "hgi09wk5qgc8ngc7afhpusytb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.9166029433286,
+            6.239803178485594
+          ],
+          [
+            174.2088711111188,
+            5.0594818546088876
+          ]
+        ]
+      },
+      "properties": {
+        "id": "h89ghweai6ruumr4xzsgh74xa-0",
+        "source_edge_id": "h89ghweai6ruumr4xzsgh74xa",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.28301581205886,
+            -6.6518017889548435
+          ],
+          [
+            184.38850828801438,
+            -6.089567864882725
+          ]
+        ]
+      },
+      "properties": {
+        "id": "k8h44rrzy576tp4m7iu390k1b-0",
+        "source_edge_id": "k8h44rrzy576tp4m7iu390k1b",
+        "kind": "wall",
+        "thickness_m": 0.26,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            174.82904942432197,
+            52.893222104515765
+          ],
+          [
+            174.8302447210236,
+            54.62515251868223
+          ]
+        ]
+      },
+      "properties": {
+        "id": "n803u55fc6nhy37m0y9xwa4hc-0",
+        "source_edge_id": "n803u55fc6nhy37m0y9xwa4hc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.11407730516711,
+            56.9715152769197
+          ],
+          [
+            199.93246175766515,
+            56.971646497225485
+          ]
+        ]
+      },
+      "properties": {
+        "id": "prfdr1hceyi0669bsd7exidia-1",
+        "source_edge_id": "prfdr1hceyi0669bsd7exidia",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            240.0,
+            75.57387753596667
+          ],
+          [
+            238.60639579640318,
+            76.97299465836772
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rgfwqcxphkdzmz5z922mytr1d-0",
+        "source_edge_id": "rgfwqcxphkdzmz5z922mytr1d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            174.4479220270911,
+            -10.086295085457776
+          ],
+          [
+            172.71554346039295,
+            -10.085090405460255
+          ]
+        ]
+      },
+      "properties": {
+        "id": "srfu2era2zgp8s427rt8wq1dd-0",
+        "source_edge_id": "srfu2era2zgp8s427rt8wq1dd",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.94368054602072,
+            -8.787902793776505
+          ],
+          [
+            193.94409354531473,
+            -8.197388984483492
+          ]
+        ]
+      },
+      "properties": {
+        "id": "u8qmzcf1c73n8f7dtn5c55i6c-0",
+        "source_edge_id": "u8qmzcf1c73n8f7dtn5c55i6c",
+        "kind": "wall",
+        "thickness_m": 0.92,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.3666464926532,
+            60.384505130127486
+          ],
+          [
+            197.3650070456876,
+            58.006942621249834
+          ]
+        ]
+      },
+      "properties": {
+        "id": "0gpxyeq4d44eb4qczmfrufa2b-0",
+        "source_edge_id": "0gpxyeq4d44eb4qczmfrufa2b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.36400789372888,
+            56.557950194142826
+          ],
+          [
+            197.3637202778154,
+            56.14084318964228
+          ]
+        ]
+      },
+      "properties": {
+        "id": "0gpxyeq4d44eb4qczmfrufa2b-1",
+        "source_edge_id": "0gpxyeq4d44eb4qczmfrufa2b",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            218.16027736311378,
+            70.98151746347574
+          ],
+          [
+            224.00883710935463,
+            76.87077361736158
+          ]
+        ]
+      },
+      "properties": {
+        "id": "3r2uc3nt8ak53ksty26fxd1qb-0",
+        "source_edge_id": "3r2uc3nt8ak53ksty26fxd1qb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            218.52083417263952,
+            42.9651063989555
+          ],
+          [
+            218.52393232946304,
+            47.45093049165809
+          ]
+        ]
+      },
+      "properties": {
+        "id": "38k08r8f3bhcfpc5n6k6se1id-0",
+        "source_edge_id": "38k08r8f3bhcfpc5n6k6se1id",
+        "kind": "wall",
+        "thickness_m": 0.14,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            233.64462268702317,
+            45.195453418068595
+          ],
+          [
+            232.72878629932822,
+            45.196093636452225
+          ]
+        ]
+      },
+      "properties": {
+        "id": "5gpzhe6uummeww9kgkcmu65qc-0",
+        "source_edge_id": "5gpzhe6uummeww9kgkcmu65qc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            174.2088711111188,
+            5.0594818546088876
+          ],
+          [
+            174.16248026546654,
+            5.018975823610577
+          ]
+        ]
+      },
+      "properties": {
+        "id": "58cqdexkwa5mu9ubc1e42thtb-0",
+        "source_edge_id": "58cqdexkwa5mu9ubc1e42thtb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.9362510317149,
+            3.948297359896104
+          ],
+          [
+            172.66664157975674,
+            3.7128886566291768
+          ]
+        ]
+      },
+      "properties": {
+        "id": "58cqdexkwa5mu9ubc1e42thtb-1",
+        "source_edge_id": "58cqdexkwa5mu9ubc1e42thtb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            184.39030277746807,
+            3.1791794038634635
+          ],
+          [
+            185.97217903936306,
+            3.1780448481178065
+          ]
+        ]
+      },
+      "properties": {
+        "id": "509qi58kpr8rqzs6bmwcn0n7a-0",
+        "source_edge_id": "509qi58kpr8rqzs6bmwcn0n7a",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.9178713671819,
+            20.63811788608232
+          ],
+          [
+            167.3161495849499,
+            12.266871890039749
+          ]
+        ]
+      },
+      "properties": {
+        "id": "6rw1g1scix8c6xwmtrm2fnkkc-0",
+        "source_edge_id": "6rw1g1scix8c6xwmtrm2fnkkc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.9166029433286,
+            6.239803178485594
+          ],
+          [
+            172.6681474265742,
+            5.835570060693406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "88bs6tgsmxkfaqqmu8mutcf1b-0",
+        "source_edge_id": "88bs6tgsmxkfaqqmu8mutcf1b",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.2877801067973,
+            64.95249185705484
+          ],
+          [
+            184.630778432422,
+            64.95651961449163
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bhwr7b11spixdtny870hrcc3a-0",
+        "source_edge_id": "bhwr7b11spixdtny870hrcc3a",
+        "kind": "wall",
+        "thickness_m": 0.04,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.53191882537305,
+            2.722100168205413
+          ],
+          [
+            172.66664157975674,
+            3.7128886566291768
+          ]
+        ]
+      },
+      "properties": {
+        "id": "bs00x8bd0gbudz8ex3w65c2ha-0",
+        "source_edge_id": "bs00x8bd0gbudz8ex3w65c2ha",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.5556552145477,
+            43.070966266445396
+          ],
+          [
+            193.55470111986924,
+            41.70416659632451
+          ]
+        ]
+      },
+      "properties": {
+        "id": "c91xsc62dyhdmgaqats9yszcb-0",
+        "source_edge_id": "c91xsc62dyhdmgaqats9yszcb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.80667442422808,
+            -18.75875303098223
+          ],
+          [
+            206.04947690744186,
+            -20.0
+          ]
+        ]
+      },
+      "properties": {
+        "id": "c992pud4dyneztm1pdtbd34kc-0",
+        "source_edge_id": "c992pud4dyneztm1pdtbd34kc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            156.2128150966993,
+            32.08568955255997
+          ],
+          [
+            153.69429162872808,
+            32.08737437445143
+          ]
+        ]
+      },
+      "properties": {
+        "id": "g9c1a1221wxqxr6kxs3kqci3c-0",
+        "source_edge_id": "g9c1a1221wxqxr6kxs3kqci3c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.22681909267638,
+            0.32376669684599463
+          ],
+          [
+            178.66133162903225,
+            1.0602856823474238
+          ]
+        ]
+      },
+      "properties": {
+        "id": "is49txqfq747t2cx68dzirzid-0",
+        "source_edge_id": "is49txqfq747t2cx68dzirzid",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.49833909130405,
+            12.335679265629786
+          ],
+          [
+            189.49776409141256,
+            11.480460743928667
+          ]
+        ]
+      },
+      "properties": {
+        "id": "msufuhcxgd7k5nhh0yi1qr46c-0",
+        "source_edge_id": "msufuhcxgd7k5nhh0yi1qr46c",
+        "kind": "wall",
+        "thickness_m": 0.04,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            156.2138953177576,
+            33.70023929540217
+          ],
+          [
+            156.2128150966993,
+            32.08568955255997
+          ]
+        ]
+      },
+      "properties": {
+        "id": "p9z50cui2az1y8u6fx6xtg22c-0",
+        "source_edge_id": "p9z50cui2az1y8u6fx6xtg22c",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.00359985594085,
+            25.710751655352258
+          ],
+          [
+            153.00418252932133,
+            26.46627674303433
+          ]
+        ]
+      },
+      "properties": {
+        "id": "rhumcn57ht5m0ud00qmc5cyec-0",
+        "source_edge_id": "rhumcn57ht5m0ud00qmc5cyec",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.69468886729794,
+            32.68144908359632
+          ],
+          [
+            153.67807881642665,
+            32.69750232923356
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s1r4i4t7s8tn5nqwztta082ua-0",
+        "source_edge_id": "s1r4i4t7s8tn5nqwztta082ua",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.23815911571197,
+            33.12267495940529
+          ],
+          [
+            153.19160615405835,
+            33.16766736396548
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s1r4i4t7s8tn5nqwztta082ua-1",
+        "source_edge_id": "s1r4i4t7s8tn5nqwztta082ua",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            152.12090670768157,
+            34.202474623108166
+          ],
+          [
+            151.7564600743511,
+            34.55470420818612
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s1r4i4t7s8tn5nqwztta082ua-2",
+        "source_edge_id": "s1r4i4t7s8tn5nqwztta082ua",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            209.94234281404252,
+            -11.909671737705326
+          ],
+          [
+            208.69747805933915,
+            -10.881145740752046
+          ]
+        ]
+      },
+      "properties": {
+        "id": "sshz1nr6mnz33w485zga4ub9c-0",
+        "source_edge_id": "sshz1nr6mnz33w485zga4ub9c",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            222.94433923672764,
+            76.87150269079602
+          ],
+          [
+            222.94543086234373,
+            78.46572487417104
+          ]
+        ]
+      },
+      "properties": {
+        "id": "s9n6a6x4btzfrhhpc3g7bczmc-0",
+        "source_edge_id": "s9n6a6x4btzfrhhpc3g7bczmc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.46640922968052,
+            5.4923345510244515
+          ],
+          [
+            168.46476171377367,
+            3.1158251572380897
+          ]
+        ]
+      },
+      "properties": {
+        "id": "tsugfaz5i4ay2n36q4qxnxa2d-0",
+        "source_edge_id": "tsugfaz5i4ay2n36q4qxnxa2d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            154.69532573035642,
+            57.23071195624464
+          ],
+          [
+            154.69416569782993,
+            55.60031863036211
+          ]
+        ]
+      },
+      "properties": {
+        "id": "uhbdbskcykh31598tw48s8nyc-0",
+        "source_edge_id": "uhbdbskcykh31598tw48s8nyc",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            224.55286099123364,
+            -20.0
+          ],
+          [
+            224.8718800619069,
+            -19.681407214657956
+          ]
+        ]
+      },
+      "properties": {
+        "id": "y9ads33gb98w7rsxnqw8ht97a-0",
+        "source_edge_id": "y9ads33gb98w7rsxnqw8ht97a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.33935850185972,
+            -10.084826260266794
+          ],
+          [
+            172.71554346039295,
+            -10.085090405460255
+          ]
+        ]
+      },
+      "properties": {
+        "id": "zs6hxwz44ukcbqwr2rf1wdbgb-0",
+        "source_edge_id": "zs6hxwz44ukcbqwr2rf1wdbgb",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            174.82904942432197,
+            52.893222104515765
+          ],
+          [
+            169.84944188466926,
+            52.896658516559214
+          ]
+        ]
+      },
+      "properties": {
+        "id": "z155wgn2rzckd1kfxxtpguc1b-0",
+        "source_edge_id": "z155wgn2rzckd1kfxxtpguc1b",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.46640922968052,
+            5.4923345510244515
+          ],
+          [
+            164.64053997305018,
+            5.494987249614638
+          ]
+        ]
+      },
+      "properties": {
+        "id": "11yd9dipa38krhaun9nhr7p6a-0",
+        "source_edge_id": "11yd9dipa38krhaun9nhr7p6a",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.5556552145477,
+            43.070966266445396
+          ],
+          [
+            192.54425494072254,
+            43.07167228639179
+          ]
+        ]
+      },
+      "properties": {
+        "id": "19id7y27fbuzhnid14xchpdeb-0",
+        "source_edge_id": "19id7y27fbuzhnid14xchpdeb",
+        "kind": "wall",
+        "thickness_m": 0.11,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.7845460402943,
+            -6.5731279814715995
+          ],
+          [
+            194.3832042489423,
+            -6.572845552756932
+          ]
+        ]
+      },
+      "properties": {
+        "id": "4hpucngmequecr3tzei2ws53d-0",
+        "source_edge_id": "4hpucngmequecr3tzei2ws53d",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.07302615155422,
+            -6.571923565752328
+          ],
+          [
+            191.5613171343046,
+            -6.570859759181736
+          ]
+        ]
+      },
+      "properties": {
+        "id": "4hpucngmequecr3tzei2ws53d-1",
+        "source_edge_id": "4hpucngmequecr3tzei2ws53d",
+        "kind": "wall",
+        "thickness_m": 0.1,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.66133162903225,
+            1.0602856823474238
+          ],
+          [
+            176.12677931175898,
+            2.5612969420221607
+          ]
+        ]
+      },
+      "properties": {
+        "id": "516ta9i6yrg5f7yh122p9qu9d-0",
+        "source_edge_id": "516ta9i6yrg5f7yh122p9qu9d",
+        "kind": "wall",
+        "thickness_m": 0.16,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.28301581205886,
+            -6.6518017889548435
+          ],
+          [
+            185.1591363385581,
+            -6.651717131349708
+          ]
+        ]
+      },
+      "properties": {
+        "id": "9skzz05ksp2zbbndp2wyi16ha-0",
+        "source_edge_id": "9skzz05ksp2zbbndp2wyi16ha",
+        "kind": "wall",
+        "thickness_m": 0.12,
+        "source": "Matterport authored wall",
+        "confidence": "source_geometry"
+      }
+    }
+  ]
+}

@@ -1067,6 +1067,7 @@ function wfDbg(level, source, message, meta) {
     return `https://share.navme.space/${slugifyPoiShareName(poi.name)}?p=${encodeURIComponent(poi.id)}&x=${encodeURIComponent(ref)}`;
   }
   function selectPlace(p, o = {}) {
+    if (typeof window !== "undefined" && window.WFPlanViewer) window.dispatchEvent(new CustomEvent("wf-place-selected", {detail: {id: String(p.id)}}));
     S.place = p; S.mode = "place"; document.body.classList.remove("dir");
     $("q").value = p.name; $("btnClearQ").hidden = false;
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
@@ -1499,6 +1500,7 @@ function wfDbg(level, source, message, meta) {
     computeRoute(startNav);
   }
   function closeDirections() {
+    if (typeof window !== "undefined" && window.WFPlanViewer) window.dispatchEvent(new CustomEvent("wf-route-changed", {detail: null}));
     S.route = null; wf.clearRoute(); document.body.classList.remove("dir");
     $("searchBox").hidden = false; $("dirBox").hidden = true; closeAc();
     if (S.place) selectPlace(S.place, { fly: false }); else showHome();
@@ -1525,6 +1527,7 @@ function wfDbg(level, source, message, meta) {
     wf.route(fromKey, to.id, { stepFree: S.stepFree, noZoom: false });
   }
   function onRoute(r, msg) {
+    if (typeof window !== "undefined" && window.WFPlanViewer) window.dispatchEvent(new CustomEvent("wf-route-changed", {detail: r}));
     if (S.mode !== "dir" && S.mode !== "nav") return;   // routes triggered from the dev panel
     if (!r) {
       S.route = null;

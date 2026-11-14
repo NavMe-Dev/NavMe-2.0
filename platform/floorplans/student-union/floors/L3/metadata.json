@@ -1,0 +1,63 @@
+{
+  "floor_id": "L3",
+  "label": "Third Floor",
+  "source_floor_sequence": 6,
+  "source_floor_id": "t6wmga8puhnpia4ge0g8c0m2d",
+  "source_floor_label": "Floor 7",
+  "elevation_model_m": 12.55,
+  "elevation_status": "validated by authored doorway threshold heights and sweep positions",
+  "status": "validated_level_partial_coverage",
+  "status_label": "VALIDATED LEVEL / PARTIAL SCAN",
+  "complete_building_geometry": false,
+  "source_scan_count": 88,
+  "source_floor_triangles": 6927,
+  "scanned_surface_area_m2": 835.19,
+  "wall_segment_count": 265,
+  "doorway_count": 29,
+  "window_count": 11,
+  "verified_room_count": 0,
+  "verified_corridor_count": 0,
+  "unclassified_source_space_count": 1,
+  "scan_neighbor_link_count": 129,
+  "poi_count": 0,
+  "staircase_count": 0,
+  "elevator_count": 0,
+  "coordinate_reference": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "bounds_model_xy": [
+    140.0,
+    -20.0,
+    240.0,
+    80.0
+  ],
+  "model_to_svg": [
+    10.0,
+    0,
+    0,
+    -10.0,
+    -1320.0,
+    1020.0
+  ],
+  "svg_size": [
+    1600,
+    1320
+  ],
+  "true_north_verified": false,
+  "global_georeference_verified": false,
+  "vectorization_iou": 0.97552,
+  "raster_resolution_m": 0.05,
+  "maximum_contour_simplification_m": 0.04,
+  "source_mesh_section_z": null,
+  "source_colorplan": "colorplan_006.jpg",
+  "source_alignment_ecc": 0.986685287152548,
+  "manual_review": [
+    "Unscanned rooms/wings are not reconstructed",
+    "No room number, restroom, elevator or staircase identity is inferred from appearance",
+    "Surveyed global control points required before world-map placement"
+  ],
+  "pois": []
+}

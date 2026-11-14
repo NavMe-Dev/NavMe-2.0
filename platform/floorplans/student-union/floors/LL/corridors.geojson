@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "coordinate_reference_note": "Local model metres, not RFC 7946 longitude/latitude. No surveyed global georeference is claimed.",
+  "features": []
+}

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:8780"
     cors_origins: str = "*"
     viewer_dir: Path | None = None        # serve viewer static files at /  (dev / single-process mode)
+    floorplan_dir: Path | None = None     # explicit directory of reviewed floor-plan assets
     admin_dir: Path | None = None         # serve admin static files at /admin
     geocoder: str = "esri"                # esri | nominatim
     worker_inline: bool = False           # run onboarding jobs in a thread of the API process (no separate worker)

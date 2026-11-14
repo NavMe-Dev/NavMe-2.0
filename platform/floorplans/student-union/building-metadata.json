@@ -1,0 +1,42 @@
+{
+  "building_id": "student-union",
+  "name": "Popp Martin Student Union",
+  "campus": "UNC Charlotte",
+  "model_id": "kQBN52JqFE9",
+  "source": "Existing extracted campus MatterPak and cached Matterport model metadata",
+  "source_mesh_vertices": 3498820,
+  "source_mesh_triangles": 5971557,
+  "student_union_crop_xy_m": [
+    140.0,
+    -20.0,
+    240.0,
+    80.0
+  ],
+  "crop_is_building_boundary": false,
+  "coordinate_reference": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "scale_units": "metres",
+  "source_colorplan_pixels_per_metre": [
+    8.51898256889371,
+    8.519086061682868
+  ],
+  "source_colorplan_alignment_ecc": 0.986685287152548,
+  "global_georeference_status": "unverified: existing OSM Student Union footprint transforms outside the source mesh bounds",
+  "official_floor_names_source": "https://studentunion.charlotte.edu/about/floor-plans/",
+  "production_database_changed": false,
+  "published": true,
+  "scale_verification": {
+    "source": "original MatterPak readme.pdf",
+    "obj_and_xyz_units": "1 unit = 1 metre",
+    "note": "Metric export convention verified; physical survey error has not been independently measured."
+  },
+  "release_kind": "public scan-derived review plans",
+  "complete_architectural_plans": false,
+  "provisional_levels": [
+    "M"
+  ]
+}

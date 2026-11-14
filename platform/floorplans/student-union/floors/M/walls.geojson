@@ -1,0 +1,3884 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "coordinate_reference_note": "Local model metres, not RFC 7946 longitude/latitude. No surveyed global georeference is claimed.",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.6900765030103,
+            17.22840692525421
+          ],
+          [
+            152.7795244242933,
+            18.13488263705741
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-73",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.94487332462424,
+            24.429317602168865
+          ],
+          [
+            157.88448113351987,
+            20.51942916663635
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-84",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            154.01719649535832,
+            16.899452741719266
+          ],
+          [
+            155.22504438091272,
+            15.686497236567678
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-89",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.14823659945247,
+            13.69586323679353
+          ],
+          [
+            157.79665952651297,
+            13.46929847699865
+          ],
+          [
+            157.69919318644068,
+            13.47266161016949
+          ],
+          [
+            157.65574974860866,
+            13.259592699763784
+          ],
+          [
+            155.22504438091272,
+            15.686497236567677
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-98",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            156.49852668725188,
+            18.31312447114729
+          ],
+          [
+            156.59055563636363,
+            18.446546454545455
+          ],
+          [
+            156.70311644444445,
+            18.404444555555553
+          ],
+          [
+            156.5391888130081,
+            18.26842363414634
+          ],
+          [
+            156.7141391724138,
+            18.167725
+          ],
+          [
+            156.67354217535544,
+            18.12382085308057
+          ],
+          [
+            156.71655030396477,
+            18.048366365638767
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-116",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            156.6354854736842,
+            18.515158736842107
+          ],
+          [
+            157.30518923611362,
+            19.177278861752306
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-118",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.86753106419616,
+            20.228144626409645
+          ],
+          [
+            156.6871808016042,
+            19.075508862368064
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-121",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.30651559527124,
+            19.17849761196106
+          ],
+          [
+            158.12320638666665,
+            19.983614333333332
+          ],
+          [
+            158.4441800630105,
+            19.95793035589265
+          ],
+          [
+            160.53228355825135,
+            17.876821381556688
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-129",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.14823659945247,
+            13.695863236793528
+          ],
+          [
+            160.66204311527378,
+            16.259071568683957
+          ],
+          [
+            160.8367034498645,
+            16.223341827461606
+          ],
+          [
+            160.44724470397517,
+            15.713803827167135
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-141",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            160.44059765577688,
+            15.707372111553784
+          ],
+          [
+            165.67928135962146,
+            10.546407347003154
+          ],
+          [
+            167.05808909216574,
+            11.949087739879042
+          ],
+          [
+            166.9798645501879,
+            12.020404030672488
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-160",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            160.54928506626652,
+            17.859876713157465
+          ],
+          [
+            161.4005149047619,
+            17.011981050691247
+          ],
+          [
+            161.2106283018868,
+            16.817038735849057
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-161",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            161.37502816585368,
+            16.7433443902439
+          ],
+          [
+            161.5712644788961,
+            16.80143668831169
+          ],
+          [
+            164.4351534567339,
+            14.06945430969421
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-167",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            164.5143498213813,
+            14.165868393129127
+          ],
+          [
+            164.64947929021557,
+            14.361988167495854
+          ],
+          [
+            165.81315060276486,
+            13.185732715652918
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-190",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            165.8171761147305,
+            13.184304405628616
+          ],
+          [
+            167.63999364566698,
+            14.986331118753336
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-213",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.8415604660643,
+            13.756058406160857
+          ],
+          [
+            167.4011249439104,
+            12.245977761681852
+          ],
+          [
+            167.23776431829234,
+            12.452030696409999
+          ],
+          [
+            167.0604062821109,
+            12.553548878112277
+          ],
+          [
+            166.87499890895864,
+            12.41535486994444
+          ],
+          [
+            166.73186475268815,
+            12.229960985663084
+          ],
+          [
+            166.97164225603004,
+            12.027900039816682
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-235",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.7476590686931,
+            17.918561777970055
+          ],
+          [
+            168.51582841693812,
+            17.72489350814332
+          ],
+          [
+            168.42929048739495,
+            17.93226150420168
+          ],
+          [
+            166.71568485500842,
+            16.11659041213283
+          ],
+          [
+            167.72270375848302,
+            15.13000698802395
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-245",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            167.81954874690754,
+            12.182608836403109
+          ],
+          [
+            167.68400403156122,
+            12.315288037401695
+          ],
+          [
+            168.90754430882353,
+            13.53460394117647
+          ],
+          [
+            169.8210535829173,
+            14.542407694550883
+          ],
+          [
+            169.74714720226072,
+            14.674546879656125
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-246",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.2886914527943,
+            11.737111954628261
+          ],
+          [
+            167.83621231356415,
+            12.166297537815586
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-247",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.54884091502976,
+            14.029206842032002
+          ],
+          [
+            169.26314932736747,
+            14.806435628576502
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-258",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.8872352236848,
+            18.973911715945956
+          ],
+          [
+            170.53617331318813,
+            19.447528468372333
+          ],
+          [
+            170.34725705928855,
+            19.603824031620555
+          ],
+          [
+            169.90579786170213,
+            19.12744775531915
+          ],
+          [
+            169.8534816474359,
+            19.308287324786328
+          ],
+          [
+            168.7852538837209,
+            18.274811631229234
+          ],
+          [
+            169.02893592857143,
+            18.0807865
+          ],
+          [
+            168.89201,
+            18.02225
+          ],
+          [
+            168.99866607894737,
+            18.00010613157895
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-263",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.27765185854616,
+            18.04497007416503
+          ],
+          [
+            169.2701391486512,
+            14.814041283846866
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-272",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.43231028301886,
+            17.40990655974843
+          ],
+          [
+            169.26545909290954,
+            16.890091633251835
+          ],
+          [
+            169.55768274603176,
+            17.196121894179893
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-273",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.63215535294117,
+            15.615206794117647
+          ],
+          [
+            169.70685923976652,
+            14.746795318339926
+          ],
+          [
+            169.73884465030807,
+            14.689391304257539
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-278",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.93442616415095,
+            20.359537735849056
+          ],
+          [
+            170.35283553648068,
+            19.793068253218884
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-279",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.9296937556484,
+            19.42366494543791
+          ],
+          [
+            170.50670388636365,
+            19.743239920454545
+          ],
+          [
+            170.35321127326733,
+            19.78246524158416
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-280",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.75033990594383,
+            15.542954222077073
+          ],
+          [
+            170.82363348066718,
+            15.497118617892342
+          ],
+          [
+            171.45480220010026,
+            16.102190860303363
+          ],
+          [
+            171.4479130929437,
+            16.16340010334493
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-284",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.02717927328553,
+            18.84913048441824
+          ],
+          [
+            171.15869734287827,
+            19.223386088950026
+          ],
+          [
+            170.9366409570095,
+            19.41758915711476
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-288",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.94996581485174,
+            20.346983179666086
+          ],
+          [
+            171.07919547619048,
+            20.243644333333332
+          ],
+          [
+            171.09008286567163,
+            20.508134791044778
+          ],
+          [
+            171.66509924558224,
+            21.072337683733576
+          ],
+          [
+            173.840433,
+            18.899022787234042
+          ],
+          [
+            174.69631526745377,
+            19.727799727592167
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-289",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.44247932383342,
+            17.475339430038638
+          ],
+          [
+            171.73716551838706,
+            16.760259574371066
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-293",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            175.60961426851853,
+            11.656510083333332
+          ],
+          [
+            175.57814320844327,
+            11.946586751978892
+          ],
+          [
+            175.7719318095238,
+            11.810915285714286
+          ],
+          [
+            175.6251155505618,
+            11.647225505617977
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-398",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.02900429787232,
+            17.531298638297873
+          ],
+          [
+            175.81673510309278,
+            17.582746704467354
+          ],
+          [
+            175.79775614925373,
+            17.69713532835821
+          ],
+          [
+            175.942256875,
+            17.724375625
+          ],
+          [
+            176.19686620689657,
+            17.605172413793102
+          ],
+          [
+            176.20160020727275,
+            17.534283778181816
+          ],
+          [
+            176.03766457446807,
+            17.543001
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-430",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.14281522047241,
+            21.88570176377953
+          ],
+          [
+            176.37861147244092,
+            22.139071842519684
+          ],
+          [
+            176.2529645329658,
+            22.30175631199472
+          ],
+          [
+            176.98114658810587,
+            23.08505993933762
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-437",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.22624514874371,
+            17.428072353768844
+          ],
+          [
+            176.29694090567688,
+            17.164319643668122
+          ],
+          [
+            176.5456122648557,
+            17.198891587436332
+          ],
+          [
+            176.3964821915888,
+            17.4128885
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-440",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.68959612307694,
+            18.034339461538462
+          ],
+          [
+            176.75307516564416,
+            18.37584762576687
+          ],
+          [
+            176.90015057582937,
+            18.160202924170616
+          ],
+          [
+            176.6879457615572,
+            18.017324600973236
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-462",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            177.136385312,
+            19.130713328
+          ],
+          [
+            177.21377174117646,
+            19.22683629411765
+          ],
+          [
+            177.09505171014493,
+            19.46027668115942
+          ],
+          [
+            177.2951764778761,
+            19.23802754867257
+          ],
+          [
+            177.28728123076922,
+            19.05533185769231
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-477",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            177.34020898027316,
+            22.73281071610653
+          ],
+          [
+            177.90956589845655,
+            23.143993501218525
+          ],
+          [
+            177.7923374769199,
+            23.344226214160813
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-488",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.72971633699632,
+            24.473563395604398
+          ],
+          [
+            178.44511599633532,
+            24.181748168575353
+          ],
+          [
+            178.25750677178615,
+            24.33201771127883
+          ],
+          [
+            177.53303174241375,
+            23.583010221156925
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-490",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            177.77026128506105,
+            14.812597904115103
+          ],
+          [
+            177.90649001195138,
+            15.38348273418681
+          ],
+          [
+            178.09407458896493,
+            15.485307124042297
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-500",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.24887894146343,
+            15.673243902439024
+          ],
+          [
+            178.04252052041505,
+            15.798378026761657
+          ],
+          [
+            178.23684242585108,
+            16.440089351747424
+          ],
+          [
+            178.89976378421494,
+            16.202169765743072
+          ],
+          [
+            178.8144965729572,
+            15.938795747081713
+          ],
+          [
+            179.65042859986892,
+            15.619832944006392
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-524",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.73184663265306,
+            14.388857959183674
+          ],
+          [
+            178.42708396363636,
+            14.752837127272729
+          ],
+          [
+            178.720667202765,
+            14.791083949308755
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-535",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.7394076703182,
+            24.483499837767347
+          ],
+          [
+            178.96558536882907,
+            24.715397348837207
+          ],
+          [
+            179.35593829442203,
+            24.415042968429766
+          ],
+          [
+            179.7585945547578,
+            24.787834006095686
+          ],
+          [
+            179.8505950237069,
+            24.74070574137931
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-538",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.3665800494399,
+            14.838327163127266
+          ],
+          [
+            179.2110512462024,
+            14.979100341610598
+          ],
+          [
+            179.40562207300846,
+            15.473480401353058
+          ],
+          [
+            179.55305004651163,
+            15.530012627906977
+          ],
+          [
+            179.67326005475502,
+            15.510741149855908
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-549",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.6809639057239,
+            15.613066461728394
+          ],
+          [
+            179.62885060544215,
+            15.567463585034014
+          ],
+          [
+            179.80479700462962,
+            15.558436185185185
+          ],
+          [
+            179.93142756730768,
+            15.631376
+          ],
+          [
+            179.8919294672332,
+            15.461211852524327
+          ],
+          [
+            179.68942474626866,
+            15.508149731343284
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-556",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.29710012437286,
+            25.056135273378295
+          ],
+          [
+            179.97454500689363,
+            24.669679029703637
+          ],
+          [
+            179.86404967953422,
+            24.732995656110738
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-559",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.00989106849502,
+            20.601573654491094
+          ],
+          [
+            180.81037741666665,
+            20.574917458333335
+          ],
+          [
+            180.19132642857144,
+            19.99890081428572
+          ],
+          [
+            180.05814176666667,
+            20.244000633333336
+          ],
+          [
+            179.9779986,
+            20.22564245263158
+          ],
+          [
+            179.95225142105264,
+            20.12961403508772
+          ],
+          [
+            179.9977862188911,
+            20.092899425681775
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-560",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.83834435988481,
+            19.27388515642681
+          ],
+          [
+            180.7978474687799,
+            19.31350717319377
+          ],
+          [
+            180.4733536763449,
+            19.204131524910935
+          ],
+          [
+            180.0543975727612,
+            19.62766704477612
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-565",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.55287207116777,
+            18.75327103471231
+          ],
+          [
+            181.22411410858402,
+            18.917469085106383
+          ],
+          [
+            180.839636381896,
+            19.272621014703944
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-594",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.50906204085157,
+            20.47831420424836
+          ],
+          [
+            181.20729727940227,
+            20.801326980230233
+          ],
+          [
+            181.01507890898355,
+            20.605870022657413
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-599",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.0486027647059,
+            17.787823647058822
+          ],
+          [
+            180.80496226712327,
+            17.724418808219177
+          ],
+          [
+            181.01812538255035,
+            18.009968013422817
+          ],
+          [
+            181.16177779687501,
+            18.001312499999997
+          ],
+          [
+            181.0490345510204,
+            17.79434706122449
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-604",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.33621110404624,
+            23.51538914450867
+          ],
+          [
+            181.7142088,
+            23.6004004
+          ],
+          [
+            181.92589387290968,
+            23.721482484949835
+          ],
+          [
+            181.83720748484848,
+            23.577118730639732
+          ],
+          [
+            181.53661052307692,
+            23.461663015384616
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-617",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.99878011330134,
+            19.508543439545516
+          ],
+          [
+            181.50361471063474,
+            20.05127958882949
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-623",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            181.56362144148827,
+            18.747436215377643
+          ],
+          [
+            181.59621992452537,
+            18.852901071413548
+          ],
+          [
+            181.44778536870027,
+            19.082916376657824
+          ],
+          [
+            181.84126869919456,
+            19.438857726719455
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-629",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.16315290500097,
+            19.83825201370921
+          ],
+          [
+            182.58149984660335,
+            19.43293280934989
+          ],
+          [
+            182.55424854566436,
+            19.569636920448556
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-670",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.00868628822997,
+            19.99130772117288
+          ],
+          [
+            182.56810758795461,
+            19.581768103688862
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-673",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            183.59071231914893,
+            20.161660574468083
+          ],
+          [
+            183.67952609032258,
+            20.117479174193548
+          ],
+          [
+            183.87914785714284,
+            20.27914385714286
+          ],
+          [
+            183.6554759575071,
+            20.413463640226627
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-717",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            184.4445682960894,
+            20.729566173184356
+          ],
+          [
+            184.34380113846154,
+            20.680586253846155
+          ],
+          [
+            184.1854303652174,
+            20.474279260869565
+          ],
+          [
+            184.6166763125,
+            20.628501395833332
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-760",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.06486846923087,
+            22.80101526394992
+          ],
+          [
+            184.82965554727537,
+            22.78287597142268
+          ],
+          [
+            184.39686384830136,
+            22.613134352128416
+          ],
+          [
+            184.67222864367815,
+            22.05769143678161
+          ],
+          [
+            184.88093388724585,
+            22.046555528650646
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-772",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            184.89429511848343,
+            22.043451236966824
+          ],
+          [
+            185.14300019556913,
+            21.318090145148968
+          ],
+          [
+            185.22292790277777,
+            21.2499934375
+          ],
+          [
+            185.2072255484536,
+            21.05082556082474
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-775",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.37817324460954,
+            22.853662145409015
+          ],
+          [
+            186.0107729966887,
+            23.0718580147397
+          ],
+          [
+            186.20363872881356,
+            22.503067909861326
+          ],
+          [
+            185.95475453173484,
+            22.293815232722142
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-796",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            185.8380950901542,
+            21.599957793594307
+          ],
+          [
+            186.05978051388888,
+            21.076056555555553
+          ],
+          [
+            186.28385823225804,
+            21.238860064516132
+          ],
+          [
+            187.24106186746988,
+            21.276086265060243
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-808",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            187.25080739673913,
+            21.275849826086958
+          ],
+          [
+            187.20249221721312,
+            21.447172647540985
+          ],
+          [
+            186.81989522222221,
+            21.314185555555554
+          ],
+          [
+            186.27348388387097,
+            21.28500169032258
+          ],
+          [
+            186.14471164590165,
+            21.34642053114754
+          ],
+          [
+            186.0688472142857,
+            21.134435915584415
+          ],
+          [
+            186.07945048282826,
+            21.50836188080808
+          ],
+          [
+            185.95604647299814,
+            22.283790067039106
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-811",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            187.66849398155736,
+            21.30902155122951
+          ],
+          [
+            188.1228322105263,
+            21.298766052631578
+          ],
+          [
+            187.98618761864407,
+            21.493493199152542
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-845",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.04887319417477,
+            12.993620417475729
+          ],
+          [
+            188.3476225714286,
+            14.82232398136646
+          ],
+          [
+            188.66896598611112,
+            14.897551925925926
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-846",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.0333040679739,
+            12.635051980906892
+          ],
+          [
+            188.1389698505639,
+            12.851822433270677
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-850",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.3758063707865,
+            12.972955235955055
+          ],
+          [
+            188.21921947784176,
+            13.180549802946594
+          ],
+          [
+            188.50098872340425,
+            14.579192489361702
+          ],
+          [
+            188.5817376084337,
+            14.681037144578314
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-853",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.52696773333332,
+            12.869637363636363
+          ],
+          [
+            189.19233550006098,
+            12.833662777831972
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-855",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            188.68911423333336,
+            14.908648974074074
+          ],
+          [
+            189.57402883842792,
+            14.815939838427948
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-868",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.07053806666667,
+            14.747334333333335
+          ],
+          [
+            189.8480152661597,
+            14.53896677946768
+          ],
+          [
+            190.05942397173143,
+            14.571110540636042
+          ],
+          [
+            190.1530738174827,
+            15.040980811125351
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-883",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.19889315791363,
+            12.833222431222506
+          ],
+          [
+            189.75462954958675,
+            12.791301954545455
+          ],
+          [
+            189.70535541121495,
+            12.45873931775701
+          ],
+          [
+            189.58557660299417,
+            12.462612390275071
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-886",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.6600553012048,
+            21.076609174698795
+          ],
+          [
+            190.49189392307693,
+            20.913770576923078
+          ],
+          [
+            190.3759224,
+            21.051903448275862
+          ],
+          [
+            190.44589785289514,
+            21.356370327073552
+          ],
+          [
+            190.5140283199195,
+            21.436409450704225
+          ],
+          [
+            190.04674307224334,
+            21.58027807224335
+          ],
+          [
+            189.92740561497325,
+            21.587342245989305
+          ],
+          [
+            189.77815502631577,
+            21.153355263157895
+          ],
+          [
+            189.58212705555556,
+            21.249945444444442
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-891",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.59679818393232,
+            14.813430175475686
+          ],
+          [
+            189.86561315075377,
+            14.784463311557788
+          ],
+          [
+            189.93750623156802,
+            15.125184800623053
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-893",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.70220603225806,
+            21.323258435483872
+          ],
+          [
+            189.7049620140187,
+            21.399556074766355
+          ],
+          [
+            189.7586378480392,
+            21.33017299019608
+          ],
+          [
+            189.78991360927154,
+            22.353656894039734
+          ],
+          [
+            189.62939006380864,
+            22.484812468095676
+          ],
+          [
+            189.64462561209118,
+            22.544473047810534
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-894",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.75513727239533,
+            23.114061015313034
+          ],
+          [
+            190.41710498929285,
+            22.87525249330707
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-897",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            189.94228115241137,
+            15.142368557532059
+          ],
+          [
+            190.57185447978222,
+            17.997768427920775
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-902",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.3308915962411,
+            16.21912154439404
+          ],
+          [
+            190.15442351089635,
+            15.047954948634887
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-912",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.3420496249135,
+            16.302891518339102
+          ],
+          [
+            190.37658837141123,
+            16.56302256585059
+          ],
+          [
+            192.85427815873015,
+            16.145525126984126
+          ],
+          [
+            192.6898005975284,
+            15.248133097659318
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-918",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.46697168941643,
+            22.677318518298712
+          ],
+          [
+            190.6210300409938,
+            22.678176155279502
+          ],
+          [
+            190.78813902501147,
+            22.82883963958456
+          ],
+          [
+            191.39188239929948,
+            22.65473304903678
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-926",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.5872754074504,
+            17.995304287730892
+          ],
+          [
+            193.10537568909825,
+            17.597979119784657
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-933",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.63412959277107,
+            21.379107024096385
+          ],
+          [
+            190.42501979032258,
+            21.07898387096774
+          ],
+          [
+            190.5015521818182,
+            21.050909623376622
+          ],
+          [
+            190.5217681984436,
+            21.118478918287938
+          ],
+          [
+            190.64854666513762,
+            21.082574394495413
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-937",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            190.63965653634895,
+            21.373532502423263
+          ],
+          [
+            190.8672217980853,
+            22.074822541340296
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-938",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.39312080417756,
+            22.65190178328982
+          ],
+          [
+            191.27528730449592,
+            22.25301394277929
+          ],
+          [
+            191.15272512917738,
+            22.087057462082264
+          ],
+          [
+            190.87834341422595,
+            22.07782849372385
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-949",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.30352366666665,
+            20.760593592592592
+          ],
+          [
+            191.3539502857143,
+            20.54929220879121
+          ],
+          [
+            191.5513375925926,
+            20.50250025925926
+          ],
+          [
+            192.18028777419357,
+            20.131807451612904
+          ],
+          [
+            192.3483772894737,
+            20.118770736842105
+          ],
+          [
+            192.9475981458199,
+            19.641473497745718
+          ],
+          [
+            192.8143031985324,
+            19.957393038117008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-953",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.6968303409091,
+            19.897660249999998
+          ],
+          [
+            192.08079579217147,
+            20.37979919664492
+          ],
+          [
+            192.06163099295776,
+            20.28960002112676
+          ],
+          [
+            191.45585055769232,
+            20.607836740384617
+          ],
+          [
+            191.48945745471522,
+            20.754541042950514
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-957",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.59401400000002,
+            12.153157254901961
+          ],
+          [
+            192.43166509473684,
+            12.118453631578948
+          ],
+          [
+            192.44084064788734,
+            11.869634802816902
+          ],
+          [
+            192.31052347222223,
+            11.987264888888891
+          ],
+          [
+            192.3230386708101,
+            12.111290228081934
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-985",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.32471737380965,
+            12.127930146459542
+          ],
+          [
+            192.33458264663255,
+            12.225706008789443
+          ],
+          [
+            192.2481746122449,
+            12.377538414965986
+          ],
+          [
+            192.82112711764705,
+            12.279294117647058
+          ],
+          [
+            192.83518482608696,
+            12.22495704347826
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-986",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.6894850324006,
+            15.246369686388354
+          ],
+          [
+            192.51133877777778,
+            14.351556555555556
+          ],
+          [
+            192.57393035897437,
+            14.19682076923077
+          ],
+          [
+            193.90159870258148,
+            14.006040590675456
+          ],
+          [
+            194.79269254639175,
+            13.941320587628868
+          ],
+          [
+            196.43058522580645,
+            13.614129032258065
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1011",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            192.89567726519337,
+            15.337050690607736
+          ],
+          [
+            192.83921759793816,
+            14.841724523898781
+          ],
+          [
+            192.70595443055558,
+            14.42430556944444
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1014",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            195.86106796650225,
+            11.778058620289778
+          ],
+          [
+            195.90461758064515,
+            11.814097774193547
+          ],
+          [
+            192.9792540749778,
+            12.242597839150843
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1023",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.585552270073,
+            11.834208071167883
+          ],
+          [
+            193.07248457104623,
+            12.065034040215526
+          ],
+          [
+            193.1109683495935,
+            12.116057910569104
+          ],
+          [
+            193.00319353012048,
+            12.232302204819275
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1026",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.09419749727766,
+            14.350625297640654
+          ],
+          [
+            193.23315267272727,
+            14.327601
+          ],
+          [
+            193.45875714285714,
+            14.134715285714288
+          ],
+          [
+            193.77356442424244,
+            14.119202151515152
+          ],
+          [
+            193.84270024836601,
+            14.22738008496732
+          ],
+          [
+            194.22225805494506,
+            14.18033031868132
+          ],
+          [
+            194.65017009615383,
+            14.035884615384616
+          ],
+          [
+            194.74642652564103,
+            13.955782961538462
+          ],
+          [
+            195.4104092,
+            13.948401
+          ],
+          [
+            195.67545144,
+            13.79672008
+          ],
+          [
+            195.78447702040816,
+            13.83391842857143
+          ],
+          [
+            195.83277028,
+            13.76980008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1030",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.0310002586935,
+            19.382234300007102
+          ],
+          [
+            193.86167336781608,
+            19.483917781609193
+          ],
+          [
+            193.82565695138888,
+            19.300639888888888
+          ],
+          [
+            193.51389729411767,
+            19.181683114551085
+          ],
+          [
+            193.51118129936307,
+            19.307148496815287
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1054",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.8630794026675,
+            19.562412241664017
+          ],
+          [
+            194.34522495683453,
+            20.12525338848921
+          ],
+          [
+            194.28771598360657,
+            20.132288651639346
+          ],
+          [
+            194.1730786071476,
+            20.369125473666603
+          ],
+          [
+            194.2198018049339,
+            20.4121292745326
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1066",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.03210365973445,
+            19.381229482409452
+          ],
+          [
+            194.5105742041116,
+            18.903629728340675
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1068",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.33590657446808,
+            18.677148936170212
+          ],
+          [
+            194.35033185123967,
+            18.600769169421486
+          ],
+          [
+            194.22549540151516,
+            18.477985685606058
+          ],
+          [
+            194.18864626970955,
+            18.755046041493777
+          ],
+          [
+            194.10782911258278,
+            18.756265900662253
+          ],
+          [
+            194.3641516542056,
+            18.79971128037383
+          ],
+          [
+            194.50349469811323,
+            18.8959126918239
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1082",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.63977562466675,
+            20.841327988719343
+          ],
+          [
+            195.0857725993088,
+            20.322735061969347
+          ],
+          [
+            194.99737749283668,
+            20.18045042979943
+          ],
+          [
+            195.1979718708921,
+            20.101456063209213
+          ],
+          [
+            195.02069972873974,
+            20.116936809169683
+          ],
+          [
+            195.11284746731886,
+            19.959409391367437
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1100",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.76798759813084,
+            17.754758009345796
+          ],
+          [
+            194.74802804651162,
+            17.709605651162793
+          ],
+          [
+            194.7007695442623,
+            17.771263295081965
+          ],
+          [
+            194.66612708029197,
+            17.99987691240876
+          ],
+          [
+            194.97416472413792,
+            17.846207896551725
+          ],
+          [
+            194.75606139902203,
+            17.775001
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1109",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            194.82137830864198,
+            19.10137086419753
+          ],
+          [
+            195.09052074193548,
+            19.300032258064515
+          ],
+          [
+            195.38522387788532,
+            19.251297351451974
+          ],
+          [
+            195.68947681918817,
+            19.539828256457564
+          ],
+          [
+            195.8011774054124,
+            19.501765228636682
+          ],
+          [
+            195.24247331245394,
+            20.08373083883887
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1118",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            195.0436759244713,
+            23.050109761329306
+          ],
+          [
+            195.1804207860509,
+            22.91823749575872
+          ],
+          [
+            194.96844019130435,
+            22.951241130434784
+          ],
+          [
+            194.71110806891005,
+            23.18861382222818
+          ],
+          [
+            195.02298921229053,
+            22.994381402234637
+          ],
+          [
+            195.03343319609098,
+            23.057051321755466
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1130",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            195.63182022058822,
+            16.28633923529412
+          ],
+          [
+            195.57730470588234,
+            16.269942470588234
+          ],
+          [
+            195.49754490261284,
+            16.477324270783846
+          ],
+          [
+            195.64803802272726,
+            16.565742424242423
+          ],
+          [
+            195.63203855172412,
+            16.29024236781609
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1147",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            195.8410969130435,
+            13.761608869565217
+          ],
+          [
+            195.79487122727272,
+            13.822363772727275
+          ],
+          [
+            195.93514948571428,
+            13.762601
+          ],
+          [
+            196.18889727722774,
+            13.814842287128712
+          ],
+          [
+            196.44089760377358,
+            13.746924528301887
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1157",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            196.96116241172285,
+            16.114414163582843
+          ],
+          [
+            196.8749814612326,
+            15.890925453280317
+          ],
+          [
+            196.4352337589716,
+            15.765769077129084
+          ],
+          [
+            195.97273550952718,
+            15.497065220183487
+          ],
+          [
+            195.9716246166522,
+            15.670723463139634
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1160",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.43439993348258,
+            14.647561488610513
+          ],
+          [
+            197.31608033656974,
+            14.928721947669718
+          ],
+          [
+            196.67792304363974,
+            14.788183606004333
+          ],
+          [
+            196.6145955526553,
+            14.86456715661566
+          ],
+          [
+            196.3344755106383,
+            14.80896505673759
+          ],
+          [
+            196.30380240520446,
+            14.613837431226766
+          ],
+          [
+            196.11702431707315,
+            14.594318073170731
+          ],
+          [
+            196.0867524852071,
+            14.67829601775148
+          ],
+          [
+            196.46882518475073,
+            14.998446747800587
+          ],
+          [
+            196.56962533870967,
+            15.000452612903226
+          ],
+          [
+            196.41490179207923,
+            15.504564356435642
+          ],
+          [
+            196.22914465408803,
+            15.534110682389937
+          ],
+          [
+            196.07041389602446,
+            15.453789990825689
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1161",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            196.66738671378428,
+            11.08986355514283
+          ],
+          [
+            196.3200282754491,
+            11.155503838323353
+          ],
+          [
+            196.27123349818183,
+            11.52781844363636
+          ],
+          [
+            196.25104124306486,
+            11.176564388299772
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1163",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.8914262210313,
+            11.148492755040888
+          ],
+          [
+            197.4728698141826,
+            11.229044739780065
+          ],
+          [
+            197.2844473693064,
+            10.993230225368883
+          ],
+          [
+            196.66946111025123,
+            11.089661493992969
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1182",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            196.96332343921569,
+            16.11797050588235
+          ],
+          [
+            196.96612299999998,
+            16.17218967924528
+          ],
+          [
+            197.546179467397,
+            16.416343414573646
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1187",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.28422479600152,
+            10.652518883766168
+          ],
+          [
+            197.0493155994865,
+            10.338853374839537
+          ],
+          [
+            197.05541352941177,
+            10.244968128027681
+          ],
+          [
+            197.3111320572519,
+            10.046946744274809
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1198",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.34193245849804,
+            9.984482399209487
+          ],
+          [
+            197.4449500119943,
+            10.140072559260012
+          ],
+          [
+            197.462798221843,
+            10.514870307167236
+          ],
+          [
+            197.53234481781377,
+            10.707161943319838
+          ],
+          [
+            197.76077259866963,
+            10.878273332594235
+          ],
+          [
+            197.7714470350877,
+            10.95299367017544
+          ],
+          [
+            197.5598635210643,
+            10.961548923503326
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1204",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.95895352770935,
+            15.144597906403941
+          ],
+          [
+            198.07851995827966,
+            14.854903806713832
+          ],
+          [
+            197.4488347365188,
+            14.648764218154653
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1213",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.45760396828356,
+            21.006841464552238
+          ],
+          [
+            197.60937042036124,
+            20.884875563218394
+          ],
+          [
+            197.55172543157894,
+            20.646963384210526
+          ],
+          [
+            198.1082119142857,
+            19.8363436
+          ],
+          [
+            197.52674186309525,
+            20.639530017857144
+          ],
+          [
+            197.47797173208724,
+            20.622320314641744
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1214",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            197.69291037529294,
+            9.58658603554783
+          ],
+          [
+            197.8721352970297,
+            10.57568804950495
+          ],
+          [
+            198.14584432185583,
+            11.083593675063462
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1219",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.9524366940133,
+            18.188409820399112
+          ],
+          [
+            199.16576704285714,
+            17.92647187142857
+          ],
+          [
+            199.05825711764706,
+            18.227112764705883
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1252",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.12374302896356,
+            9.226106560824466
+          ],
+          [
+            199.63609255038762,
+            9.344767441860466
+          ],
+          [
+            199.67892326923075,
+            9.424872653846153
+          ],
+          [
+            199.56672246440124,
+            9.44279993910474
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1260",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.77825771497584,
+            16.243722793236714
+          ],
+          [
+            199.66914618750002,
+            16.22550584659091
+          ],
+          [
+            199.82922803124998,
+            15.9315161015625
+          ],
+          [
+            199.78458188093407,
+            16.244616358349596
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-1307",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.32940872222224,
+            19.928201631944443
+          ],
+          [
+            176.6217867925926,
+            20.000711908641975
+          ],
+          [
+            176.66713820087338,
+            19.70949544978166
+          ],
+          [
+            176.33085548514853,
+            19.901722945544552
+          ],
+          [
+            176.32940872222224,
+            19.928201631944443
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-3072",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.22629193442623,
+            13.678394196721312
+          ],
+          [
+            179.34949412765957,
+            14.266447361702125
+          ],
+          [
+            179.3973256472022,
+            14.016008490799388
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-3076",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.4,
+            13.575610478043677
+          ],
+          [
+            179.30185141935482,
+            13.583936483870968
+          ],
+          [
+            179.3131960909091,
+            13.021182818181817
+          ],
+          [
+            179.3502951151079,
+            13.058223964028777
+          ],
+          [
+            179.35782151850086,
+            13.049950981250031
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-3076",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            179.23823063914958,
+            12.882558876462532
+          ],
+          [
+            179.22629193442623,
+            13.678394196721312
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-3076",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.7192664356869,
+            9.608508279693496
+          ],
+          [
+            199.90455266037736,
+            10.60966037735849
+          ],
+          [
+            200.00524911044775,
+            10.707571149253733
+          ],
+          [
+            200.01329612256268,
+            10.453995428969359
+          ],
+          [
+            199.96200920588237,
+            10.529882794117647
+          ],
+          [
+            199.7192664356869,
+            9.608508279693496
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mesh-section-3087",
+        "kind": "wall_candidate",
+        "source": "MatterPak mesh section",
+        "cut_height_model_m": 4.6,
+        "confidence": "manual_review",
+        "warning": "May include railings or tall furniture; not a confirmed architectural wall"
+      }
+    }
+  ]
+}

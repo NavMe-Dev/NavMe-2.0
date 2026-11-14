@@ -1,0 +1,2850 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "coordinate_reference_note": "Local model metres, not RFC 7946 longitude/latitude. No surveyed global georeference is claimed.",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            201.10227966308594,
+            32.52557373046875
+          ],
+          [
+            198.36607360839844,
+            29.990615844726562
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-0",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            201.10227966308594,
+            32.52557373046875
+          ],
+          [
+            203.29287719726562,
+            34.7623405456543
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-1",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.74591064453125,
+            24.433263778686523
+          ],
+          [
+            155.3433074951172,
+            25.44495391845703
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-2",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.74591064453125,
+            24.433263778686523
+          ],
+          [
+            154.63169860839844,
+            21.18593978881836
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-3",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.74591064453125,
+            24.433263778686523
+          ],
+          [
+            152.2051239013672,
+            21.781982421875
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-4",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            153.74591064453125,
+            24.433263778686523
+          ],
+          [
+            155.3015594482422,
+            27.41829490661621
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-5",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            203.15135192871094,
+            16.60536766052246
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-6",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            199.57012939453125,
+            15.074589729309082
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-7",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            199.2315673828125,
+            18.079662322998047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-8",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            203.6364288330078,
+            18.25267219543457
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-9",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            198.0640106201172,
+            20.030820846557617
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-10",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            203.0053253173828,
+            18.331527709960938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-11",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            199.52792358398438,
+            15.430447578430176
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-12",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            200.25372314453125,
+            17.717065811157227
+          ],
+          [
+            198.14175415039062,
+            20.104476928710938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-13",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.8782958984375,
+            30.43971061706543
+          ],
+          [
+            179.45333862304688,
+            28.089937210083008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-14",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.8782958984375,
+            30.43971061706543
+          ],
+          [
+            174.0275115966797,
+            33.08046340942383
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-15",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.6144561767578,
+            12.950435638427734
+          ],
+          [
+            172.80706787109375,
+            15.259329795837402
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-16",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.6144561767578,
+            12.950435638427734
+          ],
+          [
+            171.24725341796875,
+            11.124059677124023
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-17",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.6144561767578,
+            12.950435638427734
+          ],
+          [
+            167.15679931640625,
+            13.497961044311523
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-18",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.63946533203125,
+            43.2570915222168
+          ],
+          [
+            204.5874481201172,
+            40.25492477416992
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-19",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.63946533203125,
+            43.2570915222168
+          ],
+          [
+            204.57708740234375,
+            45.70643615722656
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-20",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.13504028320312,
+            43.65475082397461
+          ],
+          [
+            171.0144805908203,
+            40.65047836303711
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-21",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.13504028320312,
+            43.65475082397461
+          ],
+          [
+            170.9330596923828,
+            46.96244430541992
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-22",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.5413055419922,
+            22.984481811523438
+          ],
+          [
+            182.3649139404297,
+            24.658706665039062
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-23",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            180.5413055419922,
+            22.984481811523438
+          ],
+          [
+            178.57891845703125,
+            21.35750961303711
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-24",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.7141876220703,
+            12.837244033813477
+          ],
+          [
+            211.29388427734375,
+            12.884324073791504
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-25",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.7141876220703,
+            12.837244033813477
+          ],
+          [
+            208.55126953125,
+            12.879377365112305
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-26",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.7141876220703,
+            12.837244033813477
+          ],
+          [
+            205.8180694580078,
+            12.870317459106445
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-27",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.7141876220703,
+            12.837244033813477
+          ],
+          [
+            207.39178466796875,
+            12.841645240783691
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-28",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.12127685546875,
+            22.823429107666016
+          ],
+          [
+            160.33961486816406,
+            20.988733291625977
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-29",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            158.12127685546875,
+            22.823429107666016
+          ],
+          [
+            155.3433074951172,
+            25.44495391845703
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-30",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.8180694580078,
+            12.870317459106445
+          ],
+          [
+            208.55126953125,
+            12.879377365112305
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-31",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.8180694580078,
+            12.870317459106445
+          ],
+          [
+            204.50881958007812,
+            11.405523300170898
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-32",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.8180694580078,
+            12.870317459106445
+          ],
+          [
+            205.2187042236328,
+            13.476117134094238
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-33",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.8180694580078,
+            12.870317459106445
+          ],
+          [
+            207.39178466796875,
+            12.841645240783691
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-34",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.8180694580078,
+            12.870317459106445
+          ],
+          [
+            204.5762939453125,
+            11.46827220916748
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-35",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            160.33961486816406,
+            20.988733291625977
+          ],
+          [
+            162.1394805908203,
+            19.191038131713867
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-36",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            203.6364288330078,
+            18.25267219543457
+          ],
+          [
+            204.6592254638672,
+            14.854616165161133
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-37",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            203.6364288330078,
+            18.25267219543457
+          ],
+          [
+            203.15135192871094,
+            16.60536766052246
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-38",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            203.6364288330078,
+            18.25267219543457
+          ],
+          [
+            203.0053253173828,
+            18.331527709960938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-39",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.57012939453125,
+            15.074589729309082
+          ],
+          [
+            203.15135192871094,
+            16.60536766052246
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-40",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.57012939453125,
+            15.074589729309082
+          ],
+          [
+            199.2315673828125,
+            18.079662322998047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-41",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.57012939453125,
+            15.074589729309082
+          ],
+          [
+            199.52792358398438,
+            15.430447578430176
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-42",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            154.63169860839844,
+            21.18593978881836
+          ],
+          [
+            152.2051239013672,
+            21.781982421875
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-43",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            159.4028778076172,
+            34.91699981689453
+          ],
+          [
+            157.888427734375,
+            32.7995491027832
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-44",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            159.4028778076172,
+            34.91699981689453
+          ],
+          [
+            161.58346557617188,
+            37.02532958984375
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-45",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.36607360839844,
+            29.990615844726562
+          ],
+          [
+            196.1439971923828,
+            28.041152954101562
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-46",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.5762939453125,
+            11.46827220916748
+          ],
+          [
+            204.50881958007812,
+            11.405523300170898
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-47",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.5762939453125,
+            11.46827220916748
+          ],
+          [
+            204.6592254638672,
+            14.854616165161133
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-48",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.5762939453125,
+            11.46827220916748
+          ],
+          [
+            205.2187042236328,
+            13.476117134094238
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-49",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.5762939453125,
+            11.46827220916748
+          ],
+          [
+            207.39178466796875,
+            12.841645240783691
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-50",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            219.8661651611328,
+            17.648967742919922
+          ],
+          [
+            220.9697723388672,
+            18.96259307861328
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-51",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            219.8661651611328,
+            17.648967742919922
+          ],
+          [
+            220.41810607910156,
+            18.325185775756836
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-52",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            219.8661651611328,
+            17.648967742919922
+          ],
+          [
+            219.22784423828125,
+            15.8294095993042
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-53",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            219.8661651611328,
+            17.648967742919922
+          ],
+          [
+            217.3259735107422,
+            14.967206954956055
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-54",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.6080322265625,
+            24.639352798461914
+          ],
+          [
+            195.38656616210938,
+            22.970050811767578
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-55",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.6080322265625,
+            24.639352798461914
+          ],
+          [
+            191.61801147460938,
+            26.650707244873047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-56",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            193.6080322265625,
+            24.639352798461914
+          ],
+          [
+            195.8766326904297,
+            23.091928482055664
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-57",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            191.61801147460938,
+            26.650707244873047
+          ],
+          [
+            187.98919677734375,
+            27.370529174804688
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-58",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            187.98919677734375,
+            27.370529174804688
+          ],
+          [
+            184.76296997070312,
+            26.868194580078125
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-59",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            162.1394805908203,
+            19.191038131713867
+          ],
+          [
+            164.01043701171875,
+            17.401405334472656
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-60",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.7777862548828,
+            35.40135192871094
+          ],
+          [
+            174.0275115966797,
+            33.08046340942383
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-61",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.7777862548828,
+            35.40135192871094
+          ],
+          [
+            170.98577880859375,
+            37.710289001464844
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-62",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.0144805908203,
+            40.65047836303711
+          ],
+          [
+            170.98577880859375,
+            37.710289001464844
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-63",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            171.0144805908203,
+            40.65047836303711
+          ],
+          [
+            168.80996704101562,
+            38.1130485534668
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-64",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.50881958007812,
+            11.405523300170898
+          ],
+          [
+            204.6592254638672,
+            14.854616165161133
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-65",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.50881958007812,
+            11.405523300170898
+          ],
+          [
+            205.2187042236328,
+            13.476117134094238
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-66",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.50881958007812,
+            11.405523300170898
+          ],
+          [
+            207.39178466796875,
+            12.841645240783691
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-67",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.15829467773438,
+            51.41367721557617
+          ],
+          [
+            171.02645874023438,
+            51.66402816772461
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-68",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            173.15829467773438,
+            51.41367721557617
+          ],
+          [
+            169.6956787109375,
+            51.72572708129883
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-69",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            214.3152313232422,
+            12.864938735961914
+          ],
+          [
+            217.3259735107422,
+            14.967206954956055
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-70",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            214.3152313232422,
+            12.864938735961914
+          ],
+          [
+            216.82305908203125,
+            12.697882652282715
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-71",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            214.3152313232422,
+            12.864938735961914
+          ],
+          [
+            211.29388427734375,
+            12.884324073791504
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-72",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.57708740234375,
+            45.70643615722656
+          ],
+          [
+            204.8440399169922,
+            48.143497467041016
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-73",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.3125,
+            13.772858619689941
+          ],
+          [
+            174.94912719726562,
+            17.397905349731445
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-74",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            176.3125,
+            13.772858619689941
+          ],
+          [
+            172.80706787109375,
+            15.259329795837402
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-75",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.6592254638672,
+            14.854616165161133
+          ],
+          [
+            203.15135192871094,
+            16.60536766052246
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-76",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.6592254638672,
+            14.854616165161133
+          ],
+          [
+            203.0053253173828,
+            18.331527709960938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-77",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.6592254638672,
+            14.854616165161133
+          ],
+          [
+            205.2187042236328,
+            13.476117134094238
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-78",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            182.2993927001953,
+            26.967443466186523
+          ],
+          [
+            184.76296997070312,
+            26.868194580078125
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-79",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            182.2993927001953,
+            26.967443466186523
+          ],
+          [
+            179.45333862304688,
+            28.089937210083008
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-80",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            182.2993927001953,
+            26.967443466186523
+          ],
+          [
+            182.3649139404297,
+            24.658706665039062
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-81",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            205.2187042236328,
+            13.476117134094238
+          ],
+          [
+            203.15135192871094,
+            16.60536766052246
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-82",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.8440399169922,
+            48.143497467041016
+          ],
+          [
+            204.508544921875,
+            51.438941955566406
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-83",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.55126953125,
+            12.879377365112305
+          ],
+          [
+            211.29388427734375,
+            12.884324073791504
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-84",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            208.55126953125,
+            12.879377365112305
+          ],
+          [
+            207.39178466796875,
+            12.841645240783691
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-85",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            182.3649139404297,
+            24.658706665039062
+          ],
+          [
+            184.76296997070312,
+            26.868194580078125
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-86",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.90194702148438,
+            38.28485870361328
+          ],
+          [
+            163.62217712402344,
+            38.50031661987305
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-87",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.90194702148438,
+            38.28485870361328
+          ],
+          [
+            168.80996704101562,
+            38.1130485534668
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-88",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.6956787109375,
+            51.72572708129883
+          ],
+          [
+            171.02645874023438,
+            51.66402816772461
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-89",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.6956787109375,
+            51.72572708129883
+          ],
+          [
+            166.89669799804688,
+            52.081539154052734
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-90",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            169.6956787109375,
+            51.72572708129883
+          ],
+          [
+            168.09446716308594,
+            52.22325134277344
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-91",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.65005493164062,
+            37.45893096923828
+          ],
+          [
+            203.29287719726562,
+            34.7623405456543
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-92",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            204.65005493164062,
+            37.45893096923828
+          ],
+          [
+            204.5874481201172,
+            40.25492477416992
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-93",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.09446716308594,
+            52.22325134277344
+          ],
+          [
+            171.02645874023438,
+            51.66402816772461
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-94",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.09446716308594,
+            52.22325134277344
+          ],
+          [
+            166.89669799804688,
+            52.081539154052734
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-95",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            168.09446716308594,
+            52.22325134277344
+          ],
+          [
+            165.06886291503906,
+            51.79636764526367
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-96",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            207.39178466796875,
+            12.841645240783691
+          ],
+          [
+            211.29388427734375,
+            12.884324073791504
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-97",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            217.3259735107422,
+            14.967206954956055
+          ],
+          [
+            219.22784423828125,
+            15.8294095993042
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-98",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            217.3259735107422,
+            14.967206954956055
+          ],
+          [
+            216.82305908203125,
+            12.697882652282715
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-99",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            157.888427734375,
+            32.7995491027832
+          ],
+          [
+            155.82598876953125,
+            30.465930938720703
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-100",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            220.41810607910156,
+            18.325185775756836
+          ],
+          [
+            220.9697723388672,
+            18.96259307861328
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-101",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            220.41810607910156,
+            18.325185775756836
+          ],
+          [
+            219.22784423828125,
+            15.8294095993042
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-102",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            220.9697723388672,
+            18.96259307861328
+          ],
+          [
+            219.22784423828125,
+            15.8294095993042
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-103",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.14175415039062,
+            20.104476928710938
+          ],
+          [
+            199.2315673828125,
+            18.079662322998047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-104",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.14175415039062,
+            20.104476928710938
+          ],
+          [
+            198.0640106201172,
+            20.030820846557617
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-105",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.14175415039062,
+            20.104476928710938
+          ],
+          [
+            195.38656616210938,
+            22.970050811767578
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-106",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.14175415039062,
+            20.104476928710938
+          ],
+          [
+            195.8766326904297,
+            23.091928482055664
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-107",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            203.15135192871094,
+            16.60536766052246
+          ],
+          [
+            203.0053253173828,
+            18.331527709960938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-108",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            203.15135192871094,
+            16.60536766052246
+          ],
+          [
+            199.52792358398438,
+            15.430447578430176
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-109",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            167.15679931640625,
+            13.497961044311523
+          ],
+          [
+            165.59347534179688,
+            15.72242259979248
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-110",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.0640106201172,
+            20.030820846557617
+          ],
+          [
+            199.2315673828125,
+            18.079662322998047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-111",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.0640106201172,
+            20.030820846557617
+          ],
+          [
+            195.38656616210938,
+            22.970050811767578
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-112",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            198.0640106201172,
+            20.030820846557617
+          ],
+          [
+            195.8766326904297,
+            23.091928482055664
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-113",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            170.98577880859375,
+            37.710289001464844
+          ],
+          [
+            168.80996704101562,
+            38.1130485534668
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-114",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            216.82305908203125,
+            12.697882652282715
+          ],
+          [
+            219.22784423828125,
+            15.8294095993042
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-115",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.82598876953125,
+            30.465930938720703
+          ],
+          [
+            154.99583435058594,
+            28.371715545654297
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-116",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            178.57891845703125,
+            21.35750961303711
+          ],
+          [
+            176.6973419189453,
+            19.468584060668945
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-117",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.52792358398438,
+            15.430447578430176
+          ],
+          [
+            199.2315673828125,
+            18.079662322998047
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-118",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            165.59347534179688,
+            15.72242259979248
+          ],
+          [
+            164.01043701171875,
+            17.401405334472656
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-119",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.3433074951172,
+            25.44495391845703
+          ],
+          [
+            155.3015594482422,
+            27.41829490661621
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-120",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.3433074951172,
+            25.44495391845703
+          ],
+          [
+            154.99583435058594,
+            28.371715545654297
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-121",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            155.3015594482422,
+            27.41829490661621
+          ],
+          [
+            154.99583435058594,
+            28.371715545654297
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-122",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            195.38656616210938,
+            22.970050811767578
+          ],
+          [
+            195.8766326904297,
+            23.091928482055664
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-123",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            172.80706787109375,
+            15.259329795837402
+          ],
+          [
+            174.94912719726562,
+            17.397905349731445
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-124",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            161.58346557617188,
+            37.02532958984375
+          ],
+          [
+            163.62217712402344,
+            38.50031661987305
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-125",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            174.94912719726562,
+            17.397905349731445
+          ],
+          [
+            176.6973419189453,
+            19.468584060668945
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-126",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            166.89669799804688,
+            52.081539154052734
+          ],
+          [
+            165.06886291503906,
+            51.79636764526367
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-127",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            199.2315673828125,
+            18.079662322998047
+          ],
+          [
+            203.0053253173828,
+            18.331527709960938
+          ]
+        ]
+      },
+      "properties": {
+        "id": "link-128",
+        "kind": "scan_neighbor_link",
+        "source": "Matterport sweep graph",
+        "corridor_identity_verified": false
+      }
+    }
+  ]
+}

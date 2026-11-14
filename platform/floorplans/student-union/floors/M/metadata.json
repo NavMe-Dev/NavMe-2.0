@@ -1,0 +1,64 @@
+{
+  "floor_id": "M",
+  "label": "Mezzanine",
+  "source_floor_sequence": 4,
+  "source_floor_id": "0h6r4cp42xdia1girpg41n9ma",
+  "source_floor_label": "Pop m ,chhs 3 , mebane 3,ww4",
+  "elevation_model_m": 3.4,
+  "elevation_status": "provisional variable-height scan",
+  "status": "provisional_partial",
+  "status_label": "PROVISIONAL / PARTIAL SCAN",
+  "complete_building_geometry": false,
+  "source_scan_count": 39,
+  "source_floor_triangles": 21801,
+  "scanned_surface_area_m2": 260.29,
+  "wall_segment_count": 118,
+  "doorway_count": 0,
+  "window_count": 0,
+  "verified_room_count": 0,
+  "verified_corridor_count": 0,
+  "unclassified_source_space_count": 0,
+  "scan_neighbor_link_count": 39,
+  "poi_count": 0,
+  "staircase_count": 0,
+  "elevator_count": 0,
+  "coordinate_reference": {
+    "type": "name",
+    "properties": {
+      "name": "LOCAL:MATTERPORT:kQBN52JqFE9:XY_METRES"
+    }
+  },
+  "bounds_model_xy": [
+    140.0,
+    -20.0,
+    240.0,
+    80.0
+  ],
+  "model_to_svg": [
+    10.0,
+    0,
+    0,
+    -10.0,
+    -1320.0,
+    1020.0
+  ],
+  "svg_size": [
+    1600,
+    1320
+  ],
+  "true_north_verified": false,
+  "global_georeference_verified": false,
+  "vectorization_iou": 0.96108,
+  "raster_resolution_m": 0.05,
+  "maximum_contour_simplification_m": 0.04,
+  "source_mesh_section_z": 4.6,
+  "source_colorplan": "colorplan_004.jpg",
+  "source_alignment_ecc": 0.986685287152548,
+  "manual_review": [
+    "Unscanned rooms/wings are not reconstructed",
+    "No room number, restroom, elevator or staircase identity is inferred from appearance",
+    "Surveyed global control points required before world-map placement",
+    "Mezzanine elevation and mesh wall candidates require manual validation"
+  ],
+  "pois": []
+}
