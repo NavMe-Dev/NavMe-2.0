@@ -13,7 +13,6 @@
 .fp-status{margin:0;font-size:12px;line-height:1.5;color:#65747d}
 .fp-status[data-provisional=true]{color:#8f571e}
 .fp-route{fill:none;stroke:#087fbc;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;vector-effect:non-scaling-stroke}
-.fp-reference{font-size:12px;color:#24785c;text-decoration:none}.fp-reference:hover{text-decoration:underline}
 .fp-route-note:empty{display:none}
 .fp-route-note{font-size:12px;color:#087f8c;line-height:1.4}
 body.floorplan-open.mp-bg-mode .ui{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
@@ -24,6 +23,6 @@ body.floorplan-open .sheet .sheet-close{display:grid}
 body.floorplan-open .sheet .pname{margin-right:46px}
 @media(max-width:767px){
  .fp-toolbar{left:8px;right:8px;top:auto;bottom:12px;width:auto;grid-template-columns:1fr 1fr;padding:10px;gap:8px;max-height:42vh;overflow:auto}
- .fp-toolbar .fp-status,.fp-toolbar .fp-route-note,.fp-toolbar .fp-tools,.fp-toolbar .fp-reference{grid-column:1/-1}
+ .fp-toolbar .fp-status,.fp-toolbar .fp-route-note,.fp-toolbar .fp-tools{grid-column:1/-1}
  .fp-toolbar label{font-size:11px}.fp-toolbar .fp-poi-label{grid-column:1/-1}
 }

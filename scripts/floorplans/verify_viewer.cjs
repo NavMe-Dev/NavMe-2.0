@@ -55,7 +55,7 @@ fs.mkdirSync(evidence, {recursive: true});
       await page.mouse.move(width / 2, height * .4);
       await page.mouse.down(); await page.mouse.move(width / 2 + 45, height * .4 + 20); await page.mouse.up();
       assert.notEqual(await page.locator('#fpStage svg').getAttribute('viewBox'), before);
-      assert.equal(await page.locator('.fp-reference').getAttribute('href'), 'https://studentunion.charlotte.edu/about/floor-plans');
+      assert.equal(await page.locator('.fp-reference').count(), 0);
       await page.locator('#fpClose').click();
       assert.equal(await page.locator('#unionFloorplanViewer').isVisible(), false);
       assert.deepEqual(errors, []);
