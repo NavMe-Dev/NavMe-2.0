@@ -20,7 +20,7 @@ def browser_app(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize("origin", ["http://127.0.0.1:8780", "http://[::1]:8780"])
-@pytest.mark.parametrize("path", ["/", "/gcu-omr", "/gcu-omr/", "/uncc-charlotte", "/uncc-charlotte/", "/walkthrough.html", "/admin/"])
+@pytest.mark.parametrize("path", ["/", "/gcu-omr", "/gcu-omr/", "/unc-charlotte", "/unc-charlotte/", "/walkthrough.html", "/admin/"])
 def test_local_browser_entry_preserves_path_port_and_query(browser_app, origin, path):
     query = "?b=gcu&mp=1&to=Library%20desk&floor=F2"
     response = TestClient(browser_app, base_url=origin).get(path + query, follow_redirects=False)
@@ -30,7 +30,7 @@ def test_local_browser_entry_preserves_path_port_and_query(browser_app, origin, 
 
 
 @pytest.mark.parametrize("origin", ["http://localhost:8780", "https://wayfinding.navme.space"])
-@pytest.mark.parametrize("path", ["/gcu-omr", "/uncc-charlotte", "/uncc-charlotte/"])
+@pytest.mark.parametrize("path", ["/gcu-omr", "/unc-charlotte", "/unc-charlotte/"])
 def test_authorized_browser_origins_do_not_redirect(browser_app, origin, path):
     response = TestClient(browser_app, base_url=origin).get(path, follow_redirects=False)
     assert response.status_code == 200

@@ -61,7 +61,7 @@ def create_app() -> FastAPI:
         # loopback referrers. Keep local browser entry points on that origin so
         # an otherwise healthy walkthrough does not fail SDK authentication.
         # API requests, assets and deployed domains retain their original URLs.
-        viewer_pages = {"/", "/index.html", "/gcu-omr", "/gcu-omr/", "/uncc-charlotte", "/uncc-charlotte/", "/walkthrough.html", "/localize.html"}
+        viewer_pages = {"/", "/index.html", "/gcu-omr", "/gcu-omr/", "/unc-charlotte", "/unc-charlotte/", "/walkthrough.html", "/localize.html"}
         admin_pages = {"/admin", "/admin/", "/admin/index.html"}
         local_page = ((s.viewer_dir and request.url.path in viewer_pages)
                       or (s.admin_dir and request.url.path in admin_pages))
@@ -186,8 +186,8 @@ def create_app() -> FastAPI:
     if s.viewer_dir and Path(s.viewer_dir).is_dir():
         @app.get("/gcu-omr", include_in_schema=False)
         @app.get("/gcu-omr/", include_in_schema=False)
-        @app.get("/uncc-charlotte", include_in_schema=False)
-        @app.get("/uncc-charlotte/", include_in_schema=False)
+        @app.get("/unc-charlotte", include_in_schema=False)
+        @app.get("/unc-charlotte/", include_in_schema=False)
         def named_viewer():
             return FileResponse(Path(s.viewer_dir) / "index.html")
 

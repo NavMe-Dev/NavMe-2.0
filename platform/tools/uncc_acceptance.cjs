@@ -42,8 +42,8 @@ const safeUrl = value => { const u = new URL(value); return u.origin + u.pathnam
           model: WF.cfg.matterport_model_id, pois: wf.pois.length, categories: wf.categories.length,
           displayFloors: WF.cfg.display_floors.length, title: document.title,
           path: location.pathname, query: location.search}));
-        if (viewerPath === '/uncc-charlotte') {
-          assert.equal(data.path, '/uncc-charlotte'); assert.equal(data.query, '');
+        if (viewerPath === '/unc-charlotte') {
+          assert.equal(data.path, '/unc-charlotte'); assert.equal(data.query, '');
         }
         assert.equal(data.slug, 'uncc-main-campus'); assert.equal(data.version, 2);
         assert.equal(data.model, 'kQBN52JqFE9'); assert.equal(data.pois, 20);
