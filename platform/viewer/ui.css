@@ -747,6 +747,8 @@ body.nav .weather-row,body.dir .weather-row,body.n3d-open .weather-row{display:n
 .venue-header h1.pname{font-size:1.15em;line-height:1.3;margin:0 0 4px;overflow-wrap:anywhere}
 .venue-header .muted{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
 .sheet.venue-info .sheet-close{display:grid}
+.sheet.category-list .sheet-close{display:grid}
+.sheet.category-list .pname{margin-right:46px}
 .venue-tabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-top:12px}
 .venue-tabs [role=tab]{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--txt2);font:500 13px/1.4 Roboto,system-ui,sans-serif;min-height:44px;min-width:44px;padding:10px 0;cursor:pointer;white-space:nowrap}
 .venue-tabs [aria-selected=true]{color:var(--blue);border-bottom-color:var(--blue)}

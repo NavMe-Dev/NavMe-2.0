@@ -814,6 +814,7 @@ function wfDbg(level, source, message, meta) {
     const toolbar = showingAll ? "" : categoryFloorToolbar(items);
     const visible = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
     setSheet(listHtml(visible, title, toolbar), state || "half");
+    $("sheet").classList.add("category-list");
     bindList(visible);
     $("sheetBody").querySelectorAll("[data-category-floor]").forEach(button => { button.onclick = () => {
       S.categoryFloor = button.dataset.categoryFloor;
@@ -2526,6 +2527,7 @@ function wfDbg(level, source, message, meta) {
   const SHEET = { peek: 168, half: 0.5, full: 0.88, placeMp: 0.4 };
   function sheetPx(state) { const v = SHEET[state]; return v > 1 ? v : Math.round(window.innerHeight * v); }
   function setSheet(html, state) {
+    $("sheet").classList.remove("category-list");
     $("sheetBody").innerHTML = html; $("sheetBody").scrollTop = 0;
     $("sheet").classList.toggle("venue-info", !!$("sheetBody").querySelector(".venue-panel"));
     $("sheet").hidden = false;
