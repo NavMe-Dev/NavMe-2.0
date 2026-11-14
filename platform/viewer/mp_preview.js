@@ -340,7 +340,7 @@ function wfDbg(level, source, message, meta) {
     // silently resolving against an empty cfg — which is exactly how this loaded the
     // wrong (hardcoded default) Matterport model intermittently. Wait for it explicitly.
     if (window.WF && window.WF.ready && typeof window.WF.ready.then === "function") {
-      try { await window.WF.ready; } catch (_) { /* boot failed — fall through, cfg stays {} */ }
+      await (window.WF.configReady || window.WF.ready);
     }
 
     const policy = readAccessPolicy();
@@ -376,9 +376,10 @@ function wfDbg(level, source, message, meta) {
     // always wins; step 1's applicationKey is used only as a fallback), not for the
     // request itself. Awaiting them one after another was a full extra network round
     // trip before the Showcase iframe could even start loading — costly on mobile.
-    const protoPromise = fetch("data/sdk_config.json", { cache: "no-store" }).catch(() => null);
     const cfg0 = (window.WF && window.WF.cfg) || window.WF_CONFIG || {};
     const slug0 = cfg0.slug || (window.WF && window.WF.building && window.WF.building.slug) || cfg0.building;
+    const protoPromise = slug0 ? Promise.resolve(null)
+      : fetch("data/sdk_config.json", { cache: "no-store" }).catch(() => null);
     const apiBase0 = (cfg0.apiBase || (window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
     let platformPromise = null;
     if (slug0 && apiBase0) {

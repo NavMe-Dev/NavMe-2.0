@@ -602,6 +602,10 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
         return []
     if not current_version(db, b):
         return []
+    return _dashboard_pois(b, db)
+
+
+def _dashboard_pois(b, db):
     rows = db.query(models.POI).filter_by(building_id=b.id, source="supabase", published=True).all()
     pois = []
     for r in rows:
@@ -621,6 +625,24 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
         pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois
+
+
+@router.get("/dashboard/buildings/{slug}/viewer-data")
+def dashboard_viewer_data(slug: str, db: Session = Depends(get_db)):
+    """Load the public viewer's mirrored data in one database session.
+
+    Keep the same POI projection and publication guard as navme-pois; never
+    serialize pipeline_config, private metadata or unpublished POI records.
+    """
+    b = building_or_404(db, slug)
+    if not current_version(db, b):
+        raise HTTPException(404, "building is not published")
+    config = b.pipeline_config or {}
+    result = {"building_slug": b.slug, "pois": _dashboard_pois(b, db),
+              "categories": config.get("navme_categories", []),
+              "stair_chains": config.get("navme_stair_chains", [])}
+    _release_read_session(db)
+    return result
 
 
 @router.get("/buildings/{slug}/shops")

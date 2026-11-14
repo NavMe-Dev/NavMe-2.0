@@ -47,7 +47,10 @@
     if (target) location.replace(target);
   })();
 
-  window.WF = { ready: null, base: "", cfg: null, manifest: null, others: [] };
+  let resolveConfig, rejectConfig;
+  const configReady = new Promise((resolve, reject) => { resolveConfig = resolve; rejectConfig = reject; });
+  configReady.catch(() => {}); // WF.ready remains the main boot error surface.
+  window.WF = { ready: null, configReady, base: "", cfg: null, manifest: null, others: [] };
   window.WF.ready = (async () => {
     let base, manifest = null;
     if (C.dataBase) {
@@ -65,7 +68,20 @@
       window.WF.building = b;
       window.WF.others = manifest.buildings.filter(x => x.slug !== b.slug).map(x => ({ ...x, dataUrl: join(C.apiBase, x.data) }));
     }
+    const selectedSlug = (window.WF.building && window.WF.building.slug) || q.get("b") || C.building;
+    const apiBase = C.apiBase && C.apiBase.replace(/\/?$/, "/");
+    // Start independent requests together instead of paying a network round trip
+    // for config, floors and then each mirrored viewer resource in sequence.
+    const floorData = selectedSlug && apiBase
+      ? J(apiBase + "buildings/" + encodeURIComponent(selectedSlug) + "/navme-floors").catch(() => ({ floors: [] }))
+      : Promise.resolve({ floors: [] });
+    if (selectedSlug && apiBase && q.get("mp") === "1") {
+      window.WF.viewerData = J(apiBase + "dashboard/buildings/" + encodeURIComponent(selectedSlug) + "/viewer-data");
+      window.WF.viewerData.catch(() => {});
+    }
     const cfg = await J(join(base, "config.json"));
+    Object.assign(window.WF, { base, cfg, manifest, D: (f) => join(base, f) });
+    resolveConfig(cfg); // Model/access config is ready; optional floors must not delay the iframe.
     // Use the NavMe Dashboard's authored floors for the visible selector. Keep every
     // pipeline floor in cfg.floors because route graphs and generated assets use those
     // stable ids. Dashboard slice_y values share the model's vertical coordinate, so
@@ -74,8 +90,7 @@
     cfg.display_floors = [];
     if (slug && C.apiBase && Array.isArray(cfg.floors)) {
       try {
-        const apiBase = C.apiBase.replace(/\/?$/, "/");
-        const data = await J(apiBase + "buildings/" + encodeURIComponent(slug) + "/navme-floors");
+        const data = selectedSlug ? await floorData : await J(apiBase + "buildings/" + encodeURIComponent(slug) + "/navme-floors");
         const used = new Set();
         for (const row of (data.floors || [])) {
           const y = Number(row.slice_y);
@@ -155,6 +170,7 @@
     return window.WF;
   })();
   window.WF.ready.catch(e => {
+    rejectConfig(e);
     console.error(e);
     if (window.WFStartup) { window.WFStartup.fail(); return; }
     const d = document.createElement("div");

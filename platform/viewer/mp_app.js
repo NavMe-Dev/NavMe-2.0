@@ -59,15 +59,17 @@
   window.WF.ready.then(async () => {
     CFG = WF.cfg;
     const D = f => WF.D(f), F = CFG.files;
-    const [georef, navmePois, categories, stairs, shops, arRef, translations] = await Promise.all([
-      J(D(F.georef)),
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-pois").catch(() => null),
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-categories").catch(() => []),
-      J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/navme-stair-chains").catch(() => []),
+    const metadata = Promise.all([
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/shops").catch(() => []),
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/ar-experience-ref").catch(() => ({})),
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))
     ]);
+    const [georef, viewerData] = await Promise.all([
+      J(D(F.georef)),
+      WF.viewerData || J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/viewer-data")
+    ]);
+    if (viewerData.building_slug !== slug() || !Array.isArray(viewerData.pois)) throw new Error("Invalid viewer publication");
+    const { pois: navmePois, categories, stair_chains: stairs } = viewerData;
 
     const A = georef.model_to_epsg3857_affine;
     const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
@@ -93,10 +95,9 @@
       }
       return (ordered.reduce((a, f) => Math.abs((f.elevation || 0)-z) < Math.abs((a.elevation || 0)-z) ? f : a, ordered[0] || {id:"F1"})).id;
     };
-    const names = translations.poi_names || {};
     const pois = (navmePois || []).map(p => {
       if (p.x == null || p.z == null) return p;
-      const o = { id:String(p.id), name:p.name, names:names[String(p.id)] || null, category:p.category || "room",
+      const o = { id:String(p.id), name:p.name, names:null, category:p.category || "room",
         x:p.x, y:-p.z, z:p.y, floor:floorFor(p.y), sdk:{x:p.x,y:p.y,z:p.z} };
       o.lonlat = modelToLL(o.x, o.y);
       if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null)
@@ -156,11 +157,11 @@
       lastRoute=r; window.wf.lastRoute=r; if(window.wf.onRoute) window.wf.onRoute(r); return r;
     }
 
-    window.WF.shopsByPoiId={}; (shops||[]).forEach(s=>{if(s&&s.poi_id)WF.shopsByPoiId[String(s.poi_id)]=s;});
-    window.WF.arExperienceRef=arRef.experience_ref||null;
+    window.WF.shopsByPoiId={};
+    window.WF.arExperienceRef=null;
     if(window.ThreeDNav&&ThreeDNav.setStairChainRows)ThreeDNav.setStairChainRows(stairs);
     currentFloor=CFG.default_floor || (ordered[0]&&ordered[0].id) || "F1";
-    window.wf={ready:true,indoorReady:true,pois,categories:(categories||[]).map(c=>({...c,names:(translations.category_names||{})[String(c.id)]||null})),nav,
+    window.wf={ready:true,indoorReady:true,pois,categories:(categories||[]).map(c=>({...c,names:null})),nav,
       georef,modelToLL,llToModel,lastLoc:null,lastRoute:null,style:"satellite",showLabels:false,map2d:noopMap,map3d:noopMap,view2d:noopView,
       esri:{GraphicsLayer:Layer,Graphic:Value,Point:Value,Polyline:Value,Extent:Value},dotLayer:new Layer(),
       view:()=>noopView,is3D:()=>false,getView3d:()=>null,currentFloor:()=>currentFloor,
@@ -173,5 +174,14 @@
       setRealMesh:()=>{},setMeshEdgeColor:()=>{},setMeshEdgeIntensity:()=>{},setHideShell:()=>{},setHideOsmBlocks:()=>{},setHideMesh:()=>{},setSolidBuildings:()=>{}
     };
     dispatchEvent(new Event("wf-pois-updated"));
+    // Optional retail/AR/translation metadata must never hold the POI interface
+    // or Matterport startup behind an upstream request. Refresh open UI on arrival.
+    window.WF.metadataReady = metadata.then(([shops, arRef, translations]) => {
+      (shops||[]).forEach(s=>{if(s&&s.poi_id)WF.shopsByPoiId[String(s.poi_id)]=s;});
+      WF.arExperienceRef=arRef.experience_ref||null;
+      pois.forEach(p=>{p.names=(translations.poi_names||{})[p.id]||null;});
+      window.wf.categories.forEach(c=>{c.names=(translations.category_names||{})[String(c.id)]||null;});
+      dispatchEvent(new Event("wf-metadata-updated"));
+    });
   }).catch(e => { console.error("[wf-mp] startup failed",e); if(window.WFStartup)WFStartup.fail(); });
 })();

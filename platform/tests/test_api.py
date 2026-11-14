@@ -87,6 +87,32 @@ def test_public_dashboard_pois_hide_drafts_and_unpublished_buildings(client, tmp
     assert response.status_code == 200 and response.json() == []
 
 
+def test_viewer_data_matches_public_projection_and_excludes_drafts(client, tmp_path):
+    with SessionLocal() as db:
+        b = models.Building(slug="bootstrap-published", name="Published fixture")
+        draft = models.Building(slug="bootstrap-unpublished", name="Draft fixture")
+        b.pipeline_config = {"private_token": "fixture-secret",
+                             "navme_categories": [{"id": "room", "name": "Room"}],
+                             "navme_stair_chains": [{"name": "Stairs", "sweep_numbers": [1, 2]}]}
+        db.add_all([b, draft]); db.flush()
+        db.add(models.MapVersion(building_id=b.id, version=1, path=str(tmp_path), is_current=True, summary={}))
+        for key, published, source in [("visible", True, "supabase"), ("draft", False, "supabase"), ("generated", True, "auto")]:
+            db.add(models.POI(building_id=b.id, key=key, name=key, floor="F1", source=source, published=published))
+        db.commit()
+    root = "/api/v1/public/dashboard/buildings/bootstrap-published/"
+    response = client.get(root + "viewer-data")
+    assert response.status_code == 200
+    data = response.json()
+    assert set(data) == {"building_slug", "pois", "categories", "stair_chains"}
+    assert data["pois"] == client.get(root + "navme-pois").json()
+    assert [p["name"] for p in data["pois"]] == ["visible"]
+    assert data["categories"] == client.get(root + "navme-categories").json()
+    assert data["stair_chains"] == client.get(root + "navme-stair-chains").json()
+    assert "fixture-secret" not in response.text
+    assert client.get("/api/v1/public/dashboard/buildings/bootstrap-unpublished/viewer-data").status_code == 404
+    assert client.get("/api/v1/public/dashboard/buildings/missing/viewer-data").status_code == 404
+
+
 @pytest.mark.skipif(not (GREENLAND_WS / "out/config.json").exists(), reason="Greenland workspace not onboarded")
 def test_import_publish_route_greenland(client, auth):
     from wayfinding_api.config import get_settings

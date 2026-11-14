@@ -65,7 +65,7 @@ test('a bare UNCC URL is canonicalized to Matterport mode before boot', async ()
   assert.equal(new URL(replaced).searchParams.get('mp'), '1');
 });
 
-async function bootBuilding(search, buildings, configuredBuilding) {
+async function bootBuilding(search, buildings, configuredBuilding, respond) {
   const source = fs.readFileSync(path.join(viewer, 'wf-boot.js'), 'utf8');
   const requests = [];
   const context = {
@@ -75,6 +75,7 @@ async function bootBuilding(search, buildings, configuredBuilding) {
     window: {WF_CONFIG: {apiBase: '/api/v1/public/', building: configuredBuilding}},
     fetch: async url => {
       requests.push(url);
+      if (respond) { const response = respond(url); if (response) return response; }
       if (url.endsWith('manifest.json')) return {ok: true, json: async () => ({buildings})};
       if (url.endsWith('config.json')) return {ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})};
       return {ok: false, status: 404};
@@ -90,6 +91,27 @@ async function bootBuilding(search, buildings, configuredBuilding) {
 }
 const gcuPublication = {slug: 'gcu', data: 'buildings/gcu/data/'};
 const unccPublication = {slug: 'uncc-main-campus', data: 'buildings/uncc-main-campus/data/'};
+
+test('model config and viewer data start without waiting for optional floor metadata', async () => {
+  let resolveConfig, resolveFloors;
+  const config = new Promise(resolve => { resolveConfig = resolve; });
+  const floors = new Promise(resolve => { resolveFloors = resolve; });
+  const c = await bootBuilding('?b=uncc-main-campus&mp=1', [unccPublication], undefined, url => {
+    if (url.endsWith('config.json')) return config;
+    if (url.endsWith('navme-floors')) return floors;
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(c.requests.some(url => url.endsWith('navme-floors')));
+  assert.ok(c.requests.some(url => url.endsWith('viewer-data')));
+  let finished = false;
+  c.ready.then(() => { finished = true; });
+  resolveConfig({ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})});
+  await c.context.window.WF.configReady;
+  assert.equal(c.context.window.WF.cfg.name, 'UNCC');
+  assert.equal(finished, false);
+  resolveFloors({ok: true, json: async () => ({floors: []})});
+  await c.ready;
+});
 
 test('missing explicit campus rejects boot without fetching another campus config', async () => {
   const c = await bootBuilding('?b=uncc-main-campus&mp=1', [gcuPublication]);

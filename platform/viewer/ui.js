@@ -136,6 +136,7 @@ function wfDbg(level, source, message, meta) {
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));
     loadCampus();
     if (window.WFi18n) WFi18n.onChange(() => refreshI18nChrome());
+    window.addEventListener("wf-metadata-updated", () => { applyDynamicCategories(); refreshI18nChrome(); });
     fetch(WF.D(WF.cfg.files.thumbs)).then(r => r.json()).then(a => {
       thumbs = new Set(a);
       // Add associated scan images without resetting the selected tab or sheet height.
@@ -556,6 +557,12 @@ function wfDbg(level, source, message, meta) {
       });
     } else if (!res.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
     else res.forEach(p => { acItems.push({ poi: p }); html += itemHtml(p, false, acItems.length - 1); });
+    if (!html) {
+      list.innerHTML = "";
+      acSel = -1;
+      closeAc();
+      return;
+    }
     list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
     list.querySelectorAll("li[role=option]").forEach((li, i) => { li.onmousedown = (e) => { e.preventDefault(); pickAc(+li.id.slice(2)); }; });
     // position under the active input (directions fields sit lower)
@@ -764,7 +771,9 @@ function wfDbg(level, source, message, meta) {
     return `<div class="category-floor-filter"><div class="ac-floor-scroll" role="group" aria-label="${esc(t("viewer.floor"))}">${button("__all__", t("viewer.allFloors"))}${floors.map(id => button(id, wf.floorLabel(id))).join("")}</div></div>`;
   }
   function showCategoryList(items, title, state) {
-    const toolbar = categoryFloorToolbar(items);
+    const showingAll = S.filter === ALL_CAT;
+    if (showingAll) S.categoryFloor = "__all__";
+    const toolbar = showingAll ? "" : categoryFloorToolbar(items);
     const visible = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
     setSheet(listHtml(visible, title, toolbar), state || "half");
     bindList(visible);
