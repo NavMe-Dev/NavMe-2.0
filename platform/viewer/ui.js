@@ -1584,7 +1584,8 @@ function wfDbg(level, source, message, meta) {
     if (i.type === "arrive") return "location_on";
     return "straight";
   }
-  const fmtDist = (m) => m < 1 ? "" : m >= 1000 ? (m / 1000).toFixed(1) + " km" : Math.round(m) + " m";
+  const usesFeet = () => window.WF?.building?.slug === "uncc-main-campus";
+  const fmtDist = (m) => m < 1 ? "" : usesFeet() ? Math.round(m / 0.3048) + " ft" : m >= 1000 ? (m / 1000).toFixed(1) + " km" : Math.round(m) + " m";
   const fmtMin = (s) => s < 30 ? "<1 min" : Math.max(1, Math.round(s / 60)) + " min";
   function floorSegments(r) {
     const segs = [];
@@ -1706,7 +1707,7 @@ function wfDbg(level, source, message, meta) {
     const segHtml = segs.map(s => {
       if (s.key === "T") return `<span class="seg"><span class="ms">elevator</span>${esc(t("viewer.floorChange", { floor: wf.floorLabel(s.toFloor) }))}</span>`;
       const ic = s.key === "OUT" ? "park" : "layers", name = s.key === "OUT" ? t("viewer.outdoors") : wf.floorLabel(s.key);
-      return `<span class="seg" title="${Math.round(s.d)} m"><span class="ms">${ic}</span>${esc(name)} · ${fmtMin(s.d / 1.2)}</span>`;
+      return `<span class="seg" title="${fmtDist(s.d)}"><span class="ms">${ic}</span>${esc(name)} · ${fmtMin(s.d / 1.2)}</span>`;
     }).join('<span class="ms" style="font-size:16px;color:var(--txt2)" aria-hidden="true">chevron_right</span>');
     const steps = S.navSteps.map((s, i) => {
       let extra = "";
@@ -1730,7 +1731,7 @@ function wfDbg(level, source, message, meta) {
           extra = `<div class="fcard plain"><img src="${th}" alt="${esc(t("viewer.viewAtTurn") || "View at this turn")}" loading="lazy"></div>`;
         }
       }
-      return `<li class="${s.type}" data-i="${i}" tabindex="0" role="button" aria-label="${esc(t("viewer.stepN", { n: i + 1, text: s.text }))}${s.dist > 0.5 ? esc(t("viewer.afterMetres", { m: Math.round(s.dist) })) : ""}"><span class="si"><span class="ms ${s.type === "arrive" ? "fill" : ""}">${s.icon}</span></span>
+      return `<li class="${s.type}" data-i="${i}" tabindex="0" role="button" aria-label="${esc(t("viewer.stepN", { n: i + 1, text: s.text }))}${s.dist > 0.5 ? esc(t(usesFeet() ? "viewer.afterFeet" : "viewer.afterMetres", { m: Math.round(usesFeet() ? s.dist / 0.3048 : s.dist) })) : ""}"><span class="si"><span class="ms ${s.type === "arrive" ? "fill" : ""}">${s.icon}</span></span>
         <div class="step-body"><div class="step-copy"><div class="st1">${esc(s.text)}</div>${s.dist > 0.5 ? `<div class="st2">${fmtDist(s.dist)}</div>` : ""}</div>${extra}</div></li>`;
     }).join("");
     const tm = tourModeFlags();
@@ -1742,7 +1743,7 @@ function wfDbg(level, source, message, meta) {
     setSheet(`
       <div class="route-head">
         <div class="sum"><span class="big ${r.stairs_rise_m > 0 ? "st" : ""}">${fmtMin(r.time_s)}</span><span class="muted">(${fmtDist(r.total_m)})</span>
-          ${r.stairs_rise_m > 0 ? `<span class="badge st"><span class="ms">stairs</span>${esc(t("viewer.stairsRise", { m: r.stairs_rise_m.toFixed(1) }))}</span>` : `<span class="badge sf"><span class="ms">accessible</span>${esc(t("viewer.stepFreeBadge"))}</span>`}
+          ${r.stairs_rise_m > 0 ? `<span class="badge st"><span class="ms">stairs</span>${esc(t(usesFeet() ? "viewer.stairsRiseFeet" : "viewer.stairsRise", { m: (usesFeet() ? r.stairs_rise_m / 0.3048 : r.stairs_rise_m).toFixed(1) }))}</span>` : `<span class="badge sf"><span class="ms">accessible</span>${esc(t("viewer.stepFreeBadge"))}</span>`}
           ${floors.length > 1 ? `<span class="badge floor"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: floors.length }))}</span>` : ""}</div>
         <button class="route-share" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
@@ -1750,7 +1751,7 @@ function wfDbg(level, source, message, meta) {
       <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
       <div class="actions actions-row1 route-actions-primary">
         ${tm.embed_showcase ? `<button class="pill primary pill-sm" id="dTourMp"><span class="ms">play_circle</span>${esc(t("viewer.tourInterior") || "Preview")}</button>` : ""}
-        <button class="pill ${tm.embed_showcase ? "" : "primary"} pill-sm" id="dStart"><span class="ms fill">navigation</span>${esc(isMpMode() ? (t("viewer.startPreview") || "Walkthrough") : t("viewer.start"))}</button>
+        <button class="pill ${tm.embed_showcase ? "" : "primary"} pill-sm" id="dStart">${isMpMode() ? `<svg class="walkthrough-footsteps" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><g transform="rotate(-18 6 12)"><ellipse cx="6" cy="9" rx="3" ry="5"/><rect x="3.8" y="15" width="4.4" height="4" rx="2"/></g><g transform="rotate(18 17 8)"><ellipse cx="17" cy="5" rx="3" ry="5"/><rect x="14.8" y="11" width="4.4" height="4" rx="2"/></g></svg>` : `<span class="ms fill">navigation</span>`}${esc(isMpMode() ? (t("viewer.startPreview") || "Walkthrough") : t("viewer.start"))}</button>
         ${isMpMode() ? "" : `<button class="pill pill-sm" id="dPrev3d"><span class="ms">3d_rotation</span>${esc(t("viewer.preview3d"))}</button>`}
         ${isMpMode() ? `<button class="pill pill-sm route-action-wide" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
       </div>
@@ -1958,7 +1959,7 @@ function wfDbg(level, source, message, meta) {
     const remT = info.remainingM / 1.2 + (S.route.stairs_rise_m || 0) * 2 * (info.remainingM / Math.max(1, S.route.total_m));
     const eta = new Date(Date.now() + remT * 1000);
     $("navEta").textContent = fmtMin(remT);
-    $("navRem").textContent = `${fmtDist(info.remainingM) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
+    $("navRem").textContent = `${fmtDist(info.remainingM) || (usesFeet() ? "0 ft" : "0 m")} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
 
     const s = S.navSteps[S.navI];
     if (!s) return;
@@ -1991,7 +1992,7 @@ function wfDbg(level, source, message, meta) {
     const remT = rem / 1.2 + (S.route.stairs_rise_m || 0) * 2 * (rem / Math.max(1, S.route.total_m));
     const eta = new Date(Date.now() + remT * 1000);
     $("navEta").textContent = fmtMin(remT);
-    $("navRem").textContent = `${fmtDist(rem) || "0 m"} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
+    $("navRem").textContent = `${fmtDist(rem) || (usesFeet() ? "0 ft" : "0 m")} · ${t("viewer.arriveAt", { time: eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) })}`;
     $("navPrev").disabled = i <= 0; $("navNext").disabled = i >= n - 1;
     // Selecting an arrival instruction updates chrome only. The camera's confirmed
     // final landing triggers the arrival card in updateMpRemaining().
