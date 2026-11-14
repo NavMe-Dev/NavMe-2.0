@@ -6,13 +6,14 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.BASE_URL || 'https://wayfinding.navme.space';
+const viewerPath = process.env.VIEWER_PATH || '/?b=uncc-main-campus&mp=1';
 const output = process.env.EVIDENCE_DIR || 'platform/var/production-migration/browser/uncc-live';
 fs.mkdirSync(output, {recursive: true});
 const safeUrl = value => { const u = new URL(value); return u.origin + u.pathname; };
 (async () => {
   const browser = await chromium.launch({channel: 'chrome', headless: true,
     args: ['--use-gl=angle', '--use-angle=metal', '--ignore-gpu-blocklist']});
-  const report = {recordedAt: new Date().toISOString(), base, checks: []};
+  const report = {recordedAt: new Date().toISOString(), base, viewerPath, checks: []};
   try {
     for (const [name, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844]]) {
       if (process.env.VIEWPORT_NAME && name !== process.env.VIEWPORT_NAME) continue;
@@ -34,12 +35,16 @@ const safeUrl = value => { const u = new URL(value); return u.origin + u.pathnam
         catch (e) { report.checks.push({viewport: name, label, status: 'FAIL', error: e.message.slice(0, 250)}); }
         fs.writeFileSync(output + '/report.json', JSON.stringify(report, null, 2));
       }
-      await page.goto(base + '/?b=uncc-main-campus&mp=1', {waitUntil: 'domcontentloaded', timeout: 45000});
+      await page.goto(base + viewerPath, {waitUntil: 'domcontentloaded', timeout: 45000});
       await check('UNCC publication and curated places', async () => {
         await page.waitForFunction(() => window.wf?.ready, null, {timeout: 60000});
         const data = await page.evaluate(() => ({slug: WF.building.slug, version: WF.building.version,
           model: WF.cfg.matterport_model_id, pois: wf.pois.length, categories: wf.categories.length,
-          displayFloors: WF.cfg.display_floors.length, title: document.title}));
+          displayFloors: WF.cfg.display_floors.length, title: document.title,
+          path: location.pathname, query: location.search}));
+        if (viewerPath === '/uncc-charlotte') {
+          assert.equal(data.path, '/uncc-charlotte'); assert.equal(data.query, '');
+        }
         assert.equal(data.slug, 'uncc-main-campus'); assert.equal(data.version, 2);
         assert.equal(data.model, 'kQBN52JqFE9'); assert.equal(data.pois, 20);
         assert.equal(data.categories, 6); assert.equal(data.displayFloors, 2); return data;

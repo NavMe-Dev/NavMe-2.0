@@ -115,3 +115,17 @@ test('configured missing building also rejects instead of silently substituting'
   const c = await bootBuilding('?mp=1', [gcuPublication], 'uncc-main-campus');
   await assert.rejects(c.ready, /Requested building is not published/);
 });
+
+test('UNCC short paths select the campus and Matterport without expanding the URL', () => {
+  const html = fs.readFileSync(path.join(viewer, 'index.html'), 'utf8');
+  const script = html.match(/<script>\s*(window.WF_ROUTE_ALIASES=[\s\S]*?)<\/script>/)[1];
+  for (const pathname of ['/uncc-charlotte', '/uncc-charlotte/']) {
+    const context = {window: {}, URLSearchParams, location: {pathname, search: ''}};
+    vm.runInNewContext(script, context);
+    const q = context.window.WFQuery();
+    assert.equal(q.get('b'), 'uncc-main-campus');
+    assert.equal(q.get('mp'), '1');
+    assert.equal(context.location.pathname, pathname);
+    assert.equal(context.location.search, '');
+  }
+});
