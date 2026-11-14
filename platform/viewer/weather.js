@@ -65,7 +65,8 @@
   function display(next) {
     data = next;
     const available = !!(data && data.available);
-    const temperature = available ? Math.round(data.temperature_c) + "°C" : "";
+    const fahrenheit = available && data.building_slug === "uncc-main-campus";
+    const temperature = available ? Math.round(fahrenheit ? data.temperature_c * 9 / 5 + 32 : data.temperature_c) + (fahrenheit ? "°F" : "°C") : "";
     const condition = available ? String(data.condition || "Outdoor weather") : "Unavailable";
     badge.querySelector("[data-weather-temperature]").textContent = temperature;
     badge.querySelector("[data-weather-icon]").textContent = available && /^[a-z_]+$/.test(data.icon) ? data.icon : "device_thermostat";
