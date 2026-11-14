@@ -190,7 +190,7 @@ test('map boot failure hides internal fetch details and retry preserves the curr
   const context = {
     window: { WF_CONFIG: {} }, location: { href: 'https://wayfinding.navme.space/?b=test&mp=1', search: '?b=test&mp=1', reload() { reloaded = true; } },
     URL, URLSearchParams, history: { replaceState() {} }, fetch: async () => { throw new Error('private server detail'); },
-    document: { createElement: () => ({ style: {}, append(...children) { this.children = children; } }),
+    document: { createElement: () => ({ style: {}, setAttribute() {}, append(...children) { this.children = children; } }),
       body: { appendChild: el => attached.push(el) } }, console: { error() {} },
   };
   vm.runInNewContext(read('wf-boot.js'), context);

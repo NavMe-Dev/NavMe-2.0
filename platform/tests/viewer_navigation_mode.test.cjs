@@ -57,10 +57,61 @@ test('a bare UNCC URL is canonicalized to Matterport mode before boot', async ()
     history: {replaceState(_state, _title, url) { replaced = url; location.href = url; location.search = new URL(url).search; }},
     window: {WF_CONFIG: {}}, navigator: {userAgent: '', platform: '', maxTouchPoints: 0},
     fetch: async () => { throw new Error('stop after canonicalization'); },
-    document: {createElement: () => ({style: {}, append() {}}), body: {appendChild() {}}},
+    document: {createElement: () => ({style: {}, setAttribute() {}, append() {}}), body: {appendChild() {}}},
     console: {error() {}},
   };
   vm.runInNewContext(source, context);
   await context.window.WF.ready.catch(() => {});
   assert.equal(new URL(replaced).searchParams.get('mp'), '1');
+});
+
+async function bootBuilding(search, buildings, configuredBuilding) {
+  const source = fs.readFileSync(path.join(viewer, 'wf-boot.js'), 'utf8');
+  const requests = [];
+  const context = {
+    URL, URLSearchParams,
+    location: {href: 'https://wayfinding.navme.space/' + search, search},
+    history: {replaceState() {}}, navigator: {userAgent: '', platform: '', maxTouchPoints: 0},
+    window: {WF_CONFIG: {apiBase: '/api/v1/public/', building: configuredBuilding}},
+    fetch: async url => {
+      requests.push(url);
+      if (url.endsWith('manifest.json')) return {ok: true, json: async () => ({buildings})};
+      if (url.endsWith('config.json')) return {ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})};
+      return {ok: false, status: 404};
+    },
+    document: {
+      documentElement: {style: {setProperty() {}}}, querySelectorAll: () => [], getElementById: () => null,
+      createElement: () => ({style: {}, setAttribute() {}, append() {}}), body: {appendChild() {}},
+    },
+    console: {error() {}},
+  };
+  vm.runInNewContext(source, context);
+  return {ready: context.window.WF.ready, requests, context};
+}
+const gcuPublication = {slug: 'gcu', data: 'buildings/gcu/data/'};
+const unccPublication = {slug: 'uncc-main-campus', data: 'buildings/uncc-main-campus/data/'};
+
+test('missing explicit campus rejects boot without fetching another campus config', async () => {
+  const c = await bootBuilding('?b=uncc-main-campus&mp=1', [gcuPublication]);
+  await assert.rejects(c.ready, /Requested building is not published: uncc-main-campus/);
+  assert.equal(c.requests.some(url => url.endsWith('config.json')), false);
+});
+
+test('UNCC deep link selects UNCC even when GCU is first in the manifest', async () => {
+  const c = await bootBuilding('?b=uncc-main-campus&mp=1', [gcuPublication, unccPublication]);
+  await c.ready;
+  assert.equal(c.context.window.WF.building.slug, 'uncc-main-campus');
+  assert.ok(c.requests.includes('/api/v1/public/buildings/uncc-main-campus/data/config.json'));
+  assert.equal(c.requests.includes('/api/v1/public/buildings/gcu/data/config.json'), false);
+});
+
+test('root links still choose the first published building', async () => {
+  const c = await bootBuilding('?mp=1', [gcuPublication, unccPublication]);
+  await c.ready;
+  assert.equal(c.context.window.WF.building.slug, 'gcu');
+});
+
+test('configured missing building also rejects instead of silently substituting', async () => {
+  const c = await bootBuilding('?mp=1', [gcuPublication], 'uncc-main-campus');
+  await assert.rejects(c.ready, /Requested building is not published/);
 });

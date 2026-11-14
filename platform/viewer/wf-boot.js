@@ -57,7 +57,10 @@
       manifest = await J(join(C.apiBase, `venues/${venue}/manifest.json`));
       if (!manifest.buildings.length) throw new Error("No published buildings yet – publish one in the admin.");
       const slug = q.get("b") || C.building || manifest.buildings[0].slug;
-      const b = manifest.buildings.find(x => x.slug === slug) || manifest.buildings[0];
+      const b = manifest.buildings.find(x => x.slug === slug);
+      // An explicit deep link must never open a different campus when its
+      // publication is missing from this deployment's manifest.
+      if (!b) throw new Error("Requested building is not published: " + slug);
       base = join(C.apiBase, b.data);
       window.WF.building = b;
       window.WF.others = manifest.buildings.filter(x => x.slug !== b.slug).map(x => ({ ...x, dataUrl: join(C.apiBase, x.data) }));
