@@ -4,7 +4,7 @@
   "building_id": "student-union",
   "building_name": "Student Union",
   "model_id": "kQBN52JqFE9",
-  "official_reference": "https://studentunion.charlotte.edu/about/floor-plans/",
+  "official_reference": "https://studentunion.charlotte.edu/about/floor-plans",
   "validated_level_count": 4,
   "provisional_level_count": 1,
   "complete_floor_count": 0,
@@ -22,7 +22,10 @@
       "wall_segment_count": 239,
       "doorway_count": 14,
       "verified_room_count": 0,
-      "verified_corridor_count": 0
+      "verified_corridor_count": 0,
+      "label_plan": "label-plan.svg",
+      "label_metadata": "label-plan.json",
+      "official_label_count": 13
     },
     {
       "floor_id": "L1",
@@ -36,11 +39,14 @@
       "wall_segment_count": 219,
       "doorway_count": 6,
       "verified_room_count": 0,
-      "verified_corridor_count": 0
+      "verified_corridor_count": 0,
+      "label_plan": "label-plan.svg",
+      "label_metadata": "label-plan.json",
+      "official_label_count": 33
     },
     {
       "floor_id": "M",
-      "label": "Mezzanine",
+      "label": "Mezzanine Level",
       "status": "provisional_partial",
       "elevation_model_m": 3.4,
       "source_floor_id": "0h6r4cp42xdia1girpg41n9ma",
@@ -50,7 +56,10 @@
       "wall_segment_count": 118,
       "doorway_count": 0,
       "verified_room_count": 0,
-      "verified_corridor_count": 0
+      "verified_corridor_count": 0,
+      "label_plan": "label-plan.svg",
+      "label_metadata": "label-plan.json",
+      "official_label_count": 6
     },
     {
       "floor_id": "L2",
@@ -64,7 +73,10 @@
       "wall_segment_count": 217,
       "doorway_count": 19,
       "verified_room_count": 0,
-      "verified_corridor_count": 0
+      "verified_corridor_count": 0,
+      "label_plan": "label-plan.svg",
+      "label_metadata": "label-plan.json",
+      "official_label_count": 33
     },
     {
       "floor_id": "L3",
@@ -78,7 +90,12 @@
       "wall_segment_count": 265,
       "doorway_count": 29,
       "verified_room_count": 0,
-      "verified_corridor_count": 0
+      "verified_corridor_count": 0,
+      "label_plan": "label-plan.svg",
+      "label_metadata": "label-plan.json",
+      "official_label_count": 19
     }
-  ]
+  ],
+  "presentation": "official_labels_divisions",
+  "official_label_count": 104
 }

@@ -13,6 +13,8 @@ def plans(tmp_path, monkeypatch):
     floor = tmp_path / 'floors' / 'L1'
     floor.mkdir(parents=True)
     (floor / 'floorplan.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
+    (floor / 'label-plan.svg').write_text('<svg xmlns="http://www.w3.org/2000/svg"><text>Room 260</text></svg>')
+    (floor / 'label-plan.json').write_text('{"model_registered": false}')
     (tmp_path / 'audit').mkdir()
     (tmp_path / 'audit' / 'private.docx').write_bytes(b'private reference')
     monkeypatch.setattr(floorplans, 'get_settings', lambda: SimpleNamespace(floorplan_dir=tmp_path))
@@ -28,6 +30,13 @@ def test_configured_plan_is_served_without_database_and_with_safe_headers(plans)
     assert response.status_code == 200
     assert response.headers['x-content-type-options'] == 'nosniff'
     assert response.headers['cache-control'].startswith('private')
+
+
+def test_official_labels_are_served_as_separate_unregistered_assets(plans):
+    client, _ = plans
+    root = '/api/v1/public/buildings/uncc-main-campus/floorplans/floors/L1/'
+    assert 'Room 260' in client.get(root + 'label-plan.svg').text
+    assert client.get(root + 'label-plan.json').json()['model_registered'] is False
 
 
 @pytest.mark.parametrize('asset', ['audit/private.docx', 'floors/L2/floorplan.svg', 'floors/L1/secrets.json',

@@ -1,0 +1,106 @@
+{
+  "floor_id": "M",
+  "label": "Mezzanine Level",
+  "presentation": "official_labels_divisions",
+  "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Mezzanine_0.jpg",
+  "source_sha256": "7da99c399857927f0970e8d817f9365c5e52c03f45a2d2741ceda5358a315863",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "official diagram pixels",
+  "model_registered": false,
+  "view_box": [
+    120,
+    80,
+    1590,
+    1170
+  ],
+  "labels": [
+    {
+      "id": "M-arena",
+      "text": "Esports & Gaming Arena",
+      "position": [
+        1505,
+        480
+      ],
+      "region_id": "M-1",
+      "size": 26,
+      "lines": [
+        "Esports &",
+        "Gaming Arena"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "M-elevator",
+      "text": "Elevator",
+      "position": [
+        691,
+        550
+      ],
+      "region_id": null,
+      "size": 13,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "M-stairs-w",
+      "text": "Stairs",
+      "position": [
+        234,
+        602
+      ],
+      "region_id": null,
+      "size": 17,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "M-stairs-e",
+      "text": "Stairs",
+      "position": [
+        1563,
+        645
+      ],
+      "region_id": null,
+      "size": 17,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "M-stairs-north",
+      "text": "Stairs",
+      "position": [
+        991,
+        682
+      ],
+      "region_id": null,
+      "size": 17,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -80
+    },
+    {
+      "id": "M-stairs-south",
+      "text": "Stairs",
+      "position": [
+        967,
+        847
+      ],
+      "region_id": null,
+      "size": 17,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -80
+    }
+  ],
+  "region_count": 2,
+  "partition_count": 0,
+  "note": "Labels and divisions from the university diagram. Diagram not to scale."
+}

@@ -1,0 +1,4686 @@
+{
+  "schema": "navme.official-label-plans/v1",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "diagram pixels; not registered to Matterport or geographic coordinates",
+  "reference_canvas": [
+    1824,
+    1368
+  ],
+  "description": "Reviewed vector outlines and manually transcribed labels from the public university diagrams. Furniture, logos, door swing artwork and decorative icons omitted. Service symbols are rendered as words. Not a measured architectural survey.",
+  "floors": {
+    "LL": {
+      "label": "Lower Level",
+      "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Basement_0.jpg",
+      "source_sha256": "d2716e2b9b447b591a17bd41750878d2eefd27618a14e003bb3cf13220ff443f",
+      "regions": [
+        {
+          "id": "LL-1",
+          "color": "green",
+          "area": 151842,
+          "center": [
+            874,
+            942
+          ],
+          "points": [
+            [
+              1003,
+              685
+            ],
+            [
+              824,
+              862
+            ],
+            [
+              731,
+              770
+            ],
+            [
+              555,
+              946
+            ],
+            [
+              832,
+              1223
+            ],
+            [
+              1186,
+              870
+            ]
+          ]
+        },
+        {
+          "id": "LL-2",
+          "color": "room",
+          "area": 75879,
+          "center": [
+            1066,
+            361
+          ],
+          "points": [
+            [
+              962,
+              145
+            ],
+            [
+              962,
+              462
+            ],
+            [
+              980,
+              479
+            ],
+            [
+              1020,
+              441
+            ],
+            [
+              1023,
+              447
+            ],
+            [
+              1042,
+              463
+            ],
+            [
+              1028,
+              480
+            ],
+            [
+              1021,
+              498
+            ],
+            [
+              1021,
+              522
+            ],
+            [
+              1028,
+              540
+            ],
+            [
+              1043,
+              557
+            ],
+            [
+              1073,
+              572
+            ],
+            [
+              1157,
+              656
+            ],
+            [
+              1157,
+              416
+            ],
+            [
+              1098,
+              416
+            ],
+            [
+              1109,
+              427
+            ],
+            [
+              1106,
+              430
+            ],
+            [
+              1090,
+              414
+            ],
+            [
+              1106,
+              397
+            ],
+            [
+              1109,
+              400
+            ],
+            [
+              1097,
+              411
+            ],
+            [
+              1157,
+              411
+            ],
+            [
+              1157,
+              203
+            ],
+            [
+              1100,
+              203
+            ],
+            [
+              1099,
+              145
+            ]
+          ]
+        },
+        {
+          "id": "LL-3",
+          "color": "service",
+          "area": 12781,
+          "center": [
+            938,
+            592
+          ],
+          "points": [
+            [
+              945,
+              505
+            ],
+            [
+              852,
+              597
+            ],
+            [
+              937,
+              682
+            ],
+            [
+              1030,
+              590
+            ]
+          ]
+        },
+        {
+          "id": "LL-4",
+          "color": "gray",
+          "area": 180447,
+          "center": [
+            701,
+            533
+          ],
+          "points": [
+            [
+              857,
+              146
+            ],
+            [
+              802,
+              146
+            ],
+            [
+              493,
+              455
+            ],
+            [
+              655,
+              619
+            ],
+            [
+              514,
+              759
+            ],
+            [
+              540,
+              785
+            ],
+            [
+              475,
+              850
+            ],
+            [
+              210,
+              586
+            ],
+            [
+              201,
+              595
+            ],
+            [
+              494,
+              889
+            ],
+            [
+              518,
+              866
+            ],
+            [
+              574,
+              921
+            ],
+            [
+              732,
+              763
+            ],
+            [
+              782,
+              813
+            ],
+            [
+              809,
+              786
+            ],
+            [
+              735,
+              710
+            ],
+            [
+              808,
+              637
+            ],
+            [
+              883,
+              712
+            ],
+            [
+              923,
+              673
+            ],
+            [
+              847,
+              597
+            ],
+            [
+              941,
+              502
+            ],
+            [
+              857,
+              418
+            ]
+          ]
+        },
+        {
+          "id": "LL-5",
+          "color": "gray",
+          "area": 8832,
+          "center": [
+            930,
+            357
+          ],
+          "points": [
+            [
+              899,
+              282
+            ],
+            [
+              899,
+              404
+            ],
+            [
+              957,
+              458
+            ],
+            [
+              957,
+              282
+            ]
+          ]
+        },
+        {
+          "id": "LL-6",
+          "color": "gray",
+          "area": 24745,
+          "center": [
+            1161,
+            747
+          ],
+          "points": [
+            [
+              1118,
+              625
+            ],
+            [
+              1055,
+              687
+            ],
+            [
+              1097,
+              729
+            ],
+            [
+              1076,
+              752
+            ],
+            [
+              1191,
+              865
+            ],
+            [
+              1274,
+              781
+            ]
+          ]
+        }
+      ],
+      "labels": [
+        {
+          "id": "LL-bookstore",
+          "text": "Barnes & Noble Charlotte",
+          "position": [
+            850,
+            953
+          ],
+          "region_id": "LL-1",
+          "size": 28,
+          "lines": [
+            "Barnes & Noble",
+            "Charlotte"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-entrance",
+          "text": "Use first floor entrance",
+          "position": [
+            850,
+            1031
+          ],
+          "region_id": "LL-1",
+          "size": 18,
+          "lines": [
+            "Use first floor entrance"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-media",
+          "text": "Student Media",
+          "position": [
+            1328,
+            293
+          ],
+          "region_id": null,
+          "size": 25,
+          "lines": [
+            "Student Media"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-ninertimes",
+          "text": "NinerTimes",
+          "position": [
+            1330,
+            332
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "NinerTimes"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-website",
+          "text": "ninertimes.com",
+          "position": [
+            1330,
+            369
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "ninertimes.com"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-sanskrit",
+          "text": "Sanskrit Literary Arts Magazine",
+          "position": [
+            1330,
+            419
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "Sanskrit Literary",
+            "Arts Magazine"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-midas",
+          "text": "Midas Magazine",
+          "position": [
+            1330,
+            471
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "Midas Magazine"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-technical",
+          "text": "Technical Operations",
+          "position": [
+            1330,
+            511
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "Technical Operations"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-audio",
+          "text": "Uptown Audio",
+          "position": [
+            1330,
+            551
+          ],
+          "region_id": null,
+          "size": 20,
+          "lines": [
+            "Uptown Audio"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-restrooms",
+          "text": "Restrooms",
+          "position": [
+            939,
+            595
+          ],
+          "region_id": "LL-3",
+          "size": 17,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-elevator",
+          "text": "Elevator",
+          "position": [
+            1082,
+            631
+          ],
+          "region_id": null,
+          "size": 11,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "LL-stairs-north",
+          "text": "Stairs",
+          "position": [
+            910,
+            154
+          ],
+          "region_id": null,
+          "size": 18,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "LL-stairs-west",
+          "text": "Stairs",
+          "position": [
+            797,
+            711
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        }
+      ],
+      "divisions": [
+        {
+          "points": [
+            [
+              1190,
+              414
+            ],
+            [
+              1093,
+              414
+            ],
+            [
+              1107,
+              399
+            ]
+          ],
+          "dashed": false
+        }
+      ],
+      "outline": "M956 97 L862 97 L862 277 L870 279 L861 281 L861 416 L1034 591 L938 686 L925 677 L862 740 L860 738 L881 715 L810 644 L807 644 L741 710 L812 783 L815 783 L841 757 L843 758 L786 815 L786 818 L823 855 L826 855 L1002 679 L1070 747 L1074 748 L1091 731 L1050 688 L1066 671 L1067 666 L1041 638 L1053 629 L1046 640 L1072 664 L1086 648 L1077 647 L1067 639 L1064 632 L1065 621 L1058 626 L1056 623 L1073 606 L1095 610 L1103 619 L1105 629 L1114 620 L1090 596 L1080 603 L1079 600 L1086 591 L1067 572 L1056 569 L1037 557 L1022 537 L1016 515 L1017 498 L1024 479 L1036 465 L1033 460 L1035 457 L1042 464 L1029 478 L1020 503 L1021 523 L1029 542 L1045 559 L1068 568 L1158 655 L1158 416 L1099 415 L1109 428 L1106 429 L1090 413 L1106 397 L1109 399 L1098 412 L1158 411 L1158 203 L1101 203 L1100 145 L961 146 L962 463 L980 479 L1018 441 L1023 446 L1018 447 L979 485 L895 406 L895 281 L887 278 L957 276 Z",
+      "extra_regions": [
+        {
+          "id": "LL-elevator-region",
+          "points": [
+            [
+              1043,
+              641
+            ],
+            [
+              1085,
+              597
+            ],
+            [
+              1118,
+              628
+            ],
+            [
+              1072,
+              671
+            ]
+          ]
+        }
+      ]
+    },
+    "L1": {
+      "label": "First Floor",
+      "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%201_0.jpg",
+      "source_sha256": "711b48380e6879e998edec7f2e9d9804f79cf4670c8330ffbf1ad516d09b62b3",
+      "regions": [
+        {
+          "id": "L1-1",
+          "color": "green",
+          "area": 7487,
+          "center": [
+            447,
+            371
+          ],
+          "points": [
+            [
+              375,
+              394
+            ],
+            [
+              468,
+              303
+            ],
+            [
+              519,
+              350
+            ],
+            [
+              425,
+              443
+            ]
+          ]
+        },
+        {
+          "id": "L1-2",
+          "color": "green",
+          "area": 8908,
+          "center": [
+            502,
+            426
+          ],
+          "points": [
+            [
+              519,
+              354
+            ],
+            [
+              429,
+              443
+            ],
+            [
+              484,
+              498
+            ],
+            [
+              573,
+              409
+            ]
+          ]
+        },
+        {
+          "id": "L1-3",
+          "color": "green",
+          "area": 8742,
+          "center": [
+            558,
+            483
+          ],
+          "points": [
+            [
+              577,
+              412
+            ],
+            [
+              487,
+              501
+            ],
+            [
+              540,
+              554
+            ],
+            [
+              630,
+              465
+            ]
+          ]
+        },
+        {
+          "id": "L1-4",
+          "color": "green",
+          "area": 9622,
+          "center": [
+            341,
+            505
+          ],
+          "points": [
+            [
+              340,
+              431
+            ],
+            [
+              266,
+              505
+            ],
+            [
+              341,
+              580
+            ],
+            [
+              415,
+              505
+            ],
+            [
+              352,
+              440
+            ]
+          ]
+        },
+        {
+          "id": "L1-5",
+          "color": "green",
+          "area": 135620,
+          "center": [
+            534,
+            938
+          ],
+          "points": [
+            [
+              381,
+              701
+            ],
+            [
+              229,
+              854
+            ],
+            [
+              269,
+              894
+            ],
+            [
+              295,
+              869
+            ],
+            [
+              361,
+              935
+            ],
+            [
+              336,
+              961
+            ],
+            [
+              553,
+              1178
+            ],
+            [
+              574,
+              1159
+            ],
+            [
+              624,
+              1207
+            ],
+            [
+              772,
+              1059
+            ],
+            [
+              723,
+              1010
+            ],
+            [
+              757,
+              976
+            ],
+            [
+              740,
+              958
+            ],
+            [
+              789,
+              908
+            ],
+            [
+              634,
+              753
+            ],
+            [
+              584,
+              802
+            ],
+            [
+              519,
+              737
+            ],
+            [
+              468,
+              787
+            ]
+          ]
+        },
+        {
+          "id": "L1-6",
+          "color": "green",
+          "area": 73726,
+          "center": [
+            1477,
+            914
+          ],
+          "points": [
+            [
+              1470,
+              708
+            ],
+            [
+              1387,
+              791
+            ],
+            [
+              1385,
+              817
+            ],
+            [
+              1417,
+              818
+            ],
+            [
+              1293,
+              942
+            ],
+            [
+              1465,
+              1114
+            ],
+            [
+              1623,
+              957
+            ],
+            [
+              1606,
+              937
+            ],
+            [
+              1660,
+              883
+            ],
+            [
+              1604,
+              826
+            ],
+            [
+              1594,
+              832
+            ]
+          ]
+        },
+        {
+          "id": "L1-7",
+          "color": "dark-green",
+          "area": 35913,
+          "center": [
+            1227,
+            552
+          ],
+          "points": [
+            [
+              1321,
+              411
+            ],
+            [
+              1160,
+              412
+            ],
+            [
+              1160,
+              585
+            ],
+            [
+              1093,
+              651
+            ],
+            [
+              1173,
+              731
+            ],
+            [
+              1368,
+              537
+            ],
+            [
+              1322,
+              491
+            ]
+          ]
+        },
+        {
+          "id": "L1-8",
+          "color": "dining",
+          "area": 173840,
+          "center": [
+            947,
+            388
+          ],
+          "points": [
+            [
+              514,
+              257
+            ],
+            [
+              637,
+              381
+            ],
+            [
+              747,
+              381
+            ],
+            [
+              837,
+              471
+            ],
+            [
+              749,
+              560
+            ],
+            [
+              822,
+              634
+            ],
+            [
+              847,
+              609
+            ],
+            [
+              874,
+              634
+            ],
+            [
+              903,
+              605
+            ],
+            [
+              1045,
+              605
+            ],
+            [
+              1090,
+              647
+            ],
+            [
+              1156,
+              583
+            ],
+            [
+              1156,
+              408
+            ],
+            [
+              1321,
+              407
+            ],
+            [
+              1321,
+              316
+            ],
+            [
+              1232,
+              315
+            ],
+            [
+              1232,
+              190
+            ],
+            [
+              1101,
+              190
+            ],
+            [
+              1101,
+              234
+            ],
+            [
+              1038,
+              235
+            ],
+            [
+              1037,
+              269
+            ],
+            [
+              1033,
+              267
+            ],
+            [
+              1033,
+              262
+            ],
+            [
+              1021,
+              261
+            ],
+            [
+              1021,
+              249
+            ],
+            [
+              1018,
+              248
+            ],
+            [
+              1022,
+              245
+            ],
+            [
+              1026,
+              246
+            ],
+            [
+              1026,
+              257
+            ],
+            [
+              1033,
+              257
+            ],
+            [
+              1033,
+              225
+            ],
+            [
+              1023,
+              225
+            ],
+            [
+              1022,
+              222
+            ],
+            [
+              1002,
+              222
+            ],
+            [
+              1001,
+              225
+            ],
+            [
+              919,
+              225
+            ],
+            [
+              919,
+              257
+            ],
+            [
+              926,
+              257
+            ],
+            [
+              927,
+              245
+            ],
+            [
+              934,
+              248
+            ],
+            [
+              931,
+              249
+            ],
+            [
+              931,
+              262
+            ],
+            [
+              919,
+              262
+            ],
+            [
+              919,
+              266
+            ],
+            [
+              913,
+              269
+            ],
+            [
+              912,
+              236
+            ],
+            [
+              855,
+              236
+            ],
+            [
+              831,
+              250
+            ],
+            [
+              829,
+              248
+            ],
+            [
+              853,
+              232
+            ],
+            [
+              852,
+              190
+            ],
+            [
+              719,
+              190
+            ],
+            [
+              719,
+              309
+            ],
+            [
+              828,
+              247
+            ],
+            [
+              830,
+              249
+            ],
+            [
+              803,
+              265
+            ],
+            [
+              799,
+              271
+            ],
+            [
+              800,
+              267
+            ],
+            [
+              717,
+              315
+            ],
+            [
+              644,
+              311
+            ],
+            [
+              644,
+              190
+            ],
+            [
+              584,
+              190
+            ]
+          ]
+        },
+        {
+          "id": "L1-10",
+          "color": "dining",
+          "area": 15572,
+          "center": [
+            1320,
+            675
+          ],
+          "points": [
+            [
+              1371,
+              541
+            ],
+            [
+              1177,
+              734
+            ],
+            [
+              1221,
+              779
+            ],
+            [
+              1334,
+              780
+            ],
+            [
+              1352,
+              761
+            ],
+            [
+              1331,
+              740
+            ],
+            [
+              1450,
+              621
+            ]
+          ]
+        },
+        {
+          "id": "L1-11",
+          "color": "dining",
+          "area": 9753,
+          "center": [
+            809,
+            997
+          ],
+          "points": [
+            [
+              792,
+              911
+            ],
+            [
+              746,
+              957
+            ],
+            [
+              763,
+              976
+            ],
+            [
+              729,
+              1012
+            ],
+            [
+              777,
+              1056
+            ],
+            [
+              885,
+              1056
+            ],
+            [
+              885,
+              1006
+            ]
+          ]
+        },
+        {
+          "id": "L1-12",
+          "color": "room",
+          "area": 2305,
+          "center": [
+            1347,
+            840
+          ],
+          "points": [
+            [
+              1288,
+              825
+            ],
+            [
+              1346,
+              882
+            ],
+            [
+              1406,
+              822
+            ],
+            [
+              1342,
+              821
+            ]
+          ]
+        },
+        {
+          "id": "L1-13",
+          "color": "room",
+          "area": 30769,
+          "center": [
+            1326,
+            1081
+          ],
+          "points": [
+            [
+              1296,
+              951
+            ],
+            [
+              1193,
+              1056
+            ],
+            [
+              1339,
+              1202
+            ],
+            [
+              1386,
+              1155
+            ],
+            [
+              1407,
+              1173
+            ],
+            [
+              1462,
+              1117
+            ]
+          ]
+        },
+        {
+          "id": "L1-14",
+          "color": "service",
+          "area": 19236,
+          "center": [
+            733,
+            648
+          ],
+          "points": [
+            [
+              725,
+              545
+            ],
+            [
+              633,
+              638
+            ],
+            [
+              752,
+              756
+            ],
+            [
+              787,
+              721
+            ],
+            [
+              789,
+              723
+            ],
+            [
+              830,
+              677
+            ],
+            [
+              805,
+              652
+            ],
+            [
+              819,
+              638
+            ]
+          ]
+        },
+        {
+          "id": "L1-15",
+          "color": "service",
+          "area": 6778,
+          "center": [
+            1270,
+            870
+          ],
+          "points": [
+            [
+              1207,
+              825
+            ],
+            [
+              1193,
+              841
+            ],
+            [
+              1290,
+              938
+            ],
+            [
+              1343,
+              886
+            ],
+            [
+              1282,
+              824
+            ]
+          ]
+        },
+        {
+          "id": "L1-18",
+          "color": "gray",
+          "area": 10330,
+          "center": [
+            681,
+            230
+          ],
+          "points": [
+            [
+              648,
+              153
+            ],
+            [
+              649,
+              308
+            ],
+            [
+              714,
+              308
+            ],
+            [
+              714,
+              153
+            ]
+          ]
+        },
+        {
+          "id": "L1-19",
+          "color": "gray",
+          "area": 13356,
+          "center": [
+            1278,
+            232
+          ],
+          "points": [
+            [
+              1236,
+              153
+            ],
+            [
+              1236,
+              311
+            ],
+            [
+              1319,
+              311
+            ],
+            [
+              1319,
+              153
+            ]
+          ]
+        },
+        {
+          "id": "L1-20",
+          "color": "gray",
+          "area": 55950,
+          "center": [
+            656,
+            494
+          ],
+          "points": [
+            [
+              510,
+              261
+            ],
+            [
+              471,
+              300
+            ],
+            [
+              636,
+              464
+            ],
+            [
+              543,
+              558
+            ],
+            [
+              570,
+              585
+            ],
+            [
+              570,
+              626
+            ],
+            [
+              726,
+              782
+            ],
+            [
+              748,
+              759
+            ],
+            [
+              627,
+              637
+            ],
+            [
+              725,
+              539
+            ],
+            [
+              745,
+              558
+            ],
+            [
+              831,
+              471
+            ],
+            [
+              746,
+              386
+            ],
+            [
+              636,
+              386
+            ]
+          ]
+        },
+        {
+          "id": "L1-26",
+          "color": "pale",
+          "area": 27265,
+          "center": [
+            453,
+            643
+          ],
+          "points": [
+            [
+              418,
+              509
+            ],
+            [
+              344,
+              583
+            ],
+            [
+              421,
+              661
+            ],
+            [
+              385,
+              698
+            ],
+            [
+              469,
+              781
+            ],
+            [
+              565,
+              684
+            ],
+            [
+              540,
+              659
+            ],
+            [
+              541,
+              657
+            ],
+            [
+              518,
+              637
+            ],
+            [
+              531,
+              621
+            ]
+          ]
+        },
+        {
+          "id": "L1-27",
+          "color": "pale",
+          "area": 17234,
+          "center": [
+            1154,
+            993
+          ],
+          "points": [
+            [
+              1262,
+              981
+            ],
+            [
+              1206,
+              925
+            ],
+            [
+              1183,
+              944
+            ],
+            [
+              1159,
+              930
+            ],
+            [
+              1135,
+              930
+            ],
+            [
+              1122,
+              934
+            ],
+            [
+              1069,
+              969
+            ],
+            [
+              1070,
+              1053
+            ],
+            [
+              1189,
+              1053
+            ]
+          ]
+        }
+      ],
+      "labels": [
+        {
+          "id": "L1-id-card",
+          "text": "ID Card Office",
+          "position": [
+            447,
+            368
+          ],
+          "region_id": "L1-1",
+          "size": 18,
+          "lines": [
+            "ID Card",
+            "Office"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-salon",
+          "text": "OM Hair Salon",
+          "position": [
+            501,
+            425
+          ],
+          "region_id": "L1-2",
+          "size": 18,
+          "lines": [
+            "OM Hair",
+            "Salon"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-station",
+          "text": "Union Station",
+          "position": [
+            556,
+            484
+          ],
+          "region_id": "L1-3",
+          "size": 18,
+          "lines": [
+            "Union",
+            "Station"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-legal",
+          "text": "Student Legal Services",
+          "position": [
+            340,
+            504
+          ],
+          "region_id": "L1-4",
+          "size": 18,
+          "lines": [
+            "Student",
+            "Legal Services"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-bookstore",
+          "text": "Barnes & Noble Charlotte",
+          "position": [
+            525,
+            940
+          ],
+          "region_id": "L1-5",
+          "size": 25,
+          "lines": [
+            "Barnes & Noble",
+            "Charlotte"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-theater",
+          "text": "Union Theater",
+          "position": [
+            1470,
+            911
+          ],
+          "region_id": "L1-6",
+          "size": 25,
+          "lines": [
+            "Union",
+            "Theater"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-norms",
+          "text": "Norm’s",
+          "position": [
+            1250,
+            522
+          ],
+          "region_id": "L1-7",
+          "size": 25,
+          "lines": [
+            "Norm’s"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-square",
+          "text": "Union Square",
+          "position": [
+            974,
+            380
+          ],
+          "region_id": "L1-8",
+          "size": 28,
+          "lines": [
+            "Union Square"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-market",
+          "text": "Market",
+          "position": [
+            781,
+            211
+          ],
+          "region_id": "L1-8",
+          "size": 18,
+          "lines": [
+            "Market"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-shake-smart",
+          "text": "Shake Smart",
+          "position": [
+            1170,
+            246
+          ],
+          "region_id": "L1-8",
+          "size": 20,
+          "lines": [
+            "Shake",
+            "Smart"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-wendys",
+          "text": "Wendy’s",
+          "position": [
+            877,
+            536
+          ],
+          "region_id": "L1-8",
+          "size": 24,
+          "lines": [
+            "Wendy’s"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-bojangles",
+          "text": "Bojangles",
+          "position": [
+            1085,
+            533
+          ],
+          "region_id": "L1-8",
+          "size": 23,
+          "lines": [
+            "Bojangles"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-erbert",
+          "text": "Erbert & Gerbert’s Sandwich Shop",
+          "position": [
+            1348,
+            624
+          ],
+          "region_id": "L1-10",
+          "size": 17,
+          "lines": [
+            "Erbert & Gerbert’s",
+            "Sandwich Shop"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-market-craver",
+          "text": "Market on Craver",
+          "position": [
+            1285,
+            716
+          ],
+          "region_id": "L1-10",
+          "size": 17,
+          "lines": [
+            "Market on",
+            "Craver"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-starbucks",
+          "text": "Starbucks",
+          "position": [
+            811,
+            1007
+          ],
+          "region_id": "L1-11",
+          "size": 18,
+          "lines": [
+            "Starbucks"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-elevator-east",
+          "text": "Elevator",
+          "position": [
+            1345,
+            844
+          ],
+          "region_id": "L1-12",
+          "size": 11,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-gallery",
+          "text": "Art Gallery and Piano Lounge",
+          "position": [
+            1323,
+            1082
+          ],
+          "region_id": "L1-13",
+          "size": 20,
+          "lines": [
+            "Art Gallery and",
+            "Piano Lounge"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-restrooms-west",
+          "text": "Restrooms",
+          "position": [
+            736,
+            652
+          ],
+          "region_id": "L1-14",
+          "size": 17,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-elevator-west",
+          "text": "Elevator",
+          "position": [
+            844,
+            644
+          ],
+          "region_id": null,
+          "size": 11,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-restrooms-east",
+          "text": "Restrooms",
+          "position": [
+            1270,
+            870
+          ],
+          "region_id": "L1-15",
+          "size": 13,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-ninertech",
+          "text": "NinerTech Computer Store",
+          "position": [
+            458,
+            681
+          ],
+          "region_id": "L1-26",
+          "size": 19,
+          "lines": [
+            "NinerTech",
+            "Computer Store"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-information",
+          "text": "Information Center",
+          "position": [
+            1156,
+            992
+          ],
+          "region_id": "L1-27",
+          "size": 20,
+          "lines": [
+            "Information",
+            "Center"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-rotunda",
+          "text": "Rotunda",
+          "position": [
+            983,
+            773
+          ],
+          "region_id": null,
+          "size": 27,
+          "lines": [
+            "Rotunda"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-stairs-west",
+          "text": "Stairs",
+          "position": [
+            587,
+            756
+          ],
+          "region_id": null,
+          "size": 14,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L1-stairs-east",
+          "text": "Stairs",
+          "position": [
+            1407,
+            714
+          ],
+          "region_id": null,
+          "size": 14,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L1-stairs-rotunda",
+          "text": "Stairs",
+          "position": [
+            1020,
+            845
+          ],
+          "region_id": null,
+          "size": 14,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -90
+        },
+        {
+          "id": "L1-self-service",
+          "text": "Self Service",
+          "position": [
+            480,
+            66
+          ],
+          "region_id": null,
+          "size": 19,
+          "lines": [
+            "Self Service"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-cvs",
+          "text": "CVS Pharmabox",
+          "position": [
+            480,
+            94
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "CVS Pharmabox"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-atm",
+          "text": "ATM",
+          "position": [
+            480,
+            118
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "ATM"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-printer",
+          "text": "Printer",
+          "position": [
+            480,
+            142
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Printer"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-north-campus",
+          "text": "To Lynch Bridge / North Campus / Light Rail",
+          "position": [
+            975,
+            45
+          ],
+          "region_id": null,
+          "size": 21,
+          "lines": [
+            "To Lynch Bridge / North Campus / Light Rail"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L1-parking",
+          "text": "To Union Parking Deck, 6th Floor",
+          "position": [
+            260,
+            305
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "To Union Parking Deck",
+            "6th Floor"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L1-central-campus",
+          "text": "To Central Campus / CHHS & Mebane Hall",
+          "position": [
+            976,
+            1246
+          ],
+          "region_id": null,
+          "size": 21,
+          "lines": [
+            "To Central Campus / CHHS & Mebane Hall"
+          ],
+          "rotation": 0
+        }
+      ],
+      "divisions": [
+        {
+          "points": [
+            [
+              623,
+              65
+            ],
+            [
+              880,
+              135
+            ],
+            [
+              880,
+              213
+            ]
+          ],
+          "dashed": false
+        }
+      ],
+      "outline": "M226 854 L380 700 L418 662 L340 583 L264 506 L584 188 L647 188 L647 152 L716 152 L716 188 L855 188 L855 234 L1100 234 L1100 188 L1234 188 L1234 152 L1322 152 L1322 490 L1454 621 L1422 656 L1470 706 L1594 830 L1603 822 L1664 883 L1610 938 L1628 957 L1464 1118 L1406 1177 L1389 1160 L1339 1205 L1190 1057 L1074 1057 L1074 1083 L1060 1083 L1060 1057 L1030 1057 L1030 1083 L1017 1083 L1017 1057 L976 1057 L976 1083 L963 1083 L963 1057 L933 1057 L933 1083 L920 1083 L920 1057 L886 1057 L886 1083 L872 1083 L872 1057 L776 1057 L623 1211 L553 1143 L542 1154 L334 963 L358 936 L295 874 L270 898 Z",
+      "extra_regions": [
+        {
+          "id": "L1-elevator-west-region",
+          "points": [
+            [
+              808,
+              651
+            ],
+            [
+              849,
+              611
+            ],
+            [
+              876,
+              638
+            ],
+            [
+              833,
+              680
+            ]
+          ]
+        },
+        {
+          "id": "L1-rotunda",
+          "path": "M865 795 A115 115 0 1 0 1095 795 A115 115 0 1 0 865 795"
+        }
+      ]
+    },
+    "M": {
+      "label": "Mezzanine Level",
+      "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Mezzanine_0.jpg",
+      "source_sha256": "7da99c399857927f0970e8d817f9365c5e52c03f45a2d2741ceda5358a315863",
+      "regions": [
+        {
+          "id": "M-1",
+          "color": "dark-green",
+          "area": 59033,
+          "center": [
+            1394,
+            528
+          ],
+          "points": [
+            [
+              1644,
+              479
+            ],
+            [
+              1505,
+              341
+            ],
+            [
+              1246,
+              600
+            ],
+            [
+              1151,
+              505
+            ],
+            [
+              1099,
+              557
+            ],
+            [
+              1249,
+              706
+            ],
+            [
+              1422,
+              533
+            ],
+            [
+              1507,
+              616
+            ],
+            [
+              1565,
+              557
+            ],
+            [
+              1597,
+              529
+            ],
+            [
+              1597,
+              526
+            ]
+          ]
+        }
+      ],
+      "labels": [
+        {
+          "id": "M-arena",
+          "text": "Esports & Gaming Arena",
+          "position": [
+            1505,
+            480
+          ],
+          "region_id": "M-1",
+          "size": 26,
+          "lines": [
+            "Esports &",
+            "Gaming Arena"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "M-elevator",
+          "text": "Elevator",
+          "position": [
+            691,
+            550
+          ],
+          "region_id": null,
+          "size": 13,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "M-stairs-w",
+          "text": "Stairs",
+          "position": [
+            234,
+            602
+          ],
+          "region_id": null,
+          "size": 17,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "M-stairs-e",
+          "text": "Stairs",
+          "position": [
+            1563,
+            645
+          ],
+          "region_id": null,
+          "size": 17,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "M-stairs-north",
+          "text": "Stairs",
+          "position": [
+            991,
+            682
+          ],
+          "region_id": null,
+          "size": 17,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -80
+        },
+        {
+          "id": "M-stairs-south",
+          "text": "Stairs",
+          "position": [
+            967,
+            847
+          ],
+          "region_id": null,
+          "size": 17,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -80
+        }
+      ],
+      "divisions": [],
+      "outline": "M1153 836 L1161 785 L1160 753 L1153 712 L1134 660 L1117 632 L1101 613 L1125 587 L1107 568 L1100 565 L1076 588 L1035 559 L996 541 L965 532 L921 527 L867 531 L813 548 L778 567 L748 537 L738 545 L736 543 L752 524 L713 487 L678 522 L678 524 L696 523 L711 534 L715 543 L715 556 L711 565 L725 552 L728 554 L709 575 L691 590 L690 587 L702 573 L685 576 L673 571 L665 562 L662 554 L664 538 L626 574 L626 577 L662 613 L679 598 L683 601 L672 613 L702 644 L683 684 L680 686 L643 649 L631 657 L587 615 L494 708 L494 711 L512 730 L473 769 L427 724 L419 728 L215 525 L141 597 L309 767 L312 767 L368 713 L468 815 L471 815 L493 793 L489 785 L499 775 L507 779 L531 755 L526 747 L600 670 L609 679 L606 685 L667 746 L666 785 L669 814 L679 853 L715 844 L706 811 L708 807 L727 802 L729 807 L747 803 L744 779 L747 746 L735 742 L729 742 L729 745 L725 746 L707 741 L706 737 L717 700 L738 705 L738 712 L755 715 L766 691 L783 667 L772 654 L766 657 L751 641 L780 612 L796 627 L794 633 L804 643 L808 643 L828 628 L855 616 L851 599 L844 598 L839 578 L876 567 L881 569 L886 587 L881 590 L885 607 L902 605 L943 607 L947 590 L942 585 L946 569 L951 567 L985 576 L988 581 L983 598 L976 600 L972 614 L976 618 L958 738 L954 741 L929 737 L924 767 L952 772 L933 898 L982 905 L1000 786 L1003 779 L1079 791 L1082 793 L1082 804 L1098 807 L1100 803 L1121 808 L1113 844 L1148 852 Z M1608 523 L1596 530 L1583 546 L1458 670 L1532 746 L1681 599 L1681 596 Z",
+      "extra_regions": [
+        {
+          "id": "M-elevator-region",
+          "points": [
+            [
+              622,
+              575
+            ],
+            [
+              715,
+              483
+            ],
+            [
+              756,
+              525
+            ],
+            [
+              664,
+              617
+            ]
+          ]
+        }
+      ]
+    },
+    "L2": {
+      "label": "Second Floor",
+      "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%202_0.jpg",
+      "source_sha256": "56e9e20dd2b011a500e8e3d7dfa70f6d3a0739f16c67110bca13885ede810f44",
+      "regions": [
+        {
+          "id": "L2-1",
+          "color": "dark-green",
+          "area": 3538,
+          "center": [
+            1050,
+            613
+          ],
+          "points": [
+            [
+              1073,
+              562
+            ],
+            [
+              999,
+              636
+            ],
+            [
+              1027,
+              664
+            ],
+            [
+              1101,
+              591
+            ]
+          ]
+        },
+        {
+          "id": "L2-2",
+          "color": "dark-green",
+          "area": 10331,
+          "center": [
+            1405,
+            795
+          ],
+          "points": [
+            [
+              1327,
+              799
+            ],
+            [
+              1408,
+              717
+            ],
+            [
+              1484,
+              791
+            ],
+            [
+              1400,
+              874
+            ]
+          ]
+        },
+        {
+          "id": "L2-3",
+          "color": "dark-green",
+          "area": 2393,
+          "center": [
+            560,
+            796
+          ],
+          "points": [
+            [
+              557,
+              757
+            ],
+            [
+              522,
+              792
+            ],
+            [
+              565,
+              834
+            ],
+            [
+              600,
+              799
+            ]
+          ]
+        },
+        {
+          "id": "L2-4",
+          "color": "dark-green",
+          "area": 9882,
+          "center": [
+            1514,
+            867
+          ],
+          "points": [
+            [
+              1434,
+              844
+            ],
+            [
+              1484,
+              794
+            ],
+            [
+              1522,
+              832
+            ],
+            [
+              1538,
+              822
+            ],
+            [
+              1598,
+              887
+            ],
+            [
+              1537,
+              946
+            ]
+          ]
+        },
+        {
+          "id": "L2-5",
+          "color": "dark-green",
+          "area": 8788,
+          "center": [
+            1105,
+            953
+          ],
+          "points": [
+            [
+              1032,
+              953
+            ],
+            [
+              1105,
+              881
+            ],
+            [
+              1175,
+              951
+            ],
+            [
+              1103,
+              1026
+            ]
+          ]
+        },
+        {
+          "id": "L2-6",
+          "color": "dark-green",
+          "area": 11084,
+          "center": [
+            1474,
+            964
+          ],
+          "points": [
+            [
+              1392,
+              966
+            ],
+            [
+              1472,
+              887
+            ],
+            [
+              1554,
+              966
+            ],
+            [
+              1473,
+              1046
+            ]
+          ]
+        },
+        {
+          "id": "L2-7",
+          "color": "dark-green",
+          "area": 8934,
+          "center": [
+            1048,
+            1020
+          ],
+          "points": [
+            [
+              999,
+              953
+            ],
+            [
+              1032,
+              953
+            ],
+            [
+              1135,
+              1059
+            ],
+            [
+              1129,
+              1065
+            ],
+            [
+              999,
+              1065
+            ]
+          ]
+        },
+        {
+          "id": "L2-8",
+          "color": "dark-green",
+          "area": 10379,
+          "center": [
+            1180,
+            1032
+          ],
+          "points": [
+            [
+              1104,
+              1026
+            ],
+            [
+              1177,
+              953
+            ],
+            [
+              1259,
+              1034
+            ],
+            [
+              1175,
+              1115
+            ]
+          ]
+        },
+        {
+          "id": "L2-9",
+          "color": "dark-green",
+          "area": 18371,
+          "center": [
+            905,
+            1027
+          ],
+          "points": [
+            [
+              815,
+              972
+            ],
+            [
+              814,
+              1083
+            ],
+            [
+              996,
+              1083
+            ],
+            [
+              996,
+              972
+            ]
+          ]
+        },
+        {
+          "id": "L2-10",
+          "color": "dark-green",
+          "area": 5726,
+          "center": [
+            1413,
+            1037
+          ],
+          "points": [
+            [
+              1350,
+              1024
+            ],
+            [
+              1392,
+              978
+            ],
+            [
+              1473,
+              1046
+            ],
+            [
+              1421,
+              1097
+            ]
+          ]
+        },
+        {
+          "id": "L2-11",
+          "color": "dark-green",
+          "area": 11150,
+          "center": [
+            1340,
+            1099
+          ],
+          "points": [
+            [
+              1260,
+              1097
+            ],
+            [
+              1339,
+              1019
+            ],
+            [
+              1420,
+              1099
+            ],
+            [
+              1340,
+              1179
+            ]
+          ]
+        },
+        {
+          "id": "L2-12",
+          "color": "dark-green",
+          "area": 8770,
+          "center": [
+            1251,
+            1142
+          ],
+          "points": [
+            [
+              1174,
+              1117
+            ],
+            [
+              1224,
+              1068
+            ],
+            [
+              1327,
+              1168
+            ],
+            [
+              1275,
+              1221
+            ]
+          ]
+        },
+        {
+          "id": "L2-13",
+          "color": "dining",
+          "area": 235286,
+          "center": [
+            911,
+            378
+          ],
+          "points": [
+            [
+              1307,
+              188
+            ],
+            [
+              1246,
+              188
+            ],
+            [
+              1244,
+              312
+            ],
+            [
+              1165,
+              310
+            ],
+            [
+              1165,
+              188
+            ],
+            [
+              1024,
+              188
+            ],
+            [
+              980,
+              176
+            ],
+            [
+              925,
+              169
+            ],
+            [
+              855,
+              172
+            ],
+            [
+              824,
+              177
+            ],
+            [
+              786,
+              188
+            ],
+            [
+              645,
+              188
+            ],
+            [
+              644,
+              311
+            ],
+            [
+              568,
+              312
+            ],
+            [
+              568,
+              460
+            ],
+            [
+              745,
+              637
+            ],
+            [
+              774,
+              611
+            ],
+            [
+              801,
+              638
+            ],
+            [
+              857,
+              583
+            ],
+            [
+              946,
+              583
+            ],
+            [
+              997,
+              633
+            ],
+            [
+              1173,
+              457
+            ],
+            [
+              1174,
+              407
+            ],
+            [
+              1307,
+              406
+            ]
+          ]
+        },
+        {
+          "id": "L2-14",
+          "color": "dining",
+          "area": 62863,
+          "center": [
+            433,
+            397
+          ],
+          "points": [
+            [
+              563,
+              188
+            ],
+            [
+              506,
+              188
+            ],
+            [
+              245,
+              450
+            ],
+            [
+              402,
+              608
+            ],
+            [
+              449,
+              562
+            ],
+            [
+              431,
+              542
+            ],
+            [
+              510,
+              463
+            ],
+            [
+              563,
+              461
+            ]
+          ]
+        },
+        {
+          "id": "L2-15",
+          "color": "room",
+          "area": 34113,
+          "center": [
+            1183,
+            540
+          ],
+          "points": [
+            [
+              1306,
+              411
+            ],
+            [
+              1177,
+              411
+            ],
+            [
+              1177,
+              458
+            ],
+            [
+              1077,
+              558
+            ],
+            [
+              1107,
+              590
+            ],
+            [
+              1031,
+              666
+            ],
+            [
+              1036,
+              673
+            ],
+            [
+              1034,
+              674
+            ],
+            [
+              1046,
+              682
+            ],
+            [
+              1086,
+              722
+            ],
+            [
+              1331,
+              477
+            ],
+            [
+              1306,
+              451
+            ]
+          ]
+        },
+        {
+          "id": "L2-16",
+          "color": "room",
+          "area": 42357,
+          "center": [
+            1261,
+            649
+          ],
+          "points": [
+            [
+              1335,
+              480
+            ],
+            [
+              1089,
+              725
+            ],
+            [
+              1096,
+              735
+            ],
+            [
+              1149,
+              785
+            ],
+            [
+              1252,
+              785
+            ],
+            [
+              1264,
+              757
+            ],
+            [
+              1263,
+              737
+            ],
+            [
+              1426,
+              574
+            ]
+          ]
+        },
+        {
+          "id": "L2-17",
+          "color": "room",
+          "area": 137077,
+          "center": [
+            512,
+            957
+          ],
+          "points": [
+            [
+              229,
+              884
+            ],
+            [
+              282,
+              938
+            ],
+            [
+              260,
+              962
+            ],
+            [
+              472,
+              1174
+            ],
+            [
+              495,
+              1151
+            ],
+            [
+              544,
+              1200
+            ],
+            [
+              681,
+              1065
+            ],
+            [
+              683,
+              1059
+            ],
+            [
+              685,
+              1062
+            ],
+            [
+              811,
+              1062
+            ],
+            [
+              811,
+              961
+            ],
+            [
+              787,
+              961
+            ],
+            [
+              735,
+              909
+            ],
+            [
+              727,
+              914
+            ],
+            [
+              681,
+              868
+            ],
+            [
+              682,
+              865
+            ],
+            [
+              669,
+              852
+            ],
+            [
+              666,
+              853
+            ],
+            [
+              609,
+              796
+            ],
+            [
+              566,
+              839
+            ],
+            [
+              520,
+              795
+            ],
+            [
+              506,
+              807
+            ],
+            [
+              406,
+              706
+            ]
+          ]
+        },
+        {
+          "id": "L2-18",
+          "color": "service",
+          "area": 20429,
+          "center": [
+            649,
+            641
+          ],
+          "points": [
+            [
+              634,
+              533
+            ],
+            [
+              545,
+              623
+            ],
+            [
+              681,
+              758
+            ],
+            [
+              736,
+              703
+            ],
+            [
+              709,
+              674
+            ],
+            [
+              743,
+              640
+            ]
+          ]
+        },
+        {
+          "id": "L2-19",
+          "color": "service",
+          "area": 14451,
+          "center": [
+            1233,
+            878
+          ],
+          "points": [
+            [
+              1126,
+              853
+            ],
+            [
+              1236,
+              964
+            ],
+            [
+              1336,
+              865
+            ],
+            [
+              1299,
+              827
+            ],
+            [
+              1151,
+              828
+            ]
+          ]
+        },
+        {
+          "id": "L2-20",
+          "color": "gray",
+          "area": 11899,
+          "center": [
+            604,
+            226
+          ],
+          "points": [
+            [
+              568,
+              145
+            ],
+            [
+              568,
+              307
+            ],
+            [
+              640,
+              307
+            ],
+            [
+              640,
+              145
+            ]
+          ]
+        },
+        {
+          "id": "L2-21",
+          "color": "gray",
+          "area": 11899,
+          "center": [
+            1205,
+            226
+          ],
+          "points": [
+            [
+              1169,
+              145
+            ],
+            [
+              1169,
+              307
+            ],
+            [
+              1241,
+              307
+            ],
+            [
+              1241,
+              145
+            ]
+          ]
+        },
+        {
+          "id": "L2-22",
+          "color": "gray",
+          "area": 19372,
+          "center": [
+            533,
+            545
+          ],
+          "points": [
+            [
+              565,
+              465
+            ],
+            [
+              514,
+              466
+            ],
+            [
+              437,
+              542
+            ],
+            [
+              499,
+              605
+            ],
+            [
+              498,
+              631
+            ],
+            [
+              523,
+              656
+            ],
+            [
+              547,
+              632
+            ],
+            [
+              540,
+              622
+            ],
+            [
+              631,
+              531
+            ]
+          ]
+        },
+        {
+          "id": "L2-23",
+          "color": "gray",
+          "area": 4490,
+          "center": [
+            621,
+            730
+          ],
+          "points": [
+            [
+              588,
+              673
+            ],
+            [
+              565,
+              698
+            ],
+            [
+              654,
+              786
+            ],
+            [
+              678,
+              762
+            ]
+          ]
+        },
+        {
+          "id": "L2-24",
+          "color": "gray",
+          "area": 34590,
+          "center": [
+            897,
+            810
+          ],
+          "path": "M792 810 A113 113 0 1 0 1018 810 A113 113 0 1 0 792 810"
+        },
+        {
+          "id": "L2-25",
+          "color": "gray",
+          "area": 9661,
+          "center": [
+            1314,
+            941
+          ],
+          "points": [
+            [
+              1339,
+              868
+            ],
+            [
+              1240,
+              967
+            ],
+            [
+              1288,
+              1015
+            ],
+            [
+              1387,
+              916
+            ]
+          ]
+        }
+      ],
+      "labels": [
+        {
+          "id": "L2-meeting-250",
+          "text": "Meeting Room 250",
+          "position": [
+            1048,
+            612
+          ],
+          "region_id": "L2-1",
+          "size": 13,
+          "lines": [
+            "Meeting",
+            "Room 250"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L2-meeting-267",
+          "text": "Meeting Room 267",
+          "position": [
+            1403,
+            795
+          ],
+          "region_id": "L2-2",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 267"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-266",
+          "text": "Meeting Room 266",
+          "position": [
+            1510,
+            880
+          ],
+          "region_id": "L2-4",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 266"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-260",
+          "text": "Meeting Room 260",
+          "position": [
+            1105,
+            950
+          ],
+          "region_id": "L2-5",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 260"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-265",
+          "text": "Meeting Room 265",
+          "position": [
+            1472,
+            966
+          ],
+          "region_id": "L2-6",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 265"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-261",
+          "text": "Meeting Room 261",
+          "position": [
+            1178,
+            1034
+          ],
+          "region_id": "L2-8",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 261"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-264",
+          "text": "Meeting Room 264",
+          "position": [
+            1410,
+            1039
+          ],
+          "region_id": "L2-10",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 264"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-263",
+          "text": "Meeting Room 263",
+          "position": [
+            1339,
+            1101
+          ],
+          "region_id": "L2-11",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 263"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-meeting-262",
+          "text": "Meeting Room 262",
+          "position": [
+            1250,
+            1146
+          ],
+          "region_id": "L2-12",
+          "size": 18,
+          "lines": [
+            "Meeting",
+            "Room 262"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-lactation",
+          "text": "Lactation Room 220A",
+          "position": [
+            555,
+            663
+          ],
+          "region_id": null,
+          "size": 10,
+          "lines": [
+            "Lactation",
+            "Room 220A"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-meeting-222",
+          "text": "Meeting Room 222",
+          "position": [
+            562,
+            798
+          ],
+          "region_id": "L2-3",
+          "size": 12,
+          "lines": [
+            "Meeting",
+            "Room 222"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-room-280",
+          "text": "280",
+          "position": [
+            1047,
+            1020
+          ],
+          "region_id": "L2-7",
+          "size": 20,
+          "lines": [
+            "280"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-hoppa",
+          "text": "James M. Hoppa Room 200",
+          "position": [
+            906,
+            1026
+          ],
+          "region_id": "L2-9",
+          "size": 18,
+          "lines": [
+            "James M. Hoppa",
+            "Room 200"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-social",
+          "text": "Social 704",
+          "position": [
+            900,
+            470
+          ],
+          "region_id": "L2-13",
+          "size": 29,
+          "lines": [
+            "Social 704"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-bistro",
+          "text": "Bistro",
+          "position": [
+            445,
+            390
+          ],
+          "region_id": "L2-14",
+          "size": 27,
+          "lines": [
+            "Bistro"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-administration",
+          "text": "Popp Martin Student Union Administration and CRES/Reservations",
+          "position": [
+            1197,
+            551
+          ],
+          "region_id": "L2-15",
+          "size": 18,
+          "lines": [
+            "Popp Martin Student Union",
+            "Administration and",
+            "CRES/Reservations"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L2-room-251",
+          "text": "Room 251",
+          "position": [
+            1071,
+            686
+          ],
+          "region_id": "L2-15",
+          "size": 14,
+          "lines": [
+            "Room 251"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-leadership",
+          "text": "Leadership and Community Engagement",
+          "position": [
+            1262,
+            633
+          ],
+          "region_id": "L2-16",
+          "size": 20,
+          "lines": [
+            "Leadership and",
+            "Community Engagement"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L2-room-252",
+          "text": "Room 252",
+          "position": [
+            1130,
+            749
+          ],
+          "region_id": "L2-16",
+          "size": 14,
+          "lines": [
+            "Room 252"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-involvement",
+          "text": "Center for Student Involvement",
+          "position": [
+            490,
+            864
+          ],
+          "region_id": "L2-17",
+          "size": 26,
+          "lines": [
+            "Center for",
+            "Student Involvement"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-resource",
+          "text": "Student Organization Resource Center",
+          "position": [
+            518,
+            940
+          ],
+          "region_id": "L2-17",
+          "size": 17,
+          "lines": [
+            "Student Organization Resource Center"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-activities",
+          "text": "Campus Activities Board",
+          "position": [
+            518,
+            967
+          ],
+          "region_id": "L2-17",
+          "size": 17,
+          "lines": [
+            "Campus Activities Board"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-engagement",
+          "text": "Student Engagement Administration",
+          "position": [
+            518,
+            994
+          ],
+          "region_id": "L2-17",
+          "size": 17,
+          "lines": [
+            "Student Engagement Administration"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-staff",
+          "text": "Student Involvement Staff",
+          "position": [
+            518,
+            1021
+          ],
+          "region_id": "L2-17",
+          "size": 17,
+          "lines": [
+            "Student Involvement Staff"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-government",
+          "text": "Student Government Association",
+          "position": [
+            518,
+            1048
+          ],
+          "region_id": "L2-17",
+          "size": 17,
+          "lines": [
+            "Student Government Association"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-room-212",
+          "text": "Room 212",
+          "position": [
+            640,
+            850
+          ],
+          "region_id": "L2-17",
+          "size": 13,
+          "lines": [
+            "Room 212"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-restrooms-west",
+          "text": "Restrooms",
+          "position": [
+            650,
+            641
+          ],
+          "region_id": "L2-18",
+          "size": 18,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-restrooms-east",
+          "text": "Restrooms",
+          "position": [
+            1234,
+            877
+          ],
+          "region_id": "L2-19",
+          "size": 17,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L2-elevator",
+          "text": "Elevator",
+          "position": [
+            755,
+            661
+          ],
+          "region_id": null,
+          "size": 11,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L2-stairs-west",
+          "text": "Stairs",
+          "position": [
+            500,
+            762
+          ],
+          "region_id": null,
+          "size": 14,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L2-stairs-east",
+          "text": "Stairs",
+          "position": [
+            1383,
+            684
+          ],
+          "region_id": null,
+          "size": 14,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L2-stairs-rotunda-north",
+          "text": "Stairs",
+          "position": [
+            961,
+            728
+          ],
+          "region_id": null,
+          "size": 13,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -90
+        },
+        {
+          "id": "L2-stairs-rotunda-south",
+          "text": "Stairs",
+          "position": [
+            972,
+            872
+          ],
+          "region_id": null,
+          "size": 13,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 45
+        }
+      ],
+      "divisions": [],
+      "outline": "M226 884 L406 705 L381 679 L432 628 L399 609 L241 452 L505 186 L566 186 L566 144 L643 144 L643 186 L783 186 Q905 146 1028 186 L1167 186 L1167 144 L1244 144 L1244 186 L1309 186 L1309 452 L1429 574 L1380 624 L1440 684 L1410 717 L1484 791 L1522 831 L1537 821 L1598 887 L1537 946 L1555 966 L1275 1221 L1190 1136 L1173 1115 L1105 1064 L999 1064 L999 1085 L813 1085 L813 1064 L683 1064 L545 1204 L495 1155 L473 1177 L258 963 L280 939 Z",
+      "extra_regions": [
+        {
+          "id": "L2-lactation-region",
+          "points": [
+            [
+              523,
+              662
+            ],
+            [
+              544,
+              640
+            ],
+            [
+              589,
+              678
+            ],
+            [
+              567,
+              700
+            ]
+          ]
+        },
+        {
+          "id": "L2-elevator-region",
+          "points": [
+            [
+              712,
+              677
+            ],
+            [
+              772,
+              615
+            ],
+            [
+              800,
+              643
+            ],
+            [
+              741,
+              704
+            ]
+          ]
+        }
+      ]
+    },
+    "L3": {
+      "label": "Third Floor",
+      "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%203_0.jpg",
+      "source_sha256": "457d3c12b3c6a4c04e3838ca0b54e693930705e3128afbb42eee8b6760ff4ef9",
+      "regions": [
+        {
+          "id": "L3-1",
+          "color": "room",
+          "area": 276180,
+          "center": [
+            922,
+            366
+          ],
+          "points": [
+            [
+              613,
+              116
+            ],
+            [
+              613,
+              317
+            ],
+            [
+              685,
+              319
+            ],
+            [
+              685,
+              570
+            ],
+            [
+              796,
+              681
+            ],
+            [
+              896,
+              681
+            ],
+            [
+              896,
+              684
+            ],
+            [
+              1048,
+              681
+            ],
+            [
+              1159,
+              570
+            ],
+            [
+              1159,
+              319
+            ],
+            [
+              1230,
+              317
+            ],
+            [
+              1230,
+              116
+            ]
+          ]
+        },
+        {
+          "id": "L3-2",
+          "color": "room",
+          "area": 56142,
+          "center": [
+            922,
+            1103
+          ],
+          "points": [
+            [
+              672,
+              1015
+            ],
+            [
+              689,
+              1033
+            ],
+            [
+              680,
+              1045
+            ],
+            [
+              704,
+              1091
+            ],
+            [
+              728,
+              1122
+            ],
+            [
+              756,
+              1149
+            ],
+            [
+              787,
+              1171
+            ],
+            [
+              822,
+              1189
+            ],
+            [
+              871,
+              1204
+            ],
+            [
+              901,
+              1208
+            ],
+            [
+              956,
+              1207
+            ],
+            [
+              1003,
+              1197
+            ],
+            [
+              1049,
+              1177
+            ],
+            [
+              1079,
+              1158
+            ],
+            [
+              1117,
+              1124
+            ],
+            [
+              1142,
+              1092
+            ],
+            [
+              1165,
+              1049
+            ],
+            [
+              1153,
+              1034
+            ],
+            [
+              1171,
+              1016
+            ],
+            [
+              1147,
+              991
+            ],
+            [
+              1078,
+              991
+            ],
+            [
+              1068,
+              1019
+            ],
+            [
+              1044,
+              1054
+            ],
+            [
+              1015,
+              1080
+            ],
+            [
+              982,
+              1098
+            ],
+            [
+              942,
+              1108
+            ],
+            [
+              905,
+              1108
+            ],
+            [
+              865,
+              1098
+            ],
+            [
+              822,
+              1073
+            ],
+            [
+              805,
+              1057
+            ],
+            [
+              786,
+              1032
+            ],
+            [
+              773,
+              1006
+            ],
+            [
+              769,
+              991
+            ],
+            [
+              703,
+              989
+            ],
+            [
+              696,
+              991
+            ]
+          ]
+        },
+        {
+          "id": "L3-3",
+          "color": "service",
+          "area": 30649,
+          "center": [
+            617,
+            741
+          ],
+          "points": [
+            [
+              598,
+              614
+            ],
+            [
+              492,
+              721
+            ],
+            [
+              657,
+              885
+            ],
+            [
+              679,
+              863
+            ],
+            [
+              681,
+              864
+            ],
+            [
+              723,
+              819
+            ],
+            [
+              695,
+              790
+            ],
+            [
+              735,
+              750
+            ]
+          ]
+        },
+        {
+          "id": "L3-4",
+          "color": "service",
+          "area": 23672,
+          "center": [
+            1327,
+            1035
+          ],
+          "points": [
+            [
+              1205,
+              967
+            ],
+            [
+              1205,
+              1011
+            ],
+            [
+              1347,
+              1153
+            ],
+            [
+              1376,
+              1125
+            ],
+            [
+              1361,
+              1108
+            ],
+            [
+              1447,
+              1022
+            ],
+            [
+              1393,
+              967
+            ],
+            [
+              1294,
+              967
+            ],
+            [
+              1293,
+              964
+            ]
+          ]
+        },
+        {
+          "id": "L3-5",
+          "color": "gray",
+          "area": 149452,
+          "center": [
+            1307,
+            636
+          ],
+          "points": [
+            [
+              1402,
+              294
+            ],
+            [
+              1337,
+              294
+            ],
+            [
+              1336,
+              356
+            ],
+            [
+              1207,
+              356
+            ],
+            [
+              1207,
+              593
+            ],
+            [
+              1046,
+              753
+            ],
+            [
+              1083,
+              789
+            ],
+            [
+              1120,
+              753
+            ],
+            [
+              1239,
+              872
+            ],
+            [
+              1206,
+              906
+            ],
+            [
+              1204,
+              924
+            ],
+            [
+              1328,
+              924
+            ],
+            [
+              1368,
+              884
+            ],
+            [
+              1349,
+              864
+            ],
+            [
+              1548,
+              665
+            ],
+            [
+              1402,
+              519
+            ]
+          ]
+        },
+        {
+          "id": "L3-6",
+          "color": "gray",
+          "area": 56945,
+          "center": [
+            480,
+            497
+          ],
+          "points": [
+            [
+              635,
+              356
+            ],
+            [
+              525,
+              356
+            ],
+            [
+              524,
+              321
+            ],
+            [
+              510,
+              321
+            ],
+            [
+              509,
+              307
+            ],
+            [
+              440,
+              307
+            ],
+            [
+              440,
+              510
+            ],
+            [
+              274,
+              676
+            ],
+            [
+              342,
+              746
+            ],
+            [
+              361,
+              729
+            ],
+            [
+              374,
+              742
+            ],
+            [
+              379,
+              738
+            ],
+            [
+              378,
+              671
+            ],
+            [
+              526,
+              523
+            ],
+            [
+              635,
+              523
+            ]
+          ]
+        },
+        {
+          "id": "L3-7",
+          "color": "gray",
+          "area": 24755,
+          "center": [
+            534,
+            720
+          ],
+          "points": [
+            [
+              550,
+              566
+            ],
+            [
+              433,
+              683
+            ],
+            [
+              433,
+              729
+            ],
+            [
+              624,
+              920
+            ],
+            [
+              641,
+              920
+            ],
+            [
+              641,
+              902
+            ],
+            [
+              653,
+              889
+            ],
+            [
+              486,
+              722
+            ],
+            [
+              635,
+              571
+            ],
+            [
+              635,
+              566
+            ]
+          ]
+        },
+        {
+          "id": "L3-8",
+          "color": "gray",
+          "area": 74718,
+          "center": [
+            923,
+            952
+          ],
+          "path": "M764 952 A159 159 0 1 0 1082 952 A159 159 0 1 0 764 952"
+        },
+        {
+          "id": "L3-9",
+          "color": "gray",
+          "area": 62926,
+          "center": [
+            502,
+            1040
+          ],
+          "points": [
+            [
+              492,
+              867
+            ],
+            [
+              323,
+              1037
+            ],
+            [
+              502,
+              1215
+            ],
+            [
+              683,
+              1034
+            ],
+            [
+              666,
+              1015
+            ],
+            [
+              690,
+              991
+            ],
+            [
+              617,
+              991
+            ]
+          ]
+        },
+        {
+          "id": "L3-10",
+          "color": "gray",
+          "area": 28265,
+          "center": [
+            1360,
+            1078
+          ],
+          "points": [
+            [
+              1429,
+              932
+            ],
+            [
+              1397,
+              965
+            ],
+            [
+              1452,
+              1023
+            ],
+            [
+              1366,
+              1109
+            ],
+            [
+              1382,
+              1125
+            ],
+            [
+              1348,
+              1159
+            ],
+            [
+              1200,
+              1013
+            ],
+            [
+              1200,
+              992
+            ],
+            [
+              1154,
+              992
+            ],
+            [
+              1177,
+              1015
+            ],
+            [
+              1159,
+              1035
+            ],
+            [
+              1342,
+              1217
+            ],
+            [
+              1528,
+              1031
+            ]
+          ]
+        }
+      ],
+      "labels": [
+        {
+          "id": "L3-multipurpose",
+          "text": "Multipurpose Room 340",
+          "position": [
+            923,
+            631
+          ],
+          "region_id": "L3-1",
+          "size": 26,
+          "lines": [
+            "Multipurpose Room",
+            "340"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-A",
+          "text": "A",
+          "position": [
+            788,
+            535
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "A"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-B",
+          "text": "B",
+          "position": [
+            927,
+            535
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "B"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-C",
+          "text": "C",
+          "position": [
+            1064,
+            535
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "C"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-D",
+          "text": "D",
+          "position": [
+            788,
+            389
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "D"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-E",
+          "text": "E",
+          "position": [
+            927,
+            389
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "E"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-F",
+          "text": "F",
+          "position": [
+            1064,
+            389
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "F"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-G",
+          "text": "G",
+          "position": [
+            788,
+            188
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "G"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-H",
+          "text": "H",
+          "position": [
+            927,
+            188
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "H"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-section-I",
+          "text": "I",
+          "position": [
+            1064,
+            188
+          ],
+          "region_id": "L3-1",
+          "size": 30,
+          "lines": [
+            "I"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-terrace",
+          "text": "Terrace",
+          "position": [
+            923,
+            1159
+          ],
+          "region_id": "L3-2",
+          "size": 27,
+          "lines": [
+            "Terrace"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-restrooms-west",
+          "text": "Restrooms",
+          "position": [
+            616,
+            741
+          ],
+          "region_id": "L3-3",
+          "size": 19,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-restrooms-east",
+          "text": "Restrooms",
+          "position": [
+            1310,
+            1024
+          ],
+          "region_id": "L3-4",
+          "size": 18,
+          "lines": [
+            "Restrooms"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-elevator",
+          "text": "Elevator",
+          "position": [
+            749,
+            772
+          ],
+          "region_id": null,
+          "size": 12,
+          "lines": [
+            "Elevator"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L3-stairs-nw",
+          "text": "Stairs",
+          "position": [
+            562,
+            205
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-stairs-ne",
+          "text": "Stairs",
+          "position": [
+            1284,
+            208
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 0
+        },
+        {
+          "id": "L3-stairs-w",
+          "text": "Stairs",
+          "position": [
+            420,
+            858
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -45
+        },
+        {
+          "id": "L3-stairs-e",
+          "text": "Stairs",
+          "position": [
+            1484,
+            812
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": 45
+        },
+        {
+          "id": "L3-stairs-center",
+          "text": "Stairs",
+          "position": [
+            923,
+            820
+          ],
+          "region_id": null,
+          "size": 16,
+          "lines": [
+            "Stairs"
+          ],
+          "rotation": -90
+        }
+      ],
+      "divisions": [
+        {
+          "points": [
+            [
+              855,
+              134
+            ],
+            [
+              855,
+              585
+            ]
+          ],
+          "dashed": true
+        },
+        {
+          "points": [
+            [
+              998,
+              134
+            ],
+            [
+              998,
+              585
+            ]
+          ],
+          "dashed": true
+        },
+        {
+          "points": [
+            [
+              744,
+              279
+            ],
+            [
+              1110,
+              279
+            ]
+          ],
+          "dashed": true
+        },
+        {
+          "points": [
+            [
+              744,
+              479
+            ],
+            [
+              1110,
+              479
+            ]
+          ],
+          "dashed": true
+        }
+      ],
+      "outline": "M271 678 L438 509 L438 306 L511 306 L511 158 L611 158 L611 115 L1232 115 L1232 158 L1335 158 L1335 293 L1406 293 L1406 519 L1552 665 L1482 735 L1554 805 L1430 931 L1531 1031 L1342 1222 L1160 1048 Q1115 1212 924 1212 Q734 1212 680 1047 L503 1220 L320 1037 L432 928 L292 804 L345 750 Z",
+      "extra_regions": [
+        {
+          "id": "L3-elevator-region",
+          "points": [
+            [
+              698,
+              792
+            ],
+            [
+              769,
+              719
+            ],
+            [
+              800,
+              750
+            ],
+            [
+              730,
+              821
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

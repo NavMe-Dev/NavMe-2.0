@@ -8,7 +8,8 @@ from ..config import get_settings
 router = APIRouter(prefix="/api/v1/public/buildings", tags=["public"])
 ROOT_FILES = {"floor-inventory.json", "building-metadata.json", "student-union-floorplans.pdf"}
 FLOOR_FILES = {"floorplan.svg", "floorplan.png", "floorplan.geojson", "rooms.geojson", "corridors.geojson",
-               "walls.geojson", "source-spaces.geojson", "circulation-evidence.geojson", "metadata.json"}
+               "walls.geojson", "source-spaces.geojson", "circulation-evidence.geojson", "metadata.json",
+               "label-plan.svg", "label-plan.json"}
 
 
 @router.get("/{slug}/floorplans/{asset:path}")

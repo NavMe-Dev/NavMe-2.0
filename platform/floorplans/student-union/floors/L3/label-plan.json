@@ -1,0 +1,288 @@
+{
+  "floor_id": "L3",
+  "label": "Third Floor",
+  "presentation": "official_labels_divisions",
+  "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%203_0.jpg",
+  "source_sha256": "457d3c12b3c6a4c04e3838ca0b54e693930705e3128afbb42eee8b6760ff4ef9",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "official diagram pixels",
+  "model_registered": false,
+  "view_box": [
+    120,
+    80,
+    1590,
+    1170
+  ],
+  "labels": [
+    {
+      "id": "L3-multipurpose",
+      "text": "Multipurpose Room 340",
+      "position": [
+        923,
+        631
+      ],
+      "region_id": "L3-1",
+      "size": 26,
+      "lines": [
+        "Multipurpose Room",
+        "340"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-A",
+      "text": "A",
+      "position": [
+        788,
+        535
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "A"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-B",
+      "text": "B",
+      "position": [
+        927,
+        535
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "B"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-C",
+      "text": "C",
+      "position": [
+        1064,
+        535
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "C"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-D",
+      "text": "D",
+      "position": [
+        788,
+        389
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "D"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-E",
+      "text": "E",
+      "position": [
+        927,
+        389
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "E"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-F",
+      "text": "F",
+      "position": [
+        1064,
+        389
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "F"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-G",
+      "text": "G",
+      "position": [
+        788,
+        188
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "G"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-H",
+      "text": "H",
+      "position": [
+        927,
+        188
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "H"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-section-I",
+      "text": "I",
+      "position": [
+        1064,
+        188
+      ],
+      "region_id": "L3-1",
+      "size": 30,
+      "lines": [
+        "I"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-terrace",
+      "text": "Terrace",
+      "position": [
+        923,
+        1159
+      ],
+      "region_id": "L3-2",
+      "size": 27,
+      "lines": [
+        "Terrace"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-restrooms-west",
+      "text": "Restrooms",
+      "position": [
+        616,
+        741
+      ],
+      "region_id": "L3-3",
+      "size": 19,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-restrooms-east",
+      "text": "Restrooms",
+      "position": [
+        1310,
+        1024
+      ],
+      "region_id": "L3-4",
+      "size": 18,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-elevator",
+      "text": "Elevator",
+      "position": [
+        749,
+        772
+      ],
+      "region_id": null,
+      "size": 12,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L3-stairs-nw",
+      "text": "Stairs",
+      "position": [
+        562,
+        205
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-stairs-ne",
+      "text": "Stairs",
+      "position": [
+        1284,
+        208
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L3-stairs-w",
+      "text": "Stairs",
+      "position": [
+        420,
+        858
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L3-stairs-e",
+      "text": "Stairs",
+      "position": [
+        1484,
+        812
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L3-stairs-center",
+      "text": "Stairs",
+      "position": [
+        923,
+        820
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -90
+    }
+  ],
+  "region_count": 11,
+  "partition_count": 4,
+  "note": "Labels and divisions from the university diagram. Diagram not to scale."
+}

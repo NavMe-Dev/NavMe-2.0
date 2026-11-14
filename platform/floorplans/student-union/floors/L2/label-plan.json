@@ -1,0 +1,499 @@
+{
+  "floor_id": "L2",
+  "label": "Second Floor",
+  "presentation": "official_labels_divisions",
+  "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%202_0.jpg",
+  "source_sha256": "56e9e20dd2b011a500e8e3d7dfa70f6d3a0739f16c67110bca13885ede810f44",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "official diagram pixels",
+  "model_registered": false,
+  "view_box": [
+    120,
+    80,
+    1590,
+    1170
+  ],
+  "labels": [
+    {
+      "id": "L2-meeting-250",
+      "text": "Meeting Room 250",
+      "position": [
+        1048,
+        612
+      ],
+      "region_id": "L2-1",
+      "size": 13,
+      "lines": [
+        "Meeting",
+        "Room 250"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L2-meeting-267",
+      "text": "Meeting Room 267",
+      "position": [
+        1403,
+        795
+      ],
+      "region_id": "L2-2",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 267"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-266",
+      "text": "Meeting Room 266",
+      "position": [
+        1510,
+        880
+      ],
+      "region_id": "L2-4",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 266"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-260",
+      "text": "Meeting Room 260",
+      "position": [
+        1105,
+        950
+      ],
+      "region_id": "L2-5",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 260"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-265",
+      "text": "Meeting Room 265",
+      "position": [
+        1472,
+        966
+      ],
+      "region_id": "L2-6",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 265"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-261",
+      "text": "Meeting Room 261",
+      "position": [
+        1178,
+        1034
+      ],
+      "region_id": "L2-8",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 261"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-264",
+      "text": "Meeting Room 264",
+      "position": [
+        1410,
+        1039
+      ],
+      "region_id": "L2-10",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 264"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-263",
+      "text": "Meeting Room 263",
+      "position": [
+        1339,
+        1101
+      ],
+      "region_id": "L2-11",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 263"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-meeting-262",
+      "text": "Meeting Room 262",
+      "position": [
+        1250,
+        1146
+      ],
+      "region_id": "L2-12",
+      "size": 18,
+      "lines": [
+        "Meeting",
+        "Room 262"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-lactation",
+      "text": "Lactation Room 220A",
+      "position": [
+        555,
+        663
+      ],
+      "region_id": null,
+      "size": 10,
+      "lines": [
+        "Lactation",
+        "Room 220A"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-meeting-222",
+      "text": "Meeting Room 222",
+      "position": [
+        562,
+        798
+      ],
+      "region_id": "L2-3",
+      "size": 12,
+      "lines": [
+        "Meeting",
+        "Room 222"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-room-280",
+      "text": "280",
+      "position": [
+        1047,
+        1020
+      ],
+      "region_id": "L2-7",
+      "size": 20,
+      "lines": [
+        "280"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-hoppa",
+      "text": "James M. Hoppa Room 200",
+      "position": [
+        906,
+        1026
+      ],
+      "region_id": "L2-9",
+      "size": 18,
+      "lines": [
+        "James M. Hoppa",
+        "Room 200"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-social",
+      "text": "Social 704",
+      "position": [
+        900,
+        470
+      ],
+      "region_id": "L2-13",
+      "size": 29,
+      "lines": [
+        "Social 704"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-bistro",
+      "text": "Bistro",
+      "position": [
+        445,
+        390
+      ],
+      "region_id": "L2-14",
+      "size": 27,
+      "lines": [
+        "Bistro"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-administration",
+      "text": "Popp Martin Student Union Administration and CRES/Reservations",
+      "position": [
+        1197,
+        551
+      ],
+      "region_id": "L2-15",
+      "size": 18,
+      "lines": [
+        "Popp Martin Student Union",
+        "Administration and",
+        "CRES/Reservations"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L2-room-251",
+      "text": "Room 251",
+      "position": [
+        1071,
+        686
+      ],
+      "region_id": "L2-15",
+      "size": 14,
+      "lines": [
+        "Room 251"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-leadership",
+      "text": "Leadership and Community Engagement",
+      "position": [
+        1262,
+        633
+      ],
+      "region_id": "L2-16",
+      "size": 20,
+      "lines": [
+        "Leadership and",
+        "Community Engagement"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L2-room-252",
+      "text": "Room 252",
+      "position": [
+        1130,
+        749
+      ],
+      "region_id": "L2-16",
+      "size": 14,
+      "lines": [
+        "Room 252"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-involvement",
+      "text": "Center for Student Involvement",
+      "position": [
+        490,
+        864
+      ],
+      "region_id": "L2-17",
+      "size": 26,
+      "lines": [
+        "Center for",
+        "Student Involvement"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-resource",
+      "text": "Student Organization Resource Center",
+      "position": [
+        518,
+        940
+      ],
+      "region_id": "L2-17",
+      "size": 17,
+      "lines": [
+        "Student Organization Resource Center"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-activities",
+      "text": "Campus Activities Board",
+      "position": [
+        518,
+        967
+      ],
+      "region_id": "L2-17",
+      "size": 17,
+      "lines": [
+        "Campus Activities Board"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-engagement",
+      "text": "Student Engagement Administration",
+      "position": [
+        518,
+        994
+      ],
+      "region_id": "L2-17",
+      "size": 17,
+      "lines": [
+        "Student Engagement Administration"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-staff",
+      "text": "Student Involvement Staff",
+      "position": [
+        518,
+        1021
+      ],
+      "region_id": "L2-17",
+      "size": 17,
+      "lines": [
+        "Student Involvement Staff"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-government",
+      "text": "Student Government Association",
+      "position": [
+        518,
+        1048
+      ],
+      "region_id": "L2-17",
+      "size": 17,
+      "lines": [
+        "Student Government Association"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-room-212",
+      "text": "Room 212",
+      "position": [
+        640,
+        850
+      ],
+      "region_id": "L2-17",
+      "size": 13,
+      "lines": [
+        "Room 212"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-restrooms-west",
+      "text": "Restrooms",
+      "position": [
+        650,
+        641
+      ],
+      "region_id": "L2-18",
+      "size": 18,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-restrooms-east",
+      "text": "Restrooms",
+      "position": [
+        1234,
+        877
+      ],
+      "region_id": "L2-19",
+      "size": 17,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L2-elevator",
+      "text": "Elevator",
+      "position": [
+        755,
+        661
+      ],
+      "region_id": null,
+      "size": 11,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L2-stairs-west",
+      "text": "Stairs",
+      "position": [
+        500,
+        762
+      ],
+      "region_id": null,
+      "size": 14,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L2-stairs-east",
+      "text": "Stairs",
+      "position": [
+        1383,
+        684
+      ],
+      "region_id": null,
+      "size": 14,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 45
+    },
+    {
+      "id": "L2-stairs-rotunda-north",
+      "text": "Stairs",
+      "position": [
+        961,
+        728
+      ],
+      "region_id": null,
+      "size": 13,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -90
+    },
+    {
+      "id": "L2-stairs-rotunda-south",
+      "text": "Stairs",
+      "position": [
+        972,
+        872
+      ],
+      "region_id": null,
+      "size": 13,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 45
+    }
+  ],
+  "region_count": 27,
+  "partition_count": 0,
+  "note": "Labels and divisions from the university diagram. Diagram not to scale."
+}

@@ -2,18 +2,18 @@
   "assets": [
     {
       "path": "building-metadata.json",
-      "bytes": 1357,
-      "sha256": "332fbc7adf0677c378ee040220af7ba1f004faefd34f46abc417f197e6a99eff"
+      "bytes": 1527,
+      "sha256": "aaf0db7cf640f3c19fbaa4a59d1e5627a6c00a1050858fe6fc4af2548576766b"
     },
     {
       "path": "floor-inventory.json",
-      "bytes": 2537,
-      "sha256": "797bc6bf732784e54a39b4a3cee4b208dc65789db53a40b31d23a691846edddc"
+      "bytes": 3194,
+      "sha256": "3c778e6956fa671e15251f5b8f09b547b357edfa523b3b2ce05c8ee668041284"
     },
     {
       "path": "student-union-floorplans.pdf",
-      "bytes": 107012,
-      "sha256": "ae493d167a4772a4f5f97658fa23114bc86482266c5b67e1401f7bbb4db4ecd8"
+      "bytes": 754478,
+      "sha256": "d95194b6cd91d52639172f10c62e3e6d362a2347646b41a0a19d49bb3e95c929"
     },
     {
       "path": "floors/LL/circulation-evidence.geojson",
@@ -39,6 +39,16 @@
       "path": "floors/LL/floorplan.svg",
       "bytes": 70271,
       "sha256": "8839954dc2a18a34eedc79b9b4e2df88addd5fac5ba4dc8f5941d5195ba61fd1"
+    },
+    {
+      "path": "floors/LL/label-plan.json",
+      "bytes": 3837,
+      "sha256": "a880c130bff367a743c429e0c9c31f87d1f30eb6a8d3f81e8bbd62a92d1d9be9"
+    },
+    {
+      "path": "floors/LL/label-plan.svg",
+      "bytes": 7209,
+      "sha256": "6a390e65fb99a3c46f3accae93d31e7ea4b700ed9ccb25750762fccca3d70159"
     },
     {
       "path": "floors/LL/metadata.json",
@@ -86,6 +96,16 @@
       "sha256": "328ce6085cd712f5e32f82091ba7fe5809912303561f8a2167537896ab170b24"
     },
     {
+      "path": "floors/L1/label-plan.json",
+      "bytes": 8875,
+      "sha256": "7794b82ebc99e57265036d8c21ed73e9d649edd1c407e9ca3c1d8525ddb4c36c"
+    },
+    {
+      "path": "floors/L1/label-plan.svg",
+      "bytes": 15131,
+      "sha256": "c7f332ce6c73f7afc47c3a0c7c697b7e958f5b2707c31f575ffc2ef2eb9005fd"
+    },
+    {
       "path": "floors/L1/metadata.json",
       "bytes": 5130,
       "sha256": "29136c7d66b67f7a9624090b2e32b766bb41a738132a21e36f234ecc8c81cf7b"
@@ -129,6 +149,16 @@
       "path": "floors/M/floorplan.svg",
       "bytes": 73260,
       "sha256": "e0209a61a4ec9a120f8c57e6274ca91206a15374dfcbe7fc4af5574c47eaa5ec"
+    },
+    {
+      "path": "floors/M/label-plan.json",
+      "bytes": 2062,
+      "sha256": "7858cdcb80480f34407f58b644dc9eb91f91e4111c4c5ccf441a9c73bf71671a"
+    },
+    {
+      "path": "floors/M/label-plan.svg",
+      "bytes": 4751,
+      "sha256": "566a4d5ba5fd15c38a4aefd47e25548244442c2754dc3284d932cb9202b03f5b"
     },
     {
       "path": "floors/M/metadata.json",
@@ -176,6 +206,16 @@
       "sha256": "ff7f558422c70041204fc16a11e03d955c6abfab70e78adec283fb27d4f2dca4"
     },
     {
+      "path": "floors/L2/label-plan.json",
+      "bytes": 9165,
+      "sha256": "b7e93353432a5ece939b66b9b634f52317be1584e86af511db55fcc7db940ee5"
+    },
+    {
+      "path": "floors/L2/label-plan.svg",
+      "bytes": 15288,
+      "sha256": "4087e2c285460aaa88fdc872466f5605ea6eb6269039cbd5e1232b21ddff9d6a"
+    },
+    {
       "path": "floors/L2/metadata.json",
       "bytes": 2852,
       "sha256": "f60975fc4db0c04befc5ded94ea9af8e48b4b613354192a0205722004ee1a797"
@@ -219,6 +259,16 @@
       "path": "floors/L3/floorplan.svg",
       "bytes": 93668,
       "sha256": "48421b8d5579c5b656de6e4cfd8626a3e96ed2ae8cf764912badaa86e0c5ee7e"
+    },
+    {
+      "path": "floors/L3/label-plan.json",
+      "bytes": 4955,
+      "sha256": "6675b52ea8c64be6ba55d254f58a95e8af6b951e8d0406e5f292b5926507db46"
+    },
+    {
+      "path": "floors/L3/label-plan.svg",
+      "bytes": 9043,
+      "sha256": "5970699863d5fe9428bb736433c9f04054ad5052f631fa83a9f71b5af23cebf3"
     },
     {
       "path": "floors/L3/metadata.json",

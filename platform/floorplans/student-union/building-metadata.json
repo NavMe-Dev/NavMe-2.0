@@ -34,7 +34,9 @@
     "obj_and_xyz_units": "1 unit = 1 metre",
     "note": "Metric export convention verified; physical survey error has not been independently measured."
   },
-  "release_kind": "public scan-derived review plans",
+  "release_kind": "official diagram labels/divisions with separate scan-derived assets",
+  "default_presentation": "official_labels_divisions",
+  "official_reference": "https://studentunion.charlotte.edu/about/floor-plans",
   "complete_architectural_plans": false,
   "provisional_levels": [
     "M"

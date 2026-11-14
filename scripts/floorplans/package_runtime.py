@@ -9,7 +9,8 @@ SOURCE = ROOT / 'outputs/unc-charlotte/student-union'
 TARGET = ROOT / 'platform/floorplans/student-union'
 ROOT_ASSETS = {'floor-inventory.json', 'building-metadata.json', 'student-union-floorplans.pdf'}
 FLOOR_ASSETS = {'floorplan.svg', 'floorplan.png', 'floorplan.geojson', 'rooms.geojson', 'corridors.geojson',
-                'walls.geojson', 'source-spaces.geojson', 'circulation-evidence.geojson', 'metadata.json'}
+                'walls.geojson', 'source-spaces.geojson', 'circulation-evidence.geojson', 'metadata.json',
+                'label-plan.svg', 'label-plan.json'}
 
 
 def package(source=SOURCE, target=TARGET):
@@ -29,7 +30,9 @@ def package(source=SOURCE, target=TARGET):
         if asset == 'building-metadata.json':
             metadata = json.loads(src.read_text())
             metadata = {k: v for k, v in metadata.items() if not k.startswith('reference_docx_')}
-            metadata.update(published=True, release_kind='public scan-derived review plans',
+            metadata.update(published=True, release_kind='official diagram labels/divisions with separate scan-derived assets',
+                            default_presentation='official_labels_divisions',
+                            official_reference=catalog['official_reference'],
                             complete_architectural_plans=False, provisional_levels=['M'])
             dest.write_text(json.dumps(metadata, indent=2) + '\n')
         else:

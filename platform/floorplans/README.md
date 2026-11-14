@@ -1,40 +1,45 @@
-# Student Union scan-derived review plans
+# Student Union 2D plans
 
-The public runtime bundle is `student-union/`. It contains five SVG/PNG/GeoJSON
-plans, the five-page PDF and their metadata. These are **partial scan-derived
-review plans**, not complete architectural layouts. Four floor elevations are
-supported by source doorway thresholds and sweep positions. The mezzanine is
-provisional. Individually verified room/corridor polygons are unavailable.
+The default viewer shows **labels and divisions from the university's public
+floor diagrams**, redrawn as clean SVGs. All five levels are available: Lower
+Level, First Floor, Mezzanine Level, Second Floor and Third Floor. The drawings
+contain 104 transcribed labels, including service symbols rendered as words,
+meeting rooms, offices, shops and the nine lettered divisions of Room 340.
+Furniture, logos and decorative artwork are omitted.
 
-Source model: `kQBN52JqFE9`, UNC Charlotte Main Campus. Coordinates retain its
-local metric frame; true north/global placement is not surveyed. The drawings
-preserve measured source walls and leave unscanned spaces unknown.
+Reference: https://studentunion.charlotte.edu/about/floor-plans
 
-The API serves only explicitly allowed filenames for cataloged levels and the
-matching campus. Raw DOCX/EMF references, occupancy information, audit files and
-local filesystem inventories are excluded. No database records are changed.
+`label-plan.svg` / `label-plan.json` use **diagram pixels**. They are not surveyed
+plans and are not registered to Matterport/model coordinates. The viewer never
+projects a model-space route into these drawings. Label selection highlights
+its source region and supports keyboard navigation, zoom, pan and fit.
+Existing mapped places can select matching labels by name.
 
-The API Docker image copies this bundle to `/app/floorplans/student-union` and
-sets `FLOORPLAN_DIR` to that path. The existing viewer opens it with
-`/unc-charlotte?plan=student-union`; ordinary campus/POI/Matterport flows remain
-available. GCU does not receive these building-specific controls.
+The original `floorplan.svg`, GeoJSONs and `metadata.json` retain the earlier
+**partial scan-derived review geometry** as separate assets. Their coverage
+limits and provisional mezzanine elevation still apply to those scan assets;
+they do not describe the official diagram's published floor names. No database,
+POI floor assignment, Matterport camera or campus georeference is changed.
 
-Regenerate locally from the recorded MatterPak workspace, then package:
+The Docker image copies this bundle to `/app/floorplans/student-union` and sets
+`FLOORPLAN_DIR` to that path. Open `/unc-charlotte?plan=student-union` or the `2D`
+button above the location control. GCU does not receive these controls.
+
+The reviewed source checksums, contour coordinates and label transcriptions
+are in `scripts/floorplans/student_union_labels.json`. Rebuild without network:
 
 ```sh
-platform/.venv/bin/python scripts/floorplans/generate_student_union.py
-PLAYWRIGHT_MODULE=/path/to/playwright node scripts/floorplans/render_previews.cjs
-platform/.venv/bin/python scripts/floorplans/validate_outputs.py
+platform/.venv/bin/python scripts/floorplans/build_label_plans.py
+PLAYWRIGHT_MODULE=/path/to/playwright node scripts/floorplans/render_label_plans.cjs
 platform/.venv/bin/python scripts/floorplans/package_runtime.py
 ```
 
-The generator requires the local read-only POI snapshot and source scan files;
-raw source material is not copied into the runtime bundle. `runtime-manifest.json`
-records the hashes and sizes of every public artifact. Re-generation is an
-explicit review step; a deployment serves the checked-in files without invoking
-the geometry pipeline or changing production data.
+Rebuilding the separate scan geometry with `generate_student_union.py` requires
+the original local MatterPak workspace; run the label builder again afterward.
+Raw DOCX/EMF references, occupancy information and private audit files are never
+packaged. `runtime-manifest.json` records the hashes of all 58 public assets.
 
-Browser verification uses `scripts/floorplans/verify_viewer.cjs`. Set
-`PLAYWRIGHT_MODULE`, optionally `BASE_URL`, `EVIDENCE_DIR` and `REPORT_PATH`.
-The checks use real POIs and navigation-mesh routing, and explicitly exclude
-claims about successful external Matterport rendering.
+Browser verification: `scripts/floorplans/verify_viewer.cjs`, with optional
+`BASE_URL`, `PLAYWRIGHT_MODULE`, `EVIDENCE_DIR` and `REPORT_PATH`. It verifies all
+104 labels on desktop/mobile, source partitions, keyboard selection, zoom/pan,
+absence of unregistered route overlays and the unrelated-campus behavior.

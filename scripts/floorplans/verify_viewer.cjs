@@ -1,9 +1,75 @@
-const assert=require('node:assert/strict');const fs=require('node:fs');const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');const evidence=process.env.EVIDENCE_DIR||'outputs/unc-charlotte/student-union/audit';fs.mkdirSync(evidence,{recursive:true});
-(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});const report={base:process.env.BASE_URL||'http://localhost:8780',checks:[],scope:'2D plan integration; external Matterport rendering is not mocked as successful'};try{for(const [name,width,height] of [['desktop',1440,1000],['mobile',390,844]]){const p=await browser.newPage({viewport:{width,height},hasTouch:name==='mobile',isMobile:name==='mobile'});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://my.matterport.com/**',r=>r.abort());await p.goto(report.base+'/unc-charlotte?plan=student-union',{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>window.WFPlanViewer?.activeFloor==='L1'&&window.wfUI&&window.wf?.ready);assert.equal(await p.locator('#unionFloorplanViewer').isVisible(),true);assert.equal(await p.locator('#fpBuilding').inputValue(),'student-union');assert.equal(await p.locator('#fpFloor option').count(),5);
-for(const id of ['LL','L1','M','L2','L3']){await p.locator('#fpFloor').selectOption(id);await p.waitForFunction(id=>WFPlanViewer.activeFloor===id,id);assert.equal(await p.locator('#fpStage svg').count(),1);assert.ok((await p.locator('#fpStatus').textContent()).length>10);}
-await p.locator('#fpFloor').selectOption('L1');await p.waitForFunction(()=>WFPlanViewer.activeFloor==='L1');const before=await p.locator('#fpStage svg').getAttribute('viewBox');await p.locator('#fpZoomIn').click();const after=await p.locator('#fpStage svg').getAttribute('viewBox');assert.ok(+after.split(' ')[2]<+before.split(' ')[2]);await p.locator('#fpFit').click();assert.equal(await p.locator('#fpStage svg').getAttribute('viewBox'),before);
-await p.mouse.move(width/2,height*.4);await p.mouse.down();await p.mouse.move(width/2+45,height*.4+20);await p.mouse.up();assert.notEqual(await p.locator('#fpStage svg').getAttribute('viewBox'),before);await p.locator('#fpFit').click();
-const options=await p.locator('#fpPoi option').evaluateAll(xs=>xs.map(x=>({value:x.value,label:x.textContent})));assert.equal(options.length,7);const starbucks=options.find(p=>p.label==='Starbucks');await p.locator('#fpPoi').selectOption(starbucks.value);await p.waitForFunction(id=>wfUI.S.place?.id===id,starbucks.value);assert.equal(await p.locator('#fpStage [data-poi-id].fp-selected').count(),1);await p.locator('#sheetClose').click();
-const route=await p.evaluate(async()=>{await WFNav.initNavmesh(WF.building.slug,{floors:WF.cfg.floors,modelToLL:wf.modelToLL});const a=wf.pois.find(p=>p.name==='Market'),b=wf.pois.find(p=>p.name==="Wendy's");const r=WFNav.routeNavmesh(a.sdk,b.sdk);if(!r||r.error||r.partial)throw Error('No complete real route');WFPlanViewer.drawRoute(r);return {meters:Math.round(r.total_m),points:r.path.length};});assert.ok(route.meters>5);assert.equal(await p.locator('#fpStage #fpRoute').count(),1);await p.screenshot({path:evidence+'/integration-'+name+'.png'});
-await p.locator('#fpFloor').selectOption('L2');await p.waitForFunction(()=>WFPlanViewer.activeFloor==='L2');assert.equal(await p.locator('#fpPoi option').count(),3);const union260=await p.locator('#fpPoi option').evaluateAll(xs=>xs.find(x=>x.textContent==='260 Student Union').value);await p.evaluate(id=>wfUI.selectPlace(id),starbucks.value);await p.waitForFunction(()=>WFPlanViewer.activeFloor==='L1');assert.equal(await p.locator('#fpStage [data-poi-id].fp-selected').count(),1);await p.locator('#sheetClose').click();await p.locator('#fpClose').click();assert.equal(await p.locator('#unionFloorplanViewer').isVisible(),false);assert.equal(await p.evaluate(()=>document.body.classList.contains('floorplan-open')),false);assert.deepEqual(errors,[]);report.checks.push({viewport:name,status:'PASS',floorSwitches:5,zoomPan:true,poiSearchAndHighlight:true,route,selectionSync:true,noPageErrors:true});await p.close();}
-const p=await browser.newPage();await p.route('https://my.matterport.com/**',r=>r.abort());await p.goto(report.base+'/gcu-omr',{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>window.wf?.ready);assert.equal(await p.locator('#btnFloorplans').count(),0);report.checks.push({label:'GCU remains unchanged without Student Union plan controls',status:'PASS'});await p.close();}finally{await browser.close();}fs.writeFileSync(process.env.REPORT_PATH||'outputs/unc-charlotte/student-union/integration-validation.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));})().catch(e=>{console.error(e);process.exit(1)});
+/* Exercise the actual public viewer; external Matterport rendering is excluded. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const evidence = process.env.EVIDENCE_DIR || 'outputs/unc-charlotte/student-union/audit';
+fs.mkdirSync(evidence, {recursive: true});
+(async () => {
+  const browser = await chromium.launch({channel: 'chrome', headless: true});
+  const report = {base: process.env.BASE_URL || 'http://localhost:8782', checks: [],
+    scope: 'Official diagram labels/divisions. No claim of Matterport alignment or external rendering.'};
+  try {
+    for (const [viewport, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844]]) {
+      const page = await browser.newPage({viewport: {width, height}, isMobile: viewport === 'mobile', hasTouch: viewport === 'mobile'});
+      const errors = [];
+      page.on('pageerror', e => errors.push(e.message));
+      await page.route('https://my.matterport.com/**', route => route.abort());
+      await page.goto(report.base + '/unc-charlotte?plan=student-union', {waitUntil: 'domcontentloaded'});
+      await page.waitForFunction(() => window.WFPlanViewer?.activeFloor === 'L1' && window.wf?.ready);
+      assert.equal(await page.locator('#unionFloorplanViewer').isVisible(), true);
+      assert.equal(await page.locator('#fpFloor option').count(), 5);
+      const counts = {};
+      for (const [id, count] of [['LL', 13], ['L1', 33], ['M', 6], ['L2', 33], ['L3', 19]]) {
+        await page.locator('#fpFloor').selectOption(id);
+        await page.waitForFunction(id => WFPlanViewer.activeFloor === id, id);
+        assert.equal(await page.locator('#fpStage [data-label-id]').count(), count);
+        assert.equal(await page.locator('#fpPoi option').count(), count + 1);
+        assert.equal(await page.locator('#fpStage image,#fpStage foreignObject,#fpStage script').count(), 0);
+        assert.ok(await page.locator('#fpStage .division').count() > 0);
+        counts[id] = count;
+        await page.locator('#fpPoi').selectOption({index: 1});
+        assert.equal(await page.locator('#fpStage .plan-label.fp-selected').count(), 1);
+        await page.locator('#fpFit').click();
+        await page.screenshot({path: evidence + '/labels-' + viewport + '-' + id + '.png'});
+      }
+      // Room 340's nine lettered partitions must survive vector import.
+      for (const letter of 'ABCDEFGHI') {
+        assert.equal(await page.locator('#fpStage [data-label-id="L3-section-' + letter + '"]').textContent(), letter);
+      }
+      assert.equal(await page.locator('#fpStage .partition[stroke-dasharray]').count(), 4);
+      await page.locator('#fpFloor').selectOption('L2');
+      await page.waitForFunction(() => WFPlanViewer.activeFloor === 'L2');
+      await page.locator('#fpPoi').selectOption('L2-meeting-260');
+      assert.equal(await page.locator('#fpStage #L2-5').getAttribute('class'), 'division fp-region-selected');
+      await page.locator('#fpStage [data-label-id="L2-meeting-261"]').evaluate(el => el.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true})));
+      assert.equal(await page.locator('#fpPoi').inputValue(), 'L2-meeting-261');
+      // A route in model metres must not be projected into unregistered pixels.
+      await page.evaluate(() => WFPlanViewer.drawRoute({path: [{x: 180, y: 0, z: 30}, {x: 190, y: 0, z: 40}]}));
+      assert.equal(await page.locator('#fpStage #fpRoute').count(), 0);
+      await page.locator('#fpFit').click();
+      const before = await page.locator('#fpStage svg').getAttribute('viewBox');
+      await page.locator('#fpZoomIn').click();
+      assert.notEqual(await page.locator('#fpStage svg').getAttribute('viewBox'), before);
+      await page.locator('#fpFit').click();
+      assert.equal(await page.locator('#fpStage svg').getAttribute('viewBox'), before);
+      await page.mouse.move(width / 2, height * .4);
+      await page.mouse.down(); await page.mouse.move(width / 2 + 45, height * .4 + 20); await page.mouse.up();
+      assert.notEqual(await page.locator('#fpStage svg').getAttribute('viewBox'), before);
+      assert.equal(await page.locator('.fp-reference').getAttribute('href'), 'https://studentunion.charlotte.edu/about/floor-plans');
+      await page.locator('#fpClose').click();
+      assert.equal(await page.locator('#unionFloorplanViewer').isVisible(), false);
+      assert.deepEqual(errors, []);
+      report.checks.push({viewport, status: 'PASS', labelsPerFloor: counts, allLabels: 104,
+        keyboardSelection: true, zoomPanFit: true, unregisteredRouteHidden: true, noPageErrors: true});
+      await page.close();
+    }
+    const page = await browser.newPage();
+    await page.route('https://my.matterport.com/**', route => route.abort());
+    await page.goto(report.base + '/gcu-omr', {waitUntil: 'domcontentloaded'});
+    await page.waitForFunction(() => window.wf?.ready);
+    assert.equal(await page.locator('#btnFloorplans').count(), 0);
+    report.checks.push({status: 'PASS', check: 'Other campuses do not gain Student Union controls'});
+  } finally { await browser.close(); }
+  fs.writeFileSync(process.env.REPORT_PATH || 'outputs/unc-charlotte/student-union/integration-validation.json', JSON.stringify(report, null, 2));
+  console.log(JSON.stringify(report, null, 2));
+})().catch(error => { console.error(error); process.exit(1); });

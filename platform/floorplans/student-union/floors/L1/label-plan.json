@@ -1,0 +1,496 @@
+{
+  "floor_id": "L1",
+  "label": "First Floor",
+  "presentation": "official_labels_divisions",
+  "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Floor%201_0.jpg",
+  "source_sha256": "711b48380e6879e998edec7f2e9d9804f79cf4670c8330ffbf1ad516d09b62b3",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "official diagram pixels",
+  "model_registered": false,
+  "view_box": [
+    180,
+    0,
+    1530,
+    1280
+  ],
+  "labels": [
+    {
+      "id": "L1-id-card",
+      "text": "ID Card Office",
+      "position": [
+        447,
+        368
+      ],
+      "region_id": "L1-1",
+      "size": 18,
+      "lines": [
+        "ID Card",
+        "Office"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-salon",
+      "text": "OM Hair Salon",
+      "position": [
+        501,
+        425
+      ],
+      "region_id": "L1-2",
+      "size": 18,
+      "lines": [
+        "OM Hair",
+        "Salon"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-station",
+      "text": "Union Station",
+      "position": [
+        556,
+        484
+      ],
+      "region_id": "L1-3",
+      "size": 18,
+      "lines": [
+        "Union",
+        "Station"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-legal",
+      "text": "Student Legal Services",
+      "position": [
+        340,
+        504
+      ],
+      "region_id": "L1-4",
+      "size": 18,
+      "lines": [
+        "Student",
+        "Legal Services"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-bookstore",
+      "text": "Barnes & Noble Charlotte",
+      "position": [
+        525,
+        940
+      ],
+      "region_id": "L1-5",
+      "size": 25,
+      "lines": [
+        "Barnes & Noble",
+        "Charlotte"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-theater",
+      "text": "Union Theater",
+      "position": [
+        1470,
+        911
+      ],
+      "region_id": "L1-6",
+      "size": 25,
+      "lines": [
+        "Union",
+        "Theater"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-norms",
+      "text": "Norm’s",
+      "position": [
+        1250,
+        522
+      ],
+      "region_id": "L1-7",
+      "size": 25,
+      "lines": [
+        "Norm’s"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-square",
+      "text": "Union Square",
+      "position": [
+        974,
+        380
+      ],
+      "region_id": "L1-8",
+      "size": 28,
+      "lines": [
+        "Union Square"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-market",
+      "text": "Market",
+      "position": [
+        781,
+        211
+      ],
+      "region_id": "L1-8",
+      "size": 18,
+      "lines": [
+        "Market"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-shake-smart",
+      "text": "Shake Smart",
+      "position": [
+        1170,
+        246
+      ],
+      "region_id": "L1-8",
+      "size": 20,
+      "lines": [
+        "Shake",
+        "Smart"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-wendys",
+      "text": "Wendy’s",
+      "position": [
+        877,
+        536
+      ],
+      "region_id": "L1-8",
+      "size": 24,
+      "lines": [
+        "Wendy’s"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-bojangles",
+      "text": "Bojangles",
+      "position": [
+        1085,
+        533
+      ],
+      "region_id": "L1-8",
+      "size": 23,
+      "lines": [
+        "Bojangles"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-erbert",
+      "text": "Erbert & Gerbert’s Sandwich Shop",
+      "position": [
+        1348,
+        624
+      ],
+      "region_id": "L1-10",
+      "size": 17,
+      "lines": [
+        "Erbert & Gerbert’s",
+        "Sandwich Shop"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-market-craver",
+      "text": "Market on Craver",
+      "position": [
+        1285,
+        716
+      ],
+      "region_id": "L1-10",
+      "size": 17,
+      "lines": [
+        "Market on",
+        "Craver"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-starbucks",
+      "text": "Starbucks",
+      "position": [
+        811,
+        1007
+      ],
+      "region_id": "L1-11",
+      "size": 18,
+      "lines": [
+        "Starbucks"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-elevator-east",
+      "text": "Elevator",
+      "position": [
+        1345,
+        844
+      ],
+      "region_id": "L1-12",
+      "size": 11,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-gallery",
+      "text": "Art Gallery and Piano Lounge",
+      "position": [
+        1323,
+        1082
+      ],
+      "region_id": "L1-13",
+      "size": 20,
+      "lines": [
+        "Art Gallery and",
+        "Piano Lounge"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-restrooms-west",
+      "text": "Restrooms",
+      "position": [
+        736,
+        652
+      ],
+      "region_id": "L1-14",
+      "size": 17,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-elevator-west",
+      "text": "Elevator",
+      "position": [
+        844,
+        644
+      ],
+      "region_id": null,
+      "size": 11,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-restrooms-east",
+      "text": "Restrooms",
+      "position": [
+        1270,
+        870
+      ],
+      "region_id": "L1-15",
+      "size": 13,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-ninertech",
+      "text": "NinerTech Computer Store",
+      "position": [
+        458,
+        681
+      ],
+      "region_id": "L1-26",
+      "size": 19,
+      "lines": [
+        "NinerTech",
+        "Computer Store"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-information",
+      "text": "Information Center",
+      "position": [
+        1156,
+        992
+      ],
+      "region_id": "L1-27",
+      "size": 20,
+      "lines": [
+        "Information",
+        "Center"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-rotunda",
+      "text": "Rotunda",
+      "position": [
+        983,
+        773
+      ],
+      "region_id": null,
+      "size": 27,
+      "lines": [
+        "Rotunda"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-stairs-west",
+      "text": "Stairs",
+      "position": [
+        587,
+        756
+      ],
+      "region_id": null,
+      "size": 14,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L1-stairs-east",
+      "text": "Stairs",
+      "position": [
+        1407,
+        714
+      ],
+      "region_id": null,
+      "size": 14,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L1-stairs-rotunda",
+      "text": "Stairs",
+      "position": [
+        1020,
+        845
+      ],
+      "region_id": null,
+      "size": 14,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -90
+    },
+    {
+      "id": "L1-self-service",
+      "text": "Self Service",
+      "position": [
+        480,
+        66
+      ],
+      "region_id": null,
+      "size": 19,
+      "lines": [
+        "Self Service"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-cvs",
+      "text": "CVS Pharmabox",
+      "position": [
+        480,
+        94
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "CVS Pharmabox"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-atm",
+      "text": "ATM",
+      "position": [
+        480,
+        118
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "ATM"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-printer",
+      "text": "Printer",
+      "position": [
+        480,
+        142
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Printer"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-north-campus",
+      "text": "To Lynch Bridge / North Campus / Light Rail",
+      "position": [
+        975,
+        45
+      ],
+      "region_id": null,
+      "size": 21,
+      "lines": [
+        "To Lynch Bridge / North Campus / Light Rail"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "L1-parking",
+      "text": "To Union Parking Deck, 6th Floor",
+      "position": [
+        260,
+        305
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "To Union Parking Deck",
+        "6th Floor"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "L1-central-campus",
+      "text": "To Central Campus / CHHS & Mebane Hall",
+      "position": [
+        976,
+        1246
+      ],
+      "region_id": null,
+      "size": 21,
+      "lines": [
+        "To Central Campus / CHHS & Mebane Hall"
+      ],
+      "rotation": 0
+    }
+  ],
+  "region_count": 21,
+  "partition_count": 1,
+  "note": "Labels and divisions from the university diagram. Diagram not to scale."
+}

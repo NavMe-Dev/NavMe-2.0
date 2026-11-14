@@ -1,0 +1,205 @@
+{
+  "floor_id": "LL",
+  "label": "Lower Level",
+  "presentation": "official_labels_divisions",
+  "source_url": "https://studentunion.charlotte.edu/sites/studentunion.charlotte.edu/files/image/Basement_0.jpg",
+  "source_sha256": "d2716e2b9b447b591a17bd41750878d2eefd27618a14e003bb3cf13220ff443f",
+  "reference_page": "https://studentunion.charlotte.edu/about/floor-plans",
+  "coordinate_space": "official diagram pixels",
+  "model_registered": false,
+  "view_box": [
+    120,
+    80,
+    1590,
+    1170
+  ],
+  "labels": [
+    {
+      "id": "LL-bookstore",
+      "text": "Barnes & Noble Charlotte",
+      "position": [
+        850,
+        953
+      ],
+      "region_id": "LL-1",
+      "size": 28,
+      "lines": [
+        "Barnes & Noble",
+        "Charlotte"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-entrance",
+      "text": "Use first floor entrance",
+      "position": [
+        850,
+        1031
+      ],
+      "region_id": "LL-1",
+      "size": 18,
+      "lines": [
+        "Use first floor entrance"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-media",
+      "text": "Student Media",
+      "position": [
+        1328,
+        293
+      ],
+      "region_id": null,
+      "size": 25,
+      "lines": [
+        "Student Media"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-ninertimes",
+      "text": "NinerTimes",
+      "position": [
+        1330,
+        332
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "NinerTimes"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-website",
+      "text": "ninertimes.com",
+      "position": [
+        1330,
+        369
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "ninertimes.com"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-sanskrit",
+      "text": "Sanskrit Literary Arts Magazine",
+      "position": [
+        1330,
+        419
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "Sanskrit Literary",
+        "Arts Magazine"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-midas",
+      "text": "Midas Magazine",
+      "position": [
+        1330,
+        471
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "Midas Magazine"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-technical",
+      "text": "Technical Operations",
+      "position": [
+        1330,
+        511
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "Technical Operations"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-audio",
+      "text": "Uptown Audio",
+      "position": [
+        1330,
+        551
+      ],
+      "region_id": null,
+      "size": 20,
+      "lines": [
+        "Uptown Audio"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-restrooms",
+      "text": "Restrooms",
+      "position": [
+        939,
+        595
+      ],
+      "region_id": "LL-3",
+      "size": 17,
+      "lines": [
+        "Restrooms"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-elevator",
+      "text": "Elevator",
+      "position": [
+        1082,
+        631
+      ],
+      "region_id": null,
+      "size": 11,
+      "lines": [
+        "Elevator"
+      ],
+      "rotation": -45
+    },
+    {
+      "id": "LL-stairs-north",
+      "text": "Stairs",
+      "position": [
+        910,
+        154
+      ],
+      "region_id": null,
+      "size": 18,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": 0
+    },
+    {
+      "id": "LL-stairs-west",
+      "text": "Stairs",
+      "position": [
+        797,
+        711
+      ],
+      "region_id": null,
+      "size": 16,
+      "lines": [
+        "Stairs"
+      ],
+      "rotation": -45
+    }
+  ],
+  "region_count": 7,
+  "partition_count": 1,
+  "note": "Labels and divisions from the university diagram. Diagram not to scale."
+}
