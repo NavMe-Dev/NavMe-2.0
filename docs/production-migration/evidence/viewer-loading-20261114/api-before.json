@@ -1,0 +1,164 @@
+[
+  {
+    "path": "/api/health",
+    "status": 200,
+    "ms": 1144,
+    "bytes": 79
+  },
+  {
+    "path": "/api/live",
+    "status": 200,
+    "ms": 287,
+    "bytes": 29
+  },
+  {
+    "path": "/api/v1/public/venues/all/manifest.json",
+    "status": 200,
+    "ms": 1332,
+    "bytes": 1215
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+    "status": 200,
+    "ms": 1180,
+    "bytes": 3174
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/data/georef.json",
+    "status": 200,
+    "ms": 2549,
+    "bytes": 880
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+    "status": 200,
+    "ms": 1579,
+    "bytes": 967
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/translations",
+    "status": 200,
+    "ms": 2384,
+    "bytes": 12246
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/shops",
+    "status": 200,
+    "ms": 1614,
+    "bytes": 2
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref",
+    "status": 200,
+    "ms": 1579,
+    "bytes": 128
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/venue-info",
+    "status": 200,
+    "ms": 1781,
+    "bytes": 200
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/category-marker-data",
+    "status": 200,
+    "ms": 2881,
+    "bytes": 7597
+  },
+  {
+    "path": "/api/v1/public/buildings/uncc-main-campus/weather",
+    "status": 200,
+    "ms": 1035,
+    "bytes": 323
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-pois",
+    "status": 200,
+    "ms": 1160,
+    "bytes": 5038
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-categories",
+    "status": 200,
+    "ms": 809,
+    "bytes": 661
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-stair-chains",
+    "status": 200,
+    "ms": 876,
+    "bytes": 2
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/data/config.json",
+    "status": 200,
+    "ms": 1198,
+    "bytes": 3249
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/data/georef.json",
+    "status": 200,
+    "ms": 1142,
+    "bytes": 914
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/navme-floors",
+    "status": 200,
+    "ms": 1601,
+    "bytes": 1828
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/translations",
+    "status": 200,
+    "ms": 2304,
+    "bytes": 134714
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/shops",
+    "status": 200,
+    "ms": 1603,
+    "bytes": 13801
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/ar-experience-ref",
+    "status": 200,
+    "ms": 2091,
+    "bytes": 180
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/venue-info",
+    "status": 200,
+    "ms": 1523,
+    "bytes": 233
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/category-marker-data",
+    "status": 200,
+    "ms": 3394,
+    "bytes": 46290
+  },
+  {
+    "path": "/api/v1/public/buildings/gcu/weather",
+    "status": 200,
+    "ms": 1726,
+    "bytes": 309
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/gcu/navme-pois",
+    "status": 200,
+    "ms": 1555,
+    "bytes": 25740
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/gcu/navme-categories",
+    "status": 200,
+    "ms": 2193,
+    "bytes": 1135
+  },
+  {
+    "path": "/api/v1/public/dashboard/buildings/gcu/navme-stair-chains",
+    "status": 200,
+    "ms": 848,
+    "bytes": 711
+  }
+]

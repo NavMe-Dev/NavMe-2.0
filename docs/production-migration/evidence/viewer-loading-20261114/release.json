@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-14",
+  "productionCommit": "9bb6e69f26eae0a67d30986b8281607bd7cae04f",
+  "deployId": "dep-dbs8n56i0phs73cerhpg",
+  "status": "live",
+  "activatedAtUtc": "2026-11-14T16:26:56Z",
+  "backendRegression": {
+    "passed": 228,
+    "skipped": 2
+  },
+  "viewerRegression": {
+    "passed": 95
+  },
+  "publicApiChecks": {
+    "passed": 27,
+    "failed": 0,
+    "campuses": [
+      "gcu",
+      "uncc-main-campus"
+    ]
+  },
+  "privacyAndAuthorizationChecks": {
+    "passed": 18,
+    "failed": 0
+  },
+  "browserChecks": [
+    "POIs initialize with translations deliberately stalled",
+    "All lists 20 POIs without floor toolbar",
+    "empty search does not show a white strip",
+    "CHHS search has 3 results",
+    "Student Union has 8 POIs",
+    "deferred metadata arrives successfully",
+    "no page errors",
+    "real complete 7 m route between 101 CHHS and CHHS Advising Center"
+  ],
+  "performance": {
+    "measurement": "Chrome sampled time to POI/search interface readiness; not full 3D scene readiness",
+    "beforeMs": 9340,
+    "firstReleaseMs": 8395,
+    "finalMs": 4791,
+    "improvementPercent": 48.7,
+    "limitations": "Network conditions vary; these are individual samples, not a controlled statistical benchmark."
+  },
+  "changes": [
+    "Combine POIs, categories, stairs and published georeference into one guarded API response",
+    "Fetch published config, authored floors and viewer data concurrently",
+    "Start model configuration before optional floor metadata completes",
+    "Hydrate translations, retail and AR metadata without blocking POI readiness",
+    "Remove prototype SDK-config request for platform buildings",
+    "Include requested empty-search and All-floor-toolbar UI fixes"
+  ],
+  "serviceResourceCheck": {
+    "memoryBytesApprox": 166000000,
+    "memoryLimitBytes": 536870900,
+    "cpuCoresApprox": 0.0036,
+    "conclusion": "No observed CPU or memory saturation in inspected interval"
+  },
+  "limits": [
+    "Production remains intentionally read-only; admin editing, publishing and sync writes remain paused",
+    "Full Matterport scene and SDK camera startup were not verified in this run: automated Chrome received an upstream Just a moment verification page",
+    "Existing optional /ar_webxr/launch.js remains absent (404); no WebXR module is present in this repository"
+  ],
+  "productionDataChanges": false,
+  "schemaChanges": false,
+  "references": {
+    "before": "browser-before.json",
+    "final": "browser-final.json",
+    "publicApis": "api-after-first-release.json",
+    "privacy": "privacy.json"
+  }
+}

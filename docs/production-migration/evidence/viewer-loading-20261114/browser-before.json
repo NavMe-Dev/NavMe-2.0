@@ -1,0 +1,372 @@
+{
+  "base": "https://wayfinding.navme.space",
+  "uiReadyMs": 9340,
+  "requests": [
+    {
+      "path": "/unc-charlotte",
+      "status": 200,
+      "relative": 377
+    },
+    {
+      "path": "/img/style_map.jpg",
+      "status": 200,
+      "relative": 630
+    },
+    {
+      "path": "/tour_modes_config.js",
+      "status": 200,
+      "relative": 634
+    },
+    {
+      "path": "/dev.css",
+      "status": 200,
+      "relative": 635
+    },
+    {
+      "path": "/access_config.js",
+      "status": 200,
+      "relative": 638
+    },
+    {
+      "path": "/img/style_satellite.jpg",
+      "status": 200,
+      "relative": 640
+    },
+    {
+      "path": "/vendor/fuse.min.js",
+      "status": 200,
+      "relative": 646
+    },
+    {
+      "path": "/wf_navmesh_route.js",
+      "status": 200,
+      "relative": 663
+    },
+    {
+      "path": "/ui.css",
+      "status": 200,
+      "relative": 688
+    },
+    {
+      "path": "/bundle_preview.js",
+      "status": 200,
+      "relative": 874
+    },
+    {
+      "path": "/img/style_light.jpg",
+      "status": 200,
+      "relative": 881
+    },
+    {
+      "path": "/img/style_dark.jpg",
+      "status": 200,
+      "relative": 911
+    },
+    {
+      "path": "/wf_navmesh_bridge.js",
+      "status": 200,
+      "relative": 1115
+    },
+    {
+      "path": "/locales/i18n.js",
+      "status": 200,
+      "relative": 1143
+    },
+    {
+      "path": "/wf-config.js",
+      "status": 200,
+      "relative": 1182
+    },
+    {
+      "path": "/venue_info.js",
+      "status": 200,
+      "relative": 1364
+    },
+    {
+      "path": "/wf_chat.js",
+      "status": 200,
+      "relative": 1368
+    },
+    {
+      "path": "/explore.js",
+      "status": 200,
+      "relative": 1374
+    },
+    {
+      "path": "/wf_debug.js",
+      "status": 200,
+      "relative": 1377
+    },
+    {
+      "path": "/wf-boot.js",
+      "status": 200,
+      "relative": 1378
+    },
+    {
+      "path": "/ar_webxr/launch.js",
+      "status": 404,
+      "relative": 1379
+    },
+    {
+      "path": "/img/navme-logo.png",
+      "status": 200,
+      "relative": 1385
+    },
+    {
+      "path": "/mp_background.js",
+      "status": 200,
+      "relative": 1386
+    },
+    {
+      "path": "/threed_nav.js",
+      "status": 200,
+      "relative": 1388
+    },
+    {
+      "path": "/category_markers.js",
+      "status": 200,
+      "relative": 1391
+    },
+    {
+      "path": "/mp_preview.js",
+      "status": 200,
+      "relative": 1400
+    },
+    {
+      "path": "/ui.js",
+      "status": 200,
+      "relative": 1515
+    },
+    {
+      "path": "/weather.js",
+      "status": 200,
+      "relative": 1575
+    },
+    {
+      "path": "/mp_app.js",
+      "status": 200,
+      "relative": 1629
+    },
+    {
+      "path": "/api/v1/public/config",
+      "status": 200,
+      "relative": 1868
+    },
+    {
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "status": 200,
+      "relative": 2682
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+      "status": 200,
+      "relative": 3827
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+      "status": 200,
+      "relative": 5590
+    },
+    {
+      "path": "/data/sdk_config.json",
+      "status": 404,
+      "relative": 5840
+    },
+    {
+      "path": "/locales/en.json",
+      "status": 200,
+      "relative": 5854
+    },
+    {
+      "path": "/api/v1/public/debug/status",
+      "status": 200,
+      "relative": 6548
+    },
+    {
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-pois",
+      "status": 200,
+      "relative": 6714
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/georef.json",
+      "status": 200,
+      "relative": 6721
+    },
+    {
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-categories",
+      "status": 200,
+      "relative": 7244
+    },
+    {
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-stair-chains",
+      "status": 200,
+      "relative": 7934
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref",
+      "status": 200,
+      "relative": 8039
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+      "status": 200,
+      "relative": 8290
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/venue-info",
+      "status": 200,
+      "relative": 8297
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/shops",
+      "status": 200,
+      "relative": 8620
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/weather",
+      "status": 200,
+      "relative": 9046
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/translations",
+      "status": 200,
+      "relative": 9232
+    },
+    {
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "status": 200,
+      "relative": 10464
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/thumbs/index.json",
+      "status": 200,
+      "relative": 10465
+    },
+    {
+      "path": "/api/v1/public/debug/status",
+      "status": 200,
+      "relative": 18537
+    },
+    {
+      "path": "/api/v1/public/debug/status",
+      "status": 200,
+      "relative": 30545
+    },
+    {
+      "path": "/api/v1/public/debug/status",
+      "status": 200,
+      "relative": 42538
+    }
+  ],
+  "errors": [],
+  "resources": [
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/translations",
+      "host": "wayfinding.navme.space",
+      "ms": 3638,
+      "size": 4834
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/weather",
+      "host": "wayfinding.navme.space",
+      "ms": 3452,
+      "size": 508
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/shops",
+      "host": "wayfinding.navme.space",
+      "ms": 3027,
+      "size": 306
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/venue-info",
+      "host": "wayfinding.navme.space",
+      "ms": 2702,
+      "size": 458
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+      "host": "wayfinding.navme.space",
+      "ms": 2693,
+      "size": 400
+    },
+    {
+      "path": "/show/",
+      "host": "my.matterport.com",
+      "ms": 2499,
+      "size": 0
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref",
+      "host": "wayfinding.navme.space",
+      "ms": 2445,
+      "size": 401
+    },
+    {
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-stair-chains",
+      "host": "wayfinding.navme.space",
+      "ms": 2340,
+      "size": 306
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+      "host": "wayfinding.navme.space",
+      "ms": 1763,
+      "size": 903
+    },
+    {
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/navme-categories",
+      "host": "wayfinding.navme.space",
+      "ms": 1650,
+      "size": 597
+    },
+    {
+      "path": "/api/v1/public/venues/all/manifest.json",
+      "host": "wayfinding.navme.space",
+      "ms": 1301,
+      "size": 802
+    },
+    {
+      "path": "/img/navme-logo.png",
+      "host": "wayfinding.navme.space",
+      "ms": 1263,
+      "size": 275156
+    },
+    {
+      "path": "/weather.js",
+      "host": "wayfinding.navme.space",
+      "ms": 1196,
+      "size": 2494
+    },
+    {
+      "path": "/ui.js",
+      "host": "wayfinding.navme.space",
+      "ms": 1149,
+      "size": 48305
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+      "host": "wayfinding.navme.space",
+      "ms": 1143,
+      "size": 1386
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/thumbs/index.json",
+      "host": "wayfinding.navme.space",
+      "ms": 1138,
+      "size": 19377
+    },
+    {
+      "path": "/api/v1/public/buildings/gcu/data/pois.json",
+      "host": "wayfinding.navme.space",
+      "ms": 1132,
+      "size": 8973
+    },
+    {
+      "path": "/api/v1/public/buildings/uncc-main-campus/data/georef.json",
+      "host": "wayfinding.navme.space",
+      "ms": 1128,
+      "size": 850
+    }
+  ]
+}
