@@ -1474,7 +1474,6 @@ function wfDbg(level, source, message, meta) {
     function openDirections(startNav) {
     setUxMode("places");
     S.mode = "dir"; document.body.classList.add("dir");
-    $("dirCategorySlot").appendChild($("chipsWrap"));
     $("searchBox").hidden = true; $("dirBox").hidden = false; closeAc();
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); closeSheet(); if ($("acList").hidden) $("toQ").click(); return; }
@@ -1494,7 +1493,6 @@ function wfDbg(level, source, message, meta) {
   }
   function closeDirections() {
     S.route = null; wf.clearRoute(); document.body.classList.remove("dir");
-    $("homeCategorySlot").appendChild($("chipsWrap"));
     $("searchBox").hidden = false; $("dirBox").hidden = true; closeAc();
     if (S.place) selectPlace(S.place, { fly: false }); else showHome();
     syncCategoryButtons(S.filter);
