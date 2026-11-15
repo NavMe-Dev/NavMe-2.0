@@ -233,6 +233,10 @@ body.dark .shop-status.closed{color:#f28b82}
 .list li:hover{background:var(--bg2)}
 .list .ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
 .list .ic .ms{font-size:20px}
+.category-directory{list-style:none;margin:8px 0 0;padding:0}
+.ui .category-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 4px;text-align:left;border-radius:8px;font-weight:500;touch-action:manipulation}
+.ui .category-choice:hover{background:var(--bg2)}
+.category-choice .ms{flex:none;font-size:20px}
 /* directions sheet */
 .sum{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 0}
 .sum .big{font-size:1.6em;color:var(--green);font-weight:400}.sum .big.st{color:var(--txt)}

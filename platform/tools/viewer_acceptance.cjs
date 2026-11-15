@@ -119,12 +119,26 @@ async function capture(browser, [name, width, height, touch]) {
       ensure(state.filter === category && state.mode === 'list' && state.items > 0 && state.items === state.expected && state.floorFilters === 0, JSON.stringify(state));
       return state;
     });
-    await check('All POIs remain listed without category floor controls', async () => {
+    await check('All opens the category directory and categories open their POIs', async () => {
       await click(page.locator('#chips .chip[data-cat="__all__"]'));
-      const state = await page.evaluate(() => ({ filter: wfUI.S.filter, visibleCount: document.querySelectorAll('#sheetBody .list li').length, expected: wf.pois.length, floorFilters: document.querySelectorAll('.category-floor-filter,[data-category-floor]').length }));
-      ensure(state.filter === '__all__' && state.visibleCount === state.expected && state.visibleCount > 0 && state.floorFilters === 0, JSON.stringify(state));
-      await shot('all-pois-no-floor-filters');
-      return state;
+      const directory = await page.evaluate(() => {
+        const label = button => { const copy = button.cloneNode(true); copy.querySelectorAll('.ms').forEach(icon => icon.remove()); return copy.textContent.trim(); };
+        return { filter: wfUI.S.filter,
+          entries: [...document.querySelectorAll('#sheetBody [data-list-category]')].map(button => ({ key: button.dataset.listCategory, name: label(button) })),
+          expected: [...document.querySelectorAll('#chips .chip[data-cat]')].filter(button => button.dataset.cat !== '__all__').map(button => ({ key: button.dataset.cat, name: label(button) })),
+          poiRows: document.querySelectorAll('#sheetBody .list li[data-id]').length,
+          floorFilters: document.querySelectorAll('.category-floor-filter,[data-category-floor]').length };
+      });
+      ensure(directory.filter === '__all__' && directory.entries.length > 0 && directory.poiRows === 0 && directory.floorFilters === 0 && JSON.stringify(directory.entries) === JSON.stringify(directory.expected), JSON.stringify(directory));
+      const category = directory.entries[0].key;
+      await click(page.locator('#sheetBody [data-list-category]').first());
+      const selected = await page.evaluate(() => ({ filter: wfUI.S.filter, items: document.querySelectorAll('#sheetBody .list li[data-id]').length, expected: wf.pois.filter(p => p.category === wfUI.S.filter).length }));
+      ensure(selected.filter === category && selected.items === selected.expected, JSON.stringify(selected));
+      await click(page.locator('#chips .chip[data-cat="__all__"]'));
+      const reopened = await page.locator('#sheetBody [data-list-category]').count();
+      ensure(reopened === directory.entries.length, 'All did not reopen the category directory');
+      await shot('all-category-directory');
+      return { directory, selected, reopened };
     });
     const selected = await page.evaluate(() => wf.pois.find(p => p.name && p.nearest_node) || wf.pois[0]);
     await check('search and POI selection through autocomplete', async () => {

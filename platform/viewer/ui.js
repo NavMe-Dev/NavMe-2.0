@@ -782,8 +782,13 @@ function wfDbg(level, source, message, meta) {
     const showingAll = S.filter === ALL_CAT;
     wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
     if (!S.filter) { S.categoryPoiIds = null; showHome(); return; }
-    const items = showingAll ? POIS.slice() : POIS.filter(p => memberIds ? memberIds.has(String(p.id)) : p.category === S.filter);
-    const title = showingAll ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === c) || [, c])[1];
+    if (showingAll) {
+      S.categoryPoiIds = null;
+      S.mode = "list"; showCategoryDirectory("half");
+      return;
+    }
+    const items = POIS.filter(p => memberIds ? memberIds.has(String(p.id)) : p.category === S.filter);
+    const title = (CHIPS().find(x => x[0] === c) || [, c])[1];
     S.categoryPoiIds = memberIds ? items.map(p => String(p.id)) : null;
     S.mode = "list"; showCategoryList(items, title, "half");
     if (items.length) {
@@ -799,9 +804,21 @@ function wfDbg(level, source, message, meta) {
     return S.filter === ALL_CAT ? POIS.slice() : POIS.filter(p => p.category === S.filter);
   }
   function showCategoryList(items, title, state) {
+    if (S.filter === ALL_CAT) { showCategoryDirectory(state); return; }
     setSheet(listHtml(items, title), state || "half");
     $("sheet").classList.add("category-list");
     bindList(items);
+  }
+  function showCategoryDirectory(state) {
+    const rows = CHIPS().map(([key, label]) => {
+      const style = CAT[key];
+      return `<li><button type="button" class="category-choice" data-list-category="${esc(key)}"><span class="ms" style="color:${rgb(style.color)}" aria-hidden="true">${esc(style.icon)}</span><span>${esc(label)}</span></button></li>`;
+    }).join("");
+    setSheet(`<h1 class="pname">${esc(t("viewer.allCategories") || "All")}</h1><ul class="category-directory">${rows}</ul>`, state || "half");
+    $("sheet").classList.add("category-list");
+    $("sheetBody").querySelectorAll("[data-list-category]").forEach(button => {
+      button.onclick = () => toggleChip(button.dataset.listCategory);
+    });
   }
   function listHtml(items, title) {
     if (!items.length) return `<h1 class="pname">${esc(title)}</h1><div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
