@@ -98,13 +98,6 @@ body.large{--fs:17px}
 .ac-close{position:absolute;top:calc(var(--acTop) + 4px);right:8px;z-index:6;width:32px;height:32px;background:var(--bg)!important}
 .ac.direction-results>li:first-child{padding-right:54px}
 .ac.direction-results>.hdr:first-child{min-height:28px}
-.category-floor-filter{display:flex;align-items:flex-start;gap:9px;margin:10px 0 12px;padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--bg2)}
-.ac-floor-scroll{display:flex;flex:1;flex-wrap:wrap;gap:6px;min-width:0;padding:1px 1px 2px}
-.ac-floor-scroll::-webkit-scrollbar{display:none}
-.ui .ac-floor{flex:none;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--txt);font:500 12px/1 Roboto,system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s,box-shadow .15s}
-.ui .ac-floor:hover{background:var(--bg2);border-color:var(--txt2)}
-.ui .ac-floor.on{border-color:#aecbfa;background:#e8f0fe;color:var(--blue-d);box-shadow:inset 0 0 0 1px rgba(26,115,232,.08)}
-.ui .ac-floor:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .badge{display:inline-flex;align-items:center;gap:3px;font-size:.78em;font-weight:500;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--txt2);white-space:nowrap}
 .badge.floor{background:#e8f0fe;color:var(--blue-d)}.badge.sf{background:#e6f4ea;color:var(--green)}.badge.st{background:#fef7e0;color:#b06000}
 .badge .ms{font-size:14px}

@@ -115,18 +115,15 @@ async function capture(browser, [name, width, height, touch]) {
       ensure(category, 'No real POI category control available');
       const index = await page.evaluate(value => [...document.querySelectorAll('#chips .chip[data-cat]')].findIndex(b => b.dataset.cat === value), category);
       await click(page.locator('#chips .chip[data-cat]').nth(index));
-      const state = await page.evaluate(() => ({ filter: wfUI.S.filter, mode: wfUI.S.mode, items: document.querySelectorAll('#sheetBody .list li').length, expected: wf.pois.filter(p => p.category === wfUI.S.filter).length }));
-      ensure(state.filter === category && state.mode === 'list' && state.items > 0 && state.items === state.expected, JSON.stringify(state));
+      const state = await page.evaluate(() => ({ filter: wfUI.S.filter, mode: wfUI.S.mode, items: document.querySelectorAll('#sheetBody .list li').length, expected: wf.pois.filter(p => p.category === wfUI.S.filter).length, floorFilters: document.querySelectorAll('.category-floor-filter,[data-category-floor]').length }));
+      ensure(state.filter === category && state.mode === 'list' && state.items > 0 && state.items === state.expected && state.floorFilters === 0, JSON.stringify(state));
       return state;
     });
-    await check('floor selection through visible category floor controls', async () => {
-      await click(page.locator('#chips .chip[data-cat]').first());
-      const floor = await page.locator('#sheetBody [data-category-floor]').evaluateAll(buttons => buttons.map(b => b.dataset.categoryFloor).find(f => f !== '__all__' && f !== window.wf.currentFloor()));
-      ensure(floor, 'No second-floor public selector available');
-      await click(page.locator(`#sheetBody [data-category-floor="${floor}"]`));
-      const state = await page.evaluate(() => ({ floor: wf.currentFloor(), selected: wfUI.S.categoryFloor, visibleCount: document.querySelectorAll('#sheetBody .list li').length }));
-      ensure(state.floor === floor && state.selected === floor && state.visibleCount > 0, JSON.stringify(state));
-      await shot('floor-selection');
+    await check('All POIs remain listed without category floor controls', async () => {
+      await click(page.locator('#chips .chip[data-cat="__all__"]'));
+      const state = await page.evaluate(() => ({ filter: wfUI.S.filter, visibleCount: document.querySelectorAll('#sheetBody .list li').length, expected: wf.pois.length, floorFilters: document.querySelectorAll('.category-floor-filter,[data-category-floor]').length }));
+      ensure(state.filter === '__all__' && state.visibleCount === state.expected && state.visibleCount > 0 && state.floorFilters === 0, JSON.stringify(state));
+      await shot('all-pois-no-floor-filters');
       return state;
     });
     const selected = await page.evaluate(() => wf.pois.find(p => p.name && p.nearest_node) || wf.pois[0]);

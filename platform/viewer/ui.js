@@ -96,7 +96,7 @@ function wfDbg(level, source, message, meta) {
     fuse = new Fuse(POIS, { keys: [{ name: "name", weight: 0.6 }, { name: "code", weight: 0.2 }, { name: "category", weight: 0.1 }, { name: "tagsText", weight: 0.1 }], threshold: 0.4, ignoreLocation: true, includeMatches: false });
   }
   const S = { mode: "home",
-    uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, categoryFloor: "__all__", categoryPoiIds: null, previewing: false, locMeta: null };
+    uxMode: "buildings", dirFocus: "to", place: null, from: null, to: null, stepFree: false, route: null, navSteps: [], navI: 0, filter: null, categoryPoiIds: null, previewing: false, locMeta: null };
 
   // Matterport public viewer (?mp=1, see mp_background.js): same search/directions/
   // turn-by-turn UI, but POI selection and turn-by-turn clicks drive the live
@@ -781,11 +781,10 @@ function wfDbg(level, source, message, meta) {
     window.dispatchEvent(new Event("wf-category-style"));
     const showingAll = S.filter === ALL_CAT;
     wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
-    if (!S.filter) { S.categoryPoiIds = null; S.categoryFloor = "__all__"; showHome(); return; }
+    if (!S.filter) { S.categoryPoiIds = null; showHome(); return; }
     const items = showingAll ? POIS.slice() : POIS.filter(p => memberIds ? memberIds.has(String(p.id)) : p.category === S.filter);
     const title = showingAll ? (t("viewer.allCategories") || "All") : (CHIPS().find(x => x[0] === c) || [, c])[1];
     S.categoryPoiIds = memberIds ? items.map(p => String(p.id)) : null;
-    S.categoryFloor = "__all__";
     S.mode = "list"; showCategoryList(items, title, "half");
     if (items.length) {
       const fl = items.map(p => p.floor); const F = fl.includes(wf.currentFloor()) ? wf.currentFloor() : fl[0]; wf.setFloor(F);
@@ -799,41 +798,14 @@ function wfDbg(level, source, message, meta) {
     }
     return S.filter === ALL_CAT ? POIS.slice() : POIS.filter(p => p.category === S.filter);
   }
-  function categoryFloorToolbar(items) {
-    const ordinal = id => ((((WF.cfg.floors || []).find(f => String(f.id) === String(id))) || {}).ordinal ?? 0);
-    // Numbered labels are the visible order, even when imported ordinals differ.
-    const floorNumber = id => {
-      const match = /^(?:floor|level)\s+(-?\d+(?:\.\d+)?)$/i.exec(String(wf.floorLabel(id)).trim());
-      return match ? Number(match[1]) : null;
-    };
-    const floors = [...new Set(items.map(p => p.floor).filter(Boolean))].sort((a, b) =>
-      (floorNumber(a) !== null && floorNumber(b) !== null ? floorNumber(a) - floorNumber(b) : ordinal(a) - ordinal(b)) ||
-      String(wf.floorLabel(a)).localeCompare(String(wf.floorLabel(b)), undefined, { numeric: true })
-    );
-    if (S.categoryFloor !== "__all__" && !floors.includes(S.categoryFloor)) S.categoryFloor = "__all__";
-    if (floors.length < 2) return "";
-    const button = (id, label) => `<button type="button" class="ac-floor${S.categoryFloor === id ? " on" : ""}" data-category-floor="${esc(id)}" aria-pressed="${S.categoryFloor === id}">${esc(label)}</button>`;
-    return `<div class="category-floor-filter"><div class="ac-floor-scroll" role="group" aria-label="${esc(t("viewer.floor"))}">${button("__all__", t("viewer.allFloors"))}${floors.map(id => button(id, wf.floorLabel(id))).join("")}</div></div>`;
-  }
   function showCategoryList(items, title, state) {
-    const showingAll = S.filter === ALL_CAT;
-    if (showingAll) S.categoryFloor = "__all__";
-    const toolbar = showingAll ? "" : categoryFloorToolbar(items);
-    const visible = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
-    setSheet(listHtml(visible, title, toolbar), state || "half");
+    setSheet(listHtml(items, title), state || "half");
     $("sheet").classList.add("category-list");
-    bindList(visible);
-    $("sheetBody").querySelectorAll("[data-category-floor]").forEach(button => { button.onclick = () => {
-      S.categoryFloor = button.dataset.categoryFloor;
-      showCategoryList(items, title, $("sheet").dataset.state || "half");
-      const shown = S.categoryFloor === "__all__" ? items : items.filter(p => p.floor === S.categoryFloor);
-      if (S.categoryFloor !== "__all__") wf.setFloor(S.categoryFloor);
-      if (shown.length) fitLonLat(shown.map(p => p.lonlat), 1.8);
-    }; });
+    bindList(items);
   }
-  function listHtml(items, title, toolbar) {
-    if (!items.length) return `<h1 class="pname">${esc(title)}</h1>${toolbar || ""}<div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
-    return `<h1 class="pname">${esc(title)} <span class="muted">(${items.length})</span></h1>${toolbar || ""}<ul class="list">` + items.map(p => { const c = cat(p);
+  function listHtml(items, title) {
+    if (!items.length) return `<h1 class="pname">${esc(title)}</h1><div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
+    return `<h1 class="pname">${esc(title)} <span class="muted">(${items.length})</span></h1><ul class="list">` + items.map(p => { const c = cat(p);
       return `<li data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1;min-width:0"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)}</div></div>${sfBadge(p, true)}</li>`; }).join("") + "</ul>";
   }
   function bindList(items) {
