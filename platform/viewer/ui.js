@@ -834,7 +834,7 @@ function wfDbg(level, source, message, meta) {
   function listHtml(items, title, toolbar) {
     if (!items.length) return `<h1 class="pname">${esc(title)}</h1>${toolbar || ""}<div class="warn"><span class="ms">info</span><div>${esc(t("viewer.noMappedYet", { title: title.toLowerCase() }))}</div></div>`;
     return `<h1 class="pname">${esc(title)} <span class="muted">(${items.length})</span></h1>${toolbar || ""}<ul class="list">` + items.map(p => { const c = cat(p);
-      return `<li data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1;min-width:0"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)} · ${esc(wf.floorLabel(p.floor))}</div></div>${sfBadge(p, true)}</li>`; }).join("") + "</ul>";
+      return `<li data-id="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}"><span class="ic" style="background:${rgb(c.color)}"><span class="ms fill">${c.icon}</span></span><div style="flex:1;min-width:0"><div>${esc(p.name)}</div><div class="muted">${esc(c.label)}</div></div>${sfBadge(p, true)}</li>`; }).join("") + "</ul>";
   }
   function bindList(items) {
     $("sheetBody").querySelectorAll(".list li").forEach(li => { const go = () => selectPlace(byId[li.dataset.id], { fly: true }); li.onclick = go; li.onkeydown = (e) => { if (e.key === "Enter") go(); }; });
