@@ -649,7 +649,7 @@ function wfDbg(level, source, message, meta) {
       // Moving between the main search and either directions field is one continuous
       // autocomplete flow. Do not let the previous input's delayed blur close the new
       // field's results.
-      const directionChip = S.mode === "dir" && active && active.closest("#chipsWrap, #chipsDropdown");
+      const directionChip = S.mode === "dir" && active && active.closest("#chipsWrap");
       if (active !== $("q") && active !== $("fromQ") && active !== $("toQ") && active !== $("acClose") && !directionChip) closeAc();
     }, 150));
   }
@@ -674,10 +674,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   // ---------------- chips ----------------
-  // Horizontal scrolling row of chip buttons (as before), an "All" chip pinned first,
-  // plus one trailing icon-only "more" pill that opens a dropdown with the complete
-  // category list laid out in full (no internal scroll) for buildings with more
-  // categories than comfortably fit in the row.
+  // Horizontally scrolling category chips; All opens the category directory.
   const ALL_CAT = "__all__";
   function chipBtnHtml(c, l, icon, color) {
     return `<button class="chip" data-cat="${c}" aria-pressed="false"><span class="ms" style="color:${color}">${icon}</span>${l}</button>`;
@@ -688,21 +685,15 @@ function wfDbg(level, source, message, meta) {
   function buildChips() {
     const chips = CHIPS();
     const chipsHtml = chips.map(([c, l]) => chipBtnHtml(c, l, CAT[c].icon, rgb(CAT[c].color))).join("");
-    // #chipsMore is a static pinned button (index.html), NOT part of this scrolling row —
-    // it stays put in the right corner while only these pills scroll past/behind it.
     $("chips").innerHTML = allChipHtml() + chipsHtml;
     bindCategoryButtons($("chips"));
-    $("chipsDropdown").innerHTML = allChipHtml() + chipsHtml;
-    bindCategoryButtons($("chipsDropdown"));
-    $("chipsMore").onclick = () => setChipsOpen($("chipsDropdown").hidden);
     syncCategoryButtons(S.mode === "dir" ? directionCategories[S.dirFocus === "from" ? "fromQ" : "toQ"] : S.filter);
   }
   function syncCategoryButtons(selected) {
-    document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(button => {
+    document.querySelectorAll("#chips .chip[data-cat]").forEach(button => {
       const on = button.dataset.cat === selected;
       button.classList.toggle("on", on); button.setAttribute("aria-pressed", String(on));
     });
-    $("chipsMore").classList.toggle("active", !!selected && selected !== ALL_CAT);
     if (S.mode === "dir") document.body.style.setProperty("--dirSheetTop", Math.round($("chipsWrap").getBoundingClientRect().bottom + 8) + "px");
   }
   function bindCategoryButtons(root) {
@@ -711,7 +702,6 @@ function wfDbg(level, source, message, meta) {
       const choose = event => {
         event.preventDefault();
         event.stopPropagation();
-        setChipsOpen(false);
         if (S.mode === "dir") {
           const input = $(S.dirFocus === "from" ? "fromQ" : "toQ");
           directionCategories[input.id] = button.dataset.cat;
@@ -723,9 +713,8 @@ function wfDbg(level, source, message, meta) {
         toggleChip(button.dataset.cat);
       };
       button.addEventListener("mousedown", event => { if (S.mode === "dir") event.preventDefault(); });
-      // Mobile Safari/Chrome can suppress the later click when this fixed dropdown is
-      // over a touch-driven Matterport canvas. Handle the completed touch pointer
-      // directly, while retaining click for mouse, keyboard and older browsers.
+      // Handle completed touch pointers over the Matterport canvas directly, while
+      // retaining click for mouse, keyboard and older browsers.
       button.addEventListener("pointerup", event => {
         if (event.pointerType !== "touch") return;
         touchHandledAt = Date.now();
@@ -736,20 +725,6 @@ function wfDbg(level, source, message, meta) {
         choose(event);
       };
     });
-  }
-  function setChipsOpen(open) {
-    if (open) {
-      // position:fixed + computed here (rather than CSS anchored to .chips-wrap) because
-      // the dropdown now lives outside .top in the DOM (see index.html) so its stacking
-      // is independent of .top/.sheet's z-index — it always draws above both.
-      const r = $("chipsMore").getBoundingClientRect();
-      const dd = $("chipsDropdown");
-      dd.style.top = (r.bottom + 2) + "px";
-      const w = Math.max(220, Math.min(280, window.innerWidth - 20));
-      dd.style.left = Math.max(8, r.right - w) + "px";
-    }
-    $("chipsDropdown").hidden = !open;
-    $("chipsMore").setAttribute("aria-expanded", String(!!open));
   }
   function selectCategoryMarker(id, poiIds, name) {
     if (!wf || S.mode === "dir" || S.mode === "nav") return;
@@ -775,9 +750,7 @@ function wfDbg(level, source, message, meta) {
     // Category choices are navigation, not on/off toggles: tapping the active category
     // must reliably reopen its POI list instead of unexpectedly returning home.
     S.filter = c;
-    document.querySelectorAll("#chips .chip[data-cat], #chipsDropdown .chip[data-cat]").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
-    $("chipsMore").classList.toggle("active", !!(S.filter && S.filter !== ALL_CAT));
-    setChipsOpen(false);
+    document.querySelectorAll("#chips .chip[data-cat]").forEach(b => { const on = b.dataset.cat === S.filter; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     window.dispatchEvent(new Event("wf-category-style"));
     const showingAll = S.filter === ALL_CAT;
     wf.poiFilter = (S.filter && !showingAll) ? new Set([S.filter]) : null; wf.redrawPOIs();
@@ -2429,9 +2402,6 @@ function wfDbg(level, source, message, meta) {
     document.addEventListener("pointerdown", (e) => {
       const fp = $("floorPicker");
       if (fp.classList.contains("expanded") && !fp.contains(e.target)) setFloorStack(false);
-    });
-    document.addEventListener("pointerdown", (e) => {
-      if (!$("chipsDropdown").hidden && !$("chipsWrap").contains(e.target) && !$("chipsDropdown").contains(e.target)) setChipsOpen(false);
     });
     $("btnLayers").onclick = () => { const p = $("layersPop"); p.hidden = !p.hidden; if (!p.hidden) { syncLayers(); p.querySelector(".sty").focus(); } };
     $("btnLayersClose").onclick = closePop;

@@ -55,7 +55,7 @@
   }
   function notify() { root.dispatchEvent(new Event("wf-weather-updated")); }
   function updateVisibility() {
-    const popup = doc.querySelector('#acList:not([hidden]),#chipsDropdown:not([hidden]),.pop:not([hidden]),.loc-modal:not([hidden]),#drawer:not([hidden])');
+    const popup = doc.querySelector('#acList:not([hidden]),.pop:not([hidden]),.loc-modal:not([hidden]),#drawer:not([hidden])');
     const visible = !!(data && data.available) && !immersive() && !popup;
     if (row.hidden !== !visible) row.hidden = !visible;
     if (doc.body.classList.contains("weather-visible") !== visible) {
