@@ -137,6 +137,7 @@ function wfDbg(level, source, message, meta) {
     loadCampus();
     if (window.WFi18n) WFi18n.onChange(() => refreshI18nChrome());
     window.addEventListener("wf-metadata-updated", () => { applyDynamicCategories(); refreshI18nChrome(); });
+    window.addEventListener("wf-floors-updated", refreshI18nChrome);
     fetch(WF.D(WF.cfg.files.thumbs)).then(r => r.json()).then(a => {
       thumbs = new Set(a);
       // Add associated scan images without resetting the selected tab or sheet height.
@@ -2426,13 +2427,15 @@ function wfDbg(level, source, message, meta) {
         toast(t("viewer.showingLocation"), t("viewer.setNew"), () => startLocalize());
       } else startLocalize();
     };
-    $("floorList").querySelectorAll("button").forEach(b => b.onclick = () => {
+    $("floorList").onclick = e => {
+      const b = e.target.closest("button[data-floor]");
+      if (!b || !$("floorList").contains(b)) return;
       wf.setFloor(b.dataset.floor);
       // f=0 (see mp_preview.js showcaseUrl) hides Showcase's own floor explorer — these
       // buttons are the only way to change floor in mp mode, so drive it directly.
       if (isMpMode() && window.MpPreview && window.MpPreview.setFloor) window.MpPreview.setFloor(b.dataset.floor);
       setFloorStack(false);   // picking a floor collapses the stack back
-    });
+    };
     $("floorToggle").onclick = () => setFloorStack($("floorPicker").classList.contains("expanded") ? false : true);
     document.addEventListener("pointerdown", (e) => {
       const fp = $("floorPicker");

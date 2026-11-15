@@ -56,7 +56,7 @@
     return (m && window.WFi18n && WFi18n.t("viewer.floorN", { n: m[1] })) || label;
   }
 
-  window.WF.ready.then(async () => {
+  (window.WF.configReady || window.WF.ready).then(async () => {
     CFG = WF.cfg;
     const metadata = Promise.all([
       J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/shops").catch(() => []),
@@ -170,6 +170,16 @@
       setRealMesh:()=>{},setMeshEdgeColor:()=>{},setMeshEdgeIntensity:()=>{},setHideShell:()=>{},setHideOsmBlocks:()=>{},setHideMesh:()=>{},setSolidBuildings:()=>{}
     };
     dispatchEvent(new Event("wf-pois-updated"));
+    // Search/routing need the published floors, not the optional authored names.
+    // Refresh those labels when the existing floor/DOM bootstrap finishes.
+    window.WF.ready.then(() => {
+      (CFG.floors || []).forEach(f => {
+        if (nav.floors[f.id]) nav.floors[f.id].label = f.label || f.id;
+        const derived = derivedFloors && derivedFloors.find(row => row.id === f.id);
+        if (derived) derived.label = f.label || f.id;
+      });
+      dispatchEvent(new Event("wf-floors-updated"));
+    }).catch(() => {}); // WF.ready owns reporting required bootstrap failures.
     // Optional retail/AR/translation metadata must never hold the POI interface
     // or Matterport startup behind an upstream request. Refresh open UI on arrival.
     window.WF.metadataReady = metadata.then(([shops, arRef, translations]) => {
