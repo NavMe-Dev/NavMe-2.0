@@ -1,6 +1,14 @@
 # Production recovery helpers
 
-The audit, reconciliation and recovery helpers below make no production changes.
+The source-copy and publication helpers added on 16 November 2026 can write
+production data when explicitly applied. Their completed release and verification
+are recorded in `docs/production-migration/21-source-copy-and-uncc-publication.md`.
+`sync_znfw_shared.py` defaults to a rollback-only plan; `--apply` requires the
+exact-project backup manifest. `publish_uncc_missing_pois.sql` is a guarded,
+insert-only publication operation; its final statement controls commit/rollback.
+Keep every credential, source export and detailed report in ignored private paths.
+
+The original audit and reconciliation helpers below make no production changes.
 The separately reviewed reader-role release tools have their own exact-project
 guards and are documented in reports 07/08/13. `audit.py inventory` runs catalog
 and count queries in a read-only repeatable-read transaction. `audit.py backup`

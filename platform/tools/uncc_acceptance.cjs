@@ -46,7 +46,7 @@ const safeUrl = value => { const u = new URL(value); return u.origin + u.pathnam
           assert.equal(data.path, '/unc-charlotte'); assert.equal(data.query, '');
         }
         assert.equal(data.slug, 'uncc-main-campus'); assert.equal(data.version, 2);
-        assert.equal(data.model, 'kQBN52JqFE9'); assert.equal(data.pois, 20);
+        assert.equal(data.model, 'kQBN52JqFE9'); assert.equal(data.pois, 47);
         assert.equal(data.categories, 6); assert.equal(data.displayFloors, 2); return data;
       });
       await check('real Matterport scene completes startup', async () => {
