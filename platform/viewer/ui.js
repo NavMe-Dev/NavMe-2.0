@@ -595,7 +595,7 @@ function wfDbg(level, source, message, meta) {
   function itemHtml(p, hist, i) {
     const c = cat(p);
     return `<li role="option" id="ac${i}" aria-label="${esc(p.name)}, ${esc(wf.floorLabel(p.floor))}"><span class="ic ${hist ? "hist" : ""}" style="${hist ? "" : "background:" + rgb(c.color)}"><span class="ms ${hist ? "" : "fill"}">${hist ? "history" : c.icon}</span></span>
-      <span class="t"><b>${esc(p.name)}</b><div class="s">${esc(c.label)}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}</div></span><span class="badge floor">${p._remote ? esc(p._remote.name) + " · " + esc(p.floor) : esc(wf.floorLabel(p.floor))}</span></li>`;
+      <span class="t"><b>${esc(p.name)}</b><div class="s">${esc(c.label)}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}</div></span></li>`;
   }
   function moveAc(d) {
     const lis = $("acList").querySelectorAll("li[role=option]"); if (!lis.length) return;
@@ -1702,7 +1702,6 @@ function wfDbg(level, source, message, meta) {
   }
 
   function renderDirections(r) {
-    const floors = [...new Set(r.nodes.filter(n => n.kind !== "osm").map(n => n.floor))];
     const segs = floorSegments(r);
     const segHtml = segs.map(s => {
       if (s.key === "T") return `<span class="seg"><span class="ms">elevator</span>${esc(t("viewer.floorChange", { floor: wf.floorLabel(s.toFloor) }))}</span>`;
@@ -1744,7 +1743,7 @@ function wfDbg(level, source, message, meta) {
       <div class="route-head">
         <div class="sum"><span class="big ${r.stairs_rise_m > 0 ? "st" : ""}">${fmtMin(r.time_s)}</span><span class="muted">(${fmtDist(r.total_m)})</span>
           ${r.stairs_rise_m > 0 ? `<span class="badge st"><span class="ms">stairs</span>${esc(t(usesFeet() ? "viewer.stairsRiseFeet" : "viewer.stairsRise", { m: (usesFeet() ? r.stairs_rise_m / 0.3048 : r.stairs_rise_m).toFixed(1) }))}</span>` : `<span class="badge sf"><span class="ms">accessible</span>${esc(t("viewer.stepFreeBadge"))}</span>`}
-          ${floors.length > 1 ? `<span class="badge floor"><span class="ms">layers</span>${esc(t("viewer.floorsCount", { n: floors.length }))}</span>` : ""}</div>
+        </div>
         <button class="route-share" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
@@ -1756,7 +1755,6 @@ function wfDbg(level, source, message, meta) {
         ${isMpMode() ? `<button class="pill pill-sm route-action-wide" id="dViewAr"><span class="ms">view_in_ar</span>${esc(t("viewer.viewInAr") || "View in AR")}</button>` : ""}
       </div>
       <div class="actions route-actions-secondary">
-        ${tm.embed_showcase ? `<button class="pill route-action-wide" id="dWalkNav"><span class="ms">directions_walk</span>${esc(t("viewer.walkthroughWayfinding") || "Wayfinding")}</button>` : ""}
         ${tm.mesh_tour ? `<button class="pill" id="dMeshTour"><span class="ms">3d_rotation</span>${esc(t("viewer.meshTour") || "Mesh tour")}</button>` : ""}
         ${bundleBtn}
         <button class="pill" id="dStartAr" hidden><span class="ms">view_in_ar</span>${esc(t("viewer.startAr"))}</button>
@@ -1786,13 +1784,6 @@ function wfDbg(level, source, message, meta) {
       }
       if (window.MpPreview) window.MpPreview.open(mpRoutePayload());
       else toast(t("viewer.tourUnavailable"));
-    };
-    if ($("dWalkNav")) $("dWalkNav").onclick = () => {
-      if (!S.route) return;
-      const acc = accessFlags();
-      if (acc.twin_disabled) { toast(t("viewer.tourDisabled") || "The 3D tour isn't available for this building. You can still explore using the regular map."); return; }
-      if (window.ThreeDNav) window.ThreeDNav.open(S.route);
-      else toast(t("viewer.tourUnavailable") || "The indoor tour isn't available right now. Please try again later.");
     };
     if ($("dMeshTour")) $("dMeshTour").onclick = () => openMeshTourFromDirections();
     if ($("dBundle")) $("dBundle").onclick = () => {

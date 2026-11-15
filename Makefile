@@ -16,7 +16,7 @@ setup-dashboard:
 ## Run platform API on :8780 (viewer + admin + inline worker)
 dev-platform:
 	cd platform && \
-	  VIEWER_DIR=viewer ADMIN_DIR=admin WORKER_INLINE=true \
+	  VIEWER_DIR=viewer ADMIN_DIR=admin FLOORPLAN_DIR=floorplans/student-union WORKER_INLINE=true \
 	  $(abspath platform)/.venv/bin/python \
 	  -m uvicorn wayfinding_api.main:app --app-dir api --host 127.0.0.1 --port 8780 --reload
 
