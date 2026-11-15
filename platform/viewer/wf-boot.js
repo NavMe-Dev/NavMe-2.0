@@ -12,6 +12,11 @@
   const q = window.WFQuery ? WFQuery() : new URLSearchParams(location.search);
   const J = (u) => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + " " + u); return r.json(); });
   const join = (a, b) => a.replace(/\/?$/, "/") + b.replace(/^\//, "");
+  // Fetch publication data while the rest of the page is still being parsed.
+  // Only the branding/picker setup below needs the document to be complete.
+  const domReady = document.readyState === "loading"
+    ? new Promise(resolve => document.addEventListener("DOMContentLoaded", resolve, { once: true }))
+    : Promise.resolve();
 
   // Smart start-mode redirect: a building's NavMe Dashboard "Walkthrough Mode" setting
   // (walkthrough_first / ar_first / hybrid) decides whether landing on this viewer sends
@@ -78,6 +83,12 @@
     if (selectedSlug && apiBase && q.get("mp") === "1") {
       window.WF.viewerData = J(apiBase + "dashboard/buildings/" + encodeURIComponent(selectedSlug) + "/viewer-data");
       window.WF.viewerData.catch(() => {});
+      // The endpoint enforces the current publication's access policy. Keep its
+      // anonymous response for this first connection only; PIN requests stay fresh.
+      if (window.WF.building) window.WF.matterportRequest = {
+        slug: selectedSlug, apiBase,
+        response: fetch(apiBase + "buildings/" + encodeURIComponent(selectedSlug) + "/matterport", { cache: "no-store" }).catch(() => null),
+      };
     }
     const cfg = await J(join(base, "config.json"));
     Object.assign(window.WF, { base, cfg, manifest, D: (f) => join(base, f) });
@@ -108,6 +119,7 @@
       } catch (_) { /* Dashboard floors are optional; routing still boots normally. */ }
     }
     Object.assign(window.WF, { base, cfg, manifest, D: (f) => join(base, f) });
+    await domReady;
     // Debug mode: ship verbose logs to admin Dashboard when enabled (live status + published hint)
     try {
       if (window.WFDebug) {
@@ -169,8 +181,9 @@
     }
     return window.WF;
   })();
-  window.WF.ready.catch(e => {
+  window.WF.ready.catch(async e => {
     rejectConfig(e);
+    await domReady;
     console.error(e);
     if (window.WFStartup) { window.WFStartup.fail(); return; }
     const d = document.createElement("div");

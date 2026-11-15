@@ -389,7 +389,12 @@ function wfDbg(level, source, message, meta) {
         headers0["X-WF-Access"] = accessToken;
         url0 += (url0.indexOf("?") >= 0 ? "&" : "?") + "access=" + encodeURIComponent(accessToken);
       }
-      platformPromise = fetch(url0, { cache: "no-store", headers: headers0 }).catch(() => null);
+      const pending = window.WF && window.WF.matterportRequest;
+      const matches = pending && pending.slug === slug0 && pending.apiBase === apiBase0;
+      if (matches) window.WF.matterportRequest = null;
+      platformPromise = matches && !accessToken && !policy.twin_pin_required
+        ? pending.response
+        : fetch(url0, { cache: "no-store", headers: headers0 }).catch(() => null);
     }
 
     // 1) Prototype: data/sdk_config.json
@@ -2609,7 +2614,7 @@ function wfDbg(level, source, message, meta) {
     const fail = () => { if (gen === openGen && startup) startup.fail(gen); return false; };
     setStatus("Loading digital twin…");
     try {
-      if (window.WF && window.WF.ready) await window.WF.ready;
+      if (window.WF) await (window.WF.configReady || window.WF.ready);
       if (!current()) return false;
       await resolveConfig();
     } catch (e) {
@@ -2633,6 +2638,9 @@ function wfDbg(level, source, message, meta) {
     await resetFrameIfNeeded(iframe);
     if (!current()) return false;
     iframe.src = url;
+    // The SDK bootstrap does not depend on the iframe document finishing.
+    // connectSdk still handles any failure when it uses this same promise.
+    void loadSdkScript().catch(() => {});
     await loadP;
     if (!current()) return false;
     // iframe.load only means its document loaded, not that a model frame exists.

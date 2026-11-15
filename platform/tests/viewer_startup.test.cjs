@@ -129,7 +129,7 @@ function modelContext(overrides = {}) {
     document: { body: c.body }, $: id => id === 'mpFrame' ? frame : overlay,
     ensureOverlay() {}, setStatus() {}, resolveConfig: async () => {},
     showcaseUrl: () => 'https://example.invalid/model', waitIframeLoad: () => load.promise,
-    resetFrameIfNeeded: async () => {}, connectSdk: async () => sdk,
+    resetFrameIfNeeded: async () => {}, loadSdkScript: async () => {}, connectSdk: async () => sdk,
     phaseConsts: () => ({ STARTING: 'starting', PLAYING: 'playing' }),
     waitPlaying: () => playing.promise, frameWholeBuilding: async () => { calls.push('frame'); },
     requestAnimationFrame: fn => fn(), console: { warn() {} },
@@ -167,6 +167,45 @@ test('failed venue bootstrap never navigates the iframe to a fallback model', as
   assert.equal(await result, false);
   assert.equal(c.frame.src, '');
   assert.equal(c.loader.classList.contains('err'), true);
+});
+
+test('model starts from validated config while optional floor and DOM readiness are pending', async () => {
+  const c = modelContext(), later = deferred();
+  c.deps.window.WF.ready = later.promise;
+  c.deps.window.WF.configReady = Promise.resolve({ matterport_model_id: 'campus-model' });
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  await tick();
+  assert.equal(c.frame.src, 'https://example.invalid/model');
+  assert.equal(c.body.classList.contains('booting'), true);
+  c.load.resolve(); c.playing.resolve(true); c.mode.resolve();
+  assert.equal(await result, true);
+  later.resolve();
+});
+
+test('rejected early config prevents model navigation even while the remaining bootstrap is pending', async () => {
+  const c = modelContext();
+  c.deps.window.WF.ready = deferred().promise;
+  c.deps.window.WF.configReady = Promise.reject(new Error('published config unavailable'));
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  assert.equal(await result, false);
+  assert.equal(c.frame.src, '');
+  assert.equal(c.loader.classList.contains('err'), true);
+});
+
+test('SDK bootstrap starts while the iframe is still loading', async () => {
+  const c = modelContext();
+  let sdkLoads = 0, connections = 0;
+  const connect = c.deps.connectSdk;
+  c.deps.loadSdkScript = async () => { sdkLoads++; };
+  c.deps.connectSdk = async frame => { connections++; return connect(frame); };
+  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  await tick();
+  assert.equal(c.frame.src, 'https://example.invalid/model');
+  assert.equal(sdkLoads, 1);
+  assert.equal(connections, 0, 'SDK connection still waits for the real iframe load');
+  c.load.resolve(); c.playing.resolve(true); c.mode.resolve();
+  assert.equal(await result, true);
+  assert.equal(connections, 1);
 });
 
 test('Matterport STARTING reveals the original entrance effect before PLAYING', async () => {

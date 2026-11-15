@@ -65,29 +65,39 @@ test('a bare UNCC URL is canonicalized to Matterport mode before boot', async ()
   assert.equal(new URL(replaced).searchParams.get('mp'), '1');
 });
 
-async function bootBuilding(search, buildings, configuredBuilding, respond) {
+async function bootBuilding(search, buildings, configuredBuilding, respond, {documentLoading = false} = {}) {
   const source = fs.readFileSync(path.join(viewer, 'wf-boot.js'), 'utf8');
-  const requests = [];
+  const requests = [], requestOptions = [], documentListeners = new Map();
+  const requireDocument = () => assert.notEqual(context.document.readyState, 'loading', 'DOM setup must wait for DOMContentLoaded');
   const context = {
     URL, URLSearchParams,
     location: {href: 'https://wayfinding.navme.space/' + search, search},
     history: {replaceState() {}}, navigator: {userAgent: '', platform: '', maxTouchPoints: 0},
     window: {WF_CONFIG: {apiBase: '/api/v1/public/', building: configuredBuilding}},
-    fetch: async url => {
+    fetch: async (url, options) => {
       requests.push(url);
+      requestOptions.push({url, options});
       if (respond) { const response = respond(url); if (response) return response; }
       if (url.endsWith('manifest.json')) return {ok: true, json: async () => ({buildings})};
       if (url.endsWith('config.json')) return {ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})};
       return {ok: false, status: 404};
     },
     document: {
-      documentElement: {style: {setProperty() {}}}, querySelectorAll: () => [], getElementById: () => null,
+      readyState: documentLoading ? 'loading' : 'complete',
+      addEventListener(name, callback) { documentListeners.set(name, callback); },
+      documentElement: {style: {setProperty() { requireDocument(); }}},
+      querySelectorAll: () => { requireDocument(); return []; },
+      getElementById: () => { requireDocument(); return null; },
       createElement: () => ({style: {}, setAttribute() {}, append() {}}), body: {appendChild() {}},
     },
     console: {error() {}},
   };
   vm.runInNewContext(source, context);
-  return {ready: context.window.WF.ready, requests, context};
+  return {ready: context.window.WF.ready, requests, requestOptions, context,
+    finishDocument() {
+      context.document.readyState = 'interactive';
+      documentListeners.get('DOMContentLoaded')?.();
+    }};
 }
 const gcuPublication = {slug: 'gcu', data: 'buildings/gcu/data/'};
 const unccPublication = {slug: 'uncc-main-campus', data: 'buildings/uncc-main-campus/data/'};
@@ -103,6 +113,7 @@ test('model config and viewer data start without waiting for optional floor meta
   await new Promise(resolve => setImmediate(resolve));
   assert.ok(c.requests.some(url => url.endsWith('navme-floors')));
   assert.ok(c.requests.some(url => url.endsWith('viewer-data')));
+  assert.ok(c.requests.includes('/api/v1/public/buildings/uncc-main-campus/matterport'));
   let finished = false;
   c.ready.then(() => { finished = true; });
   resolveConfig({ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})});
@@ -117,6 +128,44 @@ test('missing explicit campus rejects boot without fetching another campus confi
   const c = await bootBuilding('?b=uncc-main-campus&mp=1', [gcuPublication]);
   await assert.rejects(c.ready, /Requested building is not published: uncc-main-campus/);
   assert.equal(c.requests.some(url => url.endsWith('config.json')), false);
+  assert.equal(c.requests.some(url => url.endsWith('/matterport')), false);
+  assert.equal(c.requests.some(url => url.endsWith('/viewer-data')), false);
+});
+
+test('head bootstrap starts validated model requests before DOM completion but preserves DOM and floor readiness', async () => {
+  let releaseConfig, releaseFloors;
+  const config = new Promise(resolve => { releaseConfig = resolve; });
+  const floors = new Promise(resolve => { releaseFloors = resolve; });
+  const c = await bootBuilding('?b=uncc-main-campus&mp=1', [unccPublication], undefined, url => {
+    if (url.endsWith('config.json')) return config;
+    if (url.endsWith('navme-floors')) return floors;
+  }, {documentLoading: true});
+  await new Promise(resolve => setImmediate(resolve));
+  for (const suffix of ['config.json', 'navme-floors', 'viewer-data', '/matterport']) {
+    assert.ok(c.requests.some(url => url.endsWith(suffix)), suffix + ' starts before the DOM is complete');
+  }
+  const prefetched = c.requestOptions.find(({url}) => url.endsWith('/matterport'));
+  assert.equal(prefetched.options.cache, 'no-store');
+  let ready = false;
+  c.ready.then(() => { ready = true; });
+  releaseConfig({ok: true, json: async () => ({name: 'UNCC', floors: [], files: {}})});
+  await c.context.window.WF.configReady;
+  assert.equal(ready, false);
+  releaseFloors({ok: true, json: async () => ({floors: []})});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(ready, false, 'DOM-dependent setup must wait for DOMContentLoaded');
+  c.finishDocument();
+  await c.ready;
+  assert.equal(ready, true);
+});
+
+test('unavailable published config rejects both readiness promises', async () => {
+  const c = await bootBuilding('?b=uncc-main-campus&mp=1', [unccPublication], undefined, url => {
+    if (url.endsWith('config.json')) return {ok: false, status: 503};
+  });
+  await assert.rejects(c.ready, /503/);
+  await assert.rejects(c.context.window.WF.configReady, /503/);
+  assert.equal(c.context.window.WF.cfg, null);
 });
 
 test('UNCC deep link selects UNCC even when GCU is first in the manifest', async () => {
