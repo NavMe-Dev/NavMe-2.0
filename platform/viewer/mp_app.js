@@ -55,6 +55,12 @@
     const m = /^floor\s+(\d+)$/i.exec(label);
     return (m && window.WFi18n && WFi18n.t("viewer.floorN", { n: m[1] })) || label;
   }
+  function mergeTranslations(optional, current, fallback) {
+    const map = value => value && typeof value === "object" && !Array.isArray(value) ? value : null;
+    const fresh = map(current), older = map(optional);
+    if (!fresh) return older;
+    return { ...(older || {}), ...fresh, en: fresh.en || fallback };
+  }
 
   (window.WF.configReady || window.WF.ready).then(async () => {
     CFG = WF.cfg;
@@ -93,8 +99,13 @@
     };
     const pois = (navmePois || []).map(p => {
       if (p.x == null || p.z == null) return p;
-      const o = { id:String(p.id), name:p.name, names:null, category:p.category || "room",
+      const o = { id:String(p.id), name:p.name, base_name:p.name, names:p.names || null,
+        base_description:p.description || "", category:p.category || "room",
         x:p.x, y:-p.z, z:p.y, floor:floorFor(p.y), sdk:{x:p.x,y:p.y,z:p.z} };
+      ["code", "description", "descriptions", "amenities_desc", "highlight_desc", "technology_desc",
+        "icon_url", "hours", "photo_url", "photo_urls", "category_id", "category_ids", "floor_id"].forEach(key => {
+        if (p[key] != null) o[key] = p[key];
+      });
       o.lonlat = modelToLL(o.x, o.y);
       if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null)
         o.sdk.expected = {x:p.expected_pos_x,y:p.expected_pos_y,z:p.expected_pos_z};
@@ -157,7 +168,7 @@
     window.WF.arExperienceRef=null;
     if(window.ThreeDNav&&ThreeDNav.setStairChainRows)ThreeDNav.setStairChainRows(stairs);
     currentFloor=CFG.default_floor || (ordered[0]&&ordered[0].id) || "F1";
-    window.wf={ready:true,indoorReady:true,pois,categories:(categories||[]).map(c=>({...c,names:null})),nav,
+    window.wf={ready:true,indoorReady:true,pois,categories:(categories||[]).map(c=>({...c,names:c.names || c.category_names || null})),nav,
       georef,modelToLL,llToModel,lastLoc:null,lastRoute:null,style:"satellite",showLabels:false,map2d:noopMap,map3d:noopMap,view2d:noopView,
       esri:{GraphicsLayer:Layer,Graphic:Value,Point:Value,Polyline:Value,Extent:Value},dotLayer:new Layer(),
       view:()=>noopView,is3D:()=>false,getView3d:()=>null,currentFloor:()=>currentFloor,
@@ -185,8 +196,8 @@
     window.WF.metadataReady = metadata.then(([shops, arRef, translations]) => {
       (shops||[]).forEach(s=>{if(s&&s.poi_id)WF.shopsByPoiId[String(s.poi_id)]=s;});
       WF.arExperienceRef=arRef.experience_ref||null;
-      pois.forEach(p=>{p.names=(translations.poi_names||{})[p.id]||null;});
-      window.wf.categories.forEach(c=>{c.names=(translations.category_names||{})[String(c.id)]||null;});
+      pois.forEach(p=>{p.names=mergeTranslations((translations.poi_names||{})[p.id],p.names,p.base_name);});
+      window.wf.categories.forEach(c=>{c.names=mergeTranslations((translations.category_names||{})[String(c.id)],c.names,c.name);});
       dispatchEvent(new Event("wf-metadata-updated"));
     });
   }).catch(e => { console.error("[wf-mp] startup failed",e); if(window.WFStartup)WFStartup.fail(); });

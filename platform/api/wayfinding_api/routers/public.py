@@ -11,7 +11,7 @@ from ..db import get_db
 from ..config import get_settings
 from .. import models, schemas
 from ..services.publish import current_version
-from ..services import navgraph, bundle_storage, navme
+from ..services import navgraph, bundle_storage, navme, studio_live
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 logger = logging.getLogger(__name__)
@@ -525,8 +525,11 @@ def _verify_supabase_key_or_admin(request: Request):
 def public_explore(slug: str, db: Session = Depends(get_db)):
     from ..services import explore
     b = building_or_404(db, slug)
-    cfg = get_settings()
+    cfg = studio_live.metadata_settings(get_settings(), b)
+    if studio_live.enabled(cfg, b) and not current_version(db, b):
+        return JSONResponse({"building_slug": slug, "source": "published", "pois": [], "facilities": []})
     rows = db.query(models.POI).filter_by(building_id=b.id, published=True).all()
+    studio_ids = {str((p.extra or {}).get("gmap_src_id") or p.key) for p in rows if p.source == "supabase"} if studio_live.enabled(cfg, b) else None
     def photo_url(p):
         url = (p.photo_url or "").strip()
         return f"/api/v1/public/buildings/{slug}/data/{url}" if url.startswith("media/") else url
@@ -540,7 +543,8 @@ def public_explore(slug: str, db: Session = Depends(get_db)):
         except Exception:
             return JSONResponse({"building_slug": slug, "error": "Couldn't load places"},
                                 status_code=503, headers={"Cache-Control": "no-store"})
-        result = {**result, "pois": [{**p, "image_url": images.get(p["id"])} for p in result["pois"]]}
+        result = {**result, "pois": [{**p, "image_url": images.get(p["id"])} for p in result["pois"]
+                                    if studio_ids is None or p["id"] in studio_ids]}
     else:
         result = {"building_slug": slug, "source": "published", "facilities": [], "pois": [
             {"id": str((p.extra or {}).get("gmap_src_id") or p.key), "name": p.name,
@@ -574,8 +578,19 @@ def category_marker_data(slug: str, db: Session = Depends(get_db)):
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         raise HTTPException(404, "unknown building")
-    _release_read_session(db)
     cfg = get_settings()
+    if studio_live.enabled(cfg, b):
+        if not current_version(db, b):
+            return {"building_slug": b.slug, "categories": [], "pois": []}
+        published = _dashboard_pois(b, db)
+        _release_read_session(db)
+        data = studio_live.load(cfg, b, published)
+        return {"building_slug": b.slug, "coordinate_system": "matterport-sdk-y-up",
+                "categories": data["categories"], "pois": [
+                    {"id": p["id"], "venue": b.slug, "category_ids": p.get("category_ids", []),
+                     "x": p["x"], "y": p["y"], "z": p["z"], "is_active": True}
+                    for p in data["pois"]]}
+    _release_read_session(db)
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         return {"building_slug": b.slug, "categories": [], "pois": []}
     try:
@@ -586,23 +601,19 @@ def category_marker_data(slug: str, db: Session = Depends(get_db)):
 
 @router.get("/dashboard/buildings/{slug}/navme-pois")
 def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_db)):
-    """Return the NavMe Dashboard POI list for a building slug — served straight from this
-    server's own `pois` table (source="supabase"), no new table, self-hosted: no Supabase
-    call at request time.
+    """Published POIs, with current public Studio fields for configured venues.
 
-    Rows are upserted here by an admin POST to
-    /api/v1/admin/buildings/{slug}/navme-gmap/sync whenever the dashboard's POIs change —
-    the dashboard itself still owns and edits this data in Supabase as before.
-
-    Unauthenticated: the public viewer renders this same POI set and has neither an admin
-    token nor any Supabase credential. Note this does expose POI names and positions to
-    anyone who can reach the server, same as before."""
+    The existing publication and POI flags decide which IDs are eligible. Studio
+    reads use server-side public credentials after releasing the database session.
+    """
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         return []
     if not current_version(db, b):
         return []
-    return _dashboard_pois(b, db)
+    published = _dashboard_pois(b, db)
+    _release_read_session(db)
+    return studio_live.load(get_settings(), b, published)["pois"]
 
 
 def _dashboard_pois(b, db):
@@ -622,6 +633,14 @@ def _dashboard_pois(b, db):
             poi["expected_pos_x"] = extra.get("expected_pos_x")
             poi["expected_pos_y"] = extra.get("expected_pos_y")
             poi["expected_pos_z"] = extra.get("expected_pos_z")
+        for key in ("names", "descriptions", "amenities_desc", "highlight_desc", "technology_desc", "icon_url", "photo_urls"):
+            if extra.get(key) is not None:
+                poi[key] = extra[key]
+        for key in ("code", "description", "hours", "photo_url"):
+            if getattr(r, key, None) is not None:
+                poi[key] = getattr(r, key)
+        if isinstance(extra.get("studio_calibration"), dict):
+            poi["_studio_calibration"] = extra["studio_calibration"]
         pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois
@@ -638,13 +657,11 @@ def dashboard_viewer_data(slug: str, db: Session = Depends(get_db)):
     version = current_version(db, b)
     if not version:
         raise HTTPException(404, "building is not published")
-    config = b.pipeline_config or {}
-    result = {"building_slug": b.slug, "pois": _dashboard_pois(b, db),
-              "categories": config.get("navme_categories", []),
-              "stair_chains": config.get("navme_stair_chains", [])}
+    published = _dashboard_pois(b, db)
     root = bundle_storage.local_version_dir(version.path, b.slug, version.version)
     building_slug, number = b.slug, version.version
     _release_read_session(db)
+    result = {"building_slug": b.slug, **studio_live.load(get_settings(), b, published)}
     try:
         result["georef"] = json.loads(bundle_storage.read_bundle_file(root, building_slug, number, "georef.json"))
     except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError):
@@ -717,9 +734,7 @@ def building_shops(slug: str, db: Session = Depends(get_db)):
 
 @router.get("/buildings/{slug}/ar-experience-ref")
 def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
-    """Start-mode info for this building from navme_project_features (cfg.supabase_url —
-    the single navme_dev Supabase project this whole app reads from; navme_project_features
-    is mirrored here from the NavMe Dashboard CMS's own project, same as navme_pois):
+    """Public start-mode settings, using the live Studio source where configured:
       - experience_ref: the Zappar `x` ref for AR share.navme.space deep links
         (see ui.js's arShareUrlFor)
       - walkthrough_mode: "walkthrough_first" | "ar_first" | "hybrid" | null
@@ -732,16 +747,19 @@ def building_ar_experience_ref(slug: str, db: Session = Depends(get_db)):
     import urllib.request, urllib.parse, urllib.error
     cfg = get_settings()
     empty = {"experience_ref": None, "walkthrough_mode": None, "ar_url": None, "walkthrough_url": None}
-    if not cfg.supabase_url or not cfg.supabase_anon_key:
-        return empty
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
+        return empty
+    if studio_live.enabled(cfg, b) and not current_version(db, b):
+        return empty
+    cfg = studio_live.metadata_settings(cfg, b)
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
         return empty
     ptype = navme.poi_type(b)
     _release_read_session(db)
     q = urllib.parse.urlencode({
         "select": "experience_ref,walkthrough_mode,project_url,walkthrough_url",
-        "poi_type": f"ilike.{navme.pg_value(ptype)}", "limit": "1",
+        "poi_type": ("eq." if studio_live.enabled(cfg, b) else "ilike.") + navme.pg_value(ptype), "limit": "1",
     })
     url = f"{cfg.supabase_url}/rest/v1/navme_project_features?{q}"
     req = urllib.request.Request(url, headers={
@@ -777,10 +795,19 @@ def building_translations(slug: str, db: Session = Depends(get_db)):
     import urllib.request, urllib.parse
     cfg = get_settings()
     empty = {"poi_names": {}, "category_names": {}}
-    if not cfg.supabase_url or not cfg.supabase_anon_key:
-        return empty
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
+        return empty
+    if studio_live.enabled(cfg, b):
+        if not current_version(db, b):
+            return empty
+        published = _dashboard_pois(b, db)
+        _release_read_session(db)
+        data = studio_live.load(cfg, b, published)
+        return {"poi_names": {p["id"]: p["names"] for p in data["pois"] if p.get("names")},
+                "category_names": {str(c["id"]): c.get("names") or c.get("category_names")
+                                   for c in data["categories"] if c.get("names") or c.get("category_names")}}
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
         return empty
     ptype = navme.poi_type(b)
     _release_read_session(db)
@@ -821,16 +848,19 @@ def building_navme_floors(slug: str, db: Session = Depends(get_db)):
     """
     import urllib.request, urllib.parse
     cfg = get_settings()
-    if not cfg.supabase_url or not cfg.supabase_anon_key:
-        return {"floors": []}
     b = db.query(models.Building).filter_by(slug=slug).first()
     if not b:
         raise HTTPException(404, "unknown building")
+    if studio_live.enabled(cfg, b) and not current_version(db, b):
+        return {"floors": []}
+    cfg = studio_live.metadata_settings(cfg, b)
+    if not cfg.supabase_url or not cfg.supabase_anon_key:
+        return {"floors": []}
     ptype = navme.poi_type(b)
     _release_read_session(db)
     q = urllib.parse.urlencode({
         "select": "id,name,slice_y,sort_order,floor_names",
-        "poi_type": f"ilike.{navme.pg_value(ptype)}",
+        "poi_type": ("eq." if studio_live.enabled(cfg, b) else "ilike.") + navme.pg_value(ptype),
         "order": "sort_order.asc,slice_y.asc,name.asc",
     })
     req = urllib.request.Request(
@@ -1007,13 +1037,16 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
 
 @router.get("/dashboard/buildings/{slug}/navme-categories")
 def dashboard_navme_categories(slug: str, db: Session = Depends(get_db)):
-    """NavMe Dashboard's curated POI category list (navme_categories: name + icon_key +
-    sort_order) for this building — served from Building.pipeline_config["navme_categories"]
-    (synced by POST /api/v1/admin/buildings/{slug}/navme-gmap/sync), never live from
-    Supabase. Used by the Matterport public viewer (?mp=1) to build its category chips
-    from the dashboard's own categories instead of the viewer's fixed built-in set."""
+    """Curated categories, refreshed from Studio for configured publications."""
     b = db.query(models.Building).filter_by(slug=slug).first()
-    return (b.pipeline_config or {}).get("navme_categories", []) if b else []
+    cfg = get_settings()
+    if b and studio_live.enabled(cfg, b):
+        if not current_version(db, b):
+            return []
+        published = _dashboard_pois(b, db)
+        _release_read_session(db)
+        return studio_live.load(cfg, b, published)["categories"]
+    return studio_live.load(cfg, b, [])["categories"] if b else []
 
 
 @router.get("/dashboard/buildings/{slug}/navme-stair-chains")

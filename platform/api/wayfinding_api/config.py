@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     wf_chat_rate_limit_per_min: int = 20
     supabase_url: str = ""
     supabase_anon_key: str = ""
+    # Optional, read-only Studio metadata source for explicitly listed publications.
+    # Storage, authentication and the application database keep their existing source.
+    studio_supabase_url: str = ""
+    studio_supabase_anon_key: str = ""
+    studio_live_buildings: str = ""
     # Backend-only secret — bypasses RLS, never sent to any client. Used solely to upload
     # published bundles to Supabase Storage so they survive a Render free-tier disk wipe
     # (see services/bundle_storage.py). Empty disables that fallback entirely (local disk

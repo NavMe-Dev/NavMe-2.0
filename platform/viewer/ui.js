@@ -18,6 +18,12 @@ function wfDbg(level, source, message, meta) {
     const loc = (window.WFi18n && WFi18n.getLocale) ? WFi18n.getLocale() : "en";
     return names[loc] || names.en || fallback;
   };
+  function localizePoiDetails(p) {
+    if (p.base_name == null) p.base_name = p.name;
+    if (p.base_description == null) p.base_description = p.description || "";
+    if (p.names) p.name = localized(p.names, p.base_name);
+    if (p.descriptions) p.description = localized(p.descriptions, p.base_description);
+  }
   const CAT_BASE = {
     room: { icon: "meeting_room", color: [26, 115, 232], labelKey: "viewer.catRoom" },
     hall: { icon: "groups", color: [161, 66, 244], labelKey: "viewer.catHall" },
@@ -120,7 +126,7 @@ function wfDbg(level, source, message, meta) {
 
   function init() {
     wf = window.wf;
-    POIS = wf.pois.slice(); POIS.forEach(p => byId[p.id] = p);
+    POIS = wf.pois.slice(); POIS.forEach(p => { localizePoiDetails(p); byId[p.id] = p; });
     wf.onPoiPick = (poiId) => {
       const p = byId[poiId];
       if (!p) return;
@@ -234,10 +240,8 @@ function wfDbg(level, source, message, meta) {
 
   function refreshI18nChrome() {
     if (window.WFi18n) WFi18n.applyDom();
-    // POIs whose Supabase row has translated names (p.names, from navme_pois.poi_names)
-    // get their display name swapped to the current language; POIs with none (p.names is
-    // null — not synced through the dashboard's gmap flow) keep whatever name they had.
-    POIS.forEach(p => { if (p.names) p.name = localized(p.names, p.name); });
+    // Keep the source text as fallback when a description or name lacks a translation.
+    POIS.forEach(localizePoiDetails);
     buildSearchIndex();
     if (wf && wf.redrawPOIs) try { wf.redrawPOIs(); } catch (_) {}
     POIS.forEach(p => p.tagsText = [cat(p).label, wf.floorLabel(p.floor), p.note || ""].join(" "));

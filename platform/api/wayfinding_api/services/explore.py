@@ -1,7 +1,7 @@
 """Optional, cached, read-only metadata for the existing venue Explore panel."""
 import threading
 import time
-from . import navme, navme_sync
+from . import navme, navme_sync, studio_live
 
 _cache = {}
 _locks = {}
@@ -20,7 +20,8 @@ def metadata(cfg, building):
             return cached[1]
         # Match legacy slug fallbacks case-insensitively (for example gcu -> GCU),
         # consistent with the established public Dashboard endpoints.
-        filters = {'poi_type': 'ilike.' + navme.pg_value(ptype)}
+        operator = 'eq.' if studio_live.enabled(cfg, building) else 'ilike.'
+        filters = {'poi_type': operator + navme.pg_value(ptype)}
         rows = navme_sync.fetch_rows(cfg, 'navme_pois', {
             **filters, 'is_active': 'is.true', 'select': 'id,poi_name,poi_names,floor_id'})
         floors = navme_sync.fetch_rows(cfg, 'navme_floors', {
@@ -36,5 +37,6 @@ def metadata(cfg, building):
                          'floor_name': floor.get('name'), 'floor_names': floor.get('floor_names')})
         data = {'building_slug': building.slug, 'source': 'dashboard', 'pois': pois,
                 'facilities': facilities}
-        _cache[key] = (time.monotonic() + TTL, data)
+        ttl = 5 if studio_live.enabled(cfg, building) else TTL
+        _cache[key] = (time.monotonic() + ttl, data)
         return data

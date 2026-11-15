@@ -14,7 +14,7 @@ from .. import models
 from . import navgraph, navme
 
 
-def fetch_rows(cfg, table: str, filters: dict, *, page_size: int = 250, order: str = "id.asc") -> list[dict]:
+def fetch_rows(cfg, table: str, filters: dict, *, page_size: int = 250, order: str = "id.asc", timeout: float = 30) -> list[dict]:
     """Page in a stable order, including when PostgREST caps pages below our limit."""
     rows, offset = [], 0
     while True:
@@ -24,7 +24,7 @@ def fetch_rows(cfg, table: str, filters: dict, *, page_size: int = 250, order: s
             "Authorization": f"Bearer {cfg.supabase_anon_key}",
             "Prefer": "count=exact",
         })
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
             page = json.loads(response.read())
             content_range = response.headers.get("Content-Range", "")
         if not isinstance(page, list):
