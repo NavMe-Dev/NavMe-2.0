@@ -634,7 +634,7 @@ function wfDbg(level, source, message, meta) {
     if (target === $("q")) { if (it.poi) { pushRecent(it.poi.id); target.value = it.poi.name; target.blur(); setUxMode("places"); selectPlace(it.poi, { fly: true }); } }
     else {
       const which = target === $("fromQ") ? "from" : "to";
-      if (it.me) { S[which] = "me"; if (which === "from" && !wf.lastLoc) startLocalize(true); }
+      if (it.me) { S[which] = "me"; if (which === "from" && !wf.lastLoc) { if (isMpMode()) pickOnMapMp(); else startLocalize(true); } }
       else if (it.poi) { S[which] = it.poi; pushRecent(it.poi.id); if (which === "from") S.locMeta = null; }
       target.blur(); syncDirFields();
       if (!S.from || !S.to) openDirections();

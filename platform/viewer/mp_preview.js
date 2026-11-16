@@ -2914,12 +2914,15 @@ function wfDbg(level, source, message, meta) {
     }
     if (!current()) return false;
     const nativeStartup = (() => {
+      const q = (typeof window !== "undefined" && window.WFQuery) ? window.WFQuery()
+        : (typeof URLSearchParams !== "undefined" && typeof location !== "undefined") ? new URLSearchParams(location.search) : null;
+      const querySlug = (q && q.get("b")) || "";
       const cfg = (window.WF && window.WF.cfg) || {};
       const building = (window.WF && window.WF.building) || {};
-      const slug = String(building.slug || cfg.slug || cfg.building || "").toLowerCase();
+      const slug = String(building.slug || cfg.slug || cfg.building || querySlug || "").toLowerCase();
       const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
       const iosUA = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-      return (mobile || iosUA) && slug === "uncc-main-campus";
+      return (mobile || iosUA) && (slug === "uncc-main-campus" || slug === "unc-charlotte");
     })();
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
