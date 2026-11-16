@@ -71,33 +71,35 @@ connection and does not navigate to arbitrary camera XYZ coordinates. Missing
 or historical views use existing location navigation; an incompatible view is
 never reused. Existing directions and route calculations are unchanged.
 
-## Read-only production: pending approval
+## Read-only production: approved deployment
 
-Production's general application connection remains read-only. A separate
-execute-only writer is prepared in
-[`20261116063201_capture_camera_viewpoint_writer.sql`](../deploy/pending-migrations/20261116063201_capture_camera_viewpoint_writer.sql).
-This file is deliberately outside automatic Alembic and Studio migration paths.
-It has **not been applied** and must be reviewed and explicitly approved before
-use against the platform database. It must not be applied to the Studio source
-database by mistake.
+On 2026-11-16, the approved
+[`20261116063201_capture_camera_viewpoint_writer.sql`](../deploy/pending-migrations/20261116063201_capture_camera_viewpoint_writer.sql)
+was applied to the verified platform database, Supabase project
+`kzpvhzyefdtrtidrbuxb`. The file remains outside automatic Alembic and Studio
+migration paths; it must not be applied to the Studio source database by mistake.
 
-The migration creates only a private schema, narrowly scoped function and
-`NOLOGIN` role. It changes no application records or table definitions. Its
-function can update only the selected POI's camera-viewpoint JSON for the active
-model; it grants no direct table writes and revokes public function access.
-Provisioning a login/password is a separate approved operational step. The
-private schema must stay outside the exposed Data API schemas.
+The general application connection remains read-only. The migration created a
+private schema, narrowly scoped function and initially `NOLOGIN` role. Separate
+approved provisioning enabled the dedicated login with a generated password.
+Verification confirmed TLS, private function execution, no inherited roles,
+no direct table writes and no public function execution. The private schema
+must stay outside the exposed Data API schemas.
 
-After approval and credential provisioning, server-only configuration is:
+Render's server-only configuration now includes:
 
 - `CAMERA_VIEWPOINT_DATABASE_URL`: the dedicated role at the same application
   database host, port and database, with TLS required.
-- `CAMERA_VIEWPOINT_BUILDINGS`: explicitly permitted building slugs, or `*` if
-  all registered buildings have been approved for this capability.
+- `CAMERA_VIEWPOINT_BUILDINGS=*`: the approved capability for all registered
+  buildings.
 
 The application fails closed when this capability is absent. The old
-`POI_VIEWPOINT_DATABASE_URL` is not reused or broadened. No deployment is
-performed by this implementation.
+`POI_VIEWPOINT_DATABASE_URL` remains separate and unchanged.
+
+The initial production rollout reached Render status `live` at commit
+`e4742ada9686b4b0f286b0b1793458dc4a0b2122`
+(deploy `dep-dbtb5pjm8hqs73adi5cg`). Deploying this code does not synchronize
+the independent local and production datasets.
 
 ## Verification
 
@@ -105,8 +107,21 @@ Targeted tests cover capture, cancellation, refresh, replacement, source/model
 compatibility, disabled scans, public fallback, authentication and row
 preservation. Database tests use the isolated local `wayfinding_test` database,
 private temporary schemas, and rollback all fixture DDL/data. Capability tests
-exercise a temporary execute-only role without applying the pending migration.
+exercise isolated temporary execute-only capability fixtures.
 The final combined run passed 137 Python checks and 95 JavaScript checks.
+
+The production writer also passed a transaction test using Starbucks POI 454
+and a previously recorded actual Matterport camera pose. Saving returned the
+exact payload; an identical save preserved its revision; resetting succeeded.
+The entire transaction was rolled back. The original POI JSON and complete
+before/after digests of all 277 POIs and both buildings were identical.
+No test viewpoint or legacy override change persisted.
+
+Live HTTP checks confirmed database readiness, deployed admin/viewer bytes,
+the new API routes, unauthenticated access rejection, non-cached public lookup,
+the general read-only mode, and the existing 47-POI UNCC publication. A fresh
+authenticated browser capture remains unverified; the local signing key does
+not authenticate to production.
 
 The local browser fixture verifies the actual Vue controls and public restore
 code with a simulated SDK, including 390px mobile layout. It does not claim a
