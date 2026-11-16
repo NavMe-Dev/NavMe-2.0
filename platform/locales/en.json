@@ -91,6 +91,8 @@
     "helpKeyboard": "Keyboard: / to search, arrow keys and Enter to select a result, and Esc to close a panel.",
     "buildingInfo": "Building info",
     "recentSearches": "Recent searches",
+    "removeRecentSearch": "Remove {{name}} from recent searches",
+    "removeRecentFailed": "Couldn't remove this recent search. Please try again.",
     "largeText": "Large text",
     "highContrast": "Light theme",
     "shareView": "Share this view",

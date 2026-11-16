@@ -217,6 +217,11 @@ body.dark .shop-status.closed{color:#f28b82}
 .list li:hover{background:var(--bg2)}
 .list .ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
 .list .ic .ms{font-size:20px}
+.recent-list li{gap:8px;padding:0;cursor:default}
+.ui .recent-open{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:60px;padding:10px 4px;text-align:start}
+.recent-text{flex:1;min-width:0;overflow-wrap:anywhere}
+.recent-text>span{display:block}
+.recent-list .recent-remove{width:44px;height:44px;flex:none;font-size:26px}
 .category-directory{list-style:none;margin:8px 0 0;padding:0}
 .ui .category-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:10px 4px;text-align:left;border-radius:8px;font-weight:500;touch-action:manipulation}
 .ui .category-choice:hover{background:var(--bg2)}

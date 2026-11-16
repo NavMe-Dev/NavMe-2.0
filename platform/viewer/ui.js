@@ -477,6 +477,17 @@ function wfDbg(level, source, message, meta) {
     } catch (e) { return []; }
   };
   const pushRecent = (id) => { const r = [id].concat(recent().filter(x => x !== id)).slice(0, 3); localStorage.setItem("wf_recent", JSON.stringify(r)); };
+  function removeRecent(id) {
+    try {
+      const stored = JSON.parse(localStorage.getItem("wf_recent") || "[]");
+      const remaining = (Array.isArray(stored) ? stored : []).filter(value => String(value) !== String(id));
+      localStorage.setItem("wf_recent", JSON.stringify(remaining));
+      return true;
+    } catch (_) {
+      toast(t("viewer.removeRecentFailed"));
+      return false;
+    }
+  }
   // ---- campus: other buildings of the venue (search across buildings, markers on the map) ----
   let REMOTE = [], rfuse = null;
   function loadCampus() {
@@ -1249,8 +1260,19 @@ function wfDbg(level, source, message, meta) {
   function venueMessage(title, body, retry) {
     return `<div class="venue-message" role="status"><h2>${esc(title)}</h2><p class="muted">${esc(body)}</p>${retry ? `<button type="button" class="pill" id="exploreRetry">${esc(exploreText("common.tryAgain", "Try Again"))}</button>` : ""}</div>`;
   }
+  function venueFacilities() {
+    const state = exploreController && exploreController.get();
+    if (!state || state.venue !== venueSlug() || state.status !== "ready" || !Array.isArray(state.data && state.data.facilities)) return [];
+    return state.data.facilities.filter(facility => facility && typeof facility.facility_name === "string" && facility.facility_name.trim());
+  }
   function renderVenueTab() {
     const panel = $("venueTabPanel"); if (!panel || S.mode !== "home") return;
+    const facilities = venueFacilities(), facilitiesTab = $("venueTab-facilities");
+    if (facilitiesTab) facilitiesTab.hidden = !facilities.length;
+    if (S.venueTab === "facilities" && !facilities.length) {
+      S.venueTab = "explore";
+      if (document.activeElement === facilitiesTab && $("venueTab-explore")) $("venueTab-explore").focus();
+    }
     const slug = venueSlug(), tab = S.venueTab || "explore", info = currentVenueInfo();
     $("sheetBody").querySelectorAll("[data-venue-tab]").forEach(button => {
       const active = button.dataset.venueTab === tab;
@@ -1272,9 +1294,7 @@ function wfDbg(level, source, message, meta) {
       } else if (state.status === "error") {
         panel.innerHTML = venueMessage(exploreText("viewer.exploreErrorTitle", "Couldn't load places"), exploreText("viewer.exploreErrorBody", "We're having trouble showing places right now. Please try again."), true);
       } else if (tab === "facilities") {
-        const facilities = state.data.facilities || [];
-        panel.innerHTML = facilities.length ? `<ul class="venue-facilities">${facilities.map(f => `<li><span class="ms" aria-hidden="true">${esc(LUCIDE_TO_MS[f.icon_key] || "info")}</span><div><strong>${esc(f.facility_name)}</strong>${f.facility_category ? `<div class="muted">${esc(f.facility_category)}</div>` : ""}</div></li>`).join("")}</ul>`
-          : venueMessage(exploreText("viewer.noFacilitiesTitle", "No facilities listed"), exploreText("viewer.noFacilitiesBody", "There are no facilities listed here yet."));
+        panel.innerHTML = `<ul class="venue-facilities">${facilities.map(f => `<li><span class="ms" aria-hidden="true">${esc(LUCIDE_TO_MS[f.icon_key] || "info")}</span><div><strong>${esc(f.facility_name)}</strong>${f.facility_category ? `<div class="muted">${esc(f.facility_category)}</div>` : ""}</div></li>`).join("")}</ul>`;
       } else {
         const cards = WFExplore.cards(POIS, state.data, {venue: slug, venueName: info.name,
           thumbnail: thumbFor, shops: WF.shopsByPoiId || {}, localize: localized});
@@ -1306,18 +1326,19 @@ function wfDbg(level, source, message, meta) {
       <div class="venue-header"><span class="ms fill blue venue-icon" aria-hidden="true">${esc((WF.cfg.branding && WF.cfg.branding.icon) || "apartment")}</span>
         <div><h1 class="pname" data-venue-title>${esc(info.name)}</h1><div class="muted" data-venue-address ${info.address ? "" : "hidden"}>${esc(info.address)}</div></div></div>
       <div class="venue-tabs" role="tablist" aria-label="${esc(exploreText("viewer.venueInformation", "Venue information"))}">
-        ${[["explore", t("viewer.explore")], ["about", exploreText("viewer.aboutTab", "About")], ["facilities", exploreText("viewer.facilitiesTab", "Facilities")]].map(([id, label]) => `<button type="button" id="venueTab-${id}" data-venue-tab="${id}" role="tab" aria-controls="venueTabPanel">${esc(label)}</button>`).join("")}
+        ${[["explore", t("viewer.explore")], ["about", exploreText("viewer.aboutTab", "About")], ["facilities", exploreText("viewer.facilitiesTab", "Facilities")]].map(([id, label]) => `<button type="button" id="venueTab-${id}" data-venue-tab="${id}" role="tab" aria-controls="venueTabPanel"${id === "facilities" ? " hidden" : ""}>${esc(label)}</button>`).join("")}
       </div><div id="venueTabPanel" class="venue-tabpanel" role="tabpanel"></div></section>`, "half");
     const tabs = [...$("sheetBody").querySelectorAll("[data-venue-tab]")];
-    tabs.forEach((button, index) => {
-      button.onclick = () => { S.venueTab = button.dataset.venueTab; renderVenueTab(); $("sheetBody").scrollTop = 0; };
+    tabs.forEach(button => {
+      button.onclick = () => { if (button.hidden) return; S.venueTab = button.dataset.venueTab; renderVenueTab(); $("sheetBody").scrollTop = 0; };
       button.onkeydown = event => {
+        const visibleTabs = tabs.filter(tab => !tab.hidden), index = visibleTabs.indexOf(button);
         let next = null;
-        if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-        if (event.key === "ArrowLeft") next = (index + tabs.length - 1) % tabs.length;
+        if (event.key === "ArrowRight") next = (index + 1) % visibleTabs.length;
+        if (event.key === "ArrowLeft") next = (index + visibleTabs.length - 1) % visibleTabs.length;
         if (event.key === "Home") next = 0;
-        if (event.key === "End") next = tabs.length - 1;
-        if (next !== null) { event.preventDefault(); tabs[next].click(); tabs[next].focus(); }
+        if (event.key === "End") next = visibleTabs.length - 1;
+        if (next !== null && visibleTabs[next]) { event.preventDefault(); visibleTabs[next].click(); visibleTabs[next].focus(); }
       };
     });
     renderVenueTab(); ensureExplore();
@@ -2542,12 +2563,30 @@ function wfDbg(level, source, message, meta) {
     closeDirectionsIfOpen(); setUxMode("places");
     $("q").focus(); $("q").select(); renderAc($("q"));
   }
-  function showRecentSearches() {
+  function showRecentSearches(state) {
     S.mode = "recent";
     const items = recent().map(id => byId[id]);
-    setSheet(items.length ? listHtml(items, t("viewer.recentSearches"))
-      : `<h1 class="pname">${esc(t("viewer.recentSearches"))}</h1><p class="muted">${esc(t("viewer.noRecentSearches"))}</p>`, "half");
-    bindList(items);
+    const title = `<h1 class="pname" id="recentTitle" tabindex="-1">${esc(t("viewer.recentSearches"))}${items.length ? ` <span class="muted">(${items.length})</span>` : ""}</h1>`;
+    const rows = items.map(p => {
+      const c = cat(p), removeLabel = t("viewer.removeRecentSearch", {name: p.name});
+      return `<li><button type="button" class="recent-open" data-recent-open="${esc(p.id)}">
+        <span class="ic" style="background:${rgb(c.color)}"><span class="ms fill" aria-hidden="true">${esc(c.icon)}</span></span>
+        <span class="recent-text"><span>${esc(p.name)}</span><span class="muted">${esc(c.label)}</span></span></button>
+        <button type="button" class="ib recent-remove" data-remove-recent="${esc(p.id)}" aria-label="${esc(removeLabel)}" title="${esc(removeLabel)}"><span aria-hidden="true">×</span></button></li>`;
+    }).join("");
+    setSheet(title + (items.length ? `<ul class="list recent-list">${rows}</ul>`
+      : `<p class="muted">${esc(t("viewer.noRecentSearches"))}</p>`), state || "half");
+    $("sheetBody").querySelectorAll("[data-recent-open]").forEach(button => {
+      button.onclick = () => selectPlace(byId[button.dataset.recentOpen], {fly: true});
+    });
+    $("sheetBody").querySelectorAll("[data-remove-recent]").forEach((button, index) => {
+      button.onclick = () => {
+        if (!removeRecent(button.dataset.removeRecent)) return;
+        showRecentSearches($("sheet").dataset.state);
+        const remaining = $("sheetBody").querySelectorAll("[data-remove-recent]");
+        (remaining[Math.min(index, remaining.length - 1)] || $("recentTitle")).focus();
+      };
+    });
   }
   function showHelp() {
     S.mode = "help";
