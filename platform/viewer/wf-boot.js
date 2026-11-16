@@ -69,6 +69,9 @@
       // An explicit deep link must never open a different campus when its
       // publication is missing from this deployment's manifest.
       if (!b) throw new Error("Requested building is not published: " + slug);
+      // The UNC visitor experience lists only its own campus. Keep the shared
+      // publication unchanged on other venue URLs, including GCU's own page.
+      if (b.slug === "uncc-main-campus") manifest = { ...manifest, buildings: [b] };
       base = join(C.apiBase, b.data);
       window.WF.building = b;
       window.WF.others = manifest.buildings.filter(x => x.slug !== b.slug).map(x => ({ ...x, dataUrl: join(C.apiBase, x.data) }));
