@@ -44,17 +44,18 @@ function element() {
     setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];}};
 }
 
-test('actual Matterport HUD updates the remaining dock and next leg in feet without changing metre inputs', () => {
+test('actual Matterport dock shows total route feet while the HUD retains remaining distance and next leg', () => {
   const ids = Object.fromEntries(['mpDistRem','mpDistLeg','mpDistLegRow','mpDockEta','mpDockDist','mpDockLbl'].map(id=>[id,element()]));
   const hud=element(), metres={remaining:91,leg:3.048};
   const c=loadFunctions('mp_preview.js',['usesFeet','fmtMeters','updateDistHud'],{
     window:{WF:{building:{slug:'uncc-main-campus'}}},$:id=>ids[id],ensureDistHudMount:()=>hud,
     playing:true,stopped:false,sweepIds:['a','b'],stepI:0,destName:'Library',
+    routeTotalM:424*0.3048,previewLabel:(_key,fallback)=>fallback,
     remainingDistM:()=>metres.remaining,nextLegDistM:()=>metres.leg,updateTravelTime(){},hideDistHud(){throw Error('active route should remain visible');},
   });
   c.updateDistHud(0);
-  assert.equal(ids.mpDockDist.textContent,'299 ft');assert.equal(ids.mpDistRem.textContent,'299 ft');assert.equal(ids.mpDistLeg.textContent,'10 ft');
-  assert.equal(ids.mpDockLbl.textContent,'To Library');assert.equal(ids.mpDockEta.hidden,false);
+  assert.equal(ids.mpDockDist.textContent,'424 ft');assert.equal(ids.mpDistRem.textContent,'299 ft');assert.equal(ids.mpDistLeg.textContent,'10 ft');
+  assert.equal(ids.mpDockLbl.textContent,'Distance');assert.equal(ids.mpDockEta.hidden,false);
   assert.deepEqual(metres,{remaining:91,leg:3.048});
 });
 

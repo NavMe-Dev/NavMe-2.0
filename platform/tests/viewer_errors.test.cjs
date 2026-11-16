@@ -160,29 +160,30 @@ test('chat HTTP and network failures never render server error details', async (
     assert.equal(elements.wfChatSend.disabled, false);
   }
 });
+function tourContext(sweepIds, moveTo, shown) {
+  return {
+    mpSdk: {}, phaseConsts: () => ({}), readPhase: async () => null,
+    sweepIds, stepI: 0, playing: false, stopped: false,
+    playbackTask: null, introductionActive: false, previewFinished: false,
+    playbackClock: { finish() {}, begin() {}, complete() {} }, beginPlayback: () => 1, playbackCurrent: () => true,
+    waitForPlayback: async () => true, clearPlaybackPose() {}, releasePlaybackWaiters() {},
+    scheduledDwellMs: () => 0, playbackDelay: async () => true,
+    playbackPhase: async (_duration, action) => { await action(); return true; },
+    setStatus: text => shown.push(text), updateDistHud() {}, moveTo, hideDirArrow() {},
+    pause() {}, console: quiet,
+  };
+}
 test('partially completed tours preserve skipped counts and singular/plural grammar', async () => {
   for (const failures of [1, 2, 5]) {
     const shown = [];
-    await handler('mp_preview.js', 'play', {
-      mpSdk: {}, phaseConsts: () => ({}), readPhase: async () => null,
-      sweepIds: Array(failures + 1).fill('stop'), stepI: 0, playing: false, stopped: false,
-      setStatus: text => shown.push(text), startCountdown() {}, updateDirArrow() {},
-      updateDistHud() {}, moveTo: async i => i === 0, tourPaceScale: 1,
-      setTimeout: fn => fn(), stopCountdown() {}, hideDirArrow() {}, hideDistHud() {}, window: {},
-    })();
+    await handler('mp_preview.js', 'play', tourContext(Array(failures + 1).fill('stop'), async i => i === 0, shown))();
     assert.equal(shown.at(-1), `Your tour is complete, but ${failures} ${failures === 1 ? 'stop' : 'stops'} couldn't be shown. You can explore the available stops again.`);
   }
 });
 test('tour failure does not claim completion when every stop fails', async () => {
   const shown = [];
-  await handler('mp_preview.js', 'play', {
-    mpSdk: {}, phaseConsts: () => ({}), readPhase: async () => null,
-    sweepIds: ['stop'], stepI: 0, playing: false, stopped: false,
-    setStatus: text => shown.push(text), startCountdown() {}, updateDirArrow() {},
-    updateDistHud() {}, moveTo: async () => false, tourPaceScale: 1,
-    setTimeout: fn => fn(), stopCountdown() {}, hideDirArrow() {}, hideDistHud() {}, window: {},
-  })();
-  assert.equal(shown.at(-1), messages.tourUnavailable);
+  await handler('mp_preview.js', 'play', tourContext(['stop'], async () => false, shown))();
+  assert.equal(shown.at(-1), messages.directionsUnavailable);
 });
 test('map boot failure hides internal fetch details and retry preserves the current URL', async () => {
   const attached = [];

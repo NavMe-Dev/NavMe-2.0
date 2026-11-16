@@ -31,7 +31,7 @@ function wfDbg(level, source, message, meta) {
   let openGen = 0;
   let focusGen = 0; // a late POI lookup must not move the camera away from a newer selection
   // True when this session is reusing mp_background.js's permanent mp=1 connection
-  // (see getLiveConnection/openUsingLiveConnection) instead of owning a dedicated
+  // (see getLiveConnection/openUsingLiveConnection) instead of displaying a dedicated
   // mpSdk/#mpFrame/#mpOverlay of its own. close() must never disconnect the SDK, blank
   // the iframe, or hide the overlay while this is true — that overlay/iframe/SDK IS the
   // mp=1 background itself, not something this session is free to tear down.
@@ -43,8 +43,12 @@ function wfDbg(level, source, message, meta) {
   const HUD_TURN_EMPHASIS_DEG = 30;   // larger chevron when turn > 30° (never hide)
   const FACE_ROTATE_SPEED = 90;       // smooth setRotation after land (3A)
   let routeTotalM = null;             // route.total_m when provided (full path, info only)
-  let etaRoute = null;
-  let etaInvalidLogged = false;
+  let playbackClock = null, playbackGeneration = 0, playbackTask = null;
+  let introductionActive = false, previewFinished = false;
+  let lastConfirmedSweep = null, lastConfirmedRotation = null, playbackPoseSub = null;
+  let latestPlaybackPose = null;
+  let activeCameraMove = null, playbackDelayState = null;
+  const playbackWaiters = new Set(), playbackCancellers = new Set();
   let cumDistM = [];                  // cumDistM[i] = meters along sweep path from start to sweep i
   let segDistM = [];                  // segDistM[i] = meters from sweep i → i+1 (last = to dest if any)
   let tourPaceScale = 1;              // multiplies FLY/dwell timing: >1 slower (small route), <1 faster (big route)
@@ -115,8 +119,8 @@ function wfDbg(level, source, message, meta) {
       if (wrap) {
         const d = document.createElement("div");
         d.className = "mp-dock"; d.id = "mpDock"; d.hidden = true;
-        d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
-          '<div class="nav-time" id="mpDockTime" hidden><div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div><div class="mp-dock-val" id="mpDockTimeValue">—</div></div>' +
+        d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl" id="mpDockLbl">Distance</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
+          '<div class="nav-time" id="mpDockTime" hidden><div class="nav-time-label" id="mpDockTimeLabel">Preview time</div><div class="nav-time-value" id="mpDockTimeValue">—</div></div>' +
           '<button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>';
         wrap.appendChild(d);
       }
@@ -124,7 +128,7 @@ function wfDbg(level, source, message, meta) {
     if ($("mpDock") && !$("mpDockTime")) {
       const time = document.createElement("div");
       time.className = "nav-time"; time.id = "mpDockTime"; time.hidden = true;
-      time.innerHTML = '<div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div><div class="mp-dock-val" id="mpDockTimeValue">—</div>';
+      time.innerHTML = '<div class="nav-time-label" id="mpDockTimeLabel">Preview time</div><div class="nav-time-value" id="mpDockTimeValue">—</div>';
       $("mpDock").insertBefore(time, $("mpExit"));
     }
   }
@@ -161,12 +165,12 @@ function wfDbg(level, source, message, meta) {
           <div id="mpDistHud" class="mp-dist-hud" hidden aria-hidden="true"><span class="mp-dist-val" id="mpDistRem">—</span><span class="mp-dist-leg" id="mpDistLegRow" hidden><span class="mp-dist-sep" aria-hidden="true">·</span><span class="mp-dist-leg-val" id="mpDistLeg">—</span></span></div>
           <div class="mp-dock" id="mpDock" hidden>
             <div class="mp-dock-eta" id="mpDockEta" hidden>
-              <div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div>
+              <div class="mp-dock-lbl" id="mpDockLbl">Distance</div>
               <div class="mp-dock-val" id="mpDockDist">—</div>
             </div>
             <div class="nav-time" id="mpDockTime" hidden>
-              <div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div>
-              <div class="mp-dock-val" id="mpDockTimeValue">—</div>
+              <div class="nav-time-label" id="mpDockTimeLabel">Preview time</div>
+              <div class="nav-time-value" id="mpDockTimeValue">—</div>
             </div>
             <button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>
           </div>
@@ -1005,8 +1009,6 @@ function wfDbg(level, source, message, meta) {
   }
 
   function prepareRoute(route) {
-    etaRoute = route || null;
-    etaInvalidLogged = false;
     navPathTour = false;
     const ids = dedupeConsecutive(route && route.sweep_ids);
     const allNodes = (route && route.nodes) || [];
@@ -1258,14 +1260,6 @@ function wfDbg(level, source, message, meta) {
     if (time) time.hidden = true;
   }
 
-  function stopCountdown() {
-    // Shared pause/close hook: ETA updates from route data, never a clock countdown.
-  }
-
-  function startCountdown(fromIndex) {
-    updateDistHud(fromIndex != null ? fromIndex : stepI);
-  }
-
   function updateDistHud(i) {
     const el = ensureDistHudMount();
     if (!el) return;
@@ -1286,39 +1280,202 @@ function wfDbg(level, source, message, meta) {
     el.removeAttribute("hidden");
     el.setAttribute("aria-hidden", "false");
     el.classList.add("visible");
-    // Same "Distance remaining" readout Start Preview's #navBar and Walkthrough
-    // Wayfinding's .n3d-dock show in their bottom bar.
+    // The From-to-To route total remains stable throughout the automated preview.
     const dockEta = $("mpDockEta"), dockVal = $("mpDockDist"), dockLbl = $("mpDockLbl");
-    if (dockVal) dockVal.textContent = fmtMeters(rem);
-    if (dockLbl) dockLbl.textContent = destName ? ("To " + destName) : "Distance remaining";
+    const routeDistance = routeTotalM != null && routeTotalM >= 0 ? routeTotalM : remainingDistM(0);
+    if (dockVal) dockVal.textContent = routeDistance == null ? "—" : Math.round(Math.max(0,routeDistance)/0.3048) + " ft";
+    if (dockLbl) dockLbl.textContent = previewLabel("viewer.routeDistance", "Distance");
     if (dockEta) dockEta.hidden = false;
     updateTravelTime(rem);
   }
 
-  function updateTravelTime(remainingMeters) {
-    const time = $("mpDockTime"), value = $("mpDockTimeValue"), label = $("mpDockTimeLabel");
-    const helper = window.WFTravelTime;
-    // Camera playback is a preview, not a measurement of the visitor's position.
-    // Keep the total route duration unless the caller explicitly supplies live progress.
-    const hasPathGeometry = sweepNodes.some(node => node && node.x != null && node.y != null &&
-      Number.isFinite(+node.x) && Number.isFinite(+node.y));
-    const fullDistance = routeTotalM != null && routeTotalM >= 0 ? routeTotalM :
-      (hasPathGeometry ? remainingDistM(0) : null);
-    const distance = etaRoute && etaRoute._etaLiveProgress === true ? remainingMeters : fullDistance;
-    const seconds = helper && helper.estimate(etaRoute, distance);
-    if (!time || !value) return;
-    if (seconds == null || !Number.isFinite(seconds)) {
-      time.hidden = true;
-      if (!etaInvalidLogged) {
-        wfDbg("warn", "navigation.eta", "Travel time unavailable: route distance is invalid");
-        etaInvalidLogged = true;
-      }
-      return;
+  function previewLabel(key, fallback) {
+    const result = window.WFi18n && typeof WFi18n.t === "function" ? WFi18n.t(key) : null;
+    return result && result !== key ? result : fallback;
+  }
+  function updateTravelTime() {
+    const group = $("mpDockTime"), value = $("mpDockTimeValue"), label = $("mpDockTimeLabel");
+    if (!group || !value) return;
+    if (!playbackClock || !window.WFPreviewTiming) { group.hidden = true; return; }
+    const remaining = playbackClock.remainingMs();
+    if (label) label.textContent = previewLabel("viewer.previewTimeScheduled", "Preview time (scheduled)");
+    const text = WFPreviewTiming.formatMMSS(previewFinished ? 0 : Math.max(1, remaining));
+    if (value.textContent !== text) value.textContent = text;
+    group.hidden = false;
+  }
+  function ensurePlaybackClock() {
+    if (!playbackClock && window.WFPreviewTiming) {
+      playbackClock = WFPreviewTiming.create({onUpdate: () => updateTravelTime()});
     }
-    if (label) label.textContent = window.WFi18n && typeof window.WFi18n.t === "function"
-      ? window.WFi18n.t("viewer.estimatedTime") : "Estimated time";
-    value.textContent = helper.format(seconds);
-    time.hidden = false;
+    return playbackClock;
+  }
+  function playbackCurrent(run) { return run === playbackGeneration && !stopped; }
+  function releasePlaybackWaiters() {
+    for (const resolve of playbackWaiters) resolve();
+    playbackWaiters.clear();
+  }
+  async function waitForPlayback(run) {
+    while (playbackCurrent(run) && !playing) await new Promise(resolve => playbackWaiters.add(resolve));
+    return playbackCurrent(run);
+  }
+  function cachePlaybackPose(pose) {
+    const sample = pose && pose.position && pose.rotation ?
+      [pose.position.x, pose.position.y, pose.position.z, pose.rotation.x, pose.rotation.y] : null;
+    const active = activeCameraMove;
+    if (sample && sample.every(Number.isFinite)) {
+      const moved = latestPlaybackPose && sample.some((value, i) => Math.abs(value - latestPlaybackPose[i]) > 0.0001);
+      latestPlaybackPose = sample;
+      if (active && active.started && moved) {
+        active.lastMotion = performance.now();
+        if (active.stalled) {
+          active.stalled = false;
+          if (playing && playbackClock) playbackClock.resume();
+        }
+      }
+    }
+    const sid = pose && (pose.sweep || pose.sweepId);
+    if (typeof sid === "string" && sid) lastConfirmedSweep = sid;
+    if (pose && pose.rotation && Number.isFinite(pose.rotation.x) && Number.isFinite(pose.rotation.y)) {
+      lastConfirmedRotation = {x:pose.rotation.x,y:pose.rotation.y};
+    }
+  }
+  function clearPlaybackPose() {
+    try {
+      if (typeof playbackPoseSub === "function") playbackPoseSub();
+      else if (playbackPoseSub && playbackPoseSub.cancel) playbackPoseSub.cancel();
+      else if (playbackPoseSub && playbackPoseSub.unsubscribe) playbackPoseSub.unsubscribe();
+    } catch (_) {}
+    playbackPoseSub = null;
+  }
+  function interruptPlaybackMove() {
+    const active = activeCameraMove;
+    activeCameraMove = null;
+    if (active) clearInterval(active.watch);
+    // Sweep exposes no cancellation API. Replace an unfinished flight with the
+    // last confirmed scan where possible, keeping the same SDK and iframe.
+    if (!active || !active.started || !active.fromSid || !active.sdk || !active.sdk.Sweep) return;
+    const options = {transition:(active.sdk.Sweep.Transition || {}).INSTANT || "transition.instant"};
+    if (active.rotation) options.rotation = active.rotation;
+    try { Promise.resolve(active.sdk.Sweep.moveTo(active.fromSid, options)).catch(() => {}); } catch (_) {}
+  }
+  function cancelPlayback() {
+    playbackGeneration++;
+    playing = false; stopped = true; introductionActive = false;
+    if (playbackClock) playbackClock.cancel();
+    if (playbackDelayState) playbackDelayState.cancel();
+    for (const cancel of playbackCancellers) cancel();
+    playbackCancellers.clear(); releasePlaybackWaiters(); clearPlaybackPose();
+    interruptPlaybackMove();
+    playbackTask = null;
+  }
+  function scheduledMoveMs(i) {
+    const hop = i > 0 && segDistM[i-1] != null ? +segDistM[i-1] : 0;
+    let duration = !navPathTour && i === 0 ? Math.round(1000 * tourPaceScale) : flyTransitionMs(hop);
+    if (i === sweepIds.length-1 && i > 0) duration = Math.min(Math.round(duration*1.5),4500);
+    return duration;
+  }
+  function scheduledDwellMs(i) {
+    return Math.round((i < 2 ? 400 : 220) * Math.max(0.5,Math.min(1.6,tourPaceScale)));
+  }
+  function remainingPlaybackSchedule(from) {
+    let total = 0;
+    for (let i=from;i<sweepIds.length;i++) total += scheduledMoveMs(i) + 180 + scheduledDwellMs(i);
+    return total;
+  }
+  function beginPlayback(from, prefixMs = 0) {
+    cancelPlayback();
+    const run = playbackGeneration;
+    playing = true; stopped = false; previewFinished = false;
+    lastConfirmedSweep = null; lastConfirmedRotation = null; latestPlaybackPose = null;
+    const sdk = mpSdk;
+    try {
+      if (sdk && sdk.Camera && sdk.Camera.pose && sdk.Camera.pose.subscribe) {
+        playbackPoseSub = sdk.Camera.pose.subscribe(pose => { if (playbackCurrent(run)) cachePlaybackPose(pose); });
+      }
+      if (sdk && sdk.Camera && sdk.Camera.getPose) Promise.resolve(sdk.Camera.getPose()).then(pose => {
+        if (playbackCurrent(run)) cachePlaybackPose(pose);
+      }).catch(() => {});
+    } catch (_) {}
+    const clock = ensurePlaybackClock();
+    if (clock) clock.reset(prefixMs + remainingPlaybackSchedule(from));
+    return run;
+  }
+  async function playbackDelay(ms, run) {
+    let left = ms;
+    while (left > 0 && await waitForPlayback(run)) {
+      const result = await new Promise(resolve => {
+        const started = performance.now();
+        let timer = null, done = false;
+        const settle = kind => {
+          if (done) return; done = true; clearTimeout(timer);
+          left = Math.max(0,left-(performance.now()-started));
+          playbackDelayState = null; resolve(kind);
+        };
+        playbackDelayState = {freeze:()=>settle("paused"),cancel:()=>settle("cancelled")};
+        timer = setTimeout(()=>settle("finished"),left);
+      });
+      if (result === "cancelled") return false;
+    }
+    return playbackCurrent(run);
+  }
+  async function playbackPhase(duration, action, run) {
+    if (!(await waitForPlayback(run))) return false;
+    const clock = ensurePlaybackClock();
+    if (clock) clock.begin(duration);
+    let cancel;
+    const cancelled = new Promise(resolve => { cancel=()=>resolve({cancelled:true}); playbackCancellers.add(cancel); });
+    try {
+      const result = await Promise.race([Promise.resolve().then(async () => {
+        if (!(await waitForPlayback(run))) return;
+        return action();
+      }).then(value=>({value})),cancelled]);
+      if (result.cancelled || !(await waitForPlayback(run))) return false;
+      if (clock) clock.complete();
+      return true;
+    } catch (error) {
+      // A rejected transition is over. Consume its reserved budget before a
+      // retry is added, so failed flights cannot leave phantom time behind.
+      if (playbackCurrent(run) && clock) clock.complete();
+      throw error;
+    } finally { playbackCancellers.delete(cancel); }
+  }
+  function startCameraActivity(active) {
+    if (!active) return;
+    active.started = true;
+    active.lastMotion = performance.now();
+    clearInterval(active.watch);
+    // Pose is the SDK's existing movement observable. If it stops changing,
+    // hold the current phase too, rather than spending its remaining time.
+    if (playbackPoseSub) active.watch = setInterval(() => {
+      if (activeCameraMove !== active || !playing || active.stalled) return;
+      if (performance.now() - active.lastMotion > 500) {
+        active.stalled = true;
+        if (playbackClock) playbackClock.freeze();
+      }
+    }, 200);
+  }
+  async function withCameraActivity(run, action) {
+    const active = {sdk:mpSdk,fromSid:lastConfirmedSweep,rotation:lastConfirmedRotation};
+    activeCameraMove = active;
+    try {
+      return await action(active);
+    } finally {
+      clearInterval(active.watch);
+      if (activeCameraMove === active) {
+        activeCameraMove = null;
+        if (active.stalled && playing && playbackCurrent(run) && playbackClock) playbackClock.resume();
+      }
+    }
+  }
+  async function timedCameraMove(id, options, run) {
+    if (run == null) { await mpSdk.Sweep.moveTo(id,options); return true; }
+    return withCameraActivity(run, active => playbackPhase(options.transitionTime || 0, () => {
+      startCameraActivity(active);
+      return active.sdk.Sweep.moveTo(id, options);
+    }, run));
+  }
+  function timedFacing(i, run) {
+    return withCameraActivity(run, active => playbackPhase(180, () => faceAlongRoute(i, run, active), run));
   }
 
   async function getPoseYaw() {
@@ -1443,10 +1600,15 @@ function wfDbg(level, source, message, meta) {
    * 3A: Point camera along the route toward the **next waypoint** (or dest on last stop).
    * Prefer smooth Camera.setRotation({speed}); lookAt second; INSTANT Sweep.moveTo last (avoid remount thrash).
    */
-  async function faceAlongRoute(i) {
-    if (!mpSdk || !mpSdk.Camera) return;
+  async function faceAlongRoute(i, run, activity) {
+    const ready = () => run == null ? Promise.resolve(true) : waitForPlayback(run);
+    if (!mpSdk || !mpSdk.Camera || !(await ready())) return;
+    // This settling pause is part of the playback schedule. SDK corrections
+    // after it can take longer; they never consume the next flight's budget.
+    if (run != null && !(await playbackDelay(180, run))) return;
     const fromId = sweepIds[i];
     const from = await sdkSweepPosition(fromId) || modelToSdk(sweepNodes[i]);
+    if (!(await ready())) return;
     let to = null;
     // Look-ahead: next sweep when available — not always final dest (indoor corridors).
     if (i + 1 < sweepIds.length) {
@@ -1459,7 +1621,7 @@ function wfDbg(level, source, message, meta) {
         to = { x: from.x + (from.x - prev.x), y: from.y, z: from.z + (from.z - prev.z) };
       }
     }
-    if (!from || !to) return;
+    if (!(await ready()) || !from || !to) return;
     const finalTarget = i === sweepIds.length - 1 && routeHasLookTarget;
     const rotation = facingRotationSdk(from, to, finalTarget);
     if (!rotation) return;
@@ -1477,9 +1639,11 @@ function wfDbg(level, source, message, meta) {
     // (iOS/desktop today) — it only catches the case where it wasn't really done yet.
     try {
       const got1 = await getPoseYaw();
+      if (!(await ready())) return;
       if (rotation.x === 0 && got1 != null && Math.abs(normDeltaDeg(yaw - got1)) < 6) {
-        await new Promise(r => setTimeout(r, 180));
+        if (run == null) await new Promise(r => setTimeout(r, 180));
         const got2 = await getPoseYaw();
+        if (!(await ready())) return;
         if (got2 == null || Math.abs(normDeltaDeg(yaw - got2)) < 6) return;
       }
     } catch (_) { /* ignore */ }
@@ -1488,11 +1652,15 @@ function wfDbg(level, source, message, meta) {
     // Prefer smooth setRotation with Showcase −Z forward yaw; lookAt recovers if pose still reverse.
     if (typeof mpSdk.Camera.setRotation === "function") {
       try {
+        if (!(await ready())) return;
+        if (activity) startCameraActivity(activity);
         await mpSdk.Camera.setRotation(rotation, { speed: FACE_ROTATE_SPEED });
         const ok = await assertFacingYaw(yaw, "setRotation+speed");
         if (ok !== false) return;
       } catch (e) { console.warn("Camera.setRotation(speed) failed", e); }
       try {
+        if (!(await ready())) return;
+        if (activity) startCameraActivity(activity);
         await mpSdk.Camera.setRotation(rotation);
         const ok = await assertFacingYaw(yaw, "setRotation");
         if (ok !== false) return;
@@ -1501,6 +1669,8 @@ function wfDbg(level, source, message, meta) {
 
     try {
       if (typeof mpSdk.Camera.lookAt === "function") {
+        if (!(await ready())) return;
+        if (activity) startCameraActivity(activity);
         await mpSdk.Camera.lookAt(target);
         await assertFacingYaw(yaw, "lookAt");
         return;
@@ -1509,6 +1679,8 @@ function wfDbg(level, source, message, meta) {
 
     // Last resort: same-sweep INSTANT with rotation (can thrash WebGL — avoid if possible)
     try {
+      if (!(await ready())) return;
+      if (activity) startCameraActivity(activity);
       await mpSdk.Sweep.moveTo(fromId, {
         rotation: rotation,
         transition: (mpSdk.Sweep.Transition && mpSdk.Sweep.Transition.INSTANT) || undefined,
@@ -1572,7 +1744,8 @@ function wfDbg(level, source, message, meta) {
     };
   }
 
-  async function readPhase(sdk) {
+  async function readPhase(sdk, run) {
+    if (!sdk || !sdk.App || !sdk.App.state) return null;
     try {
       if (sdk.App.state && typeof sdk.App.state.getLatest === "function") {
         const st = sdk.App.state.getLatest();
@@ -1580,13 +1753,26 @@ function wfDbg(level, source, message, meta) {
       }
     } catch (_) { /* ignore */ }
     return await new Promise((resolve) => {
-      let done = false;
-      const fin = (p) => { if (done) return; done = true; try { unsub && unsub(); } catch (_) {} resolve(p); };
-      let unsub = null;
+      let done = false, timer = null, unsub = null;
+      const cleanup = () => {
+        clearTimeout(timer);
+        try {
+          if (typeof unsub === "function") unsub();
+          else if (unsub && unsub.cancel) unsub.cancel();
+          else if (unsub && unsub.unsubscribe) unsub.unsubscribe();
+        } catch (_) {}
+      };
+      const cancel = () => fin(null);
+      const fin = (p) => {
+        if (done) return; done = true;
+        cleanup(); playbackCancellers.delete(cancel); resolve(p);
+      };
+      if (run != null) playbackCancellers.add(cancel);
       try {
         unsub = sdk.App.state.subscribe((st) => fin(st && st.phase));
       } catch (_) { fin(null); }
-      setTimeout(() => fin(null), 1500);
+      if (done) cleanup();
+      else timer = setTimeout(() => fin(null), 1500);
     });
   }
 
@@ -1847,17 +2033,14 @@ function wfDbg(level, source, message, meta) {
     return Math.round(base * tourPaceScale);
   }
 
-  async function moveTo(i) {
-    if (!mpSdk || i < 0 || i >= sweepIds.length) return false;
+  async function moveTo(i, run) {
+    if (!mpSdk || i < 0 || i >= sweepIds.length || (run != null && !(await waitForPlayback(run)))) return false;
     const id = sweepIds[i];
     const tr = mpSdk.Sweep.Transition;
     // navPathTour: same distance-scaled cinematic FLY as the standard branch — this used
     // to be a hardcoded fast 600ms regardless of hop length, which read as "teleporting".
     if (navPathTour) {
-      const isLastStop = i === sweepIds.length - 1;
-      const hopM = (i > 0 && segDistM[i - 1] != null) ? +segDistM[i - 1] : 0;
-      let tFly = flyTransitionMs(hopM);
-      if (isLastStop && i > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500);
+      const tFly = scheduledMoveMs(i);
       // Rotate toward the NEXT waypoint (look-ahead) DURING the flight itself, so the turn
       // happens smoothly mid-transit and the camera lands already facing where it's going
       // next — instead of arriving facing backward and snap-rotating after stopping.
@@ -1865,14 +2048,19 @@ function wfDbg(level, source, message, meta) {
       const hNav = headingToward(i);
       if (hNav != null && Number.isFinite(hNav)) navOpts.rotation = { x: 0, y: hNav };
       try {
-        await mpSdk.Sweep.moveTo(id, navOpts);
+        if (!(await timedCameraMove(id,navOpts,run))) return false;
+        if (run != null) lastConfirmedSweep = id;
       } catch (e) {
         console.warn("Sweep.moveTo failed", id, e);
         return false;
       }
       // Safety-net correction only — the in-flight rotation above should already have
       // landed on this heading, so faceAlongRoute is a no-op unless something drifted.
-      try { await faceAlongRoute(i); } catch (_) { /* ignore */ }
+      if (run != null) {
+        if (!(await timedFacing(i, run))) return false;
+      } else try { await faceAlongRoute(i); } catch (_) {}
+      if (run != null && !playbackCurrent(run)) return false;
+      lastConfirmedSweep=id;
       stepI = i;
       updateStep();
       try { await updateDirArrow(i); } catch (_) { /* ignore */ }
@@ -1881,26 +2069,30 @@ function wfDbg(level, source, message, meta) {
       return true;
     }
     // Standard FLY transition for routes with server-provided sweep IDs.
-    const hopM = (i > 0 && segDistM[i - 1] != null) ? +segDistM[i - 1] : 0;
-    const isLastStop = i === sweepIds.length - 1;
-    let tFly = i === 0 ? Math.round(1000 * tourPaceScale) : flyTransitionMs(hopM);
-    if (isLastStop && i > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500); // slower arrival at destination
+    const tFly = scheduledMoveMs(i);
     const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
     // Rotate toward the NEXT waypoint (look-ahead) during the flight so the turn happens
     // mid-transit, landing already facing onward instead of snap-rotating after arrival.
     const h = headingToward(i);
     if (h != null && Number.isFinite(h)) opts.rotation = { x: 0, y: h };
     try {
-      await mpSdk.Sweep.moveTo(id, opts);
+      if (!(await timedCameraMove(id,opts,run))) return false;
+      if (run != null) lastConfirmedSweep = id;
     } catch (e1) {
       try {
-        await mpSdk.Sweep.moveTo(id, { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly });
+        if (run != null) { if (!playbackCurrent(run)) return false; if (playbackClock) playbackClock.reset(playbackClock.remainingMs()+tFly); }
+        if (!(await timedCameraMove(id,{transition:(tr && tr.FLY)||"transition.fly",transitionTime:tFly},run))) return false;
+        if (run != null) lastConfirmedSweep = id;
       } catch (e2) {
         console.warn("Sweep.moveTo failed", id, e2); wfDbg("warn","tour.sweep","Sweep.moveTo failed "+id+" "+(e2&&e2.message||e2));
         return false;
       }
     }
-    try { await faceAlongRoute(i); } catch (e3) { console.warn("faceAlongRoute", e3); }
+    if (run != null) {
+      if (!(await timedFacing(i, run))) return false;
+    } else try { await faceAlongRoute(i); } catch (e3) { console.warn("faceAlongRoute",e3); }
+    if (run != null && !playbackCurrent(run)) return false;
+    lastConfirmedSweep=id;
     stepI = i;
     updateStep();
     try { await updateDirArrow(i); } catch (_) { /* ignore */ }
@@ -1909,136 +2101,108 @@ function wfDbg(level, source, message, meta) {
     return true;
   }
 
-  async function play() {
-    if (!mpSdk) {
-      console.warn("[MpPreview] tour connection unavailable", { configured: !!applicationKey });
-      setStatus("The indoor tour isn't available right now. Please try again later.", true);
-      return;
+  function play(existingRun) {
+    if (!mpSdk || !sweepIds.length) return Promise.resolve();
+    if (playbackTask || introductionActive) {
+      playing = true;
+      if (playbackClock && !(activeCameraMove && activeCameraMove.stalled)) playbackClock.resume();
+      releasePlaybackWaiters();
+      setStatus("");
+      return playbackTask || Promise.resolve();
     }
-    if (!sweepIds.length) {
-      setStatus("The indoor tour isn't available right now. Please try again later.", true);
-      return;
-    }
-    const Ph = phaseConsts(mpSdk);
-    const phase = await readPhase(mpSdk);
-    if (phase && phase !== Ph.PLAYING) {
-      setStatus("Tap Enter inside the Matterport window first (still on the launch screen). Then press Play.", true);
-      return;
-    }
+    const run = existingRun != null ? existingRun : beginPlayback(stepI);
+    if (!playbackCurrent(run)) return Promise.resolve();
     playing = true;
-    stopped = false;
-    setStatus("Touring interior…");
-    startCountdown(stepI);
-    try { await updateDirArrow(stepI); } catch (_) { /* ignore */ }
-    try { updateDistHud(stepI); } catch (_) { /* ignore */ }
-    let moved = 0, failed = 0;
-    for (let i = stepI; i < sweepIds.length; i++) {
-      if (!playing || stopped) break;
-      const ok = await moveTo(i);
-      if (ok) moved++; else failed++;
-      if (!playing || stopped) break;
-      // Stay facing next waypoint only (3A) — no orbit peek / left-right wiggle
-      try { await updateDirArrow(i); } catch (_) { /* ignore */ }
-      try { updateDistHud(i); } catch (_) { /* ignore */ }
-      // Short dwell only — FLY transitions are long enough to read the space mid-flight,
-      // so a short dwell keeps consecutive hops feeling like one continuous pan. Scaled by
-      // tourPaceScale (clamped) so it stays in step with the FLY speed.
-      const dwellScale = Math.max(0.5, Math.min(1.6, tourPaceScale));
-      await new Promise(r => setTimeout(r, Math.round((i < 2 ? 400 : 220) * dwellScale)));
-    }
-    if (playing && !stopped) {
-      playing = false;
-      stopCountdown();
-      hideDirArrow();
-      hideDistHud();
-      if (!moved && failed) {
-        setStatus("The indoor tour isn't available right now. Please try again later.", true);
-      } else if (failed) {
-        setStatus("Your tour is complete, but " + failed + (failed === 1 ? " stop" : " stops") + " couldn't be shown. You can explore the available stops again.");
-      } else {
-        setStatus("Tour complete.");
-        // Shared "Destination reached" card (window.wfShowArrivalCard, ui.js) — same
-        // card and thumbs up/down route feedback Walkthrough Wayfinding and Start
-        // Preview show, so the arrival moment is identical everywhere.
-        if (window.wfShowArrivalCard) {
-          window.wfShowArrivalCard({
-            name: destName || "", context: "tour_interior",
-            fromName: fromName || "", toName: destName || "",
-            onDone: function () { window.MpPreview.close(); },
-          });
-        }
+    const task = (async () => {
+      const phase = await readPhase(mpSdk, run);
+      if (!playbackCurrent(run)) return;
+      if (phase && phase !== phaseConsts(mpSdk).PLAYING) {
+        pause();
+        setStatus("Tap Enter in the 3D view, then press Play here to start your tour.", true);
       }
-    }
+      if (!(await waitForPlayback(run))) return;
+      setStatus("");
+      updateDistHud(stepI);
+      let completed = 0, failed = 0;
+      for (let i = stepI; i < sweepIds.length; i++) {
+        if (!(await waitForPlayback(run))) return;
+        const ok = await moveTo(i, run);
+        if (!playbackCurrent(run)) return;
+        if (ok) completed++;
+        else {
+          failed++;
+          // A skipped scan has no settling phase to play.
+          if (playbackClock) { playbackClock.begin(180); playbackClock.complete(); }
+        }
+        const dwell = scheduledDwellMs(i);
+        if (!(await playbackPhase(dwell, () => playbackDelay(dwell, run), run))) return;
+      }
+      if (!playbackCurrent(run)) return;
+      previewFinished = true;
+      if (playbackClock) playbackClock.finish();
+      playing = false;
+      clearPlaybackPose();
+      hideDirArrow();
+      // Keep the existing dock available at 00:00 until Exit is chosen.
+      if (failed && !completed) setStatus("We couldn't find the information needed to guide you through this building. Please try again later.", true);
+      else if (failed) setStatus(`Your tour is complete, but ${failed} ${failed === 1 ? "stop" : "stops"} couldn't be shown. You can explore the available stops again.`);
+      else setStatus("");
+    })().catch(error => {
+      if (!playbackCurrent(run)) return;
+      pause();
+      console.warn("[Tour] playback interrupted", error);
+      setStatus("The preview stopped. You can press Play to continue or Exit to return.", true);
+    });
+    // Assign before the first SDK await can resolve, so repeated Play cannot
+    // create a second camera loop.
+    playbackTask = task;
+    task.finally(() => { if (playbackTask === task) playbackTask = null; });
+    return task;
   }
 
   function pause() {
     playing = false;
-    stopCountdown();
-    hideDirArrow();
-    hideDistHud();
-    setStatus("Paused.");
+    if (playbackClock) playbackClock.freeze();
+    if (playbackDelayState) playbackDelayState.freeze();
+    setStatus("Preview paused.");
   }
 
   function stopWalk() {
-    playing = false;
-    stopped = true;
-    stopCountdown();
+    cancelPlayback();
     stepI = 0;
-    updateStep();
     hideDirArrow();
     hideDistHud();
-    setStatus("Stopped.");
+    updateStep();
+    setStatus("");
   }
 
-  function isCoarseMobile() {
+  async function startRoutePlayback(entryMs, leadMs = 0, tailMs = 0) {
+    const run = beginPlayback(1, leadMs + entryMs + tailMs + 180);
+    introductionActive = true;
+    updateDistHud(0);
     try {
-      return !!(window.matchMedia && (
-        window.matchMedia("(max-width: 900px)").matches ||
-        window.matchMedia("(pointer: coarse)").matches
-      ));
-    } catch (_) { return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || ""); }
+      if (leadMs && !(await playbackPhase(leadMs, () => playbackDelay(leadMs, run), run))) return;
+      const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+      const options = {transition:(tr && tr.FLY) || "transition.fly", transitionTime:entryMs};
+      const heading = headingToward(0);
+      if (heading != null && Number.isFinite(heading)) options.rotation = {x:0,y:heading};
+      if (!(await timedCameraMove(sweepIds[0], options, run))) return;
+      lastConfirmedSweep = sweepIds[0];
+      if (tailMs && !(await playbackPhase(tailMs, () => playbackDelay(tailMs, run), run))) return;
+      if (!(await timedFacing(0, run))) return;
+      if (!playbackCurrent(run)) return;
+      stepI = 1;
+      updateStep();
+    } catch (error) {
+      if (playbackCurrent(run)) {
+        cancelPlayback();
+        setStatus("The preview couldn't start. Choose Exit to return and try again.", true);
+        console.warn("[Tour] entry failed", error);
+      }
+      return;
+    } finally { if (run === playbackGeneration) introductionActive = false; }
+    if (playbackCurrent(run)) await play(run);
   }
-
-  function handoffToTourPage(route) {
-    const cfg = (window.WF && window.WF.cfg) || {};
-    const payload = {
-      v: 1,
-      route: {
-        sweep_ids: (route && route.sweep_ids) || [],
-        nodes: (route && route.nodes) || [],
-        total_m: (route && route.total_m != null) ? route.total_m : undefined,
-        time_s: (route && route.time_s != null) ? route.time_s : undefined,
-        mode: (route && route.mode) || undefined,
-        _stepFree: !!(route && route._stepFree),
-        _etaLiveProgress: !!(route && route._etaLiveProgress),
-        links: (route && route.links) || undefined,
-        navPath: (route && route.navPath) || undefined,
-        smoothed: (route && route.smoothed) || undefined,
-        _destXYZ: (route && route._destXYZ) || undefined,
-        _destName: (route && route._destName) || undefined,
-        _fromName: (route && route._fromName) || undefined,
-      },
-      returnUrl: location.href,
-      cfg: {
-        slug: cfg.slug || (window.WF && window.WF.building && window.WF.building.slug) || null,
-        matterport_model_id: cfg.matterport_model_id || cfg.model_id || null,
-        apiBase: (cfg.apiBase || (window.WF_CONFIG && window.WF_CONFIG.apiBase) || "/api/v1/public/"),
-      },
-      building: (window.WF && window.WF.building) || null,
-      wfConfig: window.WF_CONFIG || null,
-    };
-    try {
-      sessionStorage.setItem("wf_mp_tour_v1", JSON.stringify(payload));
-    } catch (e) {
-      try { ensureOverlay(); setStatus("We couldn't load the virtual tour. Please go back and try opening it again.", true); }
-      catch (_) { alert("Could not save tour for fullscreen page"); }
-      return false;
-    }
-    const dest = new URL("tour.html", location.href);
-    location.assign(dest.href);
-    return true;
-  }
-
 
   // ---- Media-in-twin Option 4: Tag hotspot → glass_v1 HUD (image/video/text + CTA buttons) ----
   let mediaPanels = [];
@@ -2398,15 +2562,17 @@ function wfDbg(level, source, message, meta) {
 
 
   /**
-   * The already-connected sdk+iframe from showBackground() (?mp=1 mode's permanent
-   * background), if one is live right now. Letting open() reuse this instead of
+   * The already-connected sdk+iframe, including a dismissed preview or the
+   * permanent Matterport background, if one is live right now. Letting open() reuse this instead of
    * reconnecting is what removes a full second "load digital twin / connect SDK /
    * wait for ready" cycle every time Tour interior is opened on top of a background
    * that is, from the user's point of view, already showing the exact same space.
    */
-  function getLiveConnection() {
+  function getLiveConnection(includeDismissedPreview) {
     if (!mpSdk) return null;
-    if (!document.body.classList.contains("mp-bg-mode")) return null;
+    // Other controllers expect a visible permanent background. Only open()
+    // opts into reusing a dedicated preview whose overlay was dismissed.
+    if (!includeDismissedPreview && !document.body.classList.contains("mp-bg-mode")) return null;
     const iframe = $("mpFrame");
     if (!iframe) return null;
     return { sdk: mpSdk, iframe };
@@ -2420,12 +2586,16 @@ function wfDbg(level, source, message, meta) {
    * ever leave this page for Tour interior here.
    */
   async function openUsingLiveConnection(route, live) {
+    cancelPlayback();
+    cancelWalkTo();
+    hideDistHud();
     const gen = ++openGen;
-    usingLiveConnection = true;
+    usingLiveConnection = document.body.classList.contains("mp-bg-mode");
     destName = (route && route._destName) || null;
     fromName = (route && route._fromName) || null;
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     mpSdk = live.sdk;
+    const overlay = $("mpOverlay"); if (overlay) overlay.hidden = false;
     document.body.classList.add("mp-open");
     document.body.classList.add("nav"); // hide search/top chrome — see ui.css body.nav rule
     { const d = $("mpDock"); if (d) d.hidden = false; }
@@ -2447,29 +2617,16 @@ function wfDbg(level, source, message, meta) {
       setStatus("We couldn't find the information needed to guide you through this building. Please try again later.");
       return;
     }
-    const h0 = headingToward(0);
-    try {
-      const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
-      const entryOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: Math.round(2000 * tourPaceScale) };
-      if (h0 != null && Number.isFinite(h0)) entryOpts.rotation = { x: 0, y: h0 };
-      await mpSdk.Sweep.moveTo(aligned[0], entryOpts);
-    } catch (_) { /* ignore — play() covers it */ }
-    if (gen !== openGen) return;
-    try { await faceAlongRoute(0); } catch (_) { /* ignore */ }
-    if (gen !== openGen) return;
-    stepI = 1;
-    updateStep();
-    await play();
+    await startRoutePlayback(Math.round(2000 * tourPaceScale));
   }
 
   async function open(route) {
     usingLiveConnection = false;
-    const live = getLiveConnection();
+    const live = getLiveConnection(true);
     if (live) return openUsingLiveConnection(route, live);
-    // iOS Safari often leaves nested map-overlay iframes black; run the walk on a dedicated page.
-    if (!window.__WF_MP_TOUR_PAGE && isCoarseMobile()) {
-      if (handoffToTourPage(route || {})) return;
-    }
+    cancelPlayback();
+    cancelWalkTo();
+    hideDistHud();
     const gen = ++openGen;
     destName = (route && route._destName) || null;
     fromName = (route && route._fromName) || null;
@@ -2604,44 +2761,15 @@ function wfDbg(level, source, message, meta) {
     const tab2 = $("mpOpenTab");
     if (tab2) tab2.href = showcaseUrl(applicationKey, aligned[0] || null);
 
-    // Give the dollhouse view a moment on screen before walking in, same as a person
-    // pausing there after clicking the button.
-    await new Promise(r => setTimeout(r, 1500));
-    if (gen !== openGen) return;
-
-    // ── Step 2: Walkthrough — fly to the first scan point on the route, same as clicking
-    // Showcase's "walk" button at that spot. Sweep.moveTo switches Showcase out of
-    // Dollhouse mode on its own. ──
-    const h0 = headingToward(0);
-    console.info("[Tour] Step 2: walkthrough at first sweep", aligned[0], "heading", h0);
-    try {
-      const tr = sdk.Sweep && sdk.Sweep.Transition;
-      const entryOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: Math.round(3000 * tourPaceScale) };
-      if (h0 != null && Number.isFinite(h0)) entryOpts.rotation = { x: 0, y: h0 };
-      await sdk.Sweep.moveTo(aligned[0], entryOpts);
-    } catch (_) { /* ignore — play() covers it */ }
-    await new Promise(r => setTimeout(r, 700));
-    if (gen !== openGen) return;
-
-    // Step 3: Smooth camera tilt to face along the route toward the next waypoint.
-    console.info("[Tour] Step 3: faceAlongRoute(0)");
-    try { await faceAlongRoute(0); } catch (_) { /* ignore */ }
-    if (gen !== openGen) return;
-
-    // play() starts from sweep index 1 — we already landed at sweep 0 above.
-    stepI = 1;
-    updateStep();
-    setStatus("Starting interior tour…" + (document.body.classList.contains("mp-mobile")
-      ? " If the view stays black, tap the open-in-new icon for a full Matterport window."
-      : ""));
-    await play();
+    // Schedule the configured dollhouse pause, entry flight and settling pause
+    // alongside the remaining route. SDK loading is deliberately not timed.
+    await startRoutePlayback(Math.round(3000 * tourPaceScale), 1500, 700);
   }
 
   function close() {
     openGen++;
-    playing = false;
-    stopped = true;
-    stopCountdown();
+    cancelPlayback();
+    cancelWalkTo();
     hideDirArrow();
     hideDistHud();
     clearMediaTags();
@@ -2666,10 +2794,8 @@ function wfDbg(level, source, message, meta) {
       setStatus("");
       return;
     }
-    try { if (mpSdk && mpSdk.disconnect) mpSdk.disconnect(); } catch (_) { /* ignore */ }
-    mpSdk = null;
-    const iframe = $("mpFrame");
-    if (iframe) iframe.src = "about:blank";
+    // Keep a dedicated viewer connected too: Exit only dismisses its overlay,
+    // and the next preview reuses this iframe/SDK through getLiveConnection().
     const ov = $("mpOverlay");
     if (ov) ov.hidden = true;
     document.body.classList.remove("mp-open", "mp-mobile");

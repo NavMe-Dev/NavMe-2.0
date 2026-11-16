@@ -1505,7 +1505,6 @@ function wfDbg(level, source, message, meta) {
       if ($("dWalk")) $("dWalk").onclick = () => { S.stepFree = false; syncDirFields(); computeRoute(); };
       return;
     }
-    r._stepFree = !!S.stepFree;
     S.route = r; S.navSteps = condense(r);
     markPlace(null);
     renderDirections(r);
@@ -1528,7 +1527,6 @@ function wfDbg(level, source, message, meta) {
    *  "look here" destination anchor (expected_x/y/z, falling back to the POI's own xyz). */
   function mpRoutePayload() {
     return Object.assign({}, S.route, {
-      _stepFree: !!S.stepFree,
       _destName: S.to && S.to.name ? S.to.name : null,
       _fromName: S.from === "me" ? "Your Location" : (S.from && S.from.name ? S.from.name : null),
       _navSteps: S.navSteps,
