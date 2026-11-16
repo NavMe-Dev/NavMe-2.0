@@ -1064,7 +1064,7 @@ function wfDbg(level, source, message, meta) {
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
     markPlace(p);
     const shop = (window.WF.shopsByPoiId || {})[String(p.id)] || null;
-    const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, 8);
+    const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, isMpMode() ? 3 : 8);
     setSheet(`
       <h1 class="pname">${esc(shop ? shop.name : p.name)}</h1>
       <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span>${sfBadge(p)}</div>

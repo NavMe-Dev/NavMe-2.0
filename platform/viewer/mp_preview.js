@@ -2012,8 +2012,10 @@ function wfDbg(level, source, message, meta) {
       const sid = homeToggleSweep;
       homeToggleSweep = null;
       try {
+        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
         const tr = sdk.Sweep && sdk.Sweep.Transition;
-        await sdk.Sweep.moveTo(sid, { transition: (tr && tr.FLY) || undefined });
+        const transition = isIOS ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined) : ((tr && tr.FLY) || undefined);
+        await sdk.Sweep.moveTo(sid, { transition });
       } catch (e) { console.warn("[MpPreview] toggleHomeView restore failed", e); }
       return { active: false };
     }
@@ -2921,8 +2923,8 @@ function wfDbg(level, source, message, meta) {
       const building = (window.WF && window.WF.building) || {};
       const slug = String(building.slug || cfg.slug || cfg.building || querySlug || "").toLowerCase();
       const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
-      const iosUA = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-      return (mobile || iosUA) && (slug === "uncc-main-campus" || slug === "unc-charlotte");
+      const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+      return isIOSDevice || (mobile && (slug === "uncc-main-campus" || slug === "unc-charlotte" || !slug));
     })();
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
@@ -3120,8 +3122,12 @@ function wfDbg(level, source, message, meta) {
     const mpTarget = modelToSdk(target);
     const sw = rtNearestSweep(rtSweeps, mpTarget);
     if (!sw) return false;
+    const ios = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
     const tr = sdk.Sweep && sdk.Sweep.Transition;
-    const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200 };
+    const transition = ios
+      ? ((tr && (tr.FADEOUT || tr.MOVEFADE || tr.INSTANT)) || "transition.fade")
+      : ((tr && tr.FLY) || "transition.fly");
+    const opts = { transition, transitionTime: ios ? 600 : 1200 };
     const mpFace = (face && face.x != null) ? modelToSdk(face) : null;
     const separateTarget = face && ["x", "y", "z"].some(axis => +face[axis] !== +target[axis]);
     const rotation = mpFace ? facingRotationSdk(sw.position, mpFace, separateTarget) : null;
@@ -3140,8 +3146,7 @@ function wfDbg(level, source, message, meta) {
     // On iOS, skip zoomTo entirely: calling it immediately after Sweep.moveTo fires a
     // second GPU texture decode while the panorama assets from moveTo are still loading,
     // spiking RAM past the WebKit jetsam limit (~1.5 GB) and killing the tab.
-    const iosDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-    if (!iosDevice) {
+    if (!ios) {
       try { if (sdk.Camera && sdk.Camera.zoomTo) sdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
     }
     return true;
@@ -3222,10 +3227,14 @@ function wfDbg(level, source, message, meta) {
     // rtReadSweeps excludes disabled scans. A removed scan cannot be replaced by
     // the marker's XYZ without changing the administrator's captured viewpoint.
     if (!sweeps.some(sweep => sweep.sid === saved.sweep_id) || !sdk.Sweep || typeof sdk.Sweep.moveTo !== "function") return unavailable();
+    const ios = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
     const tr = sdk.Sweep.Transition;
+    const transition = ios
+      ? ((tr && (tr.FADEOUT || tr.MOVEFADE || tr.INSTANT)) || "transition.fade")
+      : ((tr && tr.FLY) || "transition.fly");
     try {
       await sdk.Sweep.moveTo(saved.sweep_id, {
-        transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200,
+        transition, transitionTime: ios ? 600 : 1200,
         rotation: { x: saved.camera_rotation.pitch, y: saved.camera_rotation.yaw }
       });
     } catch (_) { return unavailable(); }

@@ -210,6 +210,25 @@ test('selecting a POI loads its fresh camera viewpoint and restores its exact sc
   assert.deepEqual(messages,[]);
 });
 
+test('on iOS devices, focusPoi and focusAt use mobile-safe transition and skip zoomTo', async () => {
+  const {c,sdk}=cameraScenario();
+  sdk.sdk.Sweep.Transition = { INSTANT: 'instant', FLY: 'fly', FADEOUT: 'fade' };
+  c.navigator = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', platform: 'iPhone' };
+  let zooms = 0;
+  sdk.sdk.Camera.zoomTo = async () => zooms++;
+
+  const poi = savedPoi();
+  assert.equal(await c.MpPreview.focusPoi(poi), true);
+  assert.equal(sdk.calls[0].opts.transition, 'fade', 'iOS must use FADEOUT transition to prevent GPU memory spike');
+  assert.equal(sdk.calls[0].opts.transitionTime, 600);
+  assert.equal(zooms, 0);
+
+  await c.MpPreview.focusAt({x:10,y:20,z:0}, null);
+  assert.equal(sdk.calls[1].opts.transition, 'fade', 'iOS focusAt must use FADEOUT transition');
+  assert.equal(sdk.calls[1].opts.transitionTime, 600);
+  assert.equal(zooms, 0, 'iOS must skip Camera.zoomTo');
+});
+
 test('selecting again uses a replacement saved on the server without reloading the model',async()=>{
   const {c,sdk,requests}=cameraScenario();
   const poi=savedPoi();

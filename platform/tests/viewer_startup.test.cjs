@@ -291,3 +291,22 @@ test('UNCC mobile uses native Matterport startup and defers category markers', a
   idleTask();
   assert.equal(markerMounts, 1);
 });
+
+test('iOS devices unconditionally use native Matterport startup even when matchMedia is desktop', async () => {
+  const c = modelContext();
+  let urlOptions = null, idleTask = null, markerMounts = 0;
+  c.deps.window.WF = { ready: Promise.resolve(), cfg: { slug: 'other-building' } };
+  c.deps.window.matchMedia = () => ({ matches: false }); // desktop viewport
+  c.deps.navigator = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', platform: 'iPhone' };
+  c.deps.window.WFCategoryMarkers = { mount() { markerMounts++; return { dispose() {} }; } };
+  c.deps.window.requestIdleCallback = fn => { idleTask = fn; };
+  c.deps.showcaseUrl = (_key, _sweep, options) => { urlOptions = options; return 'https://example.invalid/native'; };
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
+  c.load.resolve(); c.playing.resolve(true);
+  assert.equal(await result, true);
+  assert.equal(urlOptions.nativeStartup, true, 'iOS must use nativeStartup regardless of media query');
+  assert.deepEqual(c.calls, ['unsubscribe']);
+  assert.equal(markerMounts, 0);
+  idleTask();
+  assert.equal(markerMounts, 1);
+});
