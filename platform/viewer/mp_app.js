@@ -133,7 +133,10 @@
         // Matterport's live Sweep collection supplies navigation stops later; no
         // 4.7 MB NavMe graph is needed merely to open the Dollhouse.
         sweeps: [], modelToLL
-      }).catch(e => console.warn("[navmesh] not available:", e.message || e));
+      }).catch(e => {
+        navPromise = null; // A later route can retry a transient storage/runtime failure.
+        console.warn("[navmesh] not available:", e.message || e);
+      });
       return navPromise;
     }
     function route(fromKey, toKey, opts) {

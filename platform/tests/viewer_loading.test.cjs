@@ -96,6 +96,75 @@ test('required POI failure fails startup instead of presenting an empty campus',
   r.releaseMetadata();
 });
 
+test('a fresh route retries a transient navmesh failure without rebuilding the viewer runtime', async () => {
+  const r = runtime();
+  await tick();
+  const wf = r.context.wf, poi = wf.pois[0];
+  let attempts = 0, ready = false;
+  const routes = [];
+  r.context.WFNav.navmeshReady = () => ready;
+  r.context.WFNav.initNavmesh = async () => {
+    attempts++;
+    if (attempts === 1) throw new Error('temporary storage failure');
+    ready = true;
+  };
+  r.context.WFNav.routeNavmesh = () => ({total_m: 5, steps: []});
+  wf.onRoute = result => routes.push(result);
+  wf.route('p1', 'p1');
+  await tick();
+  assert.equal(attempts, 1);
+  assert.equal(routes.at(-1), null);
+  wf.route('p1', 'p1');
+  await tick();
+  assert.equal(attempts, 2);
+  assert.equal(routes.at(-1).total_m, 5);
+  assert.equal(r.context.wf, wf);
+  assert.equal(wf.pois[0], poi);
+  r.releaseMetadata();
+});
+
+test('rapid route requests share pending navmesh initialization and only newest commits', async () => {
+  const r = runtime();
+  await tick();
+  let attempts = 0, ready = false, finish;
+  const routes = [];
+  r.context.WFNav.navmeshReady = () => ready;
+  r.context.WFNav.initNavmesh = () => {
+    attempts++;
+    return new Promise(resolve => { finish = () => { ready = true; resolve(); }; });
+  };
+  r.context.WFNav.routeNavmesh = () => ({total_m: 5, steps: []});
+  r.context.wf.onRoute = result => routes.push(result);
+  for (let index = 0; index < 10; index++) r.context.wf.route('p1', 'p1');
+  assert.equal(attempts, 1);
+  assert.equal(routes.length, 0);
+  finish();
+  await tick();
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0].total_m, 5);
+  r.releaseMetadata();
+});
+
+test('clearing a pending route prevents late initialization from restoring it', async () => {
+  const r = runtime();
+  await tick();
+  let ready = false, finish;
+  const routes = [];
+  r.context.WFNav.navmeshReady = () => ready;
+  r.context.WFNav.initNavmesh = () => new Promise(resolve => {
+    finish = () => { ready = true; resolve(); };
+  });
+  r.context.WFNav.routeNavmesh = () => ({total_m: 5, steps: []});
+  r.context.wf.onRoute = result => routes.push(result);
+  r.context.wf.route('p1', 'p1');
+  r.context.wf.clearRoute();
+  finish();
+  await tick();
+  assert.equal(routes.length, 0);
+  assert.equal(r.context.wf.lastRoute, null);
+  r.releaseMetadata();
+});
+
 test('POIs and routing initialize before optional floors, then hydrate authored floor names', async () => {
   const r = runtime({holdFloors: true, deriveBands: true});
   await tick();

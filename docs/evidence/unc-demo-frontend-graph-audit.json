@@ -1,0 +1,90 @@
+{
+  "schema": "navme.viewer-graph-audit/v1",
+  "created_utc": "2026-11-16T12:12:06.995735+00:00",
+  "audit": "Read-only static source inspection by benchmark agent. Records final mode-specific graph loading without editing viewer source.",
+  "base_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+  "findings": [
+    {
+      "mode": "/unc-charlotte -> mp=1",
+      "file": "platform/viewer/index.html",
+      "lines": [
+        24,
+        36,
+        40,
+        44,
+        336
+      ],
+      "result": "Alias selects mp_app.js. ArcGIS, ngraph, Turf, legacy routing.js and eager Recast script are excluded in this mode."
+    },
+    {
+      "mode": "Matterport",
+      "file": "platform/viewer/mp_app.js",
+      "lines": [
+        72,
+        125,
+        130,
+        133,
+        150
+      ],
+      "result": "Uses shared compact viewer-data promise. No nav_graph.json fetch. Lazy ensureNavmesh has a single in-flight promise; live Sweep data supplies navigation stops. Do not add a large graph download."
+    },
+    {
+      "mode": "Matterport bootstrap",
+      "file": "platform/viewer/wf-boot.js",
+      "lines": [
+        87,
+        88
+      ],
+      "result": "Shared WF.viewerData promise starts once for selected building and is reused by mp_app.js."
+    },
+    {
+      "mode": "regular 2D/3D fallback",
+      "file": "platform/viewer/app.js",
+      "lines": [
+        52,
+        456,
+        461
+      ],
+      "result": "Regular app intentionally loads nav_graph/walkgrid/navmesh and initializes WFRouting for existing hybrid routing. Removing this graph blindly would break the map fallback."
+    },
+    {
+      "mode": "lazy navmesh",
+      "file": "platform/viewer/wf_navmesh_bridge.js",
+      "lines": [
+        20,
+        23,
+        37,
+        40
+      ],
+      "result": "Recast runtime download uses a shared promise; navmesh-url then existing navmesh loader handle route preparation. No large graph required merely to open Matterport."
+    }
+  ],
+  "decision": "Preserve current mode-specific graph loading: Matterport already skips nav_graph; regular map fallback requires it. Separate transient-navmesh retry/resource cleanup changes are validated by the frontend agent; this audit does not claim those files are unchanged.",
+  "files": [
+    {
+      "path": "platform/viewer/index.html",
+      "sha256": "3915c4a9c87cc6bfa567c1d97da272184889902e6f2f6e0f5751a7b9a65e55f9",
+      "unchanged_from_live_base": false
+    },
+    {
+      "path": "platform/viewer/mp_app.js",
+      "sha256": "87c84fee77b9d7824d6d8a1f73310e26770aba043466989d31621157caf8c65e",
+      "unchanged_from_live_base": false
+    },
+    {
+      "path": "platform/viewer/app.js",
+      "sha256": "97f16b78d0e3dd6936e4f41d707a296ae3836355e886a1e23a4d64ad028e6e83",
+      "unchanged_from_live_base": true
+    },
+    {
+      "path": "platform/viewer/wf-boot.js",
+      "sha256": "778c19afc95fd91e561e8e1ff4066372d13e5a304c4f3c8bc5669ce8ea49fd2b",
+      "unchanged_from_live_base": true
+    },
+    {
+      "path": "platform/viewer/wf_navmesh_bridge.js",
+      "sha256": "30d6634a994e2c32f81054f03d5e3b9ee1c64c510696fe3915e7b01153155828",
+      "unchanged_from_live_base": false
+    }
+  ]
+}

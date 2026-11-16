@@ -15,8 +15,10 @@ and bucket; writes additionally require SUPABASE_SERVICE_ROLE_KEY.
 """
 import mimetypes
 import tempfile
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from pathlib import Path
+from threading import Lock
+from typing import Callable, TypeVar
 
 import httpx
 
@@ -296,13 +298,71 @@ def fetch_navmesh_bytes(slug: str) -> bytes | None:
     return None
 
 
-def cache_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> Path:
-    """Recover a public asset to disk with bounded memory, including split objects.
+# Only the dictionary lookup is serialized. Downloads of different publications
+# or files proceed independently; completed/failed flights leave no resident entry.
+_BundleKey = tuple[str, str, int, str, str]
+_BundleValue = TypeVar("_BundleValue")
+_bundle_flights: dict[_BundleKey, Future] = {}
+_bundle_flights_lock = Lock()
+
+
+class BundleCacheTimeout(TimeoutError):
+    """A shared recovery is still running; callers may retry without refetching."""
+
+
+class _BundleCacheWriteError(FileNotFoundError):
+    """Storage may be readable even when this host cannot write its local cache."""
+
+
+class _BundleNotInStorage(Exception):
+    pass
+
+
+def _bundle_target(root: Path, relpath: str) -> tuple[Path, Path, str]:
+    root = root.resolve()
+    relative = Path(relpath)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise FileNotFoundError("Invalid bundle file path")
+    target = (root / relative).resolve()
+    if root not in target.parents:
+        raise FileNotFoundError("Invalid bundle file path")
+    return root, target, target.relative_to(root).as_posix()
+
+
+def _bundle_singleflight(key: _BundleKey, load: Callable[[], _BundleValue]) -> _BundleValue:
+    with _bundle_flights_lock:
+        pending = _bundle_flights.get(key)
+        leader = pending is None
+        if leader:
+            pending = Future()
+            _bundle_flights[key] = pending
+    if not leader:
+        timeout = getattr(get_settings(), "bundle_cache_wait_timeout_seconds", 15.0)
+        try:
+            return pending.result(timeout=timeout)
+        except FutureTimeoutError as exc:
+            # A waiter must not cancel the leader or start a second download.
+            raise BundleCacheTimeout("Timed out waiting for bundle cache recovery") from exc
+    try:
+        value = load()
+        pending.set_result(value)
+        return value
+    except BaseException as exc:
+        pending.set_exception(exc)
+        raise
+    finally:
+        with _bundle_flights_lock:
+            if _bundle_flights.get(key) is pending:
+                del _bundle_flights[key]
+
+
+def _download_bundle_file(target: Path, slug: str, version: int, relpath: str) -> Path:
+    """Stream a public object to a private temporary file, then publish atomically.
 
     Large walk grids and GLBs must not be joined into a bytes response on small
-    hosts. Atomic replacement also keeps concurrent readers away from partial files.
+    hosts. Temporary files are never returned to readers, including on failures.
     """
-    target = local_version_dir / relpath
+    # Another caller/process may have completed it before this flight began.
     if target.is_file():
         return target
     if not is_read_enabled():
@@ -323,23 +383,41 @@ def cache_bundle_file(local_version_dir: Path, slug: str, version: int, relpath:
                 if not direct:
                     manifest = client.get(url + ".chunks")
                     if manifest.status_code >= 300:
-                        raise FileNotFoundError(relpath)
+                        raise _BundleNotInStorage()
                     parts = int(manifest.text.strip())
                     if not 0 < parts <= 10000:
                         raise ValueError("Invalid bundle chunk count")
                     for i in range(parts):
                         with client.stream("GET", f"{url}.part{i}") as response:
                             if response.status_code >= 300:
-                                raise FileNotFoundError(relpath)
+                                raise _BundleNotInStorage()
                             for chunk in response.iter_bytes(chunk_size=64 * 1024):
                                 out.write(chunk)
         temporary.replace(target)
         return target
-    except (httpx.HTTPError, OSError, ValueError) as exc:
+    except (httpx.HTTPError, ValueError, _BundleNotInStorage) as exc:
         raise FileNotFoundError(f"{relpath} not available for {slug} v{version}") from exc
+    except OSError as exc:
+        raise _BundleCacheWriteError(f"Unable to write bundle cache for {slug} v{version}") from exc
     finally:
         if temporary is not None:
-            temporary.unlink(missing_ok=True)
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+def cache_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> Path:
+    """Recover one public file per publication/cache root at a time in this worker.
+
+    Concurrent cold readers share a streaming download with bounded waiting. The
+    cache is keyed by root, building, version and path; other keys remain parallel.
+    """
+    root, target, relpath = _bundle_target(local_version_dir, relpath)
+    if target.is_file():
+        return target
+    key = (str(root), slug, version, relpath, "file")
+    return _bundle_singleflight(key, lambda: _download_bundle_file(target, slug, version, relpath))
 
 
 def read_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: str) -> bytes:
@@ -347,15 +425,17 @@ def read_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: 
     the fallback path that recovers from a wiped container disk. Best-effort
     re-caches to local disk on fallback so subsequent reads in this container's
     lifetime hit the fast path. Raises FileNotFoundError if neither has it."""
-    p = local_version_dir / relpath
-    if p.is_file():
-        return p.read_bytes()
-    data = fetch_bytes(slug, version, relpath)
-    if data is None:
-        raise FileNotFoundError(f"{relpath} not found locally or in storage for {slug} v{version}")
+    root, target, relpath = _bundle_target(local_version_dir, relpath)
     try:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_bytes(data)
-    except OSError:
-        pass
-    return data
+        return cache_bundle_file(root, slug, version, relpath).read_bytes()
+    except _BundleCacheWriteError:
+        # Keep the previous best-effort behavior for byte consumers on a
+        # read-only/full disk. FileResponse consumers still require a real file.
+        def read_without_cache() -> bytes:
+            data = fetch_bytes(slug, version, relpath)
+            if data is None:
+                raise FileNotFoundError(f"{relpath} not found locally or in storage for {slug} v{version}")
+            return data
+
+        key = (str(root), slug, version, relpath, "memory")
+        return _bundle_singleflight(key, read_without_cache)

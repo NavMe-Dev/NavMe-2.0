@@ -1,0 +1,11 @@
+{
+  "scope": "Targeted Node controller/runtime tests with iframe and SDK doubles; not physical-device WebGL rendering",
+  "command": "node --test platform/tests/viewer_lifecycle.test.cjs platform/tests/viewer_lifecycle_diagnostics.test.cjs platform/tests/viewer_matterport_prefetch.test.cjs platform/tests/viewer_startup.test.cjs platform/tests/viewer_loading.test.cjs platform/tests/viewer_camera.test.cjs platform/tests/viewer_viewpoint.test.cjs platform/tests/viewer_preview_playback.test.cjs platform/tests/viewer_preview_timing.test.cjs platform/tests/viewer_navigation_mode.test.cjs platform/tests/plan_navigation.test.cjs platform/tests/viewer_navmesh_lifecycle.test.cjs platform/tests/viewer_navmesh_initialization.test.cjs platform/tests/routing_lightweight.test.cjs platform/tests/viewer_distance.test.cjs",
+  "files": 15,
+  "tests": 172,
+  "passed": 172,
+  "failed": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "exit_code": 0
+}

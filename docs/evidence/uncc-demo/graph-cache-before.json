@@ -1,0 +1,13 @@
+{
+  "scope": "local read-only existing UNCC v2 bundle; not verified current live and no production performance claim",
+  "nodes": 4900,
+  "edges": 15783,
+  "case_count": 21,
+  "successful_case_count": 10,
+  "response_sha256": "b08f7ef5180c76022aedd9d4fcc3a06ee8386a857b987cceb0544e5e39785870",
+  "recorded_at_utc": "2026-11-16T12:06:14.528501+00:00",
+  "mode": "uncached original route algorithm with already parsed fixture data",
+  "graph_build_calls": 21,
+  "route_loop_seconds": 1.0633666669891682,
+  "note": "Timing excludes file reads/JSON parse; use HTTP benchmark evidence for comparable request performance."
+}

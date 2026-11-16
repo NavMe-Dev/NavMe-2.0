@@ -1,0 +1,30 @@
+{
+  "measured_utc": "2026-11-16T12:28:07Z",
+  "read_only": true,
+  "project_id": "kzpvhzyefdtrtidrbuxb",
+  "max_connections": 60,
+  "superuser_reserved": 3,
+  "idle_in_transaction": 0,
+  "wayfinding_reader_connections": 3,
+  "reader_role_connection_limit": -1,
+  "render_instances": 1,
+  "entrypoint_workers_default": 1,
+  "effective_worker_and_env_overrides_verified": false,
+  "reviewed_pool_size": 3,
+  "reviewed_overflow": 2,
+  "maximum_pooled_connections_formula": "1 instance x 1 worker x (3 + 2) = 5",
+  "connection_mode": "Previously verified independent reader via TLS session pooler; current secret not exported or changed",
+  "other_clients_and_writers": "Separate execute-only admin writer connections and other clients require additional headroom; no public-reader pool increase approved or applied",
+  "production_changes": false,
+  "reserved_connections": 0,
+  "client_connections": 13,
+  "active_client_connections": 1,
+  "idle_client_connections": 12,
+  "instantaneous_nonreserved_client_headroom": 44,
+  "previous_sample": {
+    "measured_utc": "2026-11-16T11:57:49Z",
+    "all_backends_including_nonclients": 21,
+    "reader_connections": 5,
+    "idle_in_transaction": 0
+  }
+}

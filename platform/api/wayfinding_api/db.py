@@ -1,3 +1,4 @@
+from threading import Lock
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
@@ -10,6 +11,7 @@ class Base(DeclarativeBase):
 
 _engine = None
 _Session = None
+_engine_lock = Lock()
 
 
 def connection_options(settings):
@@ -75,8 +77,19 @@ def build_engine(settings, **overrides):
 def engine():
     global _engine, _Session
     if _engine is None:
-        _engine = build_engine(get_settings())
-        _Session = sessionmaker(bind=_engine, expire_on_commit=False)
+        # Synchronous requests can arrive together on a cold worker. Publish
+        # the engine and factory together, rather than creating one pool per
+        # racing request (and leaking every pool except the last).
+        with _engine_lock:
+            if _engine is None:
+                candidate = build_engine(get_settings())
+                try:
+                    factory = sessionmaker(bind=candidate, expire_on_commit=False)
+                except BaseException:
+                    candidate.dispose()
+                    raise
+                _Session = factory
+                _engine = candidate
     return _engine
 
 
@@ -87,9 +100,10 @@ def SessionLocal():
 def dispose_engine():
     """Release idle pooled connections during a graceful process shutdown."""
     global _engine, _Session
-    if _engine is not None:
-        _engine.dispose()
-    _engine = _Session = None
+    with _engine_lock:
+        if _engine is not None:
+            _engine.dispose()
+        _engine = _Session = None
 
 
 def get_db():

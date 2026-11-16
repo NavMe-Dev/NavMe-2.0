@@ -171,22 +171,41 @@ def test_matterport_pin_guard_survives_detaching_before_bundle_io(public_pool, m
 
 
 def test_route_releases_connection_before_bundle_io_and_cpu(public_pool, monkeypatch):
-    def read(root, slug, version, path):
+    def load(root, slug, version):
         assert public_pool.engine.pool.checkedout() == 0
-        if path == "pois.json":
-            return json.dumps({"pois": [{"id": "a", "nearest_node": "n1"}, {"id": "b", "nearest_node": "n2"}]}).encode()
-        if path == "navmesh.json":
-            raise FileNotFoundError()
-        return b'{}'
+        assert (slug, version) == (public_pool.slug, 5)
+        return SimpleNamespace(poi_nodes={"a": "n1", "b": "n2"}, route=route)
     def route(*args, **kwargs):
         assert public_pool.engine.pool.checkedout() == 0
         assert kwargs["georef"] == {"fixture": True}
         return {"path": ["n1", "n2"]}
-    monkeypatch.setattr(public.bundle_storage, "read_bundle_file", read)
-    monkeypatch.setattr(public.navgraph, "route", route)
+    monkeypatch.setattr(public.routing_cache, "get_for_publication", load)
     with public_pool.sessions() as db:
         result = public.public_route(public_pool.slug, schemas.RouteIn(from_key="a", to_key="b"), db)
         assert result == {"path": ["n1", "n2"]}
+
+
+def test_dashboard_route_returns_connection_before_navmesh_and_cpu(public_pool, monkeypatch):
+    from wayfinding_api.services import workspace
+    nav = {"nodes": [{"id": "n1", "x": 0, "y": 0, "floor": "F1", "kind": "sweep"},
+                     {"id": "n2", "x": 1, "y": 1, "floor": "F1", "kind": "sweep"}], "edges": []}
+    monkeypatch.setattr(public, "_verify_supabase_key_or_admin", lambda request: None)
+    monkeypatch.setattr(workspace, "latest_nav", lambda db, b: nav)
+    def mesh(building):
+        assert inspect(building).detached
+        assert public_pool.engine.pool.checkedout() == 0
+        return None
+    def route(*args, **kwargs):
+        assert public_pool.engine.pool.checkedout() == 0
+        assert kwargs["georef"] == {"fixture": True}
+        return {"nodes": ["n1", "n2"]}
+    monkeypatch.setattr(workspace, "latest_navmesh", mesh)
+    monkeypatch.setattr(public.navgraph, "route", route)
+    with public_pool.sessions() as db:
+        request = Request({"type": "http", "headers": [], "query_string": b""})
+        result = public.dashboard_route_by_coords(public_pool.slug,
+            public._RouteByCoords(from_x=0, from_z=0, to_x=1, to_z=1), request, db)
+        assert result == {"nodes": ["n1", "n2"]}
 
 
 @pytest.mark.parametrize("path", ["../outside.json", "../../config.json"])

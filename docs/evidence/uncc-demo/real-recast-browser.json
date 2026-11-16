@@ -1,0 +1,22 @@
+{
+  "scope": "Real Recast WASM + existing local UNC navmesh, Chromium without Matterport renderer; not a mobile GPU test",
+  "checks": [
+    {
+      "label": "baseline",
+      "routes": 10,
+      "destroys": 0,
+      "complete": 10,
+      "loaded": true,
+      "response_sha256": "03c1c474c3ed16183d88640ca8c8326f9d421f2b9774e8978d81d4dfa136c318"
+    },
+    {
+      "label": "patched",
+      "routes": 10,
+      "destroys": 10,
+      "complete": 10,
+      "loaded": true,
+      "response_sha256": "03c1c474c3ed16183d88640ca8c8326f9d421f2b9774e8978d81d4dfa136c318"
+    }
+  ],
+  "pass": true
+}

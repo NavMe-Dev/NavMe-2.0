@@ -12,7 +12,7 @@ from ..db import get_db
 from ..config import get_settings
 from .. import models, schemas
 from ..services.publish import current_version
-from ..services import navgraph, bundle_storage, navme, studio_live, camera_viewpoints
+from ..services import navgraph, bundle_storage, navme, studio_live, camera_viewpoints, routing_cache
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 logger = logging.getLogger(__name__)
@@ -150,16 +150,13 @@ def public_route(slug: str, r: schemas.RouteIn, db: Session = Depends(get_db)):
     root = bundle_storage.local_version_dir(mv.path, b.slug, version)
     _release_read_session(db)
     try:
-        nav = json.loads(bundle_storage.read_bundle_file(root, slug, version, "nav_graph.json"))
-        pois = {p["id"]: p for p in json.loads(bundle_storage.read_bundle_file(root, slug, version, "pois.json"))["pois"]}
+        publication = routing_cache.get_for_publication(root, slug, version)
     except FileNotFoundError:
         raise HTTPException(404, "building not published yet")
-    if r.from_key not in pois or r.to_key not in pois: raise HTTPException(404, "unknown POI")
-    try:
-        navmesh = json.loads(bundle_storage.read_bundle_file(root, slug, version, "navmesh.json"))
-    except FileNotFoundError:
-        navmesh = None
-    res = navgraph.route(nav, pois[r.from_key]["nearest_node"], pois[r.to_key]["nearest_node"], r.step_free, georef=georef, navmesh=navmesh)
+    if r.from_key not in publication.poi_nodes or r.to_key not in publication.poi_nodes:
+        raise HTTPException(404, "unknown POI")
+    res = publication.route(publication.poi_nodes[r.from_key], publication.poi_nodes[r.to_key],
+                            r.step_free, georef=georef)
     if not res: raise HTTPException(404, "no route" + (" without steps" if r.step_free else ""))
     return res
 
@@ -1018,6 +1015,10 @@ def dashboard_route_by_coords(slug: str, r: _RouteByCoords, request: Request, db
         raise HTTPException(404, f"building '{slug}' not found")
 
     nav = workspace.latest_nav(db, b)
+    georef = b.georef
+    # The draft graph is materialized by the query above. Return the bounded
+    # connection before reading navmesh files, snapping or building routes.
+    _release_read_session(db)
     if not nav:
         raise HTTPException(400, "no nav graph — rebuild the building first")
 
@@ -1030,7 +1031,7 @@ def dashboard_route_by_coords(slug: str, r: _RouteByCoords, request: Request, db
     to_node, _ = navgraph.nearest_node(nav, tn_x, tn_y, to_floor)
 
     res = navgraph.route(nav, from_node["id"], to_node["id"], step_free,
-                         georef=b.georef, navmesh=workspace.latest_navmesh(b))
+                         georef=georef, navmesh=workspace.latest_navmesh(b))
     if not res:
         raise HTTPException(404, "no route" + (" without steps" if step_free else ""))
     return res

@@ -20,7 +20,7 @@ function loadFunction(file, name, context) {
 
 test('building switches preserve Matterport mode', () => {
   const location = {href: 'https://wayfinding.navme.space/?b=gcu&mp=1', search: '?b=gcu&mp=1'};
-  const goBuilding = loadFunction('ui.js', 'goBuilding', {URL, URLSearchParams, location});
+  const goBuilding = loadFunction('ui.js', 'goBuilding', {URL, URLSearchParams, location, window: {}});
   goBuilding('uncc-main-campus');
   const next = new URL(location.href);
   assert.equal(next.searchParams.get('b'), 'uncc-main-campus');
@@ -29,7 +29,7 @@ test('building switches preserve Matterport mode', () => {
 
 test('selecting UNCC enables Matterport mode from a 2D session', () => {
   const location = {href: 'https://wayfinding.navme.space/?b=gcu', search: '?b=gcu'};
-  const goBuilding = loadFunction('ui.js', 'goBuilding', {URL, URLSearchParams, location});
+  const goBuilding = loadFunction('ui.js', 'goBuilding', {URL, URLSearchParams, location, window: {}});
   goBuilding('uncc-main-campus');
   assert.equal(new URL(location.href).searchParams.get('mp'), '1');
 });

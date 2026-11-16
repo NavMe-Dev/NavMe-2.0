@@ -1,0 +1,45 @@
+{
+  "scope": "Isolated stabilization worktree, local Node VM tests and source audit; no production load or browser/device rendering",
+  "baseline_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+  "confirmed_and_fixed": [
+    {
+      "component": "platform/viewer/wf_navmesh_route.js route()",
+      "problem": "Every route allocated a native/WASM NavMeshQuery without destroying it on success, early return or exception.",
+      "change": "Release the native query in finally after copying the existing route result; geometry, instructions and distance calculations are unchanged.",
+      "evidence_before": "navmesh-query-before.json",
+      "evidence_after": "navmesh-query-after.json",
+      "measurement": "100 successful local routes: 100 created/0 destroyed before, 100 created/100 destroyed after. This is an allocation-lifecycle counter, not a browser memory measurement."
+    },
+    {
+      "component": "mp_app.js ensureNavmesh(), wf_navmesh_bridge.js ensureRuntime(), wf_navmesh_route.js load()",
+      "problem": "Rejected initialization promises remained cached, preventing fresh user requests from recovering after a transient failure.",
+      "change": "Clear only the rejected promise so a later request can retry; retain pending-request sharing and ready-cache behavior.",
+      "evidence_before": "navmesh-retry-before.json",
+      "evidence_after": "navmesh-retry-after.json",
+      "measurement": "After one injected failure and a fresh route request, initialization attempts change from 1 to 2 and the second route succeeds. No Matterport iframe or SDK initialization is added."
+    }
+  ],
+  "existing_behavior_verified": [
+    "Same-model background requests share pending initialization and reuse one iframe source assignment and one SDK connection.",
+    "Search/UI metadata updates, POI focus, camera rotation/zoom, route preview and Exit preserve the connected iframe and SDK.",
+    "Late model configuration and SDK responses cannot overwrite a newer model identity.",
+    "Internal Matterport loading/starting phases do not automatically restart the host viewer.",
+    "Ten pending route requests share one lazy initializer and only the newest route commits; clearing a route prevents a late restore.",
+    "Optional metadata/floor hydration preserves the same POI runtime and objects.",
+    "UNCC selects the lightweight mp_app.js runtime; its boot path does not fetch nav_graph.json, walkgrid.json or the ArcGIS runtime merely to display the model.",
+    "Anonymous prefetch cannot cross campus/API identity or bypass PIN/token/access-policy decisions.",
+    "Playback Exit cancels pending callbacks and future camera writes while retaining the viewer; pause/stall timing tests pass."
+  ],
+  "test_harness_repair": {
+    "file": "platform/tests/viewer_navigation_mode.test.cjs",
+    "baseline_result": "The two extracted goBuilding() tests fail with ReferenceError: window is not defined against immutable baseline commit 74f37ed.",
+    "change": "Provide window: {} in those two VM contexts. No application navigation behavior was changed for this repair."
+  },
+  "targeted_tests": "frontend-targeted-tests.json",
+  "limitations": [
+    "Android Chrome, iPhone Safari, real Matterport network transitions and device WebGL/GPU pressure were not exercised by these Node tests.",
+    "The native query leak is confirmed, but these tests cannot prove it caused a historical black loading screen or tab reload.",
+    "Cross-origin Matterport WebGL events remain subject to the existing diagnostics observability limits.",
+    "No UI, CSS, controls, route geometry, bundled WASM, POI data, database schema or published assets were changed by this audit."
+  ]
+}

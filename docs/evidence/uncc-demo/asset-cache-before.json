@@ -1,0 +1,9 @@
+{
+  "scenario": "24 concurrent cold requests, same 5 MiB floor file, mocked 80 ms storage latency",
+  "callers": 24,
+  "upstream_downloads": 24,
+  "downloaded_bytes": 125829120,
+  "complete_results": 24,
+  "wall_ms": 129.71,
+  "scope": "local synthetic storage, no production calls"
+}

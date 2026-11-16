@@ -28,6 +28,9 @@
       script.onload = function () { window.NavMeshRT ? resolve() : reject(new Error("recast runtime unavailable")); };
       script.onerror = function () { reject(new Error("recast runtime download failed")); };
       document.head.appendChild(script);
+    }).catch(function (error) {
+      runtimePromise = null; // Failed script requests must not poison later route retries.
+      throw error;
     });
     return runtimePromise;
   }

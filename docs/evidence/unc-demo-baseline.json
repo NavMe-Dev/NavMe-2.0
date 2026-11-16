@@ -1,0 +1,337 @@
+{
+  "schema": "navme.local-demo-benchmark/v1",
+  "label": "baseline-live-74f37ed",
+  "created_utc": "2026-11-16T12:02:44Z",
+  "application_source": "/private/tmp/navme-uncc-benchmark-base",
+  "baseline_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+  "local_only": true,
+  "database": "loopback isolated *_test",
+  "api_workers": 1,
+  "pool_size": 3,
+  "max_overflow": 2,
+  "machine": "arm64",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "logical_cpus": 8,
+  "fixture": {
+    "source": "existing local real UNC publication v2; copied, never altered",
+    "graph_bytes": 4766733,
+    "nodes": 4900,
+    "edges": 15783,
+    "graph_sha256": "a966ec368ca92da23134849c709471dfc3732d979ac318d49b9134d0401c5b63",
+    "floor2_bytes": 202510,
+    "reference_route_hashes": [
+      "4e108c95902f74bd2cb5877247c7292f2473c2623962eb1fbbd2c11a2919cb2d",
+      "a16e1597e2afb17443596583486d2c54feaace6f9618e2a7387857e9657f3980",
+      "1da1d4b1c41af33bdfd7075117eb0983f6e6c032bd7f3276681e751c4e13ebd4",
+      "4311232d2733ce222a94cfacd73dc43cbf51596e87bcc277f590bdbb97eb8391"
+    ]
+  },
+  "schedule": {
+    "tiers_requested": [
+      1,
+      10,
+      25,
+      40,
+      60,
+      100
+    ],
+    "journey": "cold shared Floor2 GET; paced config and POI GETs; two paced actual published routes",
+    "origin": "loopback HTTP, actual floor image, controlled 150ms delay",
+    "pace_seconds": [
+      0.15,
+      0.45
+    ],
+    "stop_on": "any HTTP/geometry/liveness failure, route p95>8s, RSS>512MiB"
+  },
+  "limitations": [
+    "Local Apple host is not Render 0.5CPU/512MiB; results do not certify 100-user production capacity",
+    "No remote Supabase, browser, Matterport, real-device GPU or mobile radio exercised",
+    "Synthetic local storage latency does not reproduce real CDN/storage latency",
+    "One finite paced journey per user per tier; not a long soak",
+    "Uses existing local published pipeline POIs, not live Studio metadata queries"
+  ],
+  "tiers": [
+    {
+      "concurrent_users": 1,
+      "wall_seconds": 1.423,
+      "requests": 5,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 5,
+        "p50_ms": 147.93,
+        "p95_ms": 195.36,
+        "p99_ms": 197.37,
+        "max_ms": 197.87
+      },
+      "route": {
+        "count": 2,
+        "p50_ms": 172.9,
+        "p95_ms": 195.37,
+        "p99_ms": 197.37,
+        "max_ms": 197.87
+      },
+      "floor": {
+        "count": 1,
+        "p50_ms": 185.31,
+        "p95_ms": 185.31,
+        "p99_ms": 185.31,
+        "max_ms": 185.31
+      },
+      "counts": {
+        "graph_builds": 2,
+        "read_navmesh.json": 2,
+        "read_nav_graph.json": 2,
+        "origin_downloads": 1,
+        "read_pois.json": 2
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 226.05,
+      "cpu_seconds": 0.399,
+      "cpu_percent_of_one_core": 28.1,
+      "db_pool_peak": 1,
+      "db_pool_checked_out_after": 0,
+      "physical_db_connections": 1,
+      "peak_worker_tokens": 1,
+      "worker_tokens_total": 40,
+      "liveness": {
+        "count": 6,
+        "p50_ms": 4.22,
+        "p95_ms": 58.92,
+        "p99_ms": 72.67,
+        "max_ms": 76.1
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 5.64
+        },
+        {
+          "status": 200,
+          "ms": 8.69
+        },
+        {
+          "status": 200,
+          "ms": 8.82
+        }
+      ],
+      "routing_cache": null
+    },
+    {
+      "concurrent_users": 10,
+      "wall_seconds": 3.851,
+      "requests": 50,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 50,
+        "p50_ms": 167.08,
+        "p95_ms": 1445.69,
+        "p99_ms": 1687.65,
+        "max_ms": 1734.27
+      },
+      "route": {
+        "count": 20,
+        "p50_ms": 1239.98,
+        "p95_ms": 1643.89,
+        "p99_ms": 1716.19,
+        "max_ms": 1734.27
+      },
+      "floor": {
+        "count": 10,
+        "p50_ms": 167.08,
+        "p95_ms": 180.03,
+        "p99_ms": 180.34,
+        "max_ms": 180.42
+      },
+      "counts": {
+        "graph_builds": 20,
+        "read_navmesh.json": 20,
+        "read_nav_graph.json": 20,
+        "origin_downloads": 10,
+        "read_pois.json": 20
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 376.45,
+      "cpu_seconds": 3.395,
+      "cpu_percent_of_one_core": 88.2,
+      "db_pool_peak": 5,
+      "db_pool_checked_out_after": 0,
+      "physical_db_connections": 5,
+      "peak_worker_tokens": 9,
+      "worker_tokens_total": 40,
+      "liveness": {
+        "count": 9,
+        "p50_ms": 147.03,
+        "p95_ms": 300.45,
+        "p99_ms": 312.69,
+        "max_ms": 315.74
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 4.08
+        },
+        {
+          "status": 200,
+          "ms": 9.47
+        },
+        {
+          "status": 200,
+          "ms": 7.93
+        }
+      ],
+      "routing_cache": null
+    },
+    {
+      "concurrent_users": 25,
+      "wall_seconds": 9.279,
+      "requests": 125,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 125,
+        "p50_ms": 195.2,
+        "p95_ms": 4321.41,
+        "p99_ms": 5436.05,
+        "max_ms": 5697.36
+      },
+      "route": {
+        "count": 50,
+        "p50_ms": 3516.1,
+        "p95_ms": 5425.24,
+        "p99_ms": 5570.87,
+        "max_ms": 5697.36
+      },
+      "floor": {
+        "count": 25,
+        "p50_ms": 195.2,
+        "p95_ms": 205.09,
+        "p99_ms": 206.12,
+        "max_ms": 206.43
+      },
+      "counts": {
+        "graph_builds": 50,
+        "read_navmesh.json": 50,
+        "read_nav_graph.json": 50,
+        "origin_downloads": 25,
+        "read_pois.json": 50
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 438.22,
+      "cpu_seconds": 8.963,
+      "cpu_percent_of_one_core": 96.6,
+      "db_pool_peak": 5,
+      "db_pool_checked_out_after": 0,
+      "physical_db_connections": 9,
+      "peak_worker_tokens": 24,
+      "worker_tokens_total": 40,
+      "liveness": {
+        "count": 14,
+        "p50_ms": 350.84,
+        "p95_ms": 468.23,
+        "p99_ms": 528.47,
+        "max_ms": 543.54
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 4.68
+        },
+        {
+          "status": 200,
+          "ms": 4.78
+        },
+        {
+          "status": 200,
+          "ms": 6.0
+        }
+      ],
+      "routing_cache": null
+    },
+    {
+      "concurrent_users": 40,
+      "wall_seconds": 14.095,
+      "requests": 200,
+      "failures": 2,
+      "failure_percent": 1.0,
+      "errors": [
+        {
+          "kind": "route",
+          "status": 503
+        },
+        {
+          "kind": "route",
+          "status": 503
+        }
+      ],
+      "all_http": {
+        "count": 200,
+        "p50_ms": 216.35,
+        "p95_ms": 6375.52,
+        "p99_ms": 6666.77,
+        "max_ms": 6868.88
+      },
+      "route": {
+        "count": 80,
+        "p50_ms": 5854.54,
+        "p95_ms": 6534.5,
+        "p99_ms": 6743.43,
+        "max_ms": 6868.88
+      },
+      "floor": {
+        "count": 40,
+        "p50_ms": 194.95,
+        "p95_ms": 245.69,
+        "p99_ms": 255.12,
+        "max_ms": 257.93
+      },
+      "counts": {
+        "graph_builds": 78,
+        "read_navmesh.json": 78,
+        "read_nav_graph.json": 78,
+        "origin_downloads": 40,
+        "read_pois.json": 78
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 476.64,
+      "cpu_seconds": 14.145,
+      "cpu_percent_of_one_core": 100.4,
+      "db_pool_peak": 5,
+      "db_pool_checked_out_after": 0,
+      "physical_db_connections": 15,
+      "peak_worker_tokens": 38,
+      "worker_tokens_total": 40,
+      "liveness": {
+        "count": 21,
+        "p50_ms": 235.14,
+        "p95_ms": 484.78,
+        "p99_ms": 509.69,
+        "max_ms": 515.91
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 4.96
+        },
+        {
+          "status": 200,
+          "ms": 8.41
+        },
+        {
+          "status": 200,
+          "ms": 10.21
+        }
+      ],
+      "routing_cache": null,
+      "stop_reason": "instability_or_latency_or_memory_gate"
+    }
+  ]
+}

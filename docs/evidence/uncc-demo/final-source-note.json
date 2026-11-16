@@ -1,0 +1,7 @@
+{
+  "performance_snapshot_fingerprint": "b36b138b2cdeec52a61fb4cee82199809dd354aa09bb917729776c80e942d7b2",
+  "post_measurement_application_python_changes": false,
+  "post_measurement_entrypoint_change": "Reject all-zero spellings such as00; selected limit128/backlog128 and actual Uvicorn invocation unchanged",
+  "post_measurement_validation": "Final targeted224Pythonpass1skip,173Nodepass,invalid-bound startup tests pass",
+  "unadopted_settings": "16AnyIOtokens and256admission were harness experiments only; source defaults keep40/128"
+}

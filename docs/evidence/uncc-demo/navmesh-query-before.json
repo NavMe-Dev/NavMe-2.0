@@ -1,0 +1,9 @@
+{
+  "scenario": "100 local route computations with native-query lifecycle counters",
+  "routes": 100,
+  "successful_routes": 100,
+  "queries_created": 100,
+  "queries_destroyed": 0,
+  "unreleased_queries": 100,
+  "scope": "Node VM with controlled runtime doubles; native object cleanup verified against bundled runtime; no browser/GPU or production measurement"
+}

@@ -1,0 +1,19 @@
+{
+  "scenario": "Transient first initialization failure followed by a fresh user retry",
+  "matterport_route_runtime": {
+    "route_requests": 2,
+    "initialization_attempts": 1,
+    "successful_routes": 0,
+    "navmesh_ready": false
+  },
+  "recast_script_loader": {
+    "initialization_attempts": 2,
+    "runtime_script_requests": 1
+  },
+  "recast_runtime_loader": {
+    "load_requests": 2,
+    "initialization_attempts": 1,
+    "ready": false
+  },
+  "scope": "Local Node VM doubles only; no production or browser network"
+}

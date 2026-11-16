@@ -1,0 +1,132 @@
+{
+  "schema": "navme.local-admission-test/v1",
+  "local_only": true,
+  "created_utc": "2026-11-16T12:07:55Z",
+  "source": "/private/tmp/navme-uncc-demo-stabilization",
+  "admission_limit": 8,
+  "backlog": 128,
+  "cheap_overlapping_requests": 16,
+  "overlap_seconds": 0.3,
+  "status_counts": {
+    "503": 9,
+    "200": 7
+  },
+  "requests": [
+    {
+      "status": 503,
+      "ms": 11.12
+    },
+    {
+      "status": 503,
+      "ms": 10.83
+    },
+    {
+      "status": 503,
+      "ms": 10.53
+    },
+    {
+      "status": 503,
+      "ms": 10.0
+    },
+    {
+      "status": 503,
+      "ms": 8.87
+    },
+    {
+      "status": 503,
+      "ms": 8.69
+    },
+    {
+      "status": 503,
+      "ms": 8.55
+    },
+    {
+      "status": 503,
+      "ms": 8.44
+    },
+    {
+      "status": 503,
+      "ms": 8.36
+    },
+    {
+      "status": 200,
+      "ms": 315.53
+    },
+    {
+      "status": 200,
+      "ms": 316.52
+    },
+    {
+      "status": 200,
+      "ms": 316.39
+    },
+    {
+      "status": 200,
+      "ms": 316.25
+    },
+    {
+      "status": 200,
+      "ms": 316.07
+    },
+    {
+      "status": 200,
+      "ms": 315.91
+    },
+    {
+      "status": 200,
+      "ms": 316.98
+    }
+  ],
+  "recovery_readiness": [
+    {
+      "status": 200,
+      "ms": 5.34
+    },
+    {
+      "status": 200,
+      "ms": 8.64
+    },
+    {
+      "status": 200,
+      "ms": 5.0
+    }
+  ],
+  "process_still_running": true,
+  "metrics_after": {
+    "counts": {},
+    "pool": {
+      "checked_out": 0,
+      "peak": 1,
+      "physical_connects": 1
+    },
+    "origin": {
+      "active": 0,
+      "peak": 0
+    },
+    "rss_peak_bytes": 161529856,
+    "cpu_seconds": 0.843596,
+    "worker_tokens_used": 0,
+    "worker_tokens_total": 40,
+    "threads": 3,
+    "routing_cache": {
+      "hits": 0,
+      "misses": 0,
+      "waits": 0,
+      "builds": 0,
+      "failures": 0,
+      "evictions": 0,
+      "oversize": 0,
+      "timeouts": 0,
+      "entries": 0,
+      "pending": 0,
+      "retained_bytes": 0,
+      "max_bytes": 100663296
+    }
+  },
+  "passed": true,
+  "interpretation": "This verifies bounded Uvicorn rejection and recovery only. Connection/task limit is not a simultaneous-user capacity guarantee.",
+  "official_references": [
+    "https://uvicorn.dev/settings/",
+    "https://uvicorn.dev/server-behavior/"
+  ]
+}

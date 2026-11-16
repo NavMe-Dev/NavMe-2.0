@@ -13,6 +13,8 @@ from starlette.concurrency import run_in_threadpool
 from . import __version__
 from .config import get_settings
 from .routers import auth, public, admin, vps, scan_plans, floorplans, plan_navigation
+from .services.bundle_storage import BundleCacheTimeout
+from .services.routing_cache import RoutingCacheTimeout
 
 
 def create_app() -> FastAPI:
@@ -53,6 +55,15 @@ def create_app() -> FastAPI:
         # connection URL, submitted SQL values, or private record contents.
         logging.getLogger(__name__).error("Database request failed (%s)", type(exc).__name__)
         return JSONResponse(status_code=503, content={"detail": "database unavailable"},
+                            headers={"Retry-After": "5"})
+
+    @app.exception_handler(BundleCacheTimeout)
+    @app.exception_handler(RoutingCacheTimeout)
+    async def publication_busy(request: Request, exc: TimeoutError):
+        # Contention is temporary, not a missing publication. Do not expose
+        # filesystem paths or retry by launching a duplicate download/build.
+        logging.getLogger(__name__).warning("Publication preparation busy (%s)", type(exc).__name__)
+        return JSONResponse(status_code=503, content={"detail": "published data temporarily unavailable"},
                             headers={"Retry-After": "5"})
 
     @app.middleware("http")

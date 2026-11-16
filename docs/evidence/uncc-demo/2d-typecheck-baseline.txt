@@ -1,0 +1,59 @@
+src/floor2dMultiRoute.ts(891,33): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/floor2dMultiRoute.ts(896,5): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/floor2dMultiRoute.ts(1663,14): error TS2322: Type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/floor2dMultiRoute.ts(1664,29): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/floor2dScene3d.ts(429,14): error TS2304: Cannot find name 'usZoneColorFromLabel'.
+src/floor2dScene3d.ts(890,44): error TS2345: Argument of type 'string' is not assignable to parameter of type '"#3B6FD9"'.
+src/floor2dView.ts(1438,14): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(1440,17): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(1441,17): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(2968,10): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(3303,14): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(3361,14): error TS2339: Property 'lastPointerWorld' does not exist on type 'Floor2DView'.
+src/floor2dView.ts(4523,48): error TS2345: Argument of type '"#16a34a"' is not assignable to parameter of type '"#3B6FD9"'.
+src/floor2dView.ts(4526,48): error TS2345: Argument of type '"#ea580c"' is not assignable to parameter of type '"#3B6FD9"'.
+src/floor2dView.ts(4781,29): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/floorPlanUpload.ts(141,59): error TS2353: Object literal may only specify known properties, and 'canvas' does not exist in type 'RenderParameters'.
+src/main.ts(3,27): error TS7016: Could not find a declaration file for module '../../src/config/theme.js'. '/private/tmp/navme-2d-ts-baseline/dashboard/src/config/theme.js' implicitly has an 'any' type.
+src/navmeshToFloorPlan.ts(382,24): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'Uint8Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/navmeshToFloorPlan.ts(387,5): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'Uint8Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/route.ts(63,14): error TS2339: Property 'dispose' does not exist on type 'never'.
+src/stairMouth.ts(268,28): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/stairMouth.ts(269,32): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/stairMouth.ts(310,26): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.
+src/stairMouth.ts(311,26): error TS2345: Argument of type '{ cellSize: number; minX: number; maxX: number; minZ: number; maxZ: number; cols: number; rows: number; sliceY: number; corridors: unknown[]; stores: unknown[]; objects: unknown[]; zones: unknown[]; floors: unknown[]; blocks: unknown[]; walls: unknown[]; }' is not assignable to parameter of type 'Floor2DMap'.
+  Types of property 'corridors' are incompatible.
+    Type 'unknown[]' is not assignable to type 'FloorBlock[]'.
+      Type 'unknown' is not assignable to type 'FloorBlock'.

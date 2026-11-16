@@ -23,4 +23,15 @@ esac
 if [ "$needs_readiness" = true ]; then
   python -m wayfinding_api.readiness --timeout "${DB_STARTUP_TIMEOUT_SECONDS:-60}"
 fi
-exec uvicorn wayfinding_api.main:app --host 0.0.0.0 --port "${PORT:-8000}" --proxy-headers
+# Bound admitted connections/tasks and the TCP accept queue. Keep the existing
+# worker/thread/pool sizes; more workers multiply both graph memory and DB pools.
+# Uvicorn returns retryable 503 responses at the limit instead of growing an
+# unlimited queue. These are connection/task limits, not a visitor capacity SLA.
+for bound in "${API_MAX_CONCURRENCY:-128}" "${API_BACKLOG:-128}"; do
+  case "$bound" in ''|*[!0-9]*) echo "API concurrency/backlog bounds must be positive integers" >&2; exit 1 ;; esac
+  if ! [ "$bound" -gt 0 ] 2>/dev/null; then
+    echo "API concurrency/backlog bounds must be positive integers" >&2; exit 1
+  fi
+done
+exec uvicorn wayfinding_api.main:app --host 0.0.0.0 --port "${PORT:-8000}" --proxy-headers \
+  --limit-concurrency "${API_MAX_CONCURRENCY:-128}" --backlog "${API_BACKLOG:-128}"

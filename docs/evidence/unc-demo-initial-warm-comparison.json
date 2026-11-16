@@ -1,0 +1,102 @@
+{
+  "schema": "navme.local-demo-benchmark-comparison/v1",
+  "created_utc": "2026-11-16T12:05:35.086942+00:00",
+  "baseline": "unc-demo-baseline.json",
+  "stabilized": "Initial unbounded warm trial; metrics retained in this comparison. Latest bounded128 trial is in unc-demo-stabilized-bounded128.json and supersedes its release recommendation.",
+  "comparison_scope": "Same exact existing local UNC v2 files; one real FastAPI worker; pool3+2; loopback PostGIS and storage; paced finite user journeys. Backend comparison only.",
+  "overall": {
+    "baseline_requests": 380,
+    "baseline_failures": 2,
+    "baseline_stopped_at_users": 40,
+    "stabilized_requests": 1180,
+    "stabilized_failures": 0,
+    "stabilized_completed_users": [
+      1,
+      10,
+      25,
+      40,
+      60,
+      100
+    ],
+    "route_reference_hashes_match": true,
+    "geometry_mismatches": 0,
+    "stabilized_max_pool_checked_out": 5,
+    "pool_returned_after_every_tier": true,
+    "all_recovery_readiness_passed": true,
+    "production_capacity_certified": false
+  },
+  "same_tier_comparisons": [
+    {
+      "users": 1,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 195.37,
+      "stabilized_route_p95_ms": 84.19,
+      "route_p95_reduction_percent": 56.91,
+      "baseline_rss_peak_mib": 226.05,
+      "stabilized_rss_peak_mib": 257.2,
+      "baseline_origin_downloads": 1,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 2,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 0.399,
+      "stabilized_cpu_seconds": 0.214
+    },
+    {
+      "users": 10,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 1643.89,
+      "stabilized_route_p95_ms": 635.22,
+      "route_p95_reduction_percent": 61.36,
+      "baseline_rss_peak_mib": 376.45,
+      "stabilized_rss_peak_mib": 257.2,
+      "baseline_origin_downloads": 10,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 20,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 3.395,
+      "stabilized_cpu_seconds": 1.567
+    },
+    {
+      "users": 25,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 5425.24,
+      "stabilized_route_p95_ms": 1774.35,
+      "route_p95_reduction_percent": 67.29,
+      "baseline_rss_peak_mib": 438.22,
+      "stabilized_rss_peak_mib": 257.83,
+      "baseline_origin_downloads": 25,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 50,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 8.963,
+      "stabilized_cpu_seconds": 4.054
+    },
+    {
+      "users": 40,
+      "baseline_http_failures": 2,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 6534.5,
+      "stabilized_route_p95_ms": 3026.79,
+      "route_p95_reduction_percent": 53.68,
+      "baseline_rss_peak_mib": 476.64,
+      "stabilized_rss_peak_mib": 258.84,
+      "baseline_origin_downloads": 40,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 78,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 14.145,
+      "stabilized_cpu_seconds": 6.465
+    }
+  ],
+  "limitations": [
+    "Local Apple host is not Render 0.5CPU/512MiB; results do not certify 100-user production capacity",
+    "No remote Supabase, browser, Matterport, real-device GPU or mobile radio exercised",
+    "Synthetic local storage latency does not reproduce real CDN/storage latency",
+    "One finite paced journey per user per tier; not a long soak",
+    "Uses existing local published pipeline POIs, not live Studio metadata queries"
+  ],
+  "interpretation": "Historical local first trial summary. A later frozen-source bounded trial found2pool-timeout503s at60 and stopped; do not infer certified100-user capacity from this initial trial."
+}

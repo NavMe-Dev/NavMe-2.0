@@ -1,0 +1,20 @@
+{
+  "original_tracked_work_sha256": "8909bf97fcd0608593f297c1ed19c132179b35617775e5af4acf04b7e060ce67",
+  "checkpoint_tracked_work_sha256": "8909bf97fcd0608593f297c1ed19c132179b35617775e5af4acf04b7e060ce67",
+  "original_tracked_work_preserved": true,
+  "html_layout_unchanged": true,
+  "no_styles_assets_or_geometry_changes": true,
+  "changed_application_files": [
+    "platform/api/wayfinding_api/config.py",
+    "platform/api/wayfinding_api/db.py",
+    "platform/api/wayfinding_api/main.py",
+    "platform/api/wayfinding_api/routers/public.py",
+    "platform/api/wayfinding_api/services/bundle_storage.py",
+    "platform/api/wayfinding_api/services/navgraph.py",
+    "platform/deploy/start-api.sh",
+    "platform/viewer/index.html",
+    "platform/viewer/mp_app.js",
+    "platform/viewer/wf_navmesh_bridge.js",
+    "platform/viewer/wf_navmesh_route.js"
+  ]
+}

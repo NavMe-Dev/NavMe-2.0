@@ -196,6 +196,27 @@ def test_readiness_rejects_missing_application_schema(monkeypatch):
     assert response.json() == {"detail": "database schema unavailable"}
 
 
+@pytest.mark.parametrize("error_name", ["BundleCacheTimeout", "RoutingCacheTimeout"])
+def test_busy_publication_returns_retryable_response_and_recovers(monkeypatch, caplog, error_name):
+    from wayfinding_api import main
+    monkeypatch.setattr(main, "get_settings", lambda: settings(worker_inline=False))
+    app = main.create_app()
+    busy = [True]
+    def endpoint():
+        if busy[0]:
+            raise getattr(main, error_name)("private filesystem path must not be logged")
+        return {"ok": True}
+    app.add_api_route("/api/test-busy-publication", endpoint)
+    client = TestClient(app)
+    response = client.get("/api/test-busy-publication")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "published data temporarily unavailable"}
+    assert response.headers["retry-after"] == "5"
+    assert "private filesystem" not in response.text + caplog.text
+    busy[0] = False
+    assert client.get("/api/test-busy-publication").json() == {"ok": True}
+
+
 def test_shutdown_signals_worker_and_disposes_pool(monkeypatch):
     from wayfinding_api import main, db
     monkeypatch.setattr(main, "get_settings", lambda: settings(worker_inline=True))
@@ -226,6 +247,17 @@ def test_startup_migrations_can_be_explicitly_disabled(tmp_path, flag, expected)
     result = subprocess.run(["/bin/sh", str(script)], env=env, text=True, capture_output=True, check=True)
     assert ("wayfinding migrate" in result.stdout) is expected
     assert "uvicorn wayfinding_api.main:app" in result.stdout
+    assert "--limit-concurrency 128 --backlog 128" in result.stdout
+
+
+@pytest.mark.parametrize("value", ["0", "00", "-1", "many", "1.5"])
+def test_startup_refuses_unbounded_or_invalid_admission_settings(tmp_path, value):
+    env = {**os.environ, "RUN_MIGRATIONS": "false", "API_MAX_CONCURRENCY": value,
+           "DB_STARTUP_CHECK": "false", "WF_READ_ONLY": "false", "DB_READ_ONLY": "false"}
+    script = Path(__file__).resolve().parents[1] / "deploy/start-api.sh"
+    result = subprocess.run(["/bin/sh", str(script)], env=env, text=True, capture_output=True)
+    assert result.returncode == 1
+    assert "bounds must be positive integers" in result.stderr
 
 
 def manifest_db():

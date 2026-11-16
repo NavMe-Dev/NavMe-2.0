@@ -1,0 +1,141 @@
+{
+  "schema": "navme.local-demo-benchmark-comparison/v2",
+  "created_utc": "2026-11-16T12:21:18.415788+00:00",
+  "baseline": "unc-demo-baseline.json",
+  "stabilized": "unc-demo-stabilized-bounded128.json",
+  "comparison_scope": "Same real existing local UNC v2 files; one FastAPI worker; pool3+2/5second checkout wait; loopback PostGIS and storage; paced finite journeys. Release source retains40AnyIO tokens and128connection/task bound.",
+  "release_recommendation": "Conditional demo scope only; HOLD for any100-user production capacity claim. Final default40/128 run passed up to40users with0failures and stopped at60after2DBpool-timeout503s. Local16/256 experiment was rejected after an independent100-only repeat produced8transport ReadErrors.",
+  "overall": {
+    "baseline_requests": 380,
+    "baseline_failures": 2,
+    "baseline_stopped_at_users": 40,
+    "stabilized_requests": 680,
+    "stabilized_failures": 2,
+    "stabilized_tested_tiers": [
+      1,
+      10,
+      25,
+      40,
+      60
+    ],
+    "stabilized_highest_zero_failure_tier": 40,
+    "route_reference_hashes_match": true,
+    "geometry_mismatches": 0,
+    "stabilized_max_pool_checked_out": 5,
+    "pool_returned_after_every_tier": true,
+    "all_recovery_readiness_passed": true,
+    "production_capacity_certified": false
+  },
+  "same_tier_comparisons": [
+    {
+      "users": 1,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 195.37,
+      "stabilized_route_p95_ms": 86.27,
+      "route_p95_reduction_percent": 55.84,
+      "baseline_rss_peak_mib": 226.05,
+      "stabilized_rss_peak_mib": 261.31,
+      "baseline_origin_downloads": 1,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 2,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 0.399,
+      "stabilized_cpu_seconds": 0.218
+    },
+    {
+      "users": 10,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 1643.89,
+      "stabilized_route_p95_ms": 631.66,
+      "route_p95_reduction_percent": 61.58,
+      "baseline_rss_peak_mib": 376.45,
+      "stabilized_rss_peak_mib": 262.34,
+      "baseline_origin_downloads": 10,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 20,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 3.395,
+      "stabilized_cpu_seconds": 1.602
+    },
+    {
+      "users": 25,
+      "baseline_http_failures": 0,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 5425.24,
+      "stabilized_route_p95_ms": 2222.88,
+      "route_p95_reduction_percent": 59.03,
+      "baseline_rss_peak_mib": 438.22,
+      "stabilized_rss_peak_mib": 264.22,
+      "baseline_origin_downloads": 25,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 50,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 8.963,
+      "stabilized_cpu_seconds": 4.004
+    },
+    {
+      "users": 40,
+      "baseline_http_failures": 2,
+      "stabilized_http_failures": 0,
+      "baseline_route_p95_ms": 6534.5,
+      "stabilized_route_p95_ms": 2552.19,
+      "route_p95_reduction_percent": 60.94,
+      "baseline_rss_peak_mib": 476.64,
+      "stabilized_rss_peak_mib": 266.66,
+      "baseline_origin_downloads": 40,
+      "stabilized_origin_downloads": 1,
+      "baseline_graph_builds": 78,
+      "stabilized_graph_builds": 0,
+      "baseline_cpu_seconds": 14.145,
+      "stabilized_cpu_seconds": 6.553
+    }
+  ],
+  "experiments": [
+    {
+      "evidence": "unc-demo-thread16-trial.json",
+      "verdict": "Rejected:16tokens/128admission ended with4HTTP503sat100; noDBtimeoutlogs, exact503layernotcaptured in this earliertrial.",
+      "total_requests": 1180,
+      "total_failures": 4,
+      "tiers": [
+        1,
+        10,
+        25,
+        40,
+        60,
+        100
+      ]
+    },
+    {
+      "evidence": "unc-demo-thread16-admission256-trial.json",
+      "verdict": "First16/256trialpassed alltiers plus cold24; not adopted without repeat proof.",
+      "total_requests": 1180,
+      "total_failures": 0,
+      "tiers": [
+        1,
+        10,
+        25,
+        40,
+        60,
+        100
+      ]
+    },
+    {
+      "evidence": "unc-demo-thread16-admission256-repeat100-a.json",
+      "verdict": "Rejected:independent100-onlyrepeat had8ReadErrortransportfailures; stoppedwithoutsecondrepeat.",
+      "total_requests": 500,
+      "total_failures": 8,
+      "tiers": [
+        100
+      ]
+    }
+  ],
+  "limitations": [
+    "Local Apple host is not Render 0.5CPU/512MiB; results do not certify 100-user production capacity",
+    "No remote Supabase, browser, Matterport, real-device GPU or mobile radio exercised",
+    "Synthetic local storage latency does not reproduce real CDN/storage latency",
+    "One finite paced journey per user per tier; not a long soak",
+    "Uses existing local published pipeline POIs, not live Studio metadata queries"
+  ]
+}

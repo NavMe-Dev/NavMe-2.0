@@ -1,0 +1,53 @@
+{
+  "scope": "local read-only existing UNCC v2 bundle; not verified current live and no production performance claim",
+  "nodes": 4900,
+  "edges": 15783,
+  "case_count": 21,
+  "successful_case_count": 10,
+  "response_sha256": "b08f7ef5180c76022aedd9d4fcc3a06ee8386a857b987cceb0544e5e39785870",
+  "recorded_at_utc": "2026-11-16T12:06:14.528501+00:00",
+  "fixture": "existing local UNCC v2 publication, read only; not verified current live publication",
+  "baseline": {
+    "pair_count": 21,
+    "build_calls": 21,
+    "seconds": 1.0633666669891682
+  },
+  "after_loops": [
+    {
+      "cold": true,
+      "seconds": 1.3003532919974532,
+      "exact_match": true
+    },
+    {
+      "cold": false,
+      "seconds": 0.7467931249993853,
+      "exact_match": true
+    },
+    {
+      "cold": false,
+      "seconds": 0.757734332990367,
+      "exact_match": true
+    }
+  ],
+  "after_totals": {
+    "graph_build_calls": 2,
+    "bundle_read_calls": 3,
+    "json_parse_calls": 3
+  },
+  "cache": {
+    "hits": 62,
+    "misses": 1,
+    "waits": 0,
+    "builds": 1,
+    "failures": 0,
+    "evictions": 0,
+    "oversize": 0,
+    "timeouts": 0,
+    "entries": 1,
+    "pending": 0,
+    "retained_bytes": 49421477,
+    "max_bytes": 100663296
+  },
+  "process_peak_rss_bytes_macos": 180436992,
+  "note": "Cold loop includes read/parse/freeze/preparation; warm loops reuse prepared state. Timing is not a production benchmark. Outputs match original baseline exactly in all three loops."
+}

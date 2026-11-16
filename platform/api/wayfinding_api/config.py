@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     db_connect_timeout_seconds: int = Field(default=10, ge=1)
     db_statement_timeout_ms: int = Field(default=30000, ge=1)
     db_lock_timeout_ms: int = Field(default=5000, ge=1)
+    # Waiters share a single atomic download; timeout does not restart it.
+    bundle_cache_wait_timeout_seconds: float = Field(default=15, gt=0, le=120)
     # Empty preserves the connection URL's libpq setting. Use require or verify-full
     # for hosted connections; never put a database password in frontend settings.
     db_sslmode: Literal["", "disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = ""

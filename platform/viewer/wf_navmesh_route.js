@@ -31,7 +31,10 @@
   /** Load + import the navmesh for a building. Cached per url. */
   async function load(url, key) {
     if (navMesh && navKey === (key || url)) return navMesh;
-    if (!initPromise) initPromise = rt().init();
+    if (!initPromise) initPromise = Promise.resolve(rt().init()).catch(function (error) {
+      initPromise = null;
+      throw error;
+    });
     await initPromise;
     var res = await fetch(url);
     if (!res.ok) throw new Error("navmesh download failed (" + res.status + ")");
@@ -60,31 +63,37 @@
     try { q = new (rt().NavMeshQuery)(navMesh, { maxNodes: 16384 }); }
     catch (e) { return { ok: false, error: "NavMeshQuery failed: " + e.message }; }
 
-    var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
-    var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
-    if (!a || !a.point) return { ok: false, error: "Start is not on the navmesh" };
-    if (!b || !b.point) return { ok: false, error: "Destination is not on the navmesh" };
+    try {
+      var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
+      var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
+      if (!a || !a.point) return { ok: false, error: "Start is not on the navmesh" };
+      if (!b || !b.point) return { ok: false, error: "Destination is not on the navmesh" };
 
-    var res;
-    try { res = q.computePath(a.point, b.point); }
-    catch (e) { return { ok: false, error: "computePath: " + e.message }; }
+      var res;
+      try { res = q.computePath(a.point, b.point); }
+      catch (e) { return { ok: false, error: "computePath: " + e.message }; }
 
-    var pts = (res && res.path) ? res.path : (Array.isArray(res) ? res : []);
-    if (!pts.length) return { ok: false, error: "No path between those points" };
+      var pts = (res && res.path) ? res.path : (Array.isArray(res) ? res : []);
+      if (!pts.length) return { ok: false, error: "No path between those points" };
 
-    var path = pts.map(function (p) { return { x: p.x, y: p.y, z: p.z }; });
-    var length = 0;
-    for (var i = 1; i < path.length; i++) length += dist3(path[i], path[i - 1]);
+      var path = pts.map(function (p) { return { x: p.x, y: p.y, z: p.z }; });
+      var length = 0;
+      for (var i = 1; i < path.length; i++) length += dist3(path[i], path[i - 1]);
 
-    // How far the mesh-snapped ends sit from the requested POIs. Reported, never corrected —
-    // nudging the endpoints would mean the drawn route is no longer the mesh's own path.
-    var startGap = dist3(path[0], from);
-    var endGap = dist3(path[path.length - 1], to);
+      // How far the mesh-snapped ends sit from the requested POIs. Reported, never corrected —
+      // nudging the endpoints would mean the drawn route is no longer the mesh's own path.
+      var startGap = dist3(path[0], from);
+      var endGap = dist3(path[path.length - 1], to);
 
-    return { ok: true, path: path, length_m: Math.round(length * 10) / 10,
-             start_gap_m: Math.round(startGap * 10) / 10,
-             end_gap_m: Math.round(endGap * 10) / 10,
-             partial: endGap > 2 };
+      return { ok: true, path: path, length_m: Math.round(length * 10) / 10,
+               start_gap_m: Math.round(startGap * 10) / 10,
+               end_gap_m: Math.round(endGap * 10) / 10,
+               partial: endGap > 2 };
+    } finally {
+      // Detour queries own native/WASM allocations. Release on every return or
+      // exception, keeping only the copied JavaScript route points above.
+      try { q.destroy(); } catch (_) { /* Cleanup cannot replace the route result. */ }
+    }
   }
 
   // ---------------------------------------------------------------- guidance

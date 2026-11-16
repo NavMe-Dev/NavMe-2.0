@@ -1,6 +1,8 @@
 """Server-side nav-graph helpers: A* routing (same cost model as the viewer's routing.js),
 nearest-node snapping, step-free reachability, georef transforms."""
 import math
+from dataclasses import dataclass
+from types import MappingProxyType
 import networkx as nx
 import numpy as np
 from wfpipe.navmesh_route import route_on_mesh
@@ -35,6 +37,57 @@ def build(nav, step_free=False):
                    source=e.get("source"), elevator=e.get("elevator"), floor_delta=e.get("floor_delta"),
                    step_free=e.get("step_free"))
     return G
+
+
+class _FrozenList(list):
+    """Read-only JSON array retaining list equality in the navmesh funnel code."""
+    def _deny(self, *args, **kwargs):
+        raise TypeError("Published routing data is immutable")
+
+    __setitem__ = __delitem__ = __iadd__ = __imul__ = _deny
+    append = clear = extend = insert = pop = remove = reverse = sort = _deny
+
+
+def immutable(value):
+    """Detach JSON containers from their parser and make cached data read-only."""
+    if isinstance(value, dict):
+        return MappingProxyType({key: immutable(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return _FrozenList(immutable(item) for item in value)
+    if isinstance(value, tuple):
+        return tuple(immutable(item) for item in value)
+    return value
+
+
+def _freeze_graph(graph):
+    # nx.freeze alone protects topology, but leaves attribute dictionaries mutable.
+    # A route must never be able to modify a later visitor's shared routing state.
+    graph._node = MappingProxyType({node: immutable(attrs) for node, attrs in graph._node.items()})
+    edge_attrs = {}
+    adjacency = {}
+    for node, neighbours in graph._adj.items():
+        frozen_neighbours = {}
+        for other, attrs in neighbours.items():
+            if id(attrs) not in edge_attrs:
+                edge_attrs[id(attrs)] = immutable(attrs)
+            frozen_neighbours[other] = edge_attrs[id(attrs)]
+        adjacency[node] = MappingProxyType(frozen_neighbours)
+    graph._adj = MappingProxyType(adjacency)
+    graph.graph = immutable(graph.graph)
+    return nx.freeze(graph)
+
+
+@dataclass(frozen=True)
+class PreparedGraphs:
+    regular: nx.Graph
+    step_free: nx.Graph
+    cost_model: object
+
+
+def prepare(nav):
+    """Build both unchanged routing policies once for an immutable publication."""
+    return PreparedGraphs(_freeze_graph(build(nav)), _freeze_graph(build(nav, step_free=True)),
+                          immutable(nav.get("cost_model", {})))
 
 
 def _is_elevator_edge(ed):
@@ -77,8 +130,8 @@ def _hybrid_points(path, G, navmesh, geot):
     return out
 
 
-def route(nav, a, b, step_free=False, georef=None, navmesh=None):
-    G = build(nav, step_free)
+def route(nav, a, b, step_free=False, georef=None, navmesh=None, *, prepared=None):
+    G = (prepared.step_free if step_free else prepared.regular) if prepared is not None else build(nav, step_free)
     if a not in G or b not in G:
         return None
     def h(u, v):
@@ -87,7 +140,7 @@ def route(nav, a, b, step_free=False, georef=None, navmesh=None):
         path = nx.astar_path(G, a, b, heuristic=h, weight="weight")
     except nx.NetworkXNoPath:
         return None
-    cm = nav.get("cost_model", {})
+    cm = prepared.cost_model if prepared is not None else nav.get("cost_model", {})
     wait_s = cm.get("elevator_wait_s", 20)
     per_floor_s = cm.get("elevator_per_floor_s", 4)
     length = walk_m = elev_secs = rise = 0.0
@@ -108,11 +161,15 @@ def route(nav, a, b, step_free=False, georef=None, navmesh=None):
     secs = walk_m / cm.get("walk_speed_mps", 1.2) + rise * cm.get("stair_extra_s_per_m_rise", 2.0) + elev_secs
     geot = GeoT(georef) if georef else None
     hybrid = _hybrid_points(path, G, (navmesh or {}).get("floors"), geot)
+    # Return fresh JSON lists: callers may modify responses without touching the
+    # immutable publication, and the uncached route's response shape is preserved.
+    coordinates = [list(p["lonlat"]) if p["lonlat"] is not None else None for p in hybrid]
     return {"nodes": path, "length_m": round(length, 1), "eta_s": round(secs), "stair_edges": stairs,
             "elevator_edges": elev_edges,
             "floors": list(dict.fromkeys(G.nodes[n]["floor"] for n in path)),
-            "geometry": {"type": "LineString", "coordinates": [p["lonlat"] for p in hybrid]},
-            "legs": [{"floor": p["floor"], "lonlat": p["lonlat"], "id": p["id"]} for p in hybrid]}
+            "geometry": {"type": "LineString", "coordinates": coordinates},
+            "legs": [{"floor": p["floor"], "lonlat": list(p["lonlat"]) if p["lonlat"] is not None else None,
+                      "id": p["id"]} for p in hybrid]}
 
 
 def nearest_node(nav, x, y, floor, kinds=("sweep",)):

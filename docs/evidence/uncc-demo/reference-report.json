@@ -1,0 +1,30 @@
+{
+  "source_filename": "UNCC wayfinder results.pdf",
+  "source_path": "/Users/mediauser/Documents/GitHub/NavMe-2.0/UNCC wayfinder results.pdf",
+  "pages": 9,
+  "sha256": "4aa6b8730afc5f92025b12b09da96bc73cbb2489baebc7ee5801f80cf7b30db5",
+  "inspection": "Rendered all nine pages because embedded font/text extraction returned no usable text",
+  "historical": {
+    "concurrent_users": 100,
+    "http_failed": 1007,
+    "http_total": 3102,
+    "http_failure_percent": 32.46,
+    "route_success_percent": 56.42,
+    "saturation_users": [
+      38,
+      42
+    ],
+    "route_p95_ms": 17335,
+    "graph_bytes": 4766733,
+    "sql_queries_per_session": 26,
+    "floor_2_latency_ms": 23288
+  },
+  "projections_not_verified": [
+    "150+ concurrent users",
+    "route P95 below25ms",
+    "zero database queries per warm session",
+    "floor switch below80ms",
+    "GPU and battery projections"
+  ],
+  "current_app_note": "UNCC already uses mp_app.js and skips nav_graph boot; preserve 2Dapp.js graph requirement"
+}

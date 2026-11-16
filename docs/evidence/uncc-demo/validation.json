@@ -1,0 +1,49 @@
+{
+  "backend": {
+    "passed": 224,
+    "skipped": 1,
+    "failed": 0,
+    "skip_reason": "Greenland workspace not onboarded; unrelated existing optional fixture",
+    "evidence": "backend-tests.txt"
+  },
+  "frontend": {
+    "passed": 173,
+    "failed": 0,
+    "files": 16,
+    "note": "Node controllers/runtime tests; includes language regression, not device/WebGL journeys",
+    "evidence": "frontend-tests.txt"
+  },
+  "production_vite_builds": {
+    "dashboard": "PASS",
+    "mini3d_2d": "PASS",
+    "standalone_3d": "PASS",
+    "note": "Used already-installed dependencies; no install/lockfile/dependency changes"
+  },
+  "typescript": {
+    "standalone_3d": "PASS --noEmit",
+    "mini3d_2d": "FAIL 24 errors / 59 lines; identical on frozen live-base after checkout path normalization",
+    "changed_typescript_sources": false
+  },
+  "js_syntax": "PASS for all three changed JS modules",
+  "diff_whitespace": "PASS",
+  "browser_native_recast": "PASS ten real navmesh routes before/after, identical SHA256, ten query destroys after",
+  "matterport_real_renderer": "BLOCKED_EXTERNAL_VERIFICATION; no successful SDK/model journey",
+  "production_container_build": "NOT TESTED; Vite builds do not certify Render Docker/runtime compatibility",
+  "selected_configuration": {
+    "anyio_default_tokens": 40,
+    "uvicorn_connections_tasks": 128,
+    "tcp_backlog": 128,
+    "db_pool_size": 3,
+    "db_overflow": 2,
+    "benchmark_db_pool_wait_seconds": 5
+  },
+  "rejected_experiments": [
+    "16 worker tokens with128 admission: admission failures",
+    "16 worker tokens with256 admission: initial pass, independent repeat8transport errors; not adopted"
+  ],
+  "production_unchanged": {
+    "live_deploy": "dep-dbtel0etlv9c73f542v0",
+    "live_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+    "recorded_utc": "2026-11-16T12:27:42.898352+00:00"
+  }
+}

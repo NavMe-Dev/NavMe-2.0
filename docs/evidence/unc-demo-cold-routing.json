@@ -1,0 +1,550 @@
+{
+  "schema": "navme.local-demo-benchmark/v1",
+  "label": "cold-routing-cohort24",
+  "created_utc": "2026-11-16T12:14:14Z",
+  "application_source": "/private/tmp/navme-uncc-demo-stabilization",
+  "baseline_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+  "local_only": true,
+  "database": "loopback isolated *_test",
+  "api_workers": 1,
+  "pool_size": 3,
+  "max_overflow": 2,
+  "admission_limit": 128,
+  "backlog": 128,
+  "machine": "arm64",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "logical_cpus": 8,
+  "reference_preflight": {
+    "requests": 4,
+    "startup_metrics": {
+      "counts": {},
+      "pool": {
+        "checked_out": 0,
+        "peak": 1,
+        "physical_connects": 1
+      },
+      "origin": {
+        "active": 0,
+        "peak": 0
+      },
+      "rss_peak_bytes": 169721856,
+      "cpu_seconds": 0.829113,
+      "worker_tokens_used": 0,
+      "worker_tokens_total": 40,
+      "threads": 3,
+      "routing_cache": {
+        "hits": 0,
+        "misses": 0,
+        "waits": 0,
+        "builds": 0,
+        "failures": 0,
+        "evictions": 0,
+        "oversize": 0,
+        "timeouts": 0,
+        "entries": 0,
+        "pending": 0,
+        "retained_bytes": 0,
+        "max_bytes": 100663296
+      }
+    },
+    "after_metrics": {
+      "counts": {
+        "read_nav_graph.json": 1,
+        "read_pois.json": 1,
+        "read_navmesh.json": 1,
+        "graph_builds": 2
+      },
+      "pool": {
+        "checked_out": 0,
+        "peak": 1,
+        "physical_connects": 1
+      },
+      "origin": {
+        "active": 0,
+        "peak": 0
+      },
+      "rss_peak_bytes": 277921792,
+      "cpu_seconds": 1.689719,
+      "worker_tokens_used": 0,
+      "worker_tokens_total": 40,
+      "threads": 3,
+      "routing_cache": {
+        "hits": 3,
+        "misses": 1,
+        "waits": 0,
+        "builds": 1,
+        "failures": 0,
+        "evictions": 0,
+        "oversize": 0,
+        "timeouts": 0,
+        "entries": 1,
+        "pending": 0,
+        "retained_bytes": 49421477,
+        "max_bytes": 100663296
+      }
+    },
+    "note": "Reference routes intentionally precede timed tiers. On the stabilized API they warm one publication; tier hit/build deltas are measured after this preflight."
+  },
+  "fixture": {
+    "source": "existing local real UNC publication v2; copied, never altered",
+    "graph_bytes": 4766733,
+    "nodes": 4900,
+    "edges": 15783,
+    "graph_sha256": "a966ec368ca92da23134849c709471dfc3732d979ac318d49b9134d0401c5b63",
+    "floor2_bytes": 202510,
+    "reference_route_hashes": [
+      "4e108c95902f74bd2cb5877247c7292f2473c2623962eb1fbbd2c11a2919cb2d",
+      "a16e1597e2afb17443596583486d2c54feaace6f9618e2a7387857e9657f3980",
+      "1da1d4b1c41af33bdfd7075117eb0983f6e6c032bd7f3276681e751c4e13ebd4",
+      "4311232d2733ce222a94cfacd73dc43cbf51596e87bcc277f590bdbb97eb8391"
+    ]
+  },
+  "schedule": {
+    "tiers_requested": [
+      1
+    ],
+    "journey": "cold shared Floor2 GET; paced config and POI GETs; two paced actual published routes",
+    "origin": "loopback HTTP, actual floor image, controlled 150ms delay",
+    "pace_seconds": [
+      0.15,
+      0.45
+    ],
+    "stop_on": "any HTTP/geometry/liveness failure, route p95>8s, RSS>512MiB"
+  },
+  "limitations": [
+    "Local Apple host is not Render 0.5CPU/512MiB; results do not certify 100-user production capacity",
+    "No remote Supabase, browser, Matterport, real-device GPU or mobile radio exercised",
+    "Synthetic local storage latency does not reproduce real CDN/storage latency",
+    "One finite paced journey per user per tier; not a long soak",
+    "Uses existing local published pipeline POIs, not live Studio metadata queries"
+  ],
+  "tiers": [
+    {
+      "concurrent_users": 1,
+      "wall_seconds": 1.254,
+      "requests": 5,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 5,
+        "p50_ms": 81.39,
+        "p95_ms": 168.12,
+        "p99_ms": 184.41,
+        "max_ms": 188.48
+      },
+      "route": {
+        "count": 2,
+        "p50_ms": 84.05,
+        "p95_ms": 86.46,
+        "p99_ms": 86.67,
+        "max_ms": 86.72
+      },
+      "floor": {
+        "count": 1,
+        "p50_ms": 188.48,
+        "p95_ms": 188.48,
+        "p99_ms": 188.48,
+        "max_ms": 188.48
+      },
+      "counts": {
+        "graph_builds": 0,
+        "read_navmesh.json": 0,
+        "origin_downloads": 1,
+        "read_nav_graph.json": 0,
+        "read_pois.json": 0
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 265.05,
+      "cpu_seconds": 0.217,
+      "cpu_percent_of_one_core": 17.3,
+      "db_pool_peak": 1,
+      "db_pool_checked_out_after": 0,
+      "physical_db_connections": 1,
+      "peak_worker_tokens": 0,
+      "worker_tokens_total": 40,
+      "liveness": {
+        "count": 5,
+        "p50_ms": 4.06,
+        "p95_ms": 12.85,
+        "p99_ms": 14.46,
+        "max_ms": 14.87
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 2.61
+        },
+        {
+          "status": 200,
+          "ms": 4.15
+        },
+        {
+          "status": 200,
+          "ms": 8.67
+        }
+      ],
+      "routing_cache": {
+        "hits": 5,
+        "misses": 1,
+        "waits": 0,
+        "builds": 1,
+        "failures": 0,
+        "evictions": 0,
+        "oversize": 0,
+        "timeouts": 0,
+        "entries": 1,
+        "pending": 0,
+        "retained_bytes": 49421477,
+        "max_bytes": 100663296
+      }
+    }
+  ],
+  "cold_routing_cohort": {
+    "concurrent_requests": 24,
+    "cold_scope": "In-memory published routing cache evicted; unchanged real local bundle files retained. Not a new-process cold start.",
+    "wall_seconds": 2.47,
+    "http": {
+      "count": 24,
+      "p50_ms": 1577.3,
+      "p95_ms": 2305.68,
+      "p99_ms": 2391.5,
+      "max_ms": 2416.56
+    },
+    "status_counts": {
+      "200": 24
+    },
+    "failures": 0,
+    "geometry_mismatches": 0,
+    "counts": {
+      "graph_builds": 2,
+      "read_navmesh.json": 1,
+      "origin_downloads": 0,
+      "read_nav_graph.json": 1,
+      "read_pois.json": 1
+    },
+    "cache_delta": {
+      "hits": 13,
+      "misses": 1,
+      "waits": 10,
+      "builds": 1,
+      "failures": 0,
+      "timeouts": 0
+    },
+    "rss_peak_before_mib": 265.05,
+    "rss_peak_after_mib": 289.73,
+    "rss_note": "Whole-process high-water RSS includes this cold cohort and all preceding warm tiers; not instantaneous resident allocation.",
+    "db_pool_peak": 5,
+    "db_pool_checked_out_after": 0,
+    "recovery_health_status": 200,
+    "passed": true
+  },
+  "source_fingerprint": {
+    "sha256": "b36b138b2cdeec52a61fb4cee82199809dd354aa09bb917729776c80e942d7b2",
+    "files": [
+      {
+        "path": "platform/api/alembic/env.py",
+        "sha256": "946e76a6fa242442c1efc7457f90d5f688c7e582a3edd4995a0dff45e0f05842"
+      },
+      {
+        "path": "platform/api/alembic/versions/0001_initial_schema.py",
+        "sha256": "59e3ffa217209b442272402a9728781393075612b5d80173b6c14ce840b1b803"
+      },
+      {
+        "path": "platform/api/wayfinding_api/__init__.py",
+        "sha256": "91447944015cec709e8aa7655f7e9d64e1e4508e7023a57fe3746911c0fc6fed"
+      },
+      {
+        "path": "platform/api/wayfinding_api/auth.py",
+        "sha256": "a3b5155dea810cf33f15e439e0cc046ac36cc9aef77ba7ee649680103f4a5b88"
+      },
+      {
+        "path": "platform/api/wayfinding_api/cli.py",
+        "sha256": "58f92dea4e03d04b3d9d6d0ebe2a1e0b082bf7af03cbff5f6da1e4fe21f6c790"
+      },
+      {
+        "path": "platform/api/wayfinding_api/config.py",
+        "sha256": "0902d24582f7a1da215dc772d04d6b07ad5e4b0197a07b629a4ae21cd8044f3e"
+      },
+      {
+        "path": "platform/api/wayfinding_api/db.py",
+        "sha256": "051d089a3749e7950972a21bd3bd98a8d0c55454940da88f535c6b9103a25aba"
+      },
+      {
+        "path": "platform/api/wayfinding_api/main.py",
+        "sha256": "34945ce54cfa6a51653b8be7c6913f0f7fb8fa30000529796d561ef1e355eb41"
+      },
+      {
+        "path": "platform/api/wayfinding_api/models.py",
+        "sha256": "a42f9a44da6380d2c11f5d8bd65d304ea6ac75d109f7252d40be7d8e4c54f830"
+      },
+      {
+        "path": "platform/api/wayfinding_api/readiness.py",
+        "sha256": "75219dc739acf332a5de917ad707c18c3bc2491a7d9bcdc8d97079a7a6854be1"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/admin.py",
+        "sha256": "69a25f95b2e1c307abff8306ab19ffe97c0df7b146f4249e0462bb28c2e2d75e"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/auth.py",
+        "sha256": "049d8f64930635bf5dbd69253a0d0ae71a8eed603cccf79ff3ba77b3bc70cd33"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/floorplans.py",
+        "sha256": "23ec189424c4c55b3cef594128e65f8fdf0c913c076594b91e8c818f76fdd47b"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/plan_navigation.py",
+        "sha256": "60829b719cffa51b1ee42d14716be0e30c89b6ecd6fa33d7a71f4652c650ad6d"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/public.py",
+        "sha256": "a38c92d2f381bfed9cb6dafc8f04b8cacb8d2807eef999e08295c824b47fd9b8"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/scan_plans.py",
+        "sha256": "46389b60c643d81e4f6c605b0ee740d37fe198195cc5703561870be76271b5d2"
+      },
+      {
+        "path": "platform/api/wayfinding_api/routers/vps.py",
+        "sha256": "1b33280c490e06b06a22df18072cede28ba70c649afe161d761032efbfdbf8ed"
+      },
+      {
+        "path": "platform/api/wayfinding_api/schemas.py",
+        "sha256": "bb7a1c8366c1b4932436b40ed264d3483f15223effa88c60ba3654031fad8b6f"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/access.py",
+        "sha256": "01f5b1b522cc8ff17dab8fae4a78edabca095e5d8b8bf97c5e2e8e97e149e112"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/address_footprint.py",
+        "sha256": "5d8ac9e079aab23ae738396aa4f7aeb940ce603bf62559e80065accc5a39798d"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/admin_chat.py",
+        "sha256": "3b16058691ba79d9b2a8494e345032b933d55a20895a9b07c8aba33cb34ad4c5"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/bundle_storage.py",
+        "sha256": "a6b498e9e04fa1ddfd65292a2834d31299ca98e564fce2e24aacedaf82a4b5e2"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/camera_viewpoints.py",
+        "sha256": "1b83ff0d42a5ca0424c7713fd5d0ffc6c2f9dc488019bbc93ded7eb47aa2f161"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/category_markers.py",
+        "sha256": "509849fd751ad3d0752eb6978af86b3afb655fef0edaf03e76c0c17bf9b40826"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/chat.py",
+        "sha256": "513064c0915255f5bf88a925313e614dd61136548e3881936e6989aa746fed31"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/debug_log.py",
+        "sha256": "62b8d31258d2b3f70aea997870419d2e38130cd227eb071f2a8c527193aabeb1"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/explore.py",
+        "sha256": "861db7755c8a172ee120a078ba932baa1e0c62b2d01b592e70a856086e216de0"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/jobs.py",
+        "sha256": "003fbbf5597a894a81e04ee9534d456c39a52ffbadd7438047dc8db0cd446253"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/matterport_fetch.py",
+        "sha256": "1e96d32a337884e6946d332fddecd028a0acb043938763749cee9f9010abdec6"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/navgraph.py",
+        "sha256": "c7498351c12712e5d0bbddd8601fdea97b737e4cc72b21b782fc1ecc6daaaa3f"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/navme.py",
+        "sha256": "a24d8b0dc0ac024d1f54b86b693375f774ede1853551d04a6daf4d730924b80a"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/navme_sync.py",
+        "sha256": "135efebbb54ca7baa56c7bf62f9e7e631fd7e434913cc0600d5ce613467eb7f0"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/plan_registration.py",
+        "sha256": "2942fa278e499dd3e30891a9c4197edbecd7563d70aab5e1fa178b9c4d7aceb5"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/poi_viewpoints.py",
+        "sha256": "d32159f10f9faed87fc006b0244a7f6ad0ca7acb6a40bf1a2cf360ec6f626f0c"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/publish.py",
+        "sha256": "5c4595c18c19ce389ff31216452c6ef1f0d4522ede8f0384f03976e1ef0d27c5"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/routing_cache.py",
+        "sha256": "7d68abf74b202beab636569df8a288ac8c81ab51a5037f3fe1412c135d11c43f"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/runtime_config.py",
+        "sha256": "0851e24dc1daeb1df2b212b09551778541a2f7cb792926ac92254b3d6c780ddd"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/scan_plan.py",
+        "sha256": "178a89987974a348bd3574fb2dfd00f6dc24a96ac820756a31ce3f985a6e29e4"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/studio_live.py",
+        "sha256": "f452502a08e6f67618c14c7a963e44fd4e14b43d8e96a6f32fd1d0536a216109"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/venue_info.py",
+        "sha256": "0030e887eb7a674952b1e33eb04e73e04c2120ac877ed92c13c721db55bbf502"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/vps_build.py",
+        "sha256": "c1a4860b597095392b06414d989462c30650e7367e7299f052592ea95125e216"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/vps_match.py",
+        "sha256": "2017662b31437c102f687553fa17502758e55773572675d7db07adeb770c8075"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/weather.py",
+        "sha256": "2a202e4e369387381b62d7c6b7adccdb79c8310d41c6c9c326aa69f720f661b7"
+      },
+      {
+        "path": "platform/api/wayfinding_api/services/workspace.py",
+        "sha256": "b8f324535ee4e3f2a74f2ae2b6c9d58f63851268c720c463d2dc28fd4c77d0a1"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/__init__.py",
+        "sha256": "90b10d64a24868555e178f137156f76170acfda06313a439421b891958b0499a"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/__main__.py",
+        "sha256": "6ce05b79ee1666025af142adc913f1d468781e77af67ae431fe163472a52fb3a"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/cli.py",
+        "sha256": "4ee6b86f826d056bc484524b4bba4750d0cabea40e1506e3977c6e98c2e87aa0"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/context.py",
+        "sha256": "db8ac20f019c128a1e5edfa71686d7031bbaf48504b98b611e342ea07b8a971c"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/e57_convert.py",
+        "sha256": "51a1d8b6cb2ec2b88fe5da2ba7952d73fd57084f1768e84bdad4419805f0a089"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/geo.py",
+        "sha256": "cdd53535d55c16974d1727692117a8996bb67d697b6a59ab738513759421d03d"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/mesh_colorplan.py",
+        "sha256": "42252d45c69093f101e030283c3b59954fbc5a7ce683f523385c878fce691954"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/navmesh_route.py",
+        "sha256": "a1832103886486b852c5dccd8c87d21001919cb2f811e43f3de59968fb454043"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/runner.py",
+        "sha256": "e301e052736b013e11fe257e1285514bf3a17e5abe42480cc0b360aa4d1f829a"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/colorplan.py",
+        "sha256": "b1295a6f67e86084f33d8965979f2adbb82c2d71dbb49f6eee49729ef9fa385e"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/export.py",
+        "sha256": "749e8b5d5176147f650ded8984f6257ee9b96d59e4dc9cabbab27e7f42de21b0"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/fetch_mp.py",
+        "sha256": "abe5c385a140e0d7fd9ce6fddd9af1f35f40191d9fca80b1f074afc0e61a3f4f"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/floors.py",
+        "sha256": "4f947193feb726eb893e36a646e44753ccfbd340d809640080a406495d33d59b"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/georef.py",
+        "sha256": "69847e8c403adb151e3e3a483996231622ac9f932739619e0ecb364a28b6dc3b"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/glb.py",
+        "sha256": "aa73a29e7b9af28e1e52ef84d46e7da757d7c361101fa8cf0e8fc0293aa5576d"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/graph.py",
+        "sha256": "1203cd5358f763df1a9e63f252f52d08dfcd6069916af0cefdc75ceb5ca6c42f"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/imagery.py",
+        "sha256": "b80404e209f251f594a26848b2b516cde1988f653c0defc8a7cd94d7c0b0c10a"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/indoor.py",
+        "sha256": "50a5ffe2d59baa71118d171519d52b62cbea31e8c876b2b1b3eb4c4d121e1c39"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/ingest.py",
+        "sha256": "76ba4b4f43c0b5ce5959d70867f0ae082c1fa3aff29ef43cc01829c842555176"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/mesh.py",
+        "sha256": "24463274f9c380c0442e44877934009e1d81c50925b4646ce1c440fad66c2b50"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/navmesh.py",
+        "sha256": "07a78995c563f62949e15f82906b18149f0236f460e11610af0f797c69b7a50b"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/osm.py",
+        "sha256": "c10a1aaa1f0cf10893daca8fa7621341328082f37e75dcebc0c2643e56e71271"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/overlays.py",
+        "sha256": "00dd30239f6673ba9ee5915c2103e7b9b21a7987b0f043cac9869ffe5fb5e770"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/pois.py",
+        "sha256": "30eb07239b10f1c782fee105cce3cc61021a6af55c7d34263d739fa2491fe4df"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/thumbs.py",
+        "sha256": "8ee5303b72a1a4b13a88b15215f6ab5a5265d979fc82bce69bf82ba53e234610"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/voxel.py",
+        "sha256": "6bb82cf6984a1d30e88b3a8f65d575ae7ce443375bfe612b22ef35eaa1d90c2a"
+      },
+      {
+        "path": "platform/pipeline/wfpipe/steps/vps_index.py",
+        "sha256": "cba26bb5f9e6f022e2651e8cfd70b301c032f21b391bf88c224acbf57dfce4c2"
+      },
+      {
+        "path": "platform/deploy/start-api.sh",
+        "sha256": "9a530e4d03dd590bcbd1d4c536b808ab06f7f00e2e5c493e6ec3fc438149e6a3"
+      }
+    ],
+    "snapshot": "/var/folders/0l/kfkv4md11y57hdv3q641j7_c0000gp/T/navme-unc-benchmark-xy97w0kk/application-snapshot",
+    "note": "Python source copied before worker startup, so concurrent checkout edits cannot alter the running measurement. Entrypoint is fingerprinted; equivalent128 flags passed explicitly to the harness."
+  }
+}
