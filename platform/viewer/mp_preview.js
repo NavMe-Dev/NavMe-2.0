@@ -19,6 +19,7 @@ function wfDbg(level, source, message, meta) {
   let sweepIds = [];
   let sweepNodes = []; // {id,x,y,z} ordered, kind===sweep
   let routeDest = null; // final look target (last path node)
+  let routeHasLookTarget = false; // only an explicitly supplied, valid arrival target has pitch
   let destName = null;  // destination POI name for display
   let fromName = null;  // origin POI name, for the shared arrival card's route feedback
   let modelId = DEFAULT_MODEL;
@@ -958,8 +959,10 @@ function wfDbg(level, source, message, meta) {
     stepI = 0;
     // Point at the destination POI's own xyz when passed (more exact than the navPath's
     // terminal point, which often stops at a doorway rather than the POI's in-room position).
-    if (route._destXYZ && route._destXYZ.x != null) {
-      routeDest = route._destXYZ;
+    const lookTarget = suppliedLookTarget(route);
+    routeHasLookTarget = !!lookTarget;
+    if (lookTarget) {
+      routeDest = lookTarget;
     } else {
       const destPt = pts[pts.length - 1];
       routeDest = { x: destPt.x, y: destPt.y, z: destPt.z || 0 };
@@ -980,6 +983,13 @@ function wfDbg(level, source, message, meta) {
     return out;
   }
 
+  function suppliedLookTarget(route) {
+    const p = route && route._destXYZ;
+    if (!p || ![p.x, p.y, p.z].every(value =>
+      value != null && typeof value !== "boolean" && String(value).trim() !== "" && Number.isFinite(Number(value)))) return null;
+    return {x: +p.x, y: +p.y, z: +p.z};
+  }
+
   function prepareRoute(route) {
     navPathTour = false;
     const ids = dedupeConsecutive(route && route.sweep_ids);
@@ -993,7 +1003,8 @@ function wfDbg(level, source, message, meta) {
     // Final look target: the destination POI's own xyz when the caller passed one — more
     // exact than the path's terminal node, which often stops at a doorway/corridor point
     // rather than the POI's actual in-room position. Falls back to the path-derived point.
-    routeDest = (route && route._destXYZ && route._destXYZ.x != null) ? route._destXYZ : null;
+    routeDest = suppliedLookTarget(route);
+    routeHasLookTarget = !!routeDest;
     if (!routeDest) {
       for (let k = allNodes.length - 1; k >= 0; k--) {
         const n = allNodes[k];
@@ -1320,6 +1331,18 @@ function wfDbg(level, source, message, meta) {
     return Math.atan2(-dx, -dz) * 180 / Math.PI;
   }
 
+  function facingRotationSdk(from, to, includePitch) {
+    const yaw = yawSdk(from, to);
+    if (yaw == null || !Number.isFinite(yaw)) return null;
+    const rotation = {x: 0, y: yaw};
+    if (includePitch && Number.isFinite(+from.y) && Number.isFinite(+to.y)) {
+      const horizontal = Math.hypot(to.x - from.x, to.z - from.z);
+      const pitch = Math.atan2(to.y - from.y, horizontal) * 180 / Math.PI;
+      rotation.x = Math.max(-58, Math.min(28, pitch));
+    }
+    return rotation;
+  }
+
   /** Look-ahead: current sweep → next (or dest). Model Z-up via modelToSdk. */
   function headingToward(i) {
     const a = modelToSdk(sweepNodes[i]);
@@ -1384,8 +1407,10 @@ function wfDbg(level, source, message, meta) {
       }
     }
     if (!from || !to) return;
-    const yaw = yawSdk(from, to);
-    if (yaw == null) return;
+    const finalTarget = i === sweepIds.length - 1 && routeHasLookTarget;
+    const rotation = facingRotationSdk(from, to, finalTarget);
+    if (!rotation) return;
+    const yaw = rotation.y;
 
     // moveTo() already set this same look-ahead heading as the in-flight rotation target,
     // so the camera should already be facing here on fast devices — skip if close to avoid
@@ -1399,23 +1424,23 @@ function wfDbg(level, source, message, meta) {
     // (iOS/desktop today) — it only catches the case where it wasn't really done yet.
     try {
       const got1 = await getPoseYaw();
-      if (got1 != null && Math.abs(normDeltaDeg(yaw - got1)) < 6) {
+      if (rotation.x === 0 && got1 != null && Math.abs(normDeltaDeg(yaw - got1)) < 6) {
         await new Promise(r => setTimeout(r, 180));
         const got2 = await getPoseYaw();
         if (got2 == null || Math.abs(normDeltaDeg(yaw - got2)) < 6) return;
       }
     } catch (_) { /* ignore */ }
-    const target = { x: to.x, y: from.y, z: to.z }; // level pitch
+    const target = { x: to.x, y: finalTarget ? to.y : from.y, z: to.z };
 
     // Prefer smooth setRotation with Showcase −Z forward yaw; lookAt recovers if pose still reverse.
     if (typeof mpSdk.Camera.setRotation === "function") {
       try {
-        await mpSdk.Camera.setRotation({ x: 0, y: yaw }, { speed: FACE_ROTATE_SPEED });
+        await mpSdk.Camera.setRotation(rotation, { speed: FACE_ROTATE_SPEED });
         const ok = await assertFacingYaw(yaw, "setRotation+speed");
         if (ok !== false) return;
       } catch (e) { console.warn("Camera.setRotation(speed) failed", e); }
       try {
-        await mpSdk.Camera.setRotation({ x: 0, y: yaw });
+        await mpSdk.Camera.setRotation(rotation);
         const ok = await assertFacingYaw(yaw, "setRotation");
         if (ok !== false) return;
       } catch (e2) { console.warn("Camera.setRotation failed", e2); }
@@ -1432,7 +1457,7 @@ function wfDbg(level, source, message, meta) {
     // Last resort: same-sweep INSTANT with rotation (can thrash WebGL — avoid if possible)
     try {
       await mpSdk.Sweep.moveTo(fromId, {
-        rotation: { x: 0, y: yaw },
+        rotation: rotation,
         transition: (mpSdk.Sweep.Transition && mpSdk.Sweep.Transition.INSTANT) || undefined,
       });
       await assertFacingYaw(yaw, "moveTo-instant");
@@ -2764,8 +2789,9 @@ function wfDbg(level, source, message, meta) {
     const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
     const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200 };
     const mpFace = (face && face.x != null) ? modelToSdk(face) : null;
-    const yaw = mpFace ? yawSdk(sw.position, mpFace) : null;
-    if (yaw != null && Number.isFinite(yaw)) opts.rotation = { x: 0, y: yaw };
+    const separateTarget = face && ["x", "y", "z"].some(axis => +face[axis] !== +target[axis]);
+    const rotation = mpFace ? facingRotationSdk(sw.position, mpFace, separateTarget) : null;
+    if (rotation) opts.rotation = rotation;
     try {
       await mpSdk.Sweep.moveTo(sw.sid, opts);
     } catch (e) {

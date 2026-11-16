@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     studio_supabase_url: str = ""
     studio_supabase_anon_key: str = ""
     studio_live_buildings: str = ""
+    # Dedicated execute-only login, separate from the read-only application DB.
+    poi_viewpoint_database_url: str = ""
+    poi_viewpoint_buildings: str = ""
     # Backend-only secret — bypasses RLS, never sent to any client. Used solely to upload
     # published bundles to Supabase Storage so they survive a Render free-tier disk wipe
     # (see services/bundle_storage.py). Empty disables that fallback entirely (local disk

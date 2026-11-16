@@ -107,8 +107,13 @@
         if (p[key] != null) o[key] = p[key];
       });
       o.lonlat = modelToLL(o.x, o.y);
-      if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null)
-        o.sdk.expected = {x:p.expected_pos_x,y:p.expected_pos_y,z:p.expected_pos_z};
+      if ([p.expected_pos_x, p.expected_pos_y, p.expected_pos_z].every(v =>
+        v != null && typeof v !== "boolean" && String(v).trim() !== "" && Number.isFinite(Number(v)))) {
+        o.expected_x = +p.expected_pos_x;
+        o.expected_y = -p.expected_pos_z;
+        o.expected_z = +p.expected_pos_y;
+        o.sdk.expected = {x:+p.expected_pos_x,y:+p.expected_pos_y,z:+p.expected_pos_z};
+      }
       return o;
     });
     const byId = {}; pois.forEach(p => byId[p.id] = p);

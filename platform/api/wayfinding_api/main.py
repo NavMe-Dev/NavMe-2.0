@@ -78,7 +78,13 @@ def create_app() -> FastAPI:
                 or re.fullmatch(r"/api/v1/public/buildings/[a-z0-9-]+/route", request.url.path)
                 or re.fullmatch(r"/api/v1/public/dashboard/buildings/[a-z0-9-]+/route-by-coords", request.url.path)
             )
-            if not query_post:
+            # This one admin mutation uses an isolated execute-only login. The
+            # route still requires current_admin and checks publication scope;
+            # the normal database connection remains transaction read-only.
+            viewpoint_put = (request.method == "PUT" and bool(s.poi_viewpoint_database_url)
+                and "uncc-main-campus" in {v.strip() for v in s.poi_viewpoint_buildings.split(",")}
+                and re.fullmatch(r"/api/v1/admin/buildings/uncc-main-campus/pois/[0-9]+/viewpoint", request.url.path))
+            if not (query_post or viewpoint_put):
                 return JSONResponse(status_code=503, content={"detail": "application is read-only"},
                                     headers={"Retry-After": "60"})
         from .services import debug_log as dbg

@@ -12,7 +12,7 @@ from ..db import get_db
 from ..auth import current_admin, oauth2
 from ..config import get_settings
 from .. import models, schemas
-from ..services import workspace, publish as pub, navgraph, navme
+from ..services import workspace, publish as pub, navgraph, navme, poi_viewpoints, studio_live
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"], dependencies=[Depends(current_admin)])
 PIPE_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "vps_index", "export"]
@@ -740,6 +740,61 @@ def put_floors(slug: str, floors: list[schemas.FloorIn], db: Session = Depends(g
 
 
 # ---------------- POIs ----------------
+@router.get("/buildings/{slug}/poi-viewpoints")
+def poi_viewpoint_state(slug: str, db: Session = Depends(get_db)):
+    from .public import _dashboard_pois, _release_read_session
+    b = B(db, slug)
+    cfg = get_settings()
+    if not poi_viewpoints.enabled(cfg, b):
+        return {"enabled": False, "writable": False, "pois": []}
+    if not pub.current_version(db, b):
+        return {"enabled": True, "writable": False, "pois": []}
+    mirrors = db.query(models.POI).filter_by(building_id=b.id, source="supabase", published=True).all()
+    records = {str((p.extra or {}).get("gmap_src_id") or p.key): {
+        "id": p.id, "revision": poi_viewpoints.revision(p.extra),
+        "override": bool(poi_viewpoints.get_target(p.extra))} for p in mirrors}
+    published = _dashboard_pois(b, db)
+    _release_read_session(db)
+    data = studio_live.load(cfg, b, published)
+    result = []
+    for p in data["pois"]:
+        if p["id"] not in records:
+            continue
+        position = {axis: p.get(axis) for axis in ("x", "y", "z")}
+        if not all(value is not None for value in position.values()):
+            continue
+        target = {axis: p.get("expected_pos_" + axis) for axis in ("x", "y", "z")}
+        result.append({**records[p["id"]], "source_id": p["id"], "name": p["name"],
+                       "position": position,
+                       "target": target if all(value is not None for value in target.values()) else None})
+    return {"enabled": True, "writable": bool(cfg.poi_viewpoint_database_url), "pois": result}
+
+
+@router.put("/buildings/{slug}/pois/{pid}/viewpoint")
+def save_poi_viewpoint(slug: str, pid: int, inp: poi_viewpoints.ViewpointUpdate,
+                       db: Session = Depends(get_db)):
+    from .public import _release_read_session
+    b = B(db, slug)
+    cfg = get_settings()
+    if not poi_viewpoints.enabled(cfg, b) or not pub.current_version(db, b):
+        raise HTTPException(404, "Published POI not found")
+    p = db.get(models.POI, pid)
+    if not p or p.building_id != b.id or p.source != "supabase" or not p.published:
+        raise HTTPException(404, "Published POI not found")
+    _release_read_session(db)
+    try:
+        result = poi_viewpoints.write(cfg, b, pid, inp)
+    except poi_viewpoints.ViewpointError as error:
+        raise HTTPException(error.status, error.message) from None
+    if inp.target is None:
+        # Reset uses the current Studio default, including prior calibrations.
+        state = poi_viewpoint_state(slug, db)
+        effective = next((row for row in state["pois"] if row["id"] == pid), None)
+        if effective:
+            result["target"] = effective["target"]
+    return result
+
+
 def pjson(p: models.POI):
     pt = to_shape(p.geom) if p.geom is not None else None
     return {"id": p.id, "key": p.key, "name": p.name, "code": p.code, "category": p.category, "floor": p.floor, "lon": pt.x if pt else None, "lat": pt.y if pt else None,

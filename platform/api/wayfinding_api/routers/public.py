@@ -641,6 +641,8 @@ def _dashboard_pois(b, db):
                 poi[key] = getattr(r, key)
         if isinstance(extra.get("studio_calibration"), dict):
             poi["_studio_calibration"] = extra["studio_calibration"]
+        if isinstance(extra.get("directions_viewpoint"), dict):
+            poi["_directions_viewpoint"] = extra["directions_viewpoint"]
         pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois

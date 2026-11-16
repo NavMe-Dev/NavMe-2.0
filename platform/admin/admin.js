@@ -641,6 +641,7 @@ const JobLog = {
 const Building = {
   props: ["slug", "tab"],
   template: `<div v-if="b"><div class="row"><h1 class="grow" style="margin:0">{{b.name}}</h1><span class="badge" :class="stCls(b.status)">{{b.status}}</span>
+      <a class="btn" v-if="b.slug==='uncc-main-campus'" :href="'#/b/'+slug+'/viewpoints'">Adjust POI viewpoints</a>
       <a class="btn" :href="viewerUrl(b)" target="_blank" v-if="b.published_version">{{t("admin.openViewer")}}</a></div>
     <div class="muted" style="margin:4px 0 12px">{{b.address}}</div>
     <nav class="tabs"><a v-for="t in tabs" :href="'#/b/'+slug+'/'+t[0]" :class="{on: (tab||'overview')===t[0]}">{{t[1]}}</a></nav>
@@ -652,6 +653,7 @@ const Building = {
     <tour-modes v-if="sawTour" v-show="tab==='tour'" :b="b" @reload="load"></tour-modes>
     <access-settings v-if="sawAccess" v-show="tab==='access'" :b="b" @reload="load"></access-settings>
     <pois v-if="tab==='pois'" :b="b"></pois>
+    <poi-viewpoints v-if="tab==='viewpoints' && b.slug==='uncc-main-campus'" :b="b"></poi-viewpoints>
     <routes v-if="tab==='routes'" :b="b"></routes>
     <publish v-if="tab==='publish'" :b="b" @reload="load"></publish>
     <jobs v-if="tab==='jobs'" :b="b"></jobs></div>`,
@@ -667,7 +669,8 @@ const Building = {
       ["media", t("admin.media") || "Media"],
       ["tour", t("admin.tour") || "Tour"],
       ["access", t("admin.access") || "Access"],
-      ["pois", t("admin.pois")], ["routes", t("admin.routeTester")], ["publish", t("admin.publish")], ["jobs", t("admin.jobs")]
+      ["pois", t("admin.pois")], ...(props.slug==='uncc-main-campus' ? [["viewpoints", "POI viewpoints"]] : []),
+      ["routes", t("admin.routeTester")], ["publish", t("admin.publish")], ["jobs", t("admin.jobs")]
     ]; });
     async function load() {
       b.value = await api("/admin/buildings/" + props.slug);
@@ -4107,6 +4110,7 @@ const App = {
   }
 };
 const app = createApp(App);
+app.component("poi-viewpoints", WFPoiViewpoint.createComponent({ api, fetchShowcaseUrl }));
 Object.entries({ login: Login, buildings: Buildings, dashboard: Dashboard, "config-page": ConfigPage, wizard: Wizard, building: Building, overview: Overview, georef: Georef, floors: Floors, elevators: Elevators, "media-panels": MediaPanels, "tour-modes": TourModes, "access-settings": AccessSettings, pois: Pois, routes: Routes, publish: Publish, jobs: Jobs, "job-log": JobLog, "scan-plans": ScanPlans, "scan-plan": ScanPlan, "view-mode-bar": ViewModeBar, "map-style-bar": MapStyleBar })
   .forEach(([k, v]) => app.component(k, v));
 app.mount("#app");

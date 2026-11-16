@@ -168,11 +168,51 @@
       };
     }
 
+    // Some SDK builds emit their sweep collection only before PLAYING. Keep
+    // that early snapshot so tools opened after readiness can still preview.
+    const unsubs = [];
+    let sweepSnapshot = null;
+    function stopSubscriptions() {
+      unsubs.splice(0).forEach(function (subscription) {
+        try {
+          if (typeof subscription === "function") subscription();
+          else if (subscription && subscription.cancel) subscription.cancel();
+          else if (subscription && subscription.unsubscribe) subscription.unsubscribe();
+        } catch (_) { /* already disconnected */ }
+      });
+    }
+    function keepSweep(key, row) {
+      if (!row) return;
+      const id = row.sid || row.id || row.uuid || key;
+      if (id == null) return;
+      if (!sweepSnapshot) sweepSnapshot = {};
+      if (row.enabled === false) delete sweepSnapshot[String(id)];
+      else sweepSnapshot[String(id)] = row;
+    }
+    function keepSweeps(collection) {
+      if (!collection) return;
+      sweepSnapshot = {};
+      if (typeof collection.forEach === "function") collection.forEach(function (row, key) { keepSweep(key, row); });
+      else Object.entries(collection).forEach(function (entry) { keepSweep(entry[0], entry[1]); });
+    }
+    try {
+      if (sdk.Sweep && sdk.Sweep.data && typeof sdk.Sweep.data.subscribe === "function") {
+        unsubs.push(sdk.Sweep.data.subscribe({
+          onCollectionUpdated: keepSweeps, onAdded: keepSweep, onUpdated: keepSweep,
+          onRemoved: function (key, row) {
+            const id = row && (row.sid || row.id || row.uuid) || key;
+            if (sweepSnapshot) delete sweepSnapshot[String(id)];
+          }, onChanged: function () {}
+        }));
+      }
+    } catch (_) { /* Model.getData is available to consumers as a fallback. */ }
+
     onStatus("Waiting for twin (tap Enter in Showcase if stuck on launch)…");
     const ready = await waitPlaying(sdk, (opts && opts.timeoutMs) || 90000, function () {
       onStatus("Tap Enter inside the Matterport window to leave the launch screen…");
     });
     if (!ready) {
+      stopSubscriptions();
       try { if (sdk.disconnect) sdk.disconnect(); } catch (_) { /* ignore */ }
       return {
         ok: false,
@@ -183,7 +223,6 @@
 
     let lastHit = null;
     let currentSweep = null;
-    const unsubs = [];
 
     try {
       if (sdk.Pointer && sdk.Pointer.intersection && sdk.Pointer.intersection.subscribe) {
@@ -239,13 +278,12 @@
     }
 
     function disconnect() {
-      unsubs.forEach(function (u) {
-        try { if (typeof u === "function") u(); } catch (_) { /* ignore */ }
-      });
+      stopSubscriptions();
       try { if (sdk && sdk.disconnect) sdk.disconnect(); } catch (_) { /* ignore */ }
       sdk = null;
       lastHit = null;
       currentSweep = null;
+      sweepSnapshot = null;
     }
 
     onStatus("Connected. Aim at the door (pointer) or stand at a sweep, then place.");
@@ -255,6 +293,7 @@
       disconnect: disconnect,
       pointerModelXY: pointerModelXY,
       sweepModelXY: sweepModelXY,
+      sweepData: function () { return sweepSnapshot; },
       hasPointer: function () { return !!(lastHit && lastHit.position); },
       hasSweep: function () { return !!(currentSweep && currentSweep.sid && currentSweep.position); }
     };

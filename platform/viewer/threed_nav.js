@@ -125,6 +125,7 @@
   let drawRaf = 0, unsubPose = null, unsubSweep = null;
   let modelId = "", appKey = "";
   let destPtMp = null;            // destination in MP Y-up (for pin drawing)
+  let destLookPtMp = null;        // independent arrival look target; never a route endpoint
   let destName = "";
   let fromName = "";              // origin POI name, for the shared arrival card's route feedback
   /** True once the arrival card has been shown for the current route. */
@@ -146,6 +147,14 @@
 
   // ── Coord conversion: NavMe Z-up → Matterport Y-up ─────────────────────────
   function toMp(p) { return { x: +p.x, y: +(p.z || 0), z: -(+p.y) }; }
+
+  function arrivalLookTarget(route) {
+    var p = route && route._destXYZ;
+    if (!p || ![p.x, p.y, p.z].every(function(v) {
+      return v != null && typeof v !== "boolean" && String(v).trim() !== "" && Number.isFinite(Number(v));
+    })) return null;
+    return toMp(p);
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   function $(id) { return document.getElementById(id); }
@@ -1407,6 +1416,13 @@
   function showArrived() {
     if (arrivedShown) return;
     arrivedShown = true;
+    if (destLookPtMp) {
+      var gen = openGen, sdk = mpSdk;
+      // One re-aim at the current scan point. The saved target never moves the
+      // route endpoint or teleports the visitor to the object they should face.
+      facePoint(destLookPtMp, {biasDeg: 0, allowNearPitch: true,
+        isCurrent: function() { return gen === openGen && sdk === mpSdk; }}).catch(function(){});
+    }
     // Shared "Destination reached" card (window.wfShowArrivalCard, ui.js) — same visual
     // design this file used to render on its own, now with thumbs up/down route
     // feedback and reused by Tour interior / Start Preview too, instead of 3 separate
@@ -1685,11 +1701,14 @@
     opts = opts || {};
     if (!mpSdk || !target) return Promise.resolve();
     return refreshPose(0).then(function() {
+      if (opts.isCurrent && !opts.isCurrent()) return;
       var from = lastPose && lastPose.position;
       if (!from) return;
       var flat = Math.sqrt((target.x-from.x)**2+(target.z-from.z)**2);
-      if (flat < 0.35) return;
-      var rot = rotationLookingAt(from, target, opts.pitch===false ? 0 : FACE_SCREEN_BIAS_DEG);
+      if (flat < 0.35 && !opts.allowNearPitch) return;
+      if (flat < 1e-6 && Math.abs(target.y-from.y) < 1e-6) return;
+      var bias = Number.isFinite(opts.biasDeg) ? opts.biasDeg : FACE_SCREEN_BIAS_DEG;
+      var rot = rotationLookingAt(from, target, opts.pitch===false ? 0 : bias);
       if (opts.pitch === false) rot.x = 0;
       var here = currentSweepSid || (lastPose&&(lastPose.sweepId||lastPose.sweep)) || null;
       if (!here) {
@@ -2385,6 +2404,7 @@
 
     var fromPtMp = toMp(pts[0]);
     destPtMp     = toMp(pts[pts.length-1]);
+    destLookPtMp = arrivalLookTarget(route);
     navPathMp    = pts.map(toMp);
     computeNavPathTurns();
     backendSweepIds = dedupeConsecutive(route.sweep_ids || []);
@@ -2493,6 +2513,7 @@
 
     var fromPtMp = toMp(pts[0]);                    // FROM — nearest scan point to teleport to
     destPtMp     = toMp(pts[pts.length-1]);          // TO   — shown as destination pin
+    destLookPtMp = arrivalLookTarget(route);
     // Store the full path in Matterport Y-up so sweepsAlongNavPath can use it.
     navPathMp    = pts.map(toMp);
     computeNavPathTurns();
@@ -2540,7 +2561,7 @@
     if (unsubSweep) { unsubSweep(); unsubSweep = null; }
     if (unsubSweepData) { unsubSweepData(); unsubSweepData = null; }
     if (drawRaf) { cancelAnimationFrame(drawRaf); drawRaf = 0; }
-    mpSdk = null; lastPose = null; navPts = []; navPathMp = []; navPathTurns = [];
+    mpSdk = null; lastPose = null; navPts = []; navPathMp = []; navPathTurns = []; destLookPtMp = null;
     sweepCollection = null; sweeps = [];
     routeSids = []; routeLegs = []; activeLeg = 0; backendSweepIds = [];
     currentSweepSid = null; prevSweepSid = null; destSweepSid = null;

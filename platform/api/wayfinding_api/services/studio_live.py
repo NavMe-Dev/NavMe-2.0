@@ -18,7 +18,7 @@ import time
 from urllib.parse import urlsplit
 from uuid import UUID
 
-from . import navme, navme_sync
+from . import navme, navme_sync, poi_viewpoints
 
 
 logger = logging.getLogger(__name__)
@@ -155,7 +155,14 @@ def _public_poi(row):
         values = _row_vector(row, prefix)
         if values is not None:
             result.update({prefix + axis: value for axis, value in zip(("x", "y", "z"), values)})
+    _apply_viewpoint(result, row)
     return result
+
+
+def _apply_viewpoint(result, original):
+    target = poi_viewpoints.get_target({"directions_viewpoint": original.get("_directions_viewpoint")})
+    if target:
+        result.update({"expected_pos_" + axis: target[axis] for axis in ("x", "y", "z")})
 
 
 def _category(row):
@@ -287,6 +294,7 @@ def _overlay(building, published, rows, fallback):
                 result.pop(prefix + axis, None)
             if values is not None:
                 result.update({prefix + axis: value for axis, value in zip(("x", "y", "z"), values)})
+        _apply_viewpoint(result, original)
         pois.append(result)
     pois.sort(key=lambda poi: poi.get("name", "").casefold())
     categories.sort(key=lambda category: (category["sort_order"], category.get("name", "")))

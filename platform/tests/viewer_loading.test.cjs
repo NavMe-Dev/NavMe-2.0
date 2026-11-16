@@ -48,6 +48,28 @@ function runtime({rejectCore = false, holdFloors = false, rejectConfig = false, 
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('curated look target uses the model axis conversion without moving the route anchor', async () => {
+  const r = runtime({poiDetails: {expected_pos_x: 0, expected_pos_y: 2.6, expected_pos_z: -8}});
+  await tick();
+  const p = r.context.wf.pois[0];
+  assert.deepEqual({x:p.x, y:p.y, z:p.z}, {x:1, y:-2, z:0});
+  assert.deepEqual({x:p.expected_x, y:p.expected_y, z:p.expected_z}, {x:0, y:8, z:2.6});
+  assert.deepEqual({...p.sdk.expected}, {x:0, y:2.6, z:-8});
+  r.releaseMetadata();
+  await r.context.WF.metadataReady;
+});
+
+for (const value of [undefined, null, '', false, NaN, Infinity]) {
+  test(`invalid or incomplete expected coordinates retain the default view (${String(value)})`, async () => {
+    const r = runtime({poiDetails: {expected_pos_x: value, expected_pos_y: 2.6, expected_pos_z: -8}});
+    await tick();
+    assert.equal(r.context.wf.pois[0].expected_x, undefined);
+    assert.equal(r.context.wf.pois[0].sdk.expected, undefined);
+    r.releaseMetadata();
+    await r.context.WF.metadataReady;
+  });
+}
+
 test('POI runtime starts while optional metadata is stalled, then hydrates it', async () => {
   const r = runtime();
   await tick();
