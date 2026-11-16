@@ -1,0 +1,47 @@
+[
+  {
+    "recorded_utc": "2026-11-16T13:10:26Z",
+    "sample": "During secondproductionAPIload",
+    "data": {
+      "max_connections": 60,
+      "superuser_reserved_connections": 3,
+      "reserved_connections": 0,
+      "client_connections": 20,
+      "reader_connections": 12,
+      "other_client_connections": 8,
+      "idle_in_transaction": 1,
+      "reader_active": 0,
+      "reader_idle": 11,
+      "reader_waiting_for_lock": 0,
+      "reader_role_connection_limit": -1
+    },
+    "attribution": "Readeraggregate includespoolerbackendsthatcanpersistaftertheplannedrollover; no perinstanceapplication_name available."
+  },
+  {
+    "recorded_utc": "2026-11-16T13:11:33Z",
+    "sample": "Transient idle-transaction followup duringload",
+    "data": {
+      "reader_idle_in_transaction": 10,
+      "max_reader_idle_transaction_age_seconds": "0.817820",
+      "reader_idle_transactions_over_5_seconds": 0
+    }
+  },
+  {
+    "recorded_utc": "2026-11-16T13:16:57Z",
+    "sample": "After completed load and60secondrecovery",
+    "data": {
+      "max_connections": 60,
+      "superuser_reserved_connections": 3,
+      "reserved_connections": 0,
+      "client_connections": 20,
+      "reader_connections": 12,
+      "other_client_connections": 8,
+      "idle_in_transaction": 0,
+      "reader_idle_in_transaction": 0,
+      "reader_active": 0,
+      "reader_idle": 12,
+      "reader_waiting_for_lock": 0,
+      "reader_role_connection_limit": -1
+    }
+  }
+]

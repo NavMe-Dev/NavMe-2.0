@@ -1,0 +1,2668 @@
+{
+  "schema": "navme.production-visitor-check/v1",
+  "started_utc": "2026-11-16T12:53:02.723730+00:00",
+  "origin": "https://wayfinding.navme.space",
+  "slug": "uncc-main-campus",
+  "scope": "Paced public API visitors, not simultaneous Matterport/browser renderers",
+  "production_load_authorized_by_user": true,
+  "constraints": {
+    "max_visitors": 60,
+    "max_rps": 25.0,
+    "max_connections": 72,
+    "max_aggregate_response_body_mib": 512,
+    "new_data_or_admin_writes": false,
+    "cache_clear_or_cache_bust": false
+  },
+  "stages": [
+    {
+      "concurrent_visitors": 1,
+      "scope": "API visitor tasks; not browser/Matterport instances",
+      "bootstrap_seconds": 19.33,
+      "loaded_session_seconds_requested": 10,
+      "wall_seconds": 37.32,
+      "peak_inflight_http_requests": 2,
+      "requests": 28,
+      "unexpected_failures": 0,
+      "failure_percent": 0.0,
+      "status_counts": {
+        "200": 28
+      },
+      "latency": {
+        "count": 28,
+        "p50_ms": 526.78,
+        "p95_ms": 1923.5,
+        "p99_ms": 2522.28,
+        "max_ms": 2725.96
+      },
+      "by_kind": {
+        "liveness_probe": {
+          "requests": 15,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 15
+          },
+          "encoded_body_bytes": 435,
+          "decoded_body_bytes": 435,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 15,
+            "p50_ms": 229.4,
+            "p95_ms": 461.25,
+            "p99_ms": 644.75,
+            "max_ms": 690.63
+          }
+        },
+        "landing_html": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 7279,
+          "decoded_body_bytes": 28314,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 990.55,
+            "p95_ms": 990.55,
+            "p99_ms": 990.55,
+            "max_ms": 990.55
+          }
+        },
+        "manifest": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 523,
+          "decoded_body_bytes": 1215,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1971.59,
+            "p95_ms": 1971.59,
+            "p99_ms": 1971.59,
+            "max_ms": 1971.59
+          }
+        },
+        "config": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 1113,
+          "decoded_body_bytes": 3174,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1138.88,
+            "p95_ms": 1138.88,
+            "p99_ms": 1138.88,
+            "max_ms": 1138.88
+          }
+        },
+        "viewer_data": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 17532,
+          "decoded_body_bytes": 74396,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1834.2,
+            "p95_ms": 1834.2,
+            "p99_ms": 1834.2,
+            "max_ms": 1834.2
+          }
+        },
+        "floor_metadata": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 13,
+          "decoded_body_bytes": 13,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1318.0,
+            "p95_ms": 1318.0,
+            "p99_ms": 1318.0,
+            "max_ms": 1318.0
+          }
+        },
+        "matterport_config": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 126,
+          "decoded_body_bytes": 118,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1098.09,
+            "p95_ms": 1098.09,
+            "p99_ms": 1098.09,
+            "max_ms": 1098.09
+          }
+        },
+        "shops": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 2,
+          "decoded_body_bytes": 2,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1526.13,
+            "p95_ms": 1526.13,
+            "p99_ms": 1526.13,
+            "max_ms": 1526.13
+          }
+        },
+        "ar_reference": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 141,
+          "decoded_body_bytes": 142,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1715.63,
+            "p95_ms": 1715.63,
+            "p99_ms": 1715.63,
+            "max_ms": 1715.63
+          }
+        },
+        "translations": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 8978,
+          "decoded_body_bytes": 27549,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 2725.96,
+            "p95_ms": 2725.96,
+            "p99_ms": 2725.96,
+            "max_ms": 2725.96
+          }
+        },
+        "media_panels": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 97,
+          "decoded_body_bytes": 91,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1307.42,
+            "p95_ms": 1307.42,
+            "p99_ms": 1307.42,
+            "max_ms": 1307.42
+          }
+        },
+        "navmesh_resolver": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 112,
+          "decoded_body_bytes": 110,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 770.77,
+            "p95_ms": 770.77,
+            "p99_ms": 770.77,
+            "max_ms": 770.77
+          }
+        },
+        "navmesh_binary": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 2294432,
+          "decoded_body_bytes": 2294432,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 858.77,
+            "p95_ms": 858.77,
+            "p99_ms": 858.77,
+            "max_ms": 858.77
+          }
+        },
+        "poi_viewpoint": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 329,
+          "decoded_body_bytes": 451,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1291.61,
+            "p95_ms": 1291.61,
+            "p99_ms": 1291.61,
+            "max_ms": 1291.61
+          }
+        }
+      },
+      "network_by_path": {
+        "/api/live": {
+          "requests": 15,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 15
+          },
+          "encoded_body_bytes": 435,
+          "decoded_body_bytes": 435,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 15,
+            "p50_ms": 229.4,
+            "p95_ms": 461.25,
+            "p99_ms": 644.75,
+            "max_ms": 690.63
+          }
+        },
+        "/unc-charlotte": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 7279,
+          "decoded_body_bytes": 28314,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 990.55,
+            "p95_ms": 990.55,
+            "p99_ms": 990.55,
+            "max_ms": 990.55
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 523,
+          "decoded_body_bytes": 1215,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1971.59,
+            "p95_ms": 1971.59,
+            "p99_ms": 1971.59,
+            "max_ms": 1971.59
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 1113,
+          "decoded_body_bytes": 3174,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1138.88,
+            "p95_ms": 1138.88,
+            "p99_ms": 1138.88,
+            "max_ms": 1138.88
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 17532,
+          "decoded_body_bytes": 74396,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1834.2,
+            "p95_ms": 1834.2,
+            "p99_ms": 1834.2,
+            "max_ms": 1834.2
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 13,
+          "decoded_body_bytes": 13,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1318.0,
+            "p95_ms": 1318.0,
+            "p99_ms": 1318.0,
+            "max_ms": 1318.0
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 126,
+          "decoded_body_bytes": 118,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1098.09,
+            "p95_ms": 1098.09,
+            "p99_ms": 1098.09,
+            "max_ms": 1098.09
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/shops": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 2,
+          "decoded_body_bytes": 2,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1526.13,
+            "p95_ms": 1526.13,
+            "p99_ms": 1526.13,
+            "max_ms": 1526.13
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 141,
+          "decoded_body_bytes": 142,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1715.63,
+            "p95_ms": 1715.63,
+            "p99_ms": 1715.63,
+            "max_ms": 1715.63
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/translations": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 8978,
+          "decoded_body_bytes": 27549,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 2725.96,
+            "p95_ms": 2725.96,
+            "p99_ms": 2725.96,
+            "max_ms": 2725.96
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/media_panels.json": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 97,
+          "decoded_body_bytes": 91,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1307.42,
+            "p95_ms": 1307.42,
+            "p99_ms": 1307.42,
+            "max_ms": 1307.42
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/navmesh-url": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 112,
+          "decoded_body_bytes": 110,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 770.77,
+            "p95_ms": 770.77,
+            "p99_ms": 770.77,
+            "max_ms": 770.77
+          }
+        },
+        "/uncc-main-campus_navmesh.navmesh": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 2294432,
+          "decoded_body_bytes": 2294432,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 858.77,
+            "p95_ms": 858.77,
+            "p99_ms": 858.77,
+            "max_ms": 858.77
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/camera-viewpoints/:location_id": {
+          "requests": 1,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "encoded_body_bytes": 329,
+          "decoded_body_bytes": 451,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 1,
+            "p50_ms": 1291.61,
+            "p95_ms": 1291.61,
+            "p99_ms": 1291.61,
+            "max_ms": 1291.61
+          }
+        }
+      },
+      "liveness_probe_statuses": {
+        "200": 15
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 1111.26
+        },
+        {
+          "status": 200,
+          "ms": 1095.66
+        },
+        {
+          "status": 200,
+          "ms": 1101.94
+        }
+      ],
+      "errors": [],
+      "completed_without_stop": true,
+      "browser_model_or_iframe_reload_observed": "NOT_MEASURED_BY_API_TEST"
+    },
+    {
+      "concurrent_visitors": 10,
+      "scope": "API visitor tasks; not browser/Matterport instances",
+      "bootstrap_seconds": 23.64,
+      "loaded_session_seconds_requested": 10,
+      "wall_seconds": 43.94,
+      "peak_inflight_http_requests": 11,
+      "requests": 150,
+      "unexpected_failures": 0,
+      "failure_percent": 0.0,
+      "status_counts": {
+        "200": 150
+      },
+      "latency": {
+        "count": 150,
+        "p50_ms": 1369.65,
+        "p95_ms": 2440.8,
+        "p99_ms": 2720.98,
+        "max_ms": 3133.84
+      },
+      "by_kind": {
+        "liveness_probe": {
+          "requests": 18,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 18
+          },
+          "encoded_body_bytes": 522,
+          "decoded_body_bytes": 522,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 18,
+            "p50_ms": 224.91,
+            "p95_ms": 261.17,
+            "p99_ms": 262.03,
+            "max_ms": 262.25
+          }
+        },
+        "landing_html": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 72790,
+          "decoded_body_bytes": 283140,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 238.47,
+            "p95_ms": 273.89,
+            "p99_ms": 277.99,
+            "max_ms": 279.02
+          }
+        },
+        "manifest": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 5230,
+          "decoded_body_bytes": 12150,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1357.21,
+            "p95_ms": 2722.6,
+            "p99_ms": 2737.13,
+            "max_ms": 2740.76
+          }
+        },
+        "config": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 11130,
+          "decoded_body_bytes": 31740,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1591.36,
+            "p95_ms": 1847.08,
+            "p99_ms": 1849.31,
+            "max_ms": 1849.87
+          }
+        },
+        "viewer_data": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 175278,
+          "decoded_body_bytes": 743960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 2202.84,
+            "p95_ms": 2846.83,
+            "p99_ms": 3076.44,
+            "max_ms": 3133.84
+          }
+        },
+        "floor_metadata": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 130,
+          "decoded_body_bytes": 130,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 2204.01,
+            "p95_ms": 2544.51,
+            "p99_ms": 2549.66,
+            "max_ms": 2550.95
+          }
+        },
+        "matterport_config": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1260,
+          "decoded_body_bytes": 1180,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1215.0,
+            "p95_ms": 1449.83,
+            "p99_ms": 1473.62,
+            "max_ms": 1479.57
+          }
+        },
+        "shops": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 20,
+          "decoded_body_bytes": 20,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1615.82,
+            "p95_ms": 1915.35,
+            "p99_ms": 1987.33,
+            "max_ms": 2005.33
+          }
+        },
+        "ar_reference": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1410,
+          "decoded_body_bytes": 1420,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1773.03,
+            "p95_ms": 2009.8,
+            "p99_ms": 2091.26,
+            "max_ms": 2111.62
+          }
+        },
+        "translations": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 89780,
+          "decoded_body_bytes": 275490,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1762.76,
+            "p95_ms": 2267.56,
+            "p99_ms": 2340.15,
+            "max_ms": 2358.3
+          }
+        },
+        "media_panels": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 970,
+          "decoded_body_bytes": 910,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1519.88,
+            "p95_ms": 1962.2,
+            "p99_ms": 2056.79,
+            "max_ms": 2080.44
+          }
+        },
+        "navmesh_resolver": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1120,
+          "decoded_body_bytes": 1100,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1125.66,
+            "p95_ms": 1199.62,
+            "p99_ms": 1205.8,
+            "max_ms": 1207.34
+          }
+        },
+        "navmesh_binary": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 22944320,
+          "decoded_body_bytes": 22944320,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 887.3,
+            "p95_ms": 1912.41,
+            "p99_ms": 1981.72,
+            "max_ms": 1999.05
+          }
+        },
+        "poi_viewpoint": {
+          "requests": 12,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 12
+          },
+          "encoded_body_bytes": 3611,
+          "decoded_body_bytes": 4822,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 12,
+            "p50_ms": 1278.89,
+            "p95_ms": 1996.16,
+            "p99_ms": 2554.76,
+            "max_ms": 2694.41
+          }
+        }
+      },
+      "network_by_path": {
+        "/api/live": {
+          "requests": 18,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 18
+          },
+          "encoded_body_bytes": 522,
+          "decoded_body_bytes": 522,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 18,
+            "p50_ms": 224.91,
+            "p95_ms": 261.17,
+            "p99_ms": 262.03,
+            "max_ms": 262.25
+          }
+        },
+        "/unc-charlotte": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 72790,
+          "decoded_body_bytes": 283140,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 238.47,
+            "p95_ms": 273.89,
+            "p99_ms": 277.99,
+            "max_ms": 279.02
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 5230,
+          "decoded_body_bytes": 12150,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1357.21,
+            "p95_ms": 2722.6,
+            "p99_ms": 2737.13,
+            "max_ms": 2740.76
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 11130,
+          "decoded_body_bytes": 31740,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1591.36,
+            "p95_ms": 1847.08,
+            "p99_ms": 1849.31,
+            "max_ms": 1849.87
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 175278,
+          "decoded_body_bytes": 743960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 2202.84,
+            "p95_ms": 2846.83,
+            "p99_ms": 3076.44,
+            "max_ms": 3133.84
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 130,
+          "decoded_body_bytes": 130,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 2204.01,
+            "p95_ms": 2544.51,
+            "p99_ms": 2549.66,
+            "max_ms": 2550.95
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1260,
+          "decoded_body_bytes": 1180,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1215.0,
+            "p95_ms": 1449.83,
+            "p99_ms": 1473.62,
+            "max_ms": 1479.57
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/shops": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 20,
+          "decoded_body_bytes": 20,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1615.82,
+            "p95_ms": 1915.35,
+            "p99_ms": 1987.33,
+            "max_ms": 2005.33
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1410,
+          "decoded_body_bytes": 1420,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1773.03,
+            "p95_ms": 2009.8,
+            "p99_ms": 2091.26,
+            "max_ms": 2111.62
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/translations": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 89780,
+          "decoded_body_bytes": 275490,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1762.76,
+            "p95_ms": 2267.56,
+            "p99_ms": 2340.15,
+            "max_ms": 2358.3
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/media_panels.json": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 970,
+          "decoded_body_bytes": 910,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1519.88,
+            "p95_ms": 1962.2,
+            "p99_ms": 2056.79,
+            "max_ms": 2080.44
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/navmesh-url": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 1120,
+          "decoded_body_bytes": 1100,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 1125.66,
+            "p95_ms": 1199.62,
+            "p99_ms": 1205.8,
+            "max_ms": 1207.34
+          }
+        },
+        "/uncc-main-campus_navmesh.navmesh": {
+          "requests": 10,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 10
+          },
+          "encoded_body_bytes": 22944320,
+          "decoded_body_bytes": 22944320,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 10,
+            "p50_ms": 887.3,
+            "p95_ms": 1912.41,
+            "p99_ms": 1981.72,
+            "max_ms": 1999.05
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/camera-viewpoints/:location_id": {
+          "requests": 12,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 12
+          },
+          "encoded_body_bytes": 3611,
+          "decoded_body_bytes": 4822,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 12,
+            "p50_ms": 1278.89,
+            "p95_ms": 1996.16,
+            "p99_ms": 2554.76,
+            "max_ms": 2694.41
+          }
+        }
+      },
+      "liveness_probe_statuses": {
+        "200": 18
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 1093.66
+        },
+        {
+          "status": 200,
+          "ms": 1094.99
+        },
+        {
+          "status": 200,
+          "ms": 1104.34
+        }
+      ],
+      "errors": [],
+      "completed_without_stop": true,
+      "browser_model_or_iframe_reload_observed": "NOT_MEASURED_BY_API_TEST"
+    },
+    {
+      "concurrent_visitors": 25,
+      "scope": "API visitor tasks; not browser/Matterport instances",
+      "bootstrap_seconds": 54.53,
+      "loaded_session_seconds_requested": 10,
+      "wall_seconds": 74.79,
+      "peak_inflight_http_requests": 26,
+      "requests": 362,
+      "unexpected_failures": 0,
+      "failure_percent": 0.0,
+      "status_counts": {
+        "200": 362
+      },
+      "latency": {
+        "count": 362,
+        "p50_ms": 4040.76,
+        "p95_ms": 6782.29,
+        "p99_ms": 7265.85,
+        "max_ms": 7736.95
+      },
+      "by_kind": {
+        "liveness_probe": {
+          "requests": 32,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 32
+          },
+          "encoded_body_bytes": 928,
+          "decoded_body_bytes": 928,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 32,
+            "p50_ms": 226.89,
+            "p95_ms": 265.7,
+            "p99_ms": 267.36,
+            "max_ms": 267.75
+          }
+        },
+        "landing_html": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 181975,
+          "decoded_body_bytes": 707850,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 246.44,
+            "p95_ms": 378.16,
+            "p99_ms": 788.78,
+            "max_ms": 915.12
+          }
+        },
+        "manifest": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 13075,
+          "decoded_body_bytes": 30375,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 2911.88,
+            "p95_ms": 5064.83,
+            "p99_ms": 5138.26,
+            "max_ms": 5140.24
+          }
+        },
+        "config": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 27825,
+          "decoded_body_bytes": 79350,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 5032.86,
+            "p95_ms": 5590.72,
+            "p99_ms": 5715.47,
+            "max_ms": 5753.52
+          }
+        },
+        "viewer_data": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 438048,
+          "decoded_body_bytes": 1859900,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 6787.44,
+            "p95_ms": 7465.39,
+            "p99_ms": 7673.8,
+            "max_ms": 7736.95
+          }
+        },
+        "floor_metadata": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 325,
+          "decoded_body_bytes": 325,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 6464.59,
+            "p95_ms": 7009.89,
+            "p99_ms": 7021.68,
+            "max_ms": 7024.14
+          }
+        },
+        "matterport_config": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 3150,
+          "decoded_body_bytes": 2950,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4178.18,
+            "p95_ms": 6276.71,
+            "p99_ms": 6860.32,
+            "max_ms": 7041.44
+          }
+        },
+        "shops": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 50,
+          "decoded_body_bytes": 50,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4288.04,
+            "p95_ms": 4823.16,
+            "p99_ms": 5299.42,
+            "max_ms": 5437.06
+          }
+        },
+        "ar_reference": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 3525,
+          "decoded_body_bytes": 3550,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4191.59,
+            "p95_ms": 4587.71,
+            "p99_ms": 4739.58,
+            "max_ms": 4782.98
+          }
+        },
+        "translations": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 224450,
+          "decoded_body_bytes": 688725,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4889.1,
+            "p95_ms": 5643.46,
+            "p99_ms": 5701.22,
+            "max_ms": 5712.18
+          }
+        },
+        "media_panels": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 2425,
+          "decoded_body_bytes": 2275,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4608.38,
+            "p95_ms": 5469.68,
+            "p99_ms": 5501.84,
+            "max_ms": 5504.47
+          }
+        },
+        "navmesh_resolver": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 2800,
+          "decoded_body_bytes": 2750,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 2986.49,
+            "p95_ms": 4627.88,
+            "p99_ms": 4986.14,
+            "max_ms": 5091.43
+          }
+        },
+        "navmesh_binary": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 57360800,
+          "decoded_body_bytes": 57360800,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 740.85,
+            "p95_ms": 1740.11,
+            "p99_ms": 1923.18,
+            "max_ms": 1930.32
+          }
+        },
+        "poi_viewpoint": {
+          "requests": 30,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 30
+          },
+          "encoded_body_bytes": 8837,
+          "decoded_body_bytes": 11743,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 30,
+            "p50_ms": 2028.11,
+            "p95_ms": 2851.17,
+            "p99_ms": 2878.97,
+            "max_ms": 2880.2
+          }
+        }
+      },
+      "network_by_path": {
+        "/api/live": {
+          "requests": 32,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 32
+          },
+          "encoded_body_bytes": 928,
+          "decoded_body_bytes": 928,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 32,
+            "p50_ms": 226.89,
+            "p95_ms": 265.7,
+            "p99_ms": 267.36,
+            "max_ms": 267.75
+          }
+        },
+        "/unc-charlotte": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 181975,
+          "decoded_body_bytes": 707850,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 246.44,
+            "p95_ms": 378.16,
+            "p99_ms": 788.78,
+            "max_ms": 915.12
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 13075,
+          "decoded_body_bytes": 30375,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 2911.88,
+            "p95_ms": 5064.83,
+            "p99_ms": 5138.26,
+            "max_ms": 5140.24
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 27825,
+          "decoded_body_bytes": 79350,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 5032.86,
+            "p95_ms": 5590.72,
+            "p99_ms": 5715.47,
+            "max_ms": 5753.52
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 438048,
+          "decoded_body_bytes": 1859900,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 6787.44,
+            "p95_ms": 7465.39,
+            "p99_ms": 7673.8,
+            "max_ms": 7736.95
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 325,
+          "decoded_body_bytes": 325,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 6464.59,
+            "p95_ms": 7009.89,
+            "p99_ms": 7021.68,
+            "max_ms": 7024.14
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 3150,
+          "decoded_body_bytes": 2950,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4178.18,
+            "p95_ms": 6276.71,
+            "p99_ms": 6860.32,
+            "max_ms": 7041.44
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/shops": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 50,
+          "decoded_body_bytes": 50,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4288.04,
+            "p95_ms": 4823.16,
+            "p99_ms": 5299.42,
+            "max_ms": 5437.06
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 3525,
+          "decoded_body_bytes": 3550,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4191.59,
+            "p95_ms": 4587.71,
+            "p99_ms": 4739.58,
+            "max_ms": 4782.98
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/translations": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 224450,
+          "decoded_body_bytes": 688725,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4889.1,
+            "p95_ms": 5643.46,
+            "p99_ms": 5701.22,
+            "max_ms": 5712.18
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/media_panels.json": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 2425,
+          "decoded_body_bytes": 2275,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 4608.38,
+            "p95_ms": 5469.68,
+            "p99_ms": 5501.84,
+            "max_ms": 5504.47
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/navmesh-url": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 2800,
+          "decoded_body_bytes": 2750,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 2986.49,
+            "p95_ms": 4627.88,
+            "p99_ms": 4986.14,
+            "max_ms": 5091.43
+          }
+        },
+        "/uncc-main-campus_navmesh.navmesh": {
+          "requests": 25,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 25
+          },
+          "encoded_body_bytes": 57360800,
+          "decoded_body_bytes": 57360800,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 25,
+            "p50_ms": 740.85,
+            "p95_ms": 1740.11,
+            "p99_ms": 1923.18,
+            "max_ms": 1930.32
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/camera-viewpoints/:location_id": {
+          "requests": 30,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 30
+          },
+          "encoded_body_bytes": 8837,
+          "decoded_body_bytes": 11743,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 30,
+            "p50_ms": 2028.11,
+            "p95_ms": 2851.17,
+            "p99_ms": 2878.97,
+            "max_ms": 2880.2
+          }
+        }
+      },
+      "liveness_probe_statuses": {
+        "200": 32
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 1089.09
+        },
+        {
+          "status": 200,
+          "ms": 1095.54
+        },
+        {
+          "status": 200,
+          "ms": 1089.84
+        }
+      ],
+      "errors": [],
+      "completed_without_stop": true,
+      "browser_model_or_iframe_reload_observed": "NOT_MEASURED_BY_API_TEST"
+    },
+    {
+      "concurrent_visitors": 40,
+      "scope": "API visitor tasks; not browser/Matterport instances",
+      "bootstrap_seconds": 79.0,
+      "loaded_session_seconds_requested": 10,
+      "wall_seconds": 99.88,
+      "peak_inflight_http_requests": 41,
+      "requests": 566,
+      "unexpected_failures": 0,
+      "failure_percent": 0.0,
+      "status_counts": {
+        "200": 566
+      },
+      "latency": {
+        "count": 566,
+        "p50_ms": 6400.23,
+        "p95_ms": 8702.14,
+        "p99_ms": 9111.06,
+        "max_ms": 10356.63
+      },
+      "by_kind": {
+        "liveness_probe": {
+          "requests": 43,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 43
+          },
+          "encoded_body_bytes": 1247,
+          "decoded_body_bytes": 1247,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 43,
+            "p50_ms": 248.89,
+            "p95_ms": 368.43,
+            "p99_ms": 547.52,
+            "max_ms": 633.51
+          }
+        },
+        "landing_html": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 291160,
+          "decoded_body_bytes": 1132560,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 250.54,
+            "p95_ms": 344.02,
+            "p99_ms": 936.42,
+            "max_ms": 1241.14
+          }
+        },
+        "manifest": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 20920,
+          "decoded_body_bytes": 48600,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 4192.99,
+            "p95_ms": 8012.87,
+            "p99_ms": 8046.41,
+            "max_ms": 8057.67
+          }
+        },
+        "config": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 44520,
+          "decoded_body_bytes": 126960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7508.35,
+            "p95_ms": 7944.74,
+            "p99_ms": 8028.34,
+            "max_ms": 8072.64
+          }
+        },
+        "viewer_data": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 700860,
+          "decoded_body_bytes": 2975840,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 8386.94,
+            "p95_ms": 9330.77,
+            "p99_ms": 9985.08,
+            "max_ms": 10356.63
+          }
+        },
+        "floor_metadata": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 520,
+          "decoded_body_bytes": 520,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 8068.9,
+            "p95_ms": 8921.1,
+            "p99_ms": 9091.61,
+            "max_ms": 9179.52
+          }
+        },
+        "matterport_config": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 5040,
+          "decoded_body_bytes": 4720,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6555.29,
+            "p95_ms": 8358.27,
+            "p99_ms": 8630.91,
+            "max_ms": 8654.45
+          }
+        },
+        "shops": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 80,
+          "decoded_body_bytes": 80,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6563.81,
+            "p95_ms": 7415.71,
+            "p99_ms": 8499.53,
+            "max_ms": 8939.76
+          }
+        },
+        "ar_reference": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 5640,
+          "decoded_body_bytes": 5680,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6643.99,
+            "p95_ms": 7263.99,
+            "p99_ms": 7424.27,
+            "max_ms": 7438.48
+          }
+        },
+        "translations": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 359120,
+          "decoded_body_bytes": 1101960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7824.53,
+            "p95_ms": 8920.11,
+            "p99_ms": 9100.87,
+            "max_ms": 9163.07
+          }
+        },
+        "media_panels": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 3880,
+          "decoded_body_bytes": 3640,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7390.13,
+            "p95_ms": 8449.45,
+            "p99_ms": 8696.12,
+            "max_ms": 8777.98
+          }
+        },
+        "navmesh_resolver": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 4480,
+          "decoded_body_bytes": 4400,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 4960.59,
+            "p95_ms": 7770.58,
+            "p99_ms": 8221.02,
+            "max_ms": 8389.11
+          }
+        },
+        "navmesh_binary": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 91777280,
+          "decoded_body_bytes": 91777280,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 832.8,
+            "p95_ms": 1923.19,
+            "p99_ms": 2059.93,
+            "max_ms": 2098.63
+          }
+        },
+        "poi_viewpoint": {
+          "requests": 43,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 43
+          },
+          "encoded_body_bytes": 12088,
+          "decoded_body_bytes": 15823,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 43,
+            "p50_ms": 4429.61,
+            "p95_ms": 6473.44,
+            "p99_ms": 6603.08,
+            "max_ms": 6615.3
+          }
+        }
+      },
+      "network_by_path": {
+        "/api/live": {
+          "requests": 43,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 43
+          },
+          "encoded_body_bytes": 1247,
+          "decoded_body_bytes": 1247,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 43,
+            "p50_ms": 248.89,
+            "p95_ms": 368.43,
+            "p99_ms": 547.52,
+            "max_ms": 633.51
+          }
+        },
+        "/unc-charlotte": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 291160,
+          "decoded_body_bytes": 1132560,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 250.54,
+            "p95_ms": 344.02,
+            "p99_ms": 936.42,
+            "max_ms": 1241.14
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 20920,
+          "decoded_body_bytes": 48600,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 4192.99,
+            "p95_ms": 8012.87,
+            "p99_ms": 8046.41,
+            "max_ms": 8057.67
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 44520,
+          "decoded_body_bytes": 126960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7508.35,
+            "p95_ms": 7944.74,
+            "p99_ms": 8028.34,
+            "max_ms": 8072.64
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 700860,
+          "decoded_body_bytes": 2975840,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 8386.94,
+            "p95_ms": 9330.77,
+            "p99_ms": 9985.08,
+            "max_ms": 10356.63
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 520,
+          "decoded_body_bytes": 520,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 8068.9,
+            "p95_ms": 8921.1,
+            "p99_ms": 9091.61,
+            "max_ms": 9179.52
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 5040,
+          "decoded_body_bytes": 4720,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6555.29,
+            "p95_ms": 8358.27,
+            "p99_ms": 8630.91,
+            "max_ms": 8654.45
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/shops": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 80,
+          "decoded_body_bytes": 80,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6563.81,
+            "p95_ms": 7415.71,
+            "p99_ms": 8499.53,
+            "max_ms": 8939.76
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 5640,
+          "decoded_body_bytes": 5680,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 6643.99,
+            "p95_ms": 7263.99,
+            "p99_ms": 7424.27,
+            "max_ms": 7438.48
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/translations": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 359120,
+          "decoded_body_bytes": 1101960,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7824.53,
+            "p95_ms": 8920.11,
+            "p99_ms": 9100.87,
+            "max_ms": 9163.07
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/media_panels.json": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 3880,
+          "decoded_body_bytes": 3640,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 7390.13,
+            "p95_ms": 8449.45,
+            "p99_ms": 8696.12,
+            "max_ms": 8777.98
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/navmesh-url": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 4480,
+          "decoded_body_bytes": 4400,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 4960.59,
+            "p95_ms": 7770.58,
+            "p99_ms": 8221.02,
+            "max_ms": 8389.11
+          }
+        },
+        "/uncc-main-campus_navmesh.navmesh": {
+          "requests": 40,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 40
+          },
+          "encoded_body_bytes": 91777280,
+          "decoded_body_bytes": 91777280,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 40,
+            "p50_ms": 832.8,
+            "p95_ms": 1923.19,
+            "p99_ms": 2059.93,
+            "max_ms": 2098.63
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/camera-viewpoints/:location_id": {
+          "requests": 43,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 43
+          },
+          "encoded_body_bytes": 12088,
+          "decoded_body_bytes": 15823,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 43,
+            "p50_ms": 4429.61,
+            "p95_ms": 6473.44,
+            "p99_ms": 6603.08,
+            "max_ms": 6615.3
+          }
+        }
+      },
+      "liveness_probe_statuses": {
+        "200": 43
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 1105.65
+        },
+        {
+          "status": 200,
+          "ms": 1092.61
+        },
+        {
+          "status": 200,
+          "ms": 1092.04
+        }
+      ],
+      "errors": [],
+      "completed_without_stop": true,
+      "browser_model_or_iframe_reload_observed": "NOT_MEASURED_BY_API_TEST"
+    },
+    {
+      "concurrent_visitors": 60,
+      "scope": "API visitor tasks; not browser/Matterport instances",
+      "bootstrap_seconds": 49.28,
+      "loaded_session_seconds_requested": 120,
+      "wall_seconds": 53.76,
+      "peak_inflight_http_requests": 61,
+      "requests": 295,
+      "unexpected_failures": 1,
+      "failure_percent": 0.339,
+      "status_counts": {
+        "200": 294,
+        "503": 1
+      },
+      "latency": {
+        "count": 295,
+        "p50_ms": 10734.05,
+        "p95_ms": 13859.84,
+        "p99_ms": 16275.82,
+        "max_ms": 19634.25
+      },
+      "by_kind": {
+        "liveness_probe": {
+          "requests": 12,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 12
+          },
+          "encoded_body_bytes": 348,
+          "decoded_body_bytes": 348,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 12,
+            "p50_ms": 1334.27,
+            "p95_ms": 2285.1,
+            "p99_ms": 2302.78,
+            "max_ms": 2307.2
+          }
+        },
+        "landing_html": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 436740,
+          "decoded_body_bytes": 1698840,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 257.66,
+            "p95_ms": 3223.95,
+            "p99_ms": 4673.98,
+            "max_ms": 4731.43
+          }
+        },
+        "manifest": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 31380,
+          "decoded_body_bytes": 72900,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 6020.23,
+            "p95_ms": 10869.3,
+            "p99_ms": 11500.9,
+            "max_ms": 11531.41
+          }
+        },
+        "config": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 66780,
+          "decoded_body_bytes": 190440,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 12980.83,
+            "p95_ms": 16069.39,
+            "p99_ms": 17638.66,
+            "max_ms": 19634.25
+          }
+        },
+        "viewer_data": {
+          "requests": 60,
+          "unexpected_failures": 1,
+          "status_counts": {
+            "200": 59,
+            "503": 1
+          },
+          "encoded_body_bytes": 1034127,
+          "decoded_body_bytes": 4389397,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 11272.72,
+            "p95_ms": 12677.55,
+            "p99_ms": 17357.19,
+            "max_ms": 18373.79
+          }
+        },
+        "floor_metadata": {
+          "requests": 38,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 38
+          },
+          "encoded_body_bytes": 494,
+          "decoded_body_bytes": 494,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 38,
+            "p50_ms": 11886.59,
+            "p95_ms": 12769.76,
+            "p99_ms": 13413.31,
+            "max_ms": 13466.61
+          }
+        },
+        "matterport_config": {
+          "requests": 5,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 5
+          },
+          "encoded_body_bytes": 630,
+          "decoded_body_bytes": 590,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 5,
+            "p50_ms": 11148.55,
+            "p95_ms": 11431.57,
+            "p99_ms": 11487.7,
+            "max_ms": 11501.73
+          }
+        }
+      },
+      "network_by_path": {
+        "/api/live": {
+          "requests": 12,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 12
+          },
+          "encoded_body_bytes": 348,
+          "decoded_body_bytes": 348,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 12,
+            "p50_ms": 1334.27,
+            "p95_ms": 2285.1,
+            "p99_ms": 2302.78,
+            "max_ms": 2307.2
+          }
+        },
+        "/unc-charlotte": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 436740,
+          "decoded_body_bytes": 1698840,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 257.66,
+            "p95_ms": 3223.95,
+            "p99_ms": 4673.98,
+            "max_ms": 4731.43
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 31380,
+          "decoded_body_bytes": 72900,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 6020.23,
+            "p95_ms": 10869.3,
+            "p99_ms": 11500.9,
+            "max_ms": 11531.41
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 60,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 60
+          },
+          "encoded_body_bytes": 66780,
+          "decoded_body_bytes": 190440,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 12980.83,
+            "p95_ms": 16069.39,
+            "p99_ms": 17638.66,
+            "max_ms": 19634.25
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 60,
+          "unexpected_failures": 1,
+          "status_counts": {
+            "200": 59,
+            "503": 1
+          },
+          "encoded_body_bytes": 1034127,
+          "decoded_body_bytes": 4389397,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 60,
+            "p50_ms": 11272.72,
+            "p95_ms": 12677.55,
+            "p99_ms": 17357.19,
+            "max_ms": 18373.79
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 38,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 38
+          },
+          "encoded_body_bytes": 494,
+          "decoded_body_bytes": 494,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 38,
+            "p50_ms": 11886.59,
+            "p95_ms": 12769.76,
+            "p99_ms": 13413.31,
+            "max_ms": 13466.61
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 5,
+          "unexpected_failures": 0,
+          "status_counts": {
+            "200": 5
+          },
+          "encoded_body_bytes": 630,
+          "decoded_body_bytes": 590,
+          "unknown_transfer_requests": 0,
+          "latency": {
+            "count": 5,
+            "p50_ms": 11148.55,
+            "p95_ms": 11431.57,
+            "p99_ms": 11487.7,
+            "max_ms": 11501.73
+          }
+        }
+      },
+      "liveness_probe_statuses": {
+        "200": 12
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 1094.27
+        },
+        {
+          "status": 200,
+          "ms": 1097.31
+        },
+        {
+          "status": 200,
+          "ms": 1091.9
+        }
+      ],
+      "errors": [
+        {
+          "kind": "viewer_data",
+          "status": 503,
+          "layer": "database"
+        }
+      ],
+      "completed_without_stop": false,
+      "browser_model_or_iframe_reload_observed": "NOT_MEASURED_BY_API_TEST"
+    }
+  ],
+  "limitations": [
+    "HTTP response encoded-body bytes exclude HTTP headers, TLS and retransmissions.",
+    "Decoded bytes are the uncompressed application body; they are not user data-plan usage.",
+    "No third-party Matterport/photo/font asset requests are generated by this API profile.",
+    "No client crash, WebGL loss, iframe reload or physical-device behavior is proven by API success.",
+    "Fresh API bootstrap requests are not a browser disk-cache simulation.",
+    "Normal public routing runs client-side Recast; optional server-route diagnostics are reported separately."
+  ],
+  "publication": {
+    "version": 2,
+    "pois": 46,
+    "categories": 6,
+    "model_id": "kQBN52JqFE9",
+    "manifest_response_sha256": "4a8055b9963221e65c290a6026c044491d9f822930f152ec49ef11f4044237f0"
+  },
+  "profile": {
+    "bootstrap_requests_per_visitor": 12,
+    "binary_navmesh_download_each_visitor": true,
+    "server_route_diagnostic_each_action": false,
+    "warm_action": "one fresh camera-viewpoint GET per3\u20137s;200/404 both valid public states",
+    "think_seconds": [
+      3,
+      7
+    ],
+    "ramp_spread_seconds": 5
+  },
+  "finished_utc": "2026-11-16T12:58:31.863757+00:00",
+  "stop_reason": "unexpected_response_or_transport_failure_gate",
+  "all_requests": 1405,
+  "network_by_path": {
+    "/api/v1/public/venues/all/manifest.json": {
+      "requests": 137,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 137
+      },
+      "encoded_body_bytes": 71651,
+      "decoded_body_bytes": 166455,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 137,
+        "p50_ms": 3969.3,
+        "p95_ms": 10645.5,
+        "p99_ms": 11304.06,
+        "max_ms": 11531.41
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+      "requests": 137,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 137
+      },
+      "encoded_body_bytes": 152481,
+      "decoded_body_bytes": 434838,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 137,
+        "p50_ms": 7767.82,
+        "p95_ms": 14419.03,
+        "p99_ms": 16205.75,
+        "max_ms": 19634.25
+      }
+    },
+    "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+      "requests": 137,
+      "unexpected_failures": 1,
+      "status_counts": {
+        "200": 136,
+        "503": 1
+      },
+      "encoded_body_bytes": 2383335,
+      "decoded_body_bytes": 10117889,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 137,
+        "p50_ms": 8855.88,
+        "p95_ms": 12462.37,
+        "p99_ms": 15221.48,
+        "max_ms": 18373.79
+      }
+    },
+    "/api/v1/public/dashboard/buildings/uncc-main-campus/navmesh-url": {
+      "requests": 77,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 77
+      },
+      "encoded_body_bytes": 8624,
+      "decoded_body_bytes": 8470,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 77,
+        "p50_ms": 4039.06,
+        "p95_ms": 7633.73,
+        "p99_ms": 8061.55,
+        "max_ms": 8389.11
+      }
+    },
+    "/api/live": {
+      "requests": 120,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 120
+      },
+      "encoded_body_bytes": 3480,
+      "decoded_body_bytes": 3480,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 120,
+        "p50_ms": 229.38,
+        "p95_ms": 1186.32,
+        "p99_ms": 2139.43,
+        "max_ms": 2307.2
+      }
+    },
+    "/unc-charlotte": {
+      "requests": 136,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 136
+      },
+      "encoded_body_bytes": 989944,
+      "decoded_body_bytes": 3850704,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 136,
+        "p50_ms": 253.29,
+        "p95_ms": 1442.2,
+        "p99_ms": 4210.37,
+        "max_ms": 4731.43
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+      "requests": 114,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 114
+      },
+      "encoded_body_bytes": 1482,
+      "decoded_body_bytes": 1482,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 114,
+        "p50_ms": 8120.27,
+        "p95_ms": 12432.52,
+        "p99_ms": 13238.01,
+        "max_ms": 13466.61
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/matterport": {
+      "requests": 81,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 81
+      },
+      "encoded_body_bytes": 10206,
+      "decoded_body_bytes": 9558,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 81,
+        "p50_ms": 6321.35,
+        "p95_ms": 11023.4,
+        "p99_ms": 11221.11,
+        "max_ms": 11501.73
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/shops": {
+      "requests": 76,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 76
+      },
+      "encoded_body_bytes": 152,
+      "decoded_body_bytes": 152,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 76,
+        "p50_ms": 6119.35,
+        "p95_ms": 7008.4,
+        "p99_ms": 8093.17,
+        "max_ms": 8939.76
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+      "requests": 76,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 76
+      },
+      "encoded_body_bytes": 10716,
+      "decoded_body_bytes": 10792,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 76,
+        "p50_ms": 5919.87,
+        "p95_ms": 7065.03,
+        "p99_ms": 7411.15,
+        "max_ms": 7438.48
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/translations": {
+      "requests": 76,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 76
+      },
+      "encoded_body_bytes": 682328,
+      "decoded_body_bytes": 2093724,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 76,
+        "p50_ms": 6459.56,
+        "p95_ms": 8894.23,
+        "p99_ms": 9043.45,
+        "max_ms": 9163.07
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/data/media_panels.json": {
+      "requests": 76,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 76
+      },
+      "encoded_body_bytes": 7372,
+      "decoded_body_bytes": 6916,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 76,
+        "p50_ms": 6016.78,
+        "p95_ms": 8375.46,
+        "p99_ms": 8620.56,
+        "max_ms": 8777.98
+      }
+    },
+    "/uncc-main-campus_navmesh.navmesh": {
+      "requests": 76,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 76
+      },
+      "encoded_body_bytes": 174376832,
+      "decoded_body_bytes": 174376832,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 76,
+        "p50_ms": 811.04,
+        "p95_ms": 1921.97,
+        "p99_ms": 2024.22,
+        "max_ms": 2098.63
+      }
+    },
+    "/api/v1/public/buildings/uncc-main-campus/camera-viewpoints/:location_id": {
+      "requests": 86,
+      "unexpected_failures": 0,
+      "status_counts": {
+        "200": 86
+      },
+      "encoded_body_bytes": 24865,
+      "decoded_body_bytes": 32839,
+      "unknown_transfer_requests": 0,
+      "latency": {
+        "count": 86,
+        "p50_ms": 2710.52,
+        "p95_ms": 6137.96,
+        "p99_ms": 6590.57,
+        "max_ms": 6615.3
+      }
+    }
+  },
+  "total_encoded_response_body_bytes": 178723468,
+  "total_decoded_response_body_bytes": 191114131,
+  "failed_requests_with_unknown_transfer_bytes": 0,
+  "passed": false
+}

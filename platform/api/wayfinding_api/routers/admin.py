@@ -1682,6 +1682,8 @@ def do_publish(slug: str, p: schemas.PublishIn, db: Session = Depends(get_db), u
     b = B(db, slug)
     try:
         mv = pub.publish(db, b, u.email, p.notes)
+        from .public import invalidate_building_cache
+        invalidate_building_cache(b.slug)
     except RuntimeError as e:
         raise HTTPException(400, str(e))
     return {"version": mv.version, "summary": mv.summary, "created_at": mv.created_at}
@@ -1699,6 +1701,8 @@ def activate(slug: str, ver: int, db: Session = Depends(get_db)):
     b = B(db, slug)
     try:
         mv = pub.rollback(db, b, ver)
+        from .public import invalidate_building_cache
+        invalidate_building_cache(b.slug)
     except ValueError as e:
         raise HTTPException(404, str(e))
     return {"current": mv.version}

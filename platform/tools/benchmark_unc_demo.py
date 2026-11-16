@@ -101,7 +101,7 @@ def serve(args):
     origin = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Origin)
     threading.Thread(target=origin.serve_forever, daemon=True).start()
     os.environ.update({"DATABASE_URL": private_local_url(args.local_env), "DATA_DIR": str(run),
-                       "DB_POOL_SIZE": "3", "DB_MAX_OVERFLOW": "2", "DB_POOL_TIMEOUT_SECONDS": str(args.pool_timeout),
+                       "DB_POOL_SIZE": str(args.pool_size), "DB_MAX_OVERFLOW": str(args.max_overflow), "DB_POOL_TIMEOUT_SECONDS": str(args.pool_timeout),
                        "DB_SSLMODE": "disable", "WORKER_INLINE": "false", "WF_READ_ONLY": "true",
                        "DB_READ_ONLY": "true", "DB_STARTUP_CHECK": "true", "RUN_MIGRATIONS": "false",
                        "JWT_SECRET": "local-benchmark-secret-0123456789abcdef", "VIEWER_DIR": "",
@@ -164,6 +164,16 @@ def serve(args):
                 limiter.total_tokens=previous
         app.router.lifespan_context=benchmark_thread_bound
     pool = application_db.engine()
+    if args.db_roundtrip_delay_ms:
+        @event.listens_for(pool, "before_cursor_execute")
+        def simulate_select_latency(connection, cursor, statement, parameters, context, executemany):
+            if statement.lstrip().upper().startswith("SELECT"):
+                with lock:
+                    counts["synthetic_select_delays"] += 1
+                # Local diagnostic only; no SQL mutation or remote traffic.
+                # This approximates a connection held across a SELECT roundtrip,
+                # not actual hosted network/protocol behavior.
+                time.sleep(args.db_roundtrip_delay_ms / 1000)
     pool_state = {"checked_out": 0, "peak": 0, "physical_connects": 0}
     checkout_waits=[]
     connection_holds=[]
@@ -467,7 +477,7 @@ async def exercise(args, proc):
             print(json.dumps({"cold_routing":cold_result}),flush=True)
         return {"schema":"navme.local-demo-benchmark/v1","label":args.label,"created_utc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
                 "application_source":str(Path(args.source).resolve()),"baseline_commit":"74f37ed55f62d921ced485020389a1150f47facc",
-                "local_only":True,"database":"loopback isolated *_test","api_workers":1,"pool_size":3,"max_overflow":2,"pool_timeout_seconds":args.pool_timeout,"admission_limit":args.admission_limit or None,"backlog":128,
+                "local_only":True,"database":"loopback isolated *_test","api_workers":1,"pool_size":args.pool_size,"max_overflow":args.max_overflow,"pool_timeout_seconds":args.pool_timeout,"synthetic_select_delay_ms":args.db_roundtrip_delay_ms,"admission_limit":args.admission_limit or None,"backlog":128,
                 "machine":platform.machine(),"platform":platform.platform(),"logical_cpus":os.cpu_count(),
                 "reference_preflight":{"requests":len(pairs),"startup_metrics":startup_metrics,"after_metrics":reference_metrics,"note":"Reference routes intentionally precede timed tiers. On the stabilized API they warm one publication; tier hit/build deltas are measured after this preflight."},
                 "fixture":{"source":"existing local real UNC publication v2; copied, never altered", "graph_bytes":(fixture/"nav_graph.json").stat().st_size,"nodes":len(nav["nodes"]),"edges":len(nav["edges"]),"graph_sha256":hashlib.sha256((fixture/"nav_graph.json").read_bytes()).hexdigest(),"floor2_bytes":(fixture/"floor_F2.webp").stat().st_size,"reference_route_hashes":reference},
@@ -493,7 +503,8 @@ def run(args):
     command = [sys.executable,str(Path(__file__).resolve()),"serve","--source",str(snapshot),
                "--fixture",args.fixture,"--local-env",args.local_env,"--run-dir",run_dir,"--port",str(args.port),
                "--admission-limit",str(args.admission_limit),"--thread-tokens",str(args.thread_tokens),
-               "--pool-timeout",str(args.pool_timeout)]
+               "--pool-timeout",str(args.pool_timeout),"--pool-size",str(args.pool_size),
+               "--max-overflow",str(args.max_overflow),"--db-roundtrip-delay-ms",str(args.db_roundtrip_delay_ms)]
     # Run from an empty directory: never consume repository .env/runtime overlays.
     with (Path(run_dir)/"server.log").open("w") as log:
         proc = subprocess.Popen(command,cwd=run_dir,stdout=log,stderr=log,env={k:v for k,v in os.environ.items() if not k.startswith(("PG","WF_","DB_","SUPABASE","STUDIO_","DATABASE","DATA_DIR","JWT_","MATTERPORT","WORKER_","VIEWER_DIR","ADMIN_DIR","POI_VIEWPOINT","CAMERA_VIEWPOINT"))})
@@ -529,6 +540,10 @@ if __name__=="__main__":
     parser.add_argument("--cold-cohort",type=int,default=0)
     parser.add_argument("--thread-tokens",type=int,default=0,help="Benchmark-only lifespan override;0 preserves application default")
     parser.add_argument("--pool-timeout",type=int,choices=[5,15],default=5)
+    parser.add_argument("--pool-size",type=int,default=3,help="Local-only bounded application pool; default unchanged")
+    parser.add_argument("--max-overflow",type=int,default=2)
+    parser.add_argument("--db-roundtrip-delay-ms",type=int,default=0,
+                        help="Local diagnostic sleep per SQLAlchemy SELECT; not a hosted network simulation")
     arguments=parser.parse_args()
     if arguments.port<1024 or any(x not in TIERS for x in arguments.tiers):
         parser.error("Use a nonprivileged loopback port and supported paced tiers")
@@ -538,4 +553,9 @@ if __name__=="__main__":
         parser.error("Cold routing verification is restricted to the small24request cohort")
     if arguments.thread_tokens not in {0,16}:
         parser.error("Only the existing default or the authorized16token comparison is supported")
+    if not (1<=arguments.pool_size<=16 and 0<=arguments.max_overflow<=15
+            and arguments.pool_size+arguments.max_overflow<=16):
+        parser.error("Local pool size plus overflow must remain between1and16")
+    if not 0<=arguments.db_roundtrip_delay_ms<=500:
+        parser.error("Synthetic SELECT delay is restricted to0through500ms")
     (serve if arguments.mode=="serve" else run)(arguments)

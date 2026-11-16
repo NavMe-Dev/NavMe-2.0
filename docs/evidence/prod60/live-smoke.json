@@ -1,0 +1,49 @@
+{
+  "deploy_id": "dep-dbtfnkgn74is73bpmkq0",
+  "commit": "0d9fdbbb243a360db4a61ec0fee65e76012c7c02",
+  "checks": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "ms": 1696.0,
+      "body_bytes": 79,
+      "health": {
+        "ok": true,
+        "version": "0.1.0",
+        "postgis": "3.3 USE_GEOS=1 USE_PROJ=1 USE_STATS=1"
+      }
+    },
+    {
+      "path": "/api/live",
+      "status": 200,
+      "ms": 238.4,
+      "body_bytes": 29,
+      "health": {
+        "ok": true,
+        "version": "0.1.0"
+      }
+    },
+    {
+      "path": "/unc-charlotte",
+      "status": 200,
+      "ms": 264.43,
+      "body_bytes": 28314
+    },
+    {
+      "path": "/mp_app.js",
+      "status": 200,
+      "ms": 241.47,
+      "body_bytes": 12700,
+      "matches_release_file": true,
+      "sha256": "87c84fee77b9d7824d6d8a1f73310e26770aba043466989d31621157caf8c65e"
+    },
+    {
+      "path": "/wf_navmesh_route.js",
+      "status": 200,
+      "ms": 240.7,
+      "body_bytes": 19621,
+      "matches_release_file": true,
+      "sha256": "edaa3a29b3c505639c7f209b22a6927589c58fbbc8302ebfa144dead3761f6f2"
+    }
+  ]
+}
