@@ -1056,17 +1056,10 @@ def dashboard_navmesh_url(slug: str, request: Request, db: Session = Depends(get
 
     # Local file dropped directly next to the viewer (manual override / pre-sync state).
     if cfg.viewer_dir:
-        local_nm = Path(cfg.viewer_dir) / f"{slug}_navmesh.navmesh"
-        if not local_nm.exists():
-            # Local disk wiped (Render free-tier restart) — recover from Supabase
-            # Storage the same way published bundle files do. See bundle_storage.py.
-            data = bundle_storage.fetch_navmesh_bytes(slug)
-            if data:
-                try:
-                    local_nm.write_bytes(data)
-                except OSError:
-                    pass
-        if local_nm.exists():
+        # Cold visitors share one recovery and only see the completed binary.
+        # A missing/unwritable override preserves the existing DB-pointer fallback.
+        local_nm = bundle_storage.cache_navmesh_file(Path(cfg.viewer_dir), slug)
+        if local_nm is not None:
             nb = db.query(models.Building).filter_by(slug=slug).first()
             # Keep same-origin assets relative. Render terminates TLS before forwarding
             # to the service, so request.base_url can incorrectly be http:// even when

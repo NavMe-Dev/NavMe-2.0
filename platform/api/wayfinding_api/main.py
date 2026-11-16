@@ -23,8 +23,16 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         from .db import dispose_engine
+        from anyio.to_thread import current_default_thread_limiter
         stop = threading.Event()
         worker = None
+        # Effective bounds are safe to log and let operators verify the actual
+        # environment after deployment without exposing connection URLs/keys.
+        logging.getLogger("uvicorn.error").info(
+            "API runtime limits db_pool_size=%s db_max_overflow=%s db_pool_timeout_seconds=%s sync_thread_tokens=%s read_only=%s",
+            getattr(s, "db_pool_size", None), getattr(s, "db_max_overflow", None),
+            getattr(s, "db_pool_timeout_seconds", None), current_default_thread_limiter().total_tokens,
+            bool(s.wf_read_only or s.db_read_only))
         if s.worker_inline and not (s.wf_read_only or s.db_read_only):
             from .services.jobs import start_inline_worker
             worker = await run_in_threadpool(start_inline_worker, stop_event=stop)

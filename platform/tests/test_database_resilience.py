@@ -30,6 +30,7 @@ def test_hosted_url_uses_installed_driver_and_bounded_pool(scheme):
     assert url.drivername == "postgresql+psycopg"
     assert url.query["sslmode"] == "require"
     assert options["pool_size"] + options["max_overflow"] == 5
+    assert options["pool_timeout"] == 15
     assert options["pool_pre_ping"] and options["hide_parameters"]
     assert options["connect_args"]["connect_timeout"] == 10
     assert "statement_timeout=30000" in options["connect_args"]["options"]
@@ -144,6 +145,20 @@ def test_readonly_shadow_does_not_start_or_requeue_jobs(monkeypatch):
     monkeypatch.setattr(db, "dispose_engine", MagicMock())
     with TestClient(main.create_app()):
         start.assert_not_called()
+
+
+def test_startup_logs_effective_bounds_without_secrets(monkeypatch, caplog):
+    import logging
+    from wayfinding_api import main, db
+    cfg = settings(worker_inline=False, database_url="postgresql://user:private-password@localhost/fixture_test",
+                   jwt_secret="private-jwt-value", db_pool_timeout_seconds=15)
+    monkeypatch.setattr(main, "get_settings", lambda: cfg)
+    monkeypatch.setattr(db, "dispose_engine", MagicMock())
+    caplog.set_level(logging.INFO, logger="uvicorn.error")
+    with TestClient(main.create_app()):
+        pass
+    assert "db_pool_size=3 db_max_overflow=2 db_pool_timeout_seconds=15 sync_thread_tokens=40" in caplog.text
+    assert "private-password" not in caplog.text and "private-jwt-value" not in caplog.text
 
 
 @pytest.mark.parametrize("url", [

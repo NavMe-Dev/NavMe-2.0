@@ -1,0 +1,25 @@
+{
+  "scope": "24 direct calls to the actual patched cold public navmesh-url handler; fake2.148MiB storage; no network/database access",
+  "callers": 24,
+  "upstream_fetches": 1,
+  "upstream_bytes": 2252800,
+  "responses": 24,
+  "response_contract_equal_to_baseline": true,
+  "response": {
+    "url": "/uncc-main-campus_navmesh.navmesh",
+    "label": "local-override",
+    "poi_type": "uncc-main-campus",
+    "updated_at": null
+  },
+  "final_file_complete": true,
+  "not_published_before_completion": true,
+  "private_temporary_files_after": 0,
+  "wall_ms": 13.41,
+  "test_results": {
+    "native_recovery": 14,
+    "existing_bundle": 18,
+    "passed": 32,
+    "failed": 0
+  },
+  "limits": "Synthetic wall time is not production latency; per-worker sharing does not deduplicate across multiple Render instances"
+}

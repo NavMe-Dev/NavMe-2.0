@@ -1,0 +1,16 @@
+{
+  "scope": "24 direct calls to the actual cold public navmesh-url handler; fake2.148MiB storage; no network/database access",
+  "callers": 24,
+  "upstream_fetches": 24,
+  "upstream_bytes": 54067200,
+  "responses": 24,
+  "response_contract_equal": true,
+  "response": {
+    "url": "/uncc-main-campus_navmesh.navmesh",
+    "label": "local-override",
+    "poi_type": "uncc-main-campus",
+    "updated_at": null
+  },
+  "final_file_complete": true,
+  "wall_ms": 12.16
+}

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # Per API/worker process. Include all processes when sizing the server budget.
     db_pool_size: int = Field(default=3, ge=1, le=100)
     db_max_overflow: int = Field(default=2, ge=0, le=100)
-    db_pool_timeout_seconds: int = Field(default=5, ge=1)
+    db_pool_timeout_seconds: int = Field(default=15, ge=1)
     db_pool_recycle_seconds: int = Field(default=300, ge=1)
     db_connect_timeout_seconds: int = Field(default=10, ge=1)
     db_statement_timeout_ms: int = Field(default=30000, ge=1)

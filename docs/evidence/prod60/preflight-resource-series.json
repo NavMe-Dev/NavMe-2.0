@@ -1,0 +1,760 @@
+{
+  "resourceId": "srv-db32v3bncjis73e9l2cg",
+  "timeRange": {
+    "start": "2026-11-16T12:05:00Z",
+    "end": "2026-11-16T12:35:00Z"
+  },
+  "metrics": [
+    {
+      "type": "cpu_usage",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "instance",
+              "value": "srv-db32v3bncjis73e9l2cg-rvwdk"
+            },
+            {
+              "field": "service",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            }
+          ],
+          "unit": "cpu",
+          "values": [
+            {
+              "timestamp": "2026-11-16T12:05:00Z",
+              "value": 0.0012072333
+            },
+            {
+              "timestamp": "2026-11-16T12:06:00Z",
+              "value": 0.0013244334
+            },
+            {
+              "timestamp": "2026-11-16T12:07:00Z",
+              "value": 0.0014722834
+            },
+            {
+              "timestamp": "2026-11-16T12:08:00Z",
+              "value": 0.0016219
+            },
+            {
+              "timestamp": "2026-11-16T12:09:00Z",
+              "value": 0.00147115
+            },
+            {
+              "timestamp": "2026-11-16T12:10:00Z",
+              "value": 0.0014003833
+            },
+            {
+              "timestamp": "2026-11-16T12:11:00Z",
+              "value": 0.00152215
+            },
+            {
+              "timestamp": "2026-11-16T12:12:00Z",
+              "value": 0.0011117
+            },
+            {
+              "timestamp": "2026-11-16T12:13:00Z",
+              "value": 0.0015748166
+            },
+            {
+              "timestamp": "2026-11-16T12:14:00Z",
+              "value": 0.0011371833
+            },
+            {
+              "timestamp": "2026-11-16T12:15:00Z",
+              "value": 0.0015354167
+            },
+            {
+              "timestamp": "2026-11-16T12:16:00Z",
+              "value": 0.0016573666
+            },
+            {
+              "timestamp": "2026-11-16T12:17:00Z",
+              "value": 0.0015271667
+            },
+            {
+              "timestamp": "2026-11-16T12:18:00Z",
+              "value": 0.00125045
+            },
+            {
+              "timestamp": "2026-11-16T12:19:00Z",
+              "value": 0.0014561666
+            },
+            {
+              "timestamp": "2026-11-16T12:20:00Z",
+              "value": 0.0015618167
+            },
+            {
+              "timestamp": "2026-11-16T12:21:00Z",
+              "value": 0.0014498166
+            },
+            {
+              "timestamp": "2026-11-16T12:22:00Z",
+              "value": 0.0016738334
+            },
+            {
+              "timestamp": "2026-11-16T12:23:00Z",
+              "value": 0.0015147167
+            },
+            {
+              "timestamp": "2026-11-16T12:24:00Z",
+              "value": 0.0014241167
+            },
+            {
+              "timestamp": "2026-11-16T12:25:00Z",
+              "value": 0.0018990333
+            },
+            {
+              "timestamp": "2026-11-16T12:26:00Z",
+              "value": 0.00159055
+            },
+            {
+              "timestamp": "2026-11-16T12:27:00Z",
+              "value": 0.0012866834
+            },
+            {
+              "timestamp": "2026-11-16T12:28:00Z",
+              "value": 0.0016712666
+            },
+            {
+              "timestamp": "2026-11-16T12:29:00Z",
+              "value": 0.0015800833
+            },
+            {
+              "timestamp": "2026-11-16T12:30:00Z",
+              "value": 0.0011
+            },
+            {
+              "timestamp": "2026-11-16T12:31:00Z",
+              "value": 0.0016573833
+            },
+            {
+              "timestamp": "2026-11-16T12:32:00Z",
+              "value": 0.0012314167
+            },
+            {
+              "timestamp": "2026-11-16T12:33:00Z",
+              "value": 0.0016387333
+            },
+            {
+              "timestamp": "2026-11-16T12:34:00Z",
+              "value": 0.0015815666
+            },
+            {
+              "timestamp": "2026-11-16T12:35:00Z",
+              "value": 0.00148
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "cpu_limit",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "instance",
+              "value": "srv-db32v3bncjis73e9l2cg-rvwdk"
+            },
+            {
+              "field": "service",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            }
+          ],
+          "unit": "cpu",
+          "values": [
+            {
+              "timestamp": "2026-11-16T12:05:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:06:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:07:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:08:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:09:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:10:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:11:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:12:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:13:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:14:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:15:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:16:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:17:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:18:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:19:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:20:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:21:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:22:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:23:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:24:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:25:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:26:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:27:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:28:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:29:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:30:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:31:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:32:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:33:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:34:00Z",
+              "value": 0.5
+            },
+            {
+              "timestamp": "2026-11-16T12:35:00Z",
+              "value": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "memory_usage",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "instance",
+              "value": "srv-db32v3bncjis73e9l2cg-rvwdk"
+            },
+            {
+              "field": "service",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            }
+          ],
+          "unit": "bytes",
+          "values": [
+            {
+              "timestamp": "2026-11-16T12:05:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:06:00Z",
+              "value": 139350020
+            },
+            {
+              "timestamp": "2026-11-16T12:07:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:08:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:09:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:10:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:11:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:12:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:13:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:14:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:15:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:16:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:17:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:18:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:19:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:20:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:21:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:22:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:23:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:24:00Z",
+              "value": 139083780
+            },
+            {
+              "timestamp": "2026-11-16T12:25:00Z",
+              "value": 139083780
+            },
+            {
+              "timestamp": "2026-11-16T12:26:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:27:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:28:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:29:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:30:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:31:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:32:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:33:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:34:00Z",
+              "value": 139091970
+            },
+            {
+              "timestamp": "2026-11-16T12:35:00Z",
+              "value": 139091970
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "memory_limit",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "service",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "instance",
+              "value": "srv-db32v3bncjis73e9l2cg-rvwdk"
+            }
+          ],
+          "unit": "bytes",
+          "values": [
+            {
+              "timestamp": "2026-11-16T12:05:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:06:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:07:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:08:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:09:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:10:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:11:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:12:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:13:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:14:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:15:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:16:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:17:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:18:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:19:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:20:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:21:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:22:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:23:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:24:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:25:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:26:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:27:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:28:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:29:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:30:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:31:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:32:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:33:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:34:00Z",
+              "value": 536870900
+            },
+            {
+              "timestamp": "2026-11-16T12:35:00Z",
+              "value": 536870900
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "bandwidth_usage",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "service",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            },
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            }
+          ],
+          "unit": "mb",
+          "values": []
+        }
+      ]
+    },
+    {
+      "type": "instance_count",
+      "data": [
+        {
+          "labels": [
+            {
+              "field": "resource",
+              "value": "srv-db32v3bncjis73e9l2cg"
+            }
+          ],
+          "unit": "unitless",
+          "values": [
+            {
+              "timestamp": "2026-11-16T12:05:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:06:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:07:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:08:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:09:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:10:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:11:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:12:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:13:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:14:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:15:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:16:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:17:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:18:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:19:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:20:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:21:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:22:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:23:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:24:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:25:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:26:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:27:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:28:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:29:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:30:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:31:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:32:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:33:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:34:00Z",
+              "value": 1
+            },
+            {
+              "timestamp": "2026-11-16T12:35:00Z",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

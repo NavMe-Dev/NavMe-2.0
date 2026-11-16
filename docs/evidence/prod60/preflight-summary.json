@@ -1,0 +1,134 @@
+{
+  "recorded_utc": "2026-11-16T12:35:00Z",
+  "window": {
+    "start": "2026-11-16T12:05:00Z",
+    "end": "2026-11-16T12:35:00Z"
+  },
+  "service": {
+    "id": "srv-db32v3bncjis73e9l2cg",
+    "workspace": "tea-d9dsalurnols73d3t4cg",
+    "branch": "main",
+    "plan": "0.5c-512mb",
+    "instances": 1,
+    "health_check_path": "",
+    "health_check_mode": "Default TCP",
+    "auto_deploy": "yes",
+    "suspended": "not_suspended"
+  },
+  "metrics": {
+    "cpu_usage": {
+      "unit": "cpu",
+      "samples": 31,
+      "min": 0.0011,
+      "max": 0.0018990333,
+      "mean": 0.0014713166612903227,
+      "first": "2026-11-16T12:05:00Z",
+      "last": "2026-11-16T12:35:00Z"
+    },
+    "cpu_limit": {
+      "unit": "cpu",
+      "samples": 31,
+      "min": 0.5,
+      "max": 0.5,
+      "mean": 0.5,
+      "first": "2026-11-16T12:05:00Z",
+      "last": "2026-11-16T12:35:00Z"
+    },
+    "memory_usage": {
+      "unit": "bytes",
+      "samples": 31,
+      "min": 139083780,
+      "max": 139350020,
+      "mean": 139099765.80645162,
+      "first": "2026-11-16T12:05:00Z",
+      "last": "2026-11-16T12:35:00Z"
+    },
+    "memory_limit": {
+      "unit": "bytes",
+      "samples": 31,
+      "min": 536870900,
+      "max": 536870900,
+      "mean": 536870900,
+      "first": "2026-11-16T12:05:00Z",
+      "last": "2026-11-16T12:35:00Z"
+    },
+    "bandwidth_usage": {
+      "unit": "mb",
+      "samples": 0,
+      "min": null,
+      "max": null,
+      "mean": null
+    },
+    "instance_count": {
+      "unit": "unitless",
+      "samples": 31,
+      "min": 1,
+      "max": 1,
+      "mean": 1,
+      "first": "2026-11-16T12:05:00Z",
+      "last": "2026-11-16T12:35:00Z"
+    }
+  },
+  "http_status_counts": {
+    "200": 37,
+    "206": 0,
+    "304": 0,
+    "401": 0,
+    "404": 0,
+    "499": 0
+  },
+  "http_latency_summary": {
+    "unit": "seconds",
+    "samples": 31,
+    "min": 0.76965,
+    "max": 2.4333,
+    "mean": 1.4869209677419355,
+    "first": "2026-11-16T12:05:00Z",
+    "last": "2026-11-16T12:35:00Z"
+  },
+  "database": {
+    "max_connections": 60,
+    "superuser_reserved_connections": 3,
+    "reserved_connections": 0,
+    "client_connections": 13,
+    "active_client_connections": 1,
+    "idle_client_connections": 12,
+    "idle_in_transaction": 0,
+    "wayfinding_reader_connections": 3
+  },
+  "log_summary": {
+    "error_logs_returned": 0,
+    "has_more": false
+  },
+  "effective_env": {
+    "verified": false,
+    "reason": "Available connector exposes environment mutation but not a read-only env-variable listing; get_service omits env values. No mutation used for discovery."
+  },
+  "notes": [
+    "CPU tool unit is cores, not percentage; compare cpu_usage with0.5CPU limit",
+    "60-second series can hide shorter spikes; not per-request timing",
+    "bandwidth series empty is unavailable, not zero traffic",
+    "Render outbound bandwidth graph has hourly resolution and approximately60-minute publication delay after window; cannot isolate a2-minute test immediately",
+    "One API instance currently; application worker env overrides not verified",
+    "No production deployment, scaling, restart, load test or database writes performed by monitor"
+  ],
+  "health": {
+    "status": 200,
+    "latency_ms": 1245.94,
+    "ok": true,
+    "version": "0.1.0",
+    "postgis": "3.3 USE_GEOS=1 USE_PROJ=1 USE_STATS=1",
+    "request_count": 1
+  },
+  "live_deployment": {
+    "id": "dep-dbtel0etlv9c73f542v0",
+    "commit": "74f37ed55f62d921ced485020389a1150f47facc",
+    "status": "live",
+    "finished_utc": "2026-11-16T11:36:05.556131Z"
+  },
+  "references": {
+    "metrics": "https://render.com/docs/service-metrics.md",
+    "health_checks": "https://render.com/docs/health-checks.md",
+    "deploys": "https://render.com/docs/deploys.md"
+  }
+}

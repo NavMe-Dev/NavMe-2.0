@@ -1,0 +1,214 @@
+{
+  "schema": "navme.local-prod60-preflight/v1",
+  "recorded_utc": "2026-11-16T12:36:38.246551+00:00",
+  "scope": "Two independent finite paced loopback60-user journeys; no production requests",
+  "configuration": {
+    "workers": 1,
+    "anyio_tokens": 40,
+    "admission_limit": 128,
+    "backlog": 128,
+    "pool_size": 3,
+    "max_overflow": 2,
+    "checkout_wait_seconds": 15
+  },
+  "requests": 600,
+  "failures": 0,
+  "passed": true,
+  "same_frozen_source": true,
+  "repeats": [
+    {
+      "repeat": "a",
+      "evidence": "unc-demo-prod60-wait15-repeat-a.json",
+      "source_fingerprint": "64742f317e6202b6d6cab9dbf8f7838c6263866dce7fc13985111007f46d5395",
+      "concurrent_users": 60,
+      "wall_seconds": 10.937,
+      "requests": 300,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 300,
+        "p50_ms": 640.72,
+        "p95_ms": 3617.93,
+        "p99_ms": 5694.7,
+        "max_ms": 6119.1
+      },
+      "route": {
+        "count": 120,
+        "p50_ms": 2444.59,
+        "p95_ms": 4714.2,
+        "p99_ms": 5991.94,
+        "max_ms": 6119.1
+      },
+      "floor": {
+        "count": 60,
+        "p50_ms": 302.09,
+        "p95_ms": 322.69,
+        "p99_ms": 326.5,
+        "max_ms": 327.7
+      },
+      "counts": {
+        "read_pois.json": 0,
+        "graph_builds": 0,
+        "origin_downloads": 1,
+        "uvicorn_peak_connections": 60,
+        "read_navmesh.json": 0,
+        "read_nav_graph.json": 0
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 252.67,
+      "cpu_percent_of_one_core": 94.2,
+      "db_pool_peak": 5,
+      "db_pool_checked_out_after": 0,
+      "db_checkout_wait": {
+        "count": 300,
+        "p50_ms": 25.94,
+        "p95_ms": 2403.84,
+        "p99_ms": 4528.13,
+        "max_ms": 4766.82
+      },
+      "db_connection_hold": {
+        "count": 300,
+        "p50_ms": 57.62,
+        "p95_ms": 412.11,
+        "p99_ms": 504.36,
+        "max_ms": 563.51
+      },
+      "worker_tokens_total": 40,
+      "peak_worker_tokens": 40,
+      "liveness": {
+        "count": 23,
+        "p50_ms": 136.75,
+        "p95_ms": 449.35,
+        "p99_ms": 495.82,
+        "max_ms": 502.83
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 3.97
+        },
+        {
+          "status": 200,
+          "ms": 5.82
+        },
+        {
+          "status": 200,
+          "ms": 8.37
+        }
+      ],
+      "uvicorn_after": {
+        "open_connections": 46,
+        "active_tasks": 1,
+        "peak_connections": 61
+      },
+      "log_markers": {
+        "database_timeouts": 0,
+        "admission_rejections": 0,
+        "tracebacks": 0
+      }
+    },
+    {
+      "repeat": "b",
+      "evidence": "unc-demo-prod60-wait15-repeat-b.json",
+      "source_fingerprint": "64742f317e6202b6d6cab9dbf8f7838c6263866dce7fc13985111007f46d5395",
+      "concurrent_users": 60,
+      "wall_seconds": 10.605,
+      "requests": 300,
+      "failures": 0,
+      "failure_percent": 0.0,
+      "errors": [],
+      "all_http": {
+        "count": 300,
+        "p50_ms": 647.65,
+        "p95_ms": 3281.73,
+        "p99_ms": 4668.17,
+        "max_ms": 6071.81
+      },
+      "route": {
+        "count": 120,
+        "p50_ms": 2413.46,
+        "p95_ms": 3335.49,
+        "p99_ms": 4607.95,
+        "max_ms": 5194.04
+      },
+      "floor": {
+        "count": 60,
+        "p50_ms": 290.69,
+        "p95_ms": 308.19,
+        "p99_ms": 315.59,
+        "max_ms": 321.25
+      },
+      "counts": {
+        "read_nav_graph.json": 0,
+        "read_navmesh.json": 0,
+        "read_pois.json": 0,
+        "graph_builds": 0,
+        "origin_downloads": 1,
+        "uvicorn_peak_connections": 60
+      },
+      "route_geometry_mismatches": 0,
+      "rss_peak_mib": 263.81,
+      "cpu_percent_of_one_core": 95.6,
+      "db_pool_peak": 5,
+      "db_pool_checked_out_after": 0,
+      "db_checkout_wait": {
+        "count": 300,
+        "p50_ms": 32.23,
+        "p95_ms": 2215.41,
+        "p99_ms": 3540.59,
+        "max_ms": 4062.72
+      },
+      "db_connection_hold": {
+        "count": 300,
+        "p50_ms": 61.75,
+        "p95_ms": 398.34,
+        "p99_ms": 516.34,
+        "max_ms": 580.49
+      },
+      "worker_tokens_total": 40,
+      "peak_worker_tokens": 40,
+      "liveness": {
+        "count": 21,
+        "p50_ms": 177.1,
+        "p95_ms": 342.75,
+        "p99_ms": 546.1,
+        "max_ms": 596.94
+      },
+      "liveness_failures": 0,
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 6.95
+        },
+        {
+          "status": 200,
+          "ms": 8.15
+        },
+        {
+          "status": 200,
+          "ms": 11.7
+        }
+      ],
+      "uvicorn_after": {
+        "open_connections": 44,
+        "active_tasks": 1,
+        "peak_connections": 61
+      },
+      "log_markers": {
+        "database_timeouts": 0,
+        "admission_rejections": 0,
+        "tracebacks": 0
+      }
+    }
+  ],
+  "interpretation": "Aligning with the historically reviewed hosted15-second checkout wait passed these two local trials without increasing the five-connection pool. This is not proof that the timeout alone caused all earlier failures: earlier5-second evidence included chained tiers, and transport failures appeared in a separate100-user experiment.",
+  "limitations": [
+    "One short finite journey per user per repeat, not a soak",
+    "Actual public API handlers and copied real UNC publication, but loopback database/storage and Apple CPU",
+    "No Render resource limits, hosted latency, Studio metadata or physical mobile GPU represented",
+    "No Matterport renderer/iframe/SDK/browser reload verification; API success is not60simultaneous loaded3D browsers",
+    "Production test and deployment remain parent responsibilities; no production work performed by this preflight"
+  ]
+}

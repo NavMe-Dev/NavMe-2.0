@@ -2,6 +2,8 @@
 
 Date: 2026-11-16. Candidate branch: `fix/uncc-demo-stabilization`.
 
+**Later update:** the user explicitly authorized production deployment and controlled60-user testing. The historical HOLD below records the earlier preparation checkpoint. Two local60-user repeats now pass with the reviewed15-second wait, and native cold-cache recovery is coalesced/atomic. See [release preflight](UNCC_PROD60_LOCAL_PREFLIGHT.md) and [release checks](evidence/prod60/release-checks.json); live verification follows deployment.
+
 **Production readiness: HOLD.** The reversible candidate is prepared for review, but neither release nor 100-user production capacity is accepted. Production remains unchanged. A real mobile-browser walkthrough could not complete because the external Matterport page presented a Cloudflare challenge. The local API benchmark is useful evidence, but its Apple host does not represent Render's 0.5 CPU / 512 MiB service.
 
 The retained configuration keeps the existing 40 AnyIO worker tokens and five-connection database budget, with admission/backlog bounds of 128. It passed the local 40-user tier, then stopped at 60 after two database wait timeouts. A 16-token experiment improved some timings but failed an independent repeat and was excluded. Production has not been pushed, deployed or restarted.

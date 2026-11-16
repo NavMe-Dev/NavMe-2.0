@@ -439,3 +439,45 @@ def read_bundle_file(local_version_dir: Path, slug: str, version: int, relpath: 
 
         key = (str(root), slug, version, relpath, "memory")
         return _bundle_singleflight(key, read_without_cache)
+
+
+def cache_navmesh_file(viewer_dir: Path, slug: str) -> Path | None:
+    """Recover the existing standalone native mesh once per worker/cache path.
+
+    This keeps the existing per-building filename and storage pointer semantics;
+    it does not turn the standalone override into a versioned publication. The
+    public endpoint may retain its configured-pointer fallback when storage or
+    the local cache is unavailable. Only contention raises BundleCacheTimeout.
+    """
+    root, target, relative = _bundle_target(Path(viewer_dir), f"{slug}_navmesh.navmesh")
+    if target.is_file():
+        return target
+
+    def recover() -> Path | None:
+        if target.is_file():
+            return target
+        data = fetch_navmesh_bytes(slug)
+        if not data:
+            return None
+        temporary = None
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".navmesh-", delete=False) as out:
+                temporary = Path(out.name)
+                out.write(data)
+            # The final static URL never points at an incomplete download.
+            temporary.replace(target)
+            return target
+        except OSError:
+            # Preserve the prior best-effort cache behavior on full/read-only
+            # disks: the endpoint can still return its configured mesh pointer.
+            return None
+        finally:
+            if temporary is not None:
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+    key = (str(root), slug, 0, relative, "standalone-navmesh")
+    return _bundle_singleflight(key, recover)

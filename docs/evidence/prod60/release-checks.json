@@ -1,0 +1,28 @@
+{
+  "recorded_utc": "2026-11-16T12:46:05.565813+00:00",
+  "authorization": "User explicitly requested production deployment and60concurrent-user tests on2026-11-16, superseding the previous no-deploy/no-production-load preparation scope",
+  "backend_passed": 239,
+  "backend_skipped": 1,
+  "frontend_passed": 173,
+  "frontend_failed": 0,
+  "native_cold_endpoint_fetches_before": 24,
+  "native_cold_endpoint_fetches_after": 1,
+  "local_60_user_repeats": {
+    "passed_requests": 600,
+    "failed_requests": 0,
+    "db_pool_size": 3,
+    "overflow": 2,
+    "wait_seconds": 15,
+    "anyio_tokens": 40,
+    "admission": 128
+  },
+  "deployment_scope": "Existing Render service, no schema/RLS/production-data changes, no plan or instance scaling",
+  "runtime_logs": "Effective pool/timeout/thread bounds logged without credentials at startup",
+  "live_rollback_deploy": "dep-dbtel0etlv9c73f542v0",
+  "live_rollback_commit": "74f37ed55f62d921ced485020389a1150f47facc",
+  "release_readiness": "Authorized release for controlled verification; production60test and real browser outcomes pending",
+  "known_limits": [
+    "Existing2DTypeScript24errorsmatchbaseline; Vitebuilds/3Dtypecheckpreviouslypass and frontend sources unchanged",
+    "RealMatterportautomatedbrowserpreviouslyblockedbyCloudflare; do notclaim60renderersfromAPItests"
+  ]
+}
