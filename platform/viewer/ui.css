@@ -254,8 +254,7 @@ body.dark .fcard.plain{background:#2a2d30}
 .ctrls{position:absolute;right:10px;bottom:calc(min(var(--sheetH), 40vh) + 14px);z-index:20;display:flex;flex-direction:column;gap:10px;align-items:center;transition:bottom .28s}
 /* Keep the platform credit anchored; details and navigation temporarily hide it. */
 .viewer-credit{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;align-items:center;gap:10px;box-sizing:border-box;max-width:calc(100vw - 88px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;color:#202124;box-shadow:0 2px 8px rgba(0,0,0,.14);direction:ltr;pointer-events:none}
-.viewer-credit img{display:block;flex:none;width:32px;height:32px;object-fit:contain}
-.viewer-credit-copy{display:flex;flex-direction:column;gap:2px;min-width:0;padding-left:10px;border-left:1px solid #e5e7eb;font-size:10px;line-height:1.35;color:#5f6368}
+.viewer-credit-copy{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:10px;line-height:1.35;color:#5f6368}
 .viewer-credit-copy strong{font-size:12px;line-height:1.35;font-weight:700;color:#202124}
 body.mp-bg-mode .viewer-credit{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 #sheet:not([hidden])~.viewer-credit,body.nav .viewer-credit{visibility:hidden}
