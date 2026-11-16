@@ -96,3 +96,7 @@ Four-hour deadline: 2026-11-16 **21:19:55 Asia/Calcutta**. Begin the 15-minute d
 The supplied `UNCC wayfinder results.pdf` was subsequently located in the original repository root and all nine rendered pages were inspected. Its checksum and historical-versus-projection classification are recorded in `docs/evidence/uncc-demo/reference-report.json`; no historical figure is represented as a current measurement.
 
 References reviewed: [Render rollbacks](https://render.com/docs/rollbacks), [rollback API](https://api-docs.render.com/reference/rollback-deploy), [Render CLI deploy command](https://render.com/docs/cli-reference#deploys).
+
+## Prepared candidate
+
+Tested implementation commit: `0d527b08e764369ee8fe5195e53374c31bab4838` on `fix/uncc-demo-stabilization`. The subsequent report-only commit records the final readiness decision. The candidate is **HOLD for production release** because repeated high-concurrency and real-device acceptance remain incomplete. No remote branch push, production deployment or restart occurred. See [final stabilization report](UNCC_DEMO_STABILIZATION_REPORT.md).
