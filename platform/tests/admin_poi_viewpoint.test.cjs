@@ -463,8 +463,8 @@ function cameraRuntime(options = {}) {
   const clone = value => JSON.parse(JSON.stringify(value));
   const model = options.model || 'model-A', slug = options.slug || 'any-registered-campus';
   const stored = clone(options.rows || [
-    {id:101,name:'Room A',position:{x:500,y:0,z:400},viewpoint:null,revision:'default',status:'none'},
-    {id:202,name:'Room B',position:{x:600,y:0,z:400},viewpoint:null,revision:'default',status:'none'},
+    {id:101,name:'Room A',position:{x:11,y:2,z:20},viewpoint:null,revision:'default',status:'none'},
+    {id:202,name:'Room B',position:{x:21,y:5,z:30},viewpoint:null,revision:'default',status:'none'},
   ]);
   let revision = 0;
   const defaultApi = async (url,args) => {
@@ -492,20 +492,150 @@ function cameraRuntime(options = {}) {
     }},
     Mode:{Mode:{INSIDE:'mode.inside'}},
   };
-  let disconnects = 0;
+  let disconnects = 0, connections = 0;
   const session = {ok:true,sdk,sweepData:()=>catalog,currentSweep:()=>({...catalog[sdkState.pose.sweep]}),disconnect:()=>disconnects++};
   const context = {console,URL,URLSearchParams,setTimeout,clearTimeout,location:{hash:options.hash || `#/b/${slug}/viewpoints`,href:'http://localhost:8780/admin/'},Vue:{
     ref:value=>({value}),computed:getter=>({get value(){return getter();}}),
     onMounted:callback=>mounted.push(callback),onBeforeUnmount:callback=>unmount.push(callback),watch:(getter,callback)=>watchers.push({getter,callback}),nextTick:()=>Promise.resolve(),
   }};
   context.window=context;vm.createContext(context);vm.runInContext(placement,context);vm.runInContext(source,context);
-  context.MpPlace.connect=options.connect || (async()=>session);context.MpPlace.waitIframeLoad=async()=>{};
+  context.MpPlace.connect=async(...args)=>{connections++;return options.connect ? options.connect(...args):session;};
+  context.MpPlace.waitIframeLoad=options.waitIframeLoad || (async()=>{});
   const component=context.WFPoiViewpoint.createCameraComponent({api,viewerUrl:options.viewerUrl,fetchShowcaseUrl:async()=>`https://my.matterport.com/show/?m=${options.urlModel || model}&applicationKey=public-fixture-key`});
   const props={b:{slug,matterport_model_id:model,...options.building}};
   const state=component.setup(props);state.twinFrame.value={clientWidth:1000,clientHeight:500};
   return {state,context,component,props,calls,moves,sdk,sdkState,session,stored,catalog,watchers,
-    mount:()=>Promise.all(mounted.map(callback=>callback())),unmount:()=>unmount.forEach(callback=>callback()),disconnects:()=>disconnects};
+    mount:()=>Promise.all(mounted.map(callback=>callback())),unmount:()=>unmount.forEach(callback=>callback()),disconnects:()=>disconnects,connections:()=>connections};
 }
+
+test('selecting locations opens once, moves to each POI scan, and never saves or changes POI data',async()=>{
+  const r=cameraRuntime();await r.mount();
+  const original=JSON.stringify(r.stored);
+  await r.state.select(r.state.rows.value[1]);
+  assert.equal(r.state.selected.value.id,202);assert.equal(r.state.connected.value,true);
+  assert.equal(r.connections(),1);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-B',args:{transition:'instant',rotation:{x:0,y:-90}}});
+  assert.equal(r.state.setupMode.value,false,'selection previews without entering capture mode');
+  await r.state.select(r.state.rows.value[0]);
+  assert.equal(r.connections(),1,'switching locations reuses the existing twin');
+  assert.equal(r.disconnects(),0);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:0,y:-90}}});
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+  assert.equal(JSON.stringify(r.stored),original);
+});
+
+test('selecting a location with a saved view restores its exact scan and viewing direction',async()=>{
+  const saved={model_id:'model-A',sweep_id:'scan-A',camera_position:{x:10,y:2,z:20},camera_rotation:{pitch:18,yaw:47},floor_id:'floor-A',captured_at:'2026-11-16T10:00:00Z'};
+  const r=cameraRuntime({rows:[
+    {id:101,name:'Room A',position:{x:11,y:2,z:20},viewpoint:null,revision:'default',status:'none'},
+    {id:202,name:'Saved Room B',position:{x:21,y:5,z:30},viewpoint:saved,revision:'saved',status:'saved'},
+  ]});
+  await r.mount();await r.state.select(r.state.rows.value[1]);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:18,y:47}}});
+  assert.equal(r.state.error.value,'');assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('Set Viewpoint starts at the selected POI, keeps the camera level, and ignores disabled nearby scans',async()=>{
+  const r=cameraRuntime({rows:[{id:101,name:'Upstairs room',position:{x:11,y:50,z:20},viewpoint:null,revision:'default',status:'none'}],catalog:{
+    disabled:{sid:'disabled',enabled:false,position:{x:11,y:50,z:20}},
+    'scan-A':{sid:'scan-A',position:{x:10,y:49,z:20}},
+    'scan-B':{sid:'scan-B',position:{x:20,y:5,z:30}},
+  }});
+  await r.mount();await r.state.beginSetup();
+  assert.equal(r.state.setupMode.value,true);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:0,y:-90}}});
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('a POI directly over its scan uses a finite level orientation rather than preserving the previous floor tilt',async()=>{
+  const r=cameraRuntime({rows:[{id:101,name:'Scan-side room',position:{x:10,y:0,z:20},viewpoint:null,revision:'default',status:'none'}]});
+  await r.mount();r.sdkState.pose.rotation={x:-75,y:130};await r.state.select(r.state.rows.value[0]);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:0,y:0}}});
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('selection clears the old POI success and reports a missing location position without retaining its status',async()=>{
+  const r=cameraRuntime({rows:[
+    {id:101,name:'Room A',position:{x:11,y:2,z:20},viewpoint:null,revision:'default',status:'none'},
+    {id:202,name:'Unmapped room',position:null,viewpoint:null,revision:'default',status:'none'},
+  ]});
+  await r.mount();await r.state.select(r.state.rows.value[0]);
+  const previousMoves=r.moves.length;
+  r.state.twinStatus.value='Showing the saved viewpoint for the previous room.';
+  r.state.message.value='Viewpoint saved.';r.state.error.value='Old room error';
+  await r.state.select(r.state.rows.value[1]);
+  assert.equal(r.state.selected.value.id,202);
+  assert.equal(r.moves.length,previousMoves,'a location without coordinates must not invent a scan');
+  assert.equal(r.state.message.value,'');
+  assert.ok(r.state.error.value || r.state.twinStatus.value,'explain how to continue from an unmapped location');
+  assert.doesNotMatch(r.state.error.value+r.state.twinStatus.value,/previous room|Old room|Showing the saved/);
+  assert.match(r.state.error.value+r.state.twinStatus.value,/position|location|walk|mapped/i);
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('a disabled saved scan falls back to the selected POI position without reusing the invalid view',async()=>{
+  const saved={model_id:'model-A',sweep_id:'disabled',camera_position:{x:11,y:2,z:20},camera_rotation:{pitch:-30,yaw:140},floor_id:null,captured_at:'2026-11-16T10:00:00Z'};
+  const r=cameraRuntime({rows:[{id:101,name:'Room A',position:{x:11,y:2,z:20},viewpoint:saved,revision:'saved',status:'saved'}],catalog:{
+    disabled:{sid:'disabled',enabled:false,position:{x:11,y:2,z:20}},
+    'scan-A':{sid:'scan-A',position:{x:10,y:2,z:20}},
+  }});
+  await r.mount();await r.state.select(r.state.rows.value[0]);
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:0,y:-90}}});
+  assert.equal(r.stored[0].viewpoint.sweep_id,'disabled','fallback preview cannot rewrite a saved view');
+  assert.doesNotMatch(r.state.twinStatus.value,/Showing the saved/);
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('navigation clears the previous success while moving and closing prevents a late success message',async()=>{
+  const movement=deferred(),moves=[];
+  const r=cameraRuntime({sdk:{Sweep:{Transition:{INSTANT:'instant'},moveTo:(...args)=>{moves.push(args);return movement.promise;}}}});
+  await r.mount();r.state.twinStatus.value='Showing the saved viewpoint for the previous room.';r.state.message.value='Viewpoint saved.';
+  const selecting=r.state.select(r.state.rows.value[1]);await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(r.state.twinBusy.value,true);assert.equal(moves.length,1);
+  assert.equal(r.state.message.value,'');assert.doesNotMatch(r.state.twinStatus.value,/previous room|Showing the saved/);
+  r.state.closeTwin();movement.resolve();await selecting;
+  assert.equal(r.state.connected.value,false);assert.equal(r.state.twinStatus.value,'');
+  assert.equal(r.state.error.value,'');assert.equal(r.state.twinBusy.value,false);
+  assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+for(const action of ['close','building-change']){
+  test(`pending POI navigation cannot move or restore its old status after ${action}`,async()=>{
+    const catalog=deferred(),moves=[];
+    const sdk={Model:{getData:()=>catalog.promise},Sweep:{Transition:{INSTANT:'instant'},moveTo:async(...args)=>moves.push(args)}};
+    const r=cameraRuntime({sdk});r.session.sweepData=()=>({});await r.mount();
+    const selecting=r.state.select(r.state.rows.value[1]);await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(r.state.twinBusy.value,true);
+    if(action==='close')r.state.closeTwin();
+    else {r.props.b.slug='next-building';await r.watchers[0].callback();}
+    catalog.resolve({sweeps:Object.values(r.catalog)});await selecting;
+    assert.equal(moves.length,0,'a stale scan lookup must not move the twin');
+    assert.equal(r.state.twinBusy.value,false);assert.equal(r.state.connected.value,false);
+    assert.equal(r.state.twinStatus.value,'');assert.equal(r.state.error.value,'');
+    assert.equal(r.calls.filter(call=>call.args).length,0);
+  });
+}
+
+test('cancelling setup while its first twin loads prevents the late connection from moving the camera',async()=>{
+  const loading=deferred();
+  const r=cameraRuntime({waitIframeLoad:()=>loading.promise});await r.mount();
+  const setup=r.state.beginSetup();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(r.state.setupMode.value,true);r.state.cancelSetup();loading.resolve();await setup;
+  assert.equal(r.state.setupMode.value,false);assert.equal(r.moves.length,0);
+  assert.equal(r.state.twinStatus.value,'');assert.equal(r.state.error.value,'');
+  assert.equal(r.state.twinBusy.value,false);assert.equal(r.calls.filter(call=>call.args).length,0);
+});
+
+test('a connection that completes after setup is cancelled is disconnected without moving or claiming a preview',async()=>{
+  const connection=deferred();
+  const r=cameraRuntime({connect:()=>connection.promise});await r.mount();
+  const setup=r.state.beginSetup();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(r.connections(),1);r.state.cancelSetup();connection.resolve(r.session);await setup;
+  assert.equal(r.disconnects(),1);assert.equal(r.state.connected.value,false);
+  assert.equal(r.state.setupMode.value,false);assert.equal(r.moves.length,0);
+  assert.equal(r.state.twinStatus.value,'');assert.equal(r.state.error.value,'');
+  assert.equal(r.state.twinBusy.value,false);assert.equal(r.calls.filter(call=>call.args).length,0);
+});
 
 test('capture stores the actual enabled sweep and camera rotation for any registered location', async()=>{
   const r=cameraRuntime();await r.mount();
@@ -532,11 +662,12 @@ test('capture stores the actual enabled sweep and camera rotation for any regist
 test('saved views survive reload, restore their exact sweep, and can be replaced without touching another POI',async()=>{
   const r=cameraRuntime();await r.mount();await r.state.beginSetup();await r.state.captureCurrentViewpoint();
   const first=JSON.stringify(r.stored[0].viewpoint),other=JSON.stringify(r.stored[1]);
+  const savedRotation=structuredClone(r.stored[0].viewpoint.camera_rotation);
   await r.state.load();
   assert.equal(JSON.stringify(r.state.selected.value.viewpoint),first);
   r.sdkState.pose={position:{x:20,y:5,z:30},rotation:{x:0,y:0},sweep:'scan-B',mode:'mode.inside'};
   await r.state.previewSaved();
-  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:12,y:135}}});
+  assert.deepEqual(r.moves.at(-1),{id:'scan-A',args:{transition:'instant',rotation:{x:savedRotation.pitch,y:savedRotation.yaw}}});
   await r.state.beginSetup();
   r.sdkState.pose={position:{x:20,y:5,z:30},rotation:{x:-8,y:20},sweep:'scan-B',mode:'mode.inside'};
   await r.state.captureCurrentViewpoint();
@@ -683,7 +814,7 @@ test('capture rejects dollhouse, transitions, malformed poses, disabled sweeps a
     {...valid,rotation:{x:Infinity,y:0}}, {...valid,rotation:{x:0,y:'30'}},
   ];
   for(const pose of cases){
-    const r=cameraRuntime({pose});await r.mount();await r.state.beginSetup();await r.state.captureCurrentViewpoint();
+    const r=cameraRuntime();await r.mount();await r.state.beginSetup();r.sdkState.pose=pose;await r.state.captureCurrentViewpoint();
     assert.match(r.state.error.value,/Couldn't capture/);assert.equal(r.state.message.value,'');
     assert.equal(r.calls.filter(call=>call.args).length,0);
   }
@@ -703,7 +834,9 @@ test('a model mismatch is flagged instead of loading or restoring the old model 
 });
 
 test('read-only administrators can preview but cannot start capture, save or remove viewpoints',async()=>{
-  const r=cameraRuntime({writable:false});await r.mount();await r.state.beginSetup();await r.state.captureCurrentViewpoint();await r.state.remove();
+  const r=cameraRuntime({writable:false});await r.mount();await r.state.select(r.state.rows.value[1]);
+  assert.equal(r.state.connected.value,true);assert.equal(r.moves.at(-1).id,'scan-B');
+  await r.state.beginSetup();await r.state.captureCurrentViewpoint();await r.state.remove();
   assert.equal(r.state.setupMode.value,false);assert.equal(r.calls.filter(call=>call.args).length,0);
 });
 

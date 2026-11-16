@@ -6,7 +6,9 @@ it is separate from the older UNC directions look-at targets.
 
 ## Administrator workflow
 
-1. Select a location, then **Set Viewpoint** or **Replace Viewpoint**.
+1. Select a location. The twin opens its saved view, or moves to the nearest
+   enabled scan to its mapped position with the camera level and facing the
+   location. Then choose **Set Viewpoint** or **Replace Viewpoint**.
 2. Walk to the intended scan position and rotate the twin toward the location.
 3. Choose **Capture Current Viewpoint**. The editor reads the supported SDK
    camera pose, verifies its enabled sweep and active model, saves it, and reads
@@ -17,6 +19,11 @@ it is separate from the older UNC directions look-at targets.
 **Cancel Viewpoint Setup** makes no write. A failed capture cannot reuse an older
 unsaved attempt. A failed save retains the captured view for retry; a revision
 conflict requires reloading locations. No coordinates need to be typed.
+
+Selection and reconnection only preview the location; they never save a view or
+move its marker. Locations without a saved view or mapped position require
+manual navigation in the twin before capture. Status messages describe the
+selected location and appear only after movement completes.
 
 ## Persistence and permissions
 
@@ -109,6 +116,10 @@ preservation. Database tests use the isolated local `wayfinding_test` database,
 private temporary schemas, and rollback all fixture DDL/data. Capability tests
 exercise isolated temporary execute-only capability fixtures.
 The final combined run passed 137 Python checks and 95 JavaScript checks.
+The later selection-navigation change passed 91 targeted JavaScript checks,
+including 11 new navigation and cancellation regressions, plus an actual Vue
+browser fixture covering list selection, capture, reconnection and mobile
+layout with a simulated Matterport SDK.
 
 The production writer also passed a transaction test using Starbucks POI 454
 and a previously recorded actual Matterport camera pose. Saving returned the

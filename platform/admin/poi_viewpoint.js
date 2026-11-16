@@ -390,7 +390,7 @@
       props: ["b"],
       template: `<section class="poi-viewpoints camera-viewpoints" aria-labelledby="camera-viewpoint-title">
         <div class="card"><div class="row"><h2 id="camera-viewpoint-title" class="grow">Location viewpoints</h2><button @click="load" :disabled="loading || saving || capturing || twinBusy">Reload locations</button></div>
-          <p class="muted">Save where visitors stand and what they face when they select a location. Location markers and directions stay unchanged.</p>
+          <p class="muted">Select a location to go to its saved view or nearest scan, then set its viewpoint. Location markers and directions stay unchanged.</p>
           <p role="status" v-if="loading">Loading locations…</p>
           <p class="muted" v-else-if="!enabled">Add a Matterport model to this building to set location viewpoints.</p>
           <p class="muted" v-else-if="!writable">Saved views can be previewed. Saving viewpoints is not configured for this server.</p>
@@ -461,10 +461,11 @@
           try { if (old && old.disconnect) old.disconnect(); } catch (_) { /* already closed */ }
           showcase.value = ""; twinStatus.value = "";
         }
-        function cancelSetup() { if (saving.value) return; operation++; setupMode.value = false; capturing.value = false; captured.value = null; error.value = ""; message.value = ""; }
-        function select(poi) {
+        function cancelSetup() { if (saving.value) return; operation++; setupMode.value = false; capturing.value = false; captured.value = null; error.value = ""; message.value = ""; twinStatus.value = ""; }
+        async function select(poi) {
           if (saving.value || capturing.value || twinBusy.value || setupMode.value) return;
-          operation++; selectedId.value = poi.id; captured.value = null; error.value = ""; message.value = "";
+          operation++; selectedId.value = poi.id; captured.value = null; error.value = ""; message.value = ""; twinStatus.value = "";
+          await previewSelected();
         }
         async function load(force = false) {
           if (disposed || (saving.value && force !== true)) return;
@@ -489,35 +490,39 @@
           } catch (_) { if (!disposed && run === epoch) { rows.value = []; selectedId.value = null; error.value = "Couldn't load the location viewpoints. Please try again."; } }
           finally { if (!disposed && run === epoch) loading.value = false; }
         }
-        async function openTwin() {
+        async function connectTwin() {
           if (saving.value || capturing.value || twinBusy.value) return false;
-          closeTwin(); const run = epoch, slug = props.b.slug, model = modelId.value;
-          twinBusy.value = true; error.value = "";
+          if (!selected.value) return false;
+          closeTwin(); const run = epoch, op = operation, id = selected.value.id, slug = props.b.slug, model = modelId.value;
+          twinBusy.value = true; error.value = ""; twinStatus.value = "Opening digital twin…";
           try {
             if (!model || !root.MpPlace) throw new Error("unavailable");
             const url = await fetchShowcaseUrl(slug, {sdk:1});
-            if (disposed || run !== epoch || slug !== props.b.slug || model !== modelId.value) return false;
+            if (!current(run, op, id, model, slug)) return false;
             if (new URL(url, root.location && root.location.href || "http://localhost/").searchParams.get("m") !== model) throw new Error("wrong model");
             const key = root.MpPlace.keyFromShowcaseUrl(url);
             if (!key) throw new Error("missing SDK key");
             showcase.value = url; await nextTick();
             const frame = twinFrame.value; if (!frame) throw new Error("missing twin");
             await root.MpPlace.waitIframeLoad(frame, 12000);
-            if (disposed || run !== epoch || slug !== props.b.slug || model !== modelId.value) return false;
-            const result = await root.MpPlace.connect({iframe:frame,applicationKey:key,onStatus:status=>{if (!disposed && run === epoch) twinStatus.value = status;}});
-            if (disposed || run !== epoch || slug !== props.b.slug || model !== modelId.value) { if (result && result.disconnect) result.disconnect(); return false; }
+            if (!current(run, op, id, model, slug)) return false;
+            const result = await root.MpPlace.connect({iframe:frame,applicationKey:key,onStatus:status=>{if (current(run, op, id, model, slug)) twinStatus.value = status;}});
+            if (!current(run, op, id, model, slug)) { if (result && result.disconnect) result.disconnect(); return false; }
             if (!result || !result.ok) throw new Error("connection failed");
             session = result; connectedModel = model; sweepReader = createSweepReader(result.sdk, result.sweepData); connected.value = true;
             twinStatus.value = "Walk to the desired scan position and rotate the view to face the location.";
             return true;
-          } catch (_) { if (!disposed && run === epoch) twinStatus.value = "Couldn't connect the digital twin. Finish loading the walkthrough, then reconnect."; return false; }
+          } catch (_) { if (current(run, op, id, model, slug)) twinStatus.value = "Couldn't connect the digital twin. Finish loading the walkthrough, then reconnect."; return false; }
           finally { if (!disposed && run === epoch) twinBusy.value = false; }
+        }
+        async function openTwin() {
+          if (await connectTwin()) return previewSelected();
+          return false;
         }
         async function beginSetup() {
           if (!selected.value || !writable.value || saving.value || capturing.value || twinBusy.value) return;
           operation++; setupMode.value = true; captured.value = null; error.value = ""; message.value = "";
-          if (!session && !(await openTwin())) return;
-          if (selected.value && selected.value.viewpoint) await previewSaved();
+          await previewSelected();
         }
         async function persist(viewpoint) {
           if (!selected.value || !writable.value || saving.value) return false;
@@ -570,24 +575,51 @@
         }
         async function retrySave() { if (captured.value && !capturing.value && !twinBusy.value) await persist(captured.value); }
         async function remove() { if (!setupMode.value && !capturing.value && !twinBusy.value) await persist(null); }
-        async function previewSaved() {
+        async function previewSelected(savedOnly = false) {
           if (!selected.value || saving.value || capturing.value || twinBusy.value) return false;
-          const view = cameraViewpoint(selected.value.viewpoint, modelId.value);
-          if (!view) { error.value = selected.value.viewpoint ? "This saved view is no longer available. Please choose another location." : "No saved view is available for this location."; return false; }
-          if (!session && !(await openTwin())) return false;
-          const active = session, id = selected.value.id, run = epoch, op = operation, model = modelId.value, slug = props.b.slug;
-          twinBusy.value = true; error.value = "";
+          const poi = selected.value, id = poi.id, model = modelId.value, slug = props.b.slug;
+          const view = cameraViewpoint(poi.viewpoint, model);
+          error.value = ""; message.value = ""; twinStatus.value = "";
+          if (savedOnly && !view) { error.value = poi.viewpoint ? "This saved view is no longer available. Please choose another location." : "No saved view is available for this location."; return false; }
+          if (!session && !(await connectTwin())) return false;
+          if (disposed || !selected.value || selected.value.id !== id || model !== modelId.value || slug !== props.b.slug) return false;
+          const active = session, run = epoch, op = operation;
+          twinBusy.value = true; twinStatus.value = `Moving to ${poi.name}…`;
           try {
             const sweeps = await sweepReader.read();
             if (!current(run, op, id, model, slug) || active !== session) return false;
-            if (connectedModel !== view.model_id || !sweeps[view.sweep_id] || !active.sdk.Sweep || typeof active.sdk.Sweep.moveTo !== "function") throw new Error("invalid sweep");
-            await active.sdk.Sweep.moveTo(view.sweep_id, {transition:(active.sdk.Sweep.Transition||{}).INSTANT,
-              rotation:{x:view.camera_rotation.pitch,y:view.camera_rotation.yaw}});
+            if (connectedModel !== model || !active.sdk.Sweep || typeof active.sdk.Sweep.moveTo !== "function") throw new Error("unavailable");
+            let sweepId, rotation, showingSaved = false;
+            if (view && sweeps[view.sweep_id]) {
+              sweepId = view.sweep_id; rotation = {x:view.camera_rotation.pitch,y:view.camera_rotation.yaw}; showingSaved = true;
+            } else {
+              if (savedOnly) throw new Error("saved scan unavailable");
+              const position = point(poi.position);
+              if (!position) throw new Error("missing position");
+              const sweep = nearestSweep(sweeps, position);
+              if (!sweep) throw new Error("missing scan");
+              sweepId = sweep.id;
+              const dx = position.x - sweep.position.x, dz = position.z - sweep.position.z;
+              // Marker heights often sit on the floor. Start level, facing the
+              // POI horizontally; the administrator can then adjust the view.
+              rotation = {x:0,y:Math.hypot(dx,dz)<0.0001 ? 0 : Math.atan2(-dx,-dz)*180/Math.PI};
+            }
+            await active.sdk.Sweep.moveTo(sweepId, {transition:(active.sdk.Sweep.Transition||{}).INSTANT,rotation});
             if (!current(run, op, id, model, slug) || active !== session) return false;
-            twinStatus.value = "Showing the saved viewpoint for this location."; return true;
-          } catch (_) { if (current(run, op, id, model, slug)) error.value = "This saved view is no longer available. Please choose another location."; return false; }
+            twinStatus.value = showingSaved ? `Showing the saved viewpoint for ${poi.name}.` : `At the nearest scan to ${poi.name}. Adjust the view, then capture its viewpoint.`;
+            return true;
+          } catch (ex) {
+            if (current(run, op, id, model, slug)) {
+              twinStatus.value = "";
+              error.value = savedOnly ? "This saved view is no longer available. Please choose another location."
+                : ex && ex.message === "missing position" ? "This location has no mapped position. Navigate to it in the digital twin, then capture its viewpoint."
+                : "Couldn't move to this location. Navigate to it in the digital twin, then capture its viewpoint, or reconnect and try again.";
+            }
+            return false;
+          }
           finally { if (!disposed && run === epoch) twinBusy.value = false; }
         }
+        async function previewSaved() { return previewSelected(true); }
         onMounted(async () => { await load(); let initialSetup = false; try { initialSetup = new URLSearchParams(((root.location && root.location.hash)||"").split("?")[1]||"").get("setup")==="1"; } catch (_) {} if (initialSetup) await beginSetup(); });
         watch(() => props.b.slug, () => load(true));
         onBeforeUnmount(() => { disposed = true; closeTwin(); });
