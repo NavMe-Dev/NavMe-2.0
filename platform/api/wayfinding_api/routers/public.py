@@ -2,8 +2,9 @@
 Paths mirror the static export layout, so the viewer works against the API or a static host:
   /api/v1/public/venues/{venue}/manifest.json
   /api/v1/public/buildings/{slug}/data/{file}      (config.json, pois.json, nav_graph.json, indoor_F1.geojson, …)"""
-import json, mimetypes, logging
+import json, mimetypes, logging, time, threading
 from pathlib import Path
+from typing import Dict, Tuple, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 from sqlalchemy import or_
@@ -16,6 +17,42 @@ from ..services import navgraph, bundle_storage, navme, studio_live, camera_view
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 logger = logging.getLogger(__name__)
+
+# In-memory publication cache mapping building_slug -> (building_id, active_version, stored_path, georef, cached_at_monotonic)
+_building_cache_lock = threading.Lock()
+_building_version_cache: Dict[str, Tuple[int, int, str, dict, float]] = {}
+BUILDING_CACHE_TTL_SECONDS = 60.0
+
+
+def invalidate_building_cache(building_slug: Optional[str] = None):
+    """Invalidate in-memory cache for a building or all buildings on publish/rollback."""
+    with _building_cache_lock:
+        if building_slug:
+            _building_version_cache.pop(building_slug, None)
+        else:
+            _building_version_cache.clear()
+
+
+def get_cached_building_version(db: Session, slug: str) -> Tuple[int, int, str, dict]:
+    """Retrieve building_id, version, stored_path, georef using in-memory TTL cache to eliminate DB queries."""
+    now = time.monotonic()
+    with _building_cache_lock:
+        entry = _building_version_cache.get(slug)
+        if entry is not None:
+            bid, ver, path, georef, cached_at = entry
+            if now - cached_at < BUILDING_CACHE_TTL_SECONDS:
+                return bid, ver, path, georef
+
+    # Cache miss or expired: query database
+    b = building_or_404(db, slug)
+    mv = current_version(db, b)
+    if not mv:
+        raise HTTPException(404, "building not published yet")
+
+    bid, ver, path, georef = b.id, mv.version, mv.path, (b.georef or {})
+    with _building_cache_lock:
+        _building_version_cache[slug] = (bid, ver, path, georef, now)
+    return bid, ver, path, georef
 
 
 def _release_read_session(db: Session):
@@ -118,36 +155,48 @@ def public_camera_viewpoint(slug: str, location_id: str, db: Session = Depends(g
 
 
 @router.api_route("/buildings/{slug}/data/{path:path}", methods=["GET", "HEAD"])
-def data_file(slug: str, path: str, db: Session = Depends(get_db)):
-    b = building_or_404(db, slug); mv = current_version(db, b)
-    if not mv: raise HTTPException(404, "building not published yet")
-    version = mv.version
-    root = bundle_storage.local_version_dir(mv.path, b.slug, version)
+def data_file(slug: str, path: str, request: Request, db: Session = Depends(get_db)):
+    _bid, version, stored_path, _georef = get_cached_building_version(db, slug)
+    root = bundle_storage.local_version_dir(stored_path, slug, version)
     _release_read_session(db)
     root = root.resolve(); f = (root / path).resolve()
     if root not in f.parents:
         raise HTTPException(404, "not found")
     mt = "application/json" if f.suffix in (".json", ".geojson") else (mimetypes.guess_type(f.name)[0] or "application/octet-stream")
-    if f.is_file():
-        return FileResponse(f, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
-    # Local disk was wiped (Render free-tier restart, including automatic idle
-    # spin-down) — the DB still thinks this version is published, but its files are
-    # gone. Recover from Supabase Storage and re-cache locally. No-op (raises
-    # immediately) unless bundle_storage is configured. See services/bundle_storage.py.
+    if not f.is_file():
+        # Local disk was wiped (Render free-tier restart, including automatic idle
+        # spin-down) — the DB still thinks this version is published, but its files are
+        # gone. Recover from Supabase Storage and re-cache locally. No-op (raises
+        # immediately) unless bundle_storage is configured. See services/bundle_storage.py.
+        try:
+            f = bundle_storage.cache_bundle_file(root, slug, version, path)
+        except FileNotFoundError:
+            raise HTTPException(404, "not found")
+
+    # Generate ETag from file mtime and size
     try:
-        local_file = bundle_storage.cache_bundle_file(root, slug, version, path)
-    except FileNotFoundError:
-        raise HTTPException(404, "not found")
-    return FileResponse(local_file, media_type=mt, headers={"Cache-Control": "public, max-age=60"})
+        stat = f.stat()
+        etag = f'W/"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+    except OSError:
+        etag = None
+
+    headers = {
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    }
+    if etag:
+        headers["ETag"] = etag
+        client_etag = request.headers.get("if-none-match")
+        if client_etag and client_etag.strip() == etag:
+            return Response(status_code=304, headers=headers)
+
+    return FileResponse(f, media_type=mt, headers=headers)
 
 
 @router.post("/buildings/{slug}/route")
 def public_route(slug: str, r: schemas.RouteIn, db: Session = Depends(get_db)):
     """Server-side route between two published POIs (the viewer normally routes client-side)."""
-    b = building_or_404(db, slug); mv = current_version(db, b)
-    if not mv: raise HTTPException(404, "not published")
-    version, georef = mv.version, b.georef
-    root = bundle_storage.local_version_dir(mv.path, b.slug, version)
+    _bid, version, stored_path, georef = get_cached_building_version(db, slug)
+    root = bundle_storage.local_version_dir(stored_path, slug, version)
     _release_read_session(db)
     try:
         publication = routing_cache.get_for_publication(root, slug, version)
