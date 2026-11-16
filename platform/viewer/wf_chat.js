@@ -96,8 +96,7 @@
     const name = (h.name || h.id || "Place");
     const codeRaw = (h.code != null ? String(h.code) : "").trim();
     const code = codeRaw && codeRaw.toLowerCase() !== String(name).toLowerCase() ? ` (${codeRaw})` : "";
-    const floor = h.floor != null && h.floor !== "" ? `, floor ${h.floor}` : "";
-    return `${name}${code}${floor}`;
+    return `${name}${code}`;
   }
 
   function actionFromHit(h, slug) {
@@ -207,10 +206,7 @@
   function labelForAction(a) {
     if (!a) return "Place";
     if (a.label) return a.label;
-    if (a.name) {
-      const floor = a.floor != null && a.floor !== "" ? `, floor ${a.floor}` : "";
-      return a.name + floor;
-    }
+    if (a.name) return a.name;
     if (a.intent === "directions") return "Open directions";
     try {
       const to = a.url ? new URL(a.url, location.origin).searchParams.get("to") : null;

@@ -2167,7 +2167,7 @@
         if (!here) here = toMp({ x: j.x, y: j.y, z: j.z }); // fall back to the raw estimate
         lastLocateSid = sid;
         if (first) {
-          setStatus("Found you — " + Math.round(conf * 100) + "% match" + (j.floor ? ", " + j.floor : ""));
+          setStatus("Found you — " + Math.round(conf * 100) + "% match");
           return wait(1400).then(function () {
             setStatus("");
             return runNavigate(here);

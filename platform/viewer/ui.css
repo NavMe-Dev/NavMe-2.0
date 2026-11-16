@@ -268,6 +268,7 @@ body.nav .viewer-credit{bottom:calc(124px + env(safe-area-inset-bottom,0px))}
    list above it. Keeps the right-side control column compact on any device instead of
    always showing every floor button at once. */
 #floorPicker{display:none!important}
+#btn3D,#btnFloorplans,.badge.floor,.explore-floor{display:none!important}
 .floorpicker{position:relative;display:flex;flex-direction:column;align-items:center}
 .floor-stack{position:relative}
 .floor-stack-label{position:absolute;bottom:-2px;right:-2px;min-width:15px;height:15px;padding:0 2px;border-radius:8px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;line-height:15px;text-align:center;box-shadow:0 0 0 2px var(--bg)}

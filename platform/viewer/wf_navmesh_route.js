@@ -235,7 +235,7 @@
     steps.push({ type: "start", i: 0, point: path[0], dist_m: 0,
                  floor: startName || null,
                  arrow: "\u25CF", dir: "start", rotate: 0,
-                 text: "Start" + (startName ? " on " + startName : "") });
+                 text: "Start" });
 
     function heading(p, q) { return Math.atan2(q.x - p.x, -(q.z - p.z)) * 180 / Math.PI; }
     function turnAt(k) {
@@ -272,7 +272,7 @@
           rise_m: Math.round(seg.rise * 10) / 10, pitch_deg: Math.round(seg.pitch),
           floor: toName || null, dist_m: 0,
           arrow: up ? "\u21C8" : "\u21CA", dir: up ? "elevator-up" : "elevator-down", rotate: 0,
-          text: "Take the elevator " + (up ? "up" : "down") + (toName ? " to " + toName : "") });
+          text: "Take the elevator " + (up ? "up" : "down") });
         continue;
       }
       if (seg.kind === "stairs") {
@@ -280,7 +280,7 @@
           rise_m: Math.round(seg.rise * 10) / 10, pitch_deg: Math.round(seg.pitch),
           floor: toName || null, dist_m: Math.round(seg.run),
           arrow: up ? "\u2B06" : "\u2B07", dir: up ? "stairs-up" : "stairs-down", rotate: 0,
-          text: "Take the stairs " + (up ? "up" : "down") + (toName ? " to " + toName : "") });
+          text: "Take the stairs " + (up ? "up" : "down") });
         continue;
       }
 
@@ -330,7 +330,7 @@
     steps.push({ type: "arrive", i: path.length - 1, point: path[path.length - 1], dist_m: 0,
                  floor: endName || null,
                  arrow: "\u25C9", dir: "arrive", rotate: 0,
-                 text: "Arrive" + (endName ? " on " + endName : "") });
+                 text: "Arrive" });
     return steps;
   }
 

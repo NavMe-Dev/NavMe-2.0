@@ -47,8 +47,7 @@
     return `<div class="explore-grid">${items.map(p => `<button type="button" class="explore-card" data-explore-poi="${escape(p.id)}">
       <span class="explore-photo"><span class="ms explore-placeholder" aria-hidden="true">image</span>${p.image ? `<img src="${escape(p.image)}" alt="${escape(p.name)}" loading="lazy" decoding="async">` : ''}</span>
       <span class="explore-card-body">${p.categoryLabel ? `<span class="explore-category">${escape(p.categoryLabel)}</span>` : ''}<span class="explore-name">${escape(p.name)}</span>
-      <span class="explore-building"><span class="ms" aria-hidden="true">apartment</span><span>${escape(p.building)}</span></span>
-      <span class="explore-floor">${escape(p.floor || labels.floorUnavailable)}</span></span></button>`).join('')}</div>`;
+      <span class="explore-building"><span class="ms" aria-hidden="true">apartment</span><span>${escape(p.building)}</span></span></span></button>`).join('')}</div>`;
   }
   function create({fetchData, apply, now = Date.now}) {
     const cache = new Map(); let venue = null, generation = 0, state = null;

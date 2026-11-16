@@ -380,7 +380,7 @@ function wfDbg(level, source, message, meta) {
       let html = includeMe ? `<option value="me">${esc(meLabel)}</option>` : `<option value="">—</option>`;
       pois.forEach(p => {
         const sel = selected && selected !== "me" && selected.id === p.id ? " selected" : "";
-        html += `<option value="${esc(p.id)}"${sel}>${esc(p.name)} · ${esc(wf.floorLabel(p.floor))}</option>`;
+        html += `<option value="${esc(p.id)}"${sel}>${esc(p.name)}</option>`;
       });
       return html;
     };
@@ -537,8 +537,7 @@ function wfDbg(level, source, message, meta) {
       let html = `<li class="hdr" role="presentation">${esc(t("viewer.chooseBuilding"))}</li>`;
       buildings.forEach(b => {
         acItems.push({ building: b });
-        const floors = (b.floors && b.floors.length) ? t("viewer.floorsShort", { n: b.floors.length }) : "";
-        html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(buildingDisplayName(b))}</b><div class="s">${esc([floors, b.address].filter(Boolean).join(" · "))}</div></span></li>`;
+        html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:rgba(26,115,232,.12)"><span class="ms fill" style="color:var(--blue)">apartment</span></span><span class="t"><b>${esc(buildingDisplayName(b))}</b><div class="s">${esc(b.address || "")}</div></span></li>`;
       });
       if (!buildings.length) html += `<li class="hdr ac-message" role="presentation">${esc(t("viewer.noMatches", { q: txt }))}</li>`;
       list.innerHTML = html; list.hidden = false; document.body.classList.add("ac-open"); acSel = -1; input.setAttribute("aria-expanded", "true");
@@ -601,7 +600,7 @@ function wfDbg(level, source, message, meta) {
   }
   function itemHtml(p, hist, i) {
     const c = cat(p);
-    return `<li role="option" id="ac${i}" aria-label="${esc(p.name)}, ${esc(wf.floorLabel(p.floor))}"><span class="ic ${hist ? "hist" : ""}" style="${hist ? "" : "background:" + rgb(c.color)}"><span class="ms ${hist ? "" : "fill"}">${hist ? "history" : c.icon}</span></span>
+    return `<li role="option" id="ac${i}" aria-label="${esc(p.name)}"><span class="ic ${hist ? "hist" : ""}" style="${hist ? "" : "background:" + rgb(c.color)}"><span class="ms ${hist ? "" : "fill"}">${hist ? "history" : c.icon}</span></span>
       <span class="t"><b>${esc(p.name)}</b><div class="s">${esc(c.label)}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}</div></span></li>`;
   }
   function moveAc(d) {
@@ -1045,7 +1044,7 @@ function wfDbg(level, source, message, meta) {
     const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, 8);
     setSheet(`
       <h1 class="pname">${esc(shop ? shop.name : p.name)}</h1>
-      <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span><span class="badge floor"><span class="ms">layers</span>${esc(wf.floorLabel(p.floor))}</span>${sfBadge(p)}</div>
+      <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span>${sfBadge(p)}</div>
       <div class="actions actions-row1">
         <button class="pill primary pill-sm" id="pDir"><span class="ms fill">directions</span>${esc(t("viewer.directions"))}</button>
         <button class="pill pill-sm" id="p3d"><span class="ms">view_in_ar</span>${esc(isMpMode() ? (t("viewer.viewInAr") || "View in AR") : t("viewer.viewIn3d"))}</button>
@@ -1055,7 +1054,7 @@ function wfDbg(level, source, message, meta) {
         : galleryUrls.length === 1 ? `<img class="photo" src="${esc(galleryUrls[0])}" alt="${esc(t("viewer.photoOf", { name: p.name }))}" loading="lazy" decoding="async">` : ""}
       ${shop ? shopSectionHtml(shop) : ""}
       <ul class="facts">
-        <li><span class="ms">location_on</span><div>${esc(wf.floorLabel(p.floor))}${p.code && p.code !== p.name ? " · " + esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
+        <li><span class="ms">location_on</span><div>${p.code && p.code !== p.name ? esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
         <li><span class="ms">accessible</span><div>${p.step_free_from_parking ? esc(t("viewer.reachableStepFree")) : esc(t("viewer.routesIncludeSteps"))}<div class="muted">${esc(t("viewer.basedOnScan"))}</div></div></li>
         ${p.area_m2 ? `<li><span class="ms">square_foot</span><div>${Math.round(p.area_m2)} m² <span class="muted">(${Math.round(p.area_m2 * 10.764)} ft²)</span></div></li>` : ""}
         ${!shop && p.hours ? `<li><span class="ms">schedule</span><div>${esc(p.hours)}</div></li>` : ""}
@@ -1159,8 +1158,7 @@ function wfDbg(level, source, message, meta) {
     const meta = currentBuildingMeta();
     if ($("bldgChipName")) $("bldgChipName").textContent = meta ? buildingDisplayName(meta) : "Building";
     if ($("bldgChipSub")) {
-      const floors = meta && meta.floors ? (Array.isArray(meta.floors) ? meta.floors.length : meta.floors) : (WF.cfg && WF.cfg.floors && WF.cfg.floors.length);
-      $("bldgChipSub").textContent = floors ? t("viewer.floorsShort", { n: floors }) : "";
+      $("bldgChipSub").textContent = "";
     }
     if (chip) {
       chip.hidden = S.uxMode !== "places";
@@ -1200,12 +1198,11 @@ function wfDbg(level, source, message, meta) {
     if (!buildings.length) return `<div class="muted" style="padding:12px 4px">${esc(t("viewer.noMatches", { q: filterTxt || "" }))}</div>`;
     return `<div class="bgal">` + buildings.map(b => {
       const isCur = b.slug === curSlug;
-      const floors = (b.floors && b.floors.length) ? t("viewer.floorsShort", { n: b.floors.length }) : "";
       return `<article class="bcard${isCur ? " current" : ""}" data-bslug="${esc(b.slug)}" tabindex="0" role="button" aria-current="${isCur ? "page" : "false"}">
         <div class="thumb"><span class="ms fill">apartment</span></div>
         <div class="meta"><div class="name">${esc(buildingDisplayName(b))}</div>
           ${b.address ? `<div class="addr">${esc(b.address)}</div>` : ""}
-          <div class="tags">${floors ? `<span class="tag">${esc(floors)}</span>` : ""}${isCur ? `<span class="tag on">${esc(t("viewer.currentBuilding"))}</span>` : `<span class="tag">${esc(t("viewer.openBuilding") || "Open")}</span>`}</div></div>
+          <div class="tags">${isCur ? `<span class="tag on">${esc(t("viewer.currentBuilding"))}</span>` : `<span class="tag">${esc(t("viewer.openBuilding") || "Open")}</span>`}</div></div>
         <span class="ms go">chevron_right</span></article>`;
     }).join("") + `</div>`;
   }
@@ -1277,7 +1274,7 @@ function wfDbg(level, source, message, meta) {
         panel.innerHTML = venueMessage(exploreText("viewer.exploreErrorTitle", "Couldn't load places"), exploreText("viewer.exploreErrorBody", "We're having trouble showing places right now. Please try again."), true);
       } else if (tab === "facilities") {
         const facilities = state.data.facilities || [];
-        panel.innerHTML = facilities.length ? `<ul class="venue-facilities">${facilities.map(f => `<li><span class="ms" aria-hidden="true">${esc(LUCIDE_TO_MS[f.icon_key] || "info")}</span><div><strong>${esc(f.facility_name)}</strong>${f.facility_category ? `<div class="muted">${esc(f.facility_category)}</div>` : ""}${f.floor_name ? `<span class="explore-floor">${esc(f.floor_name)}</span>` : ""}</div></li>`).join("")}</ul>`
+        panel.innerHTML = facilities.length ? `<ul class="venue-facilities">${facilities.map(f => `<li><span class="ms" aria-hidden="true">${esc(LUCIDE_TO_MS[f.icon_key] || "info")}</span><div><strong>${esc(f.facility_name)}</strong>${f.facility_category ? `<div class="muted">${esc(f.facility_category)}</div>` : ""}</div></li>`).join("")}</ul>`
           : venueMessage(exploreText("viewer.noFacilitiesTitle", "No facilities listed"), exploreText("viewer.noFacilitiesBody", "There are no facilities listed here yet."));
       } else {
         const cards = WFExplore.cards(POIS, state.data, {venue: slug, venueName: info.name,
@@ -1287,7 +1284,7 @@ function wfDbg(level, source, message, meta) {
           label: localized(category.names, category.name)
         }));
         const featured = WFExplore.featured(cards, categoryOrder);
-        panel.innerHTML = featured.length ? WFExplore.gridHtml(featured, {floorUnavailable: exploreText("viewer.floorUnavailable", "Floor not listed")})
+        panel.innerHTML = featured.length ? WFExplore.gridHtml(featured)
           : venueMessage(exploreText("viewer.noPlacesTitle", "No places available"), exploreText("viewer.noPlacesBody", "There are no places to explore here yet."));
         panel.querySelectorAll("[data-explore-poi]").forEach(button => { button.onclick = () => {
           const poi = byId[button.dataset.explorePoi]; if (poi) selectPlace(poi, {fly: true});
@@ -1675,22 +1672,14 @@ function wfDbg(level, source, message, meta) {
   }
 
   function renderDirections(r) {
-    const segs = floorSegments(r);
-    const segHtml = segs.map(s => {
-      if (s.key === "T") return `<span class="seg"><span class="ms">elevator</span>${esc(t("viewer.floorChange", { floor: wf.floorLabel(s.toFloor) }))}</span>`;
-      const ic = s.key === "OUT" ? "park" : "layers", name = s.key === "OUT" ? t("viewer.outdoors") : wf.floorLabel(s.key);
-      return `<span class="seg" title="${fmtDist(s.d)}"><span class="ms">${ic}</span>${esc(name)} · ${fmtMin(s.d / 1.2)}</span>`;
-    }).join('<span class="ms" style="font-size:16px;color:var(--txt2)" aria-hidden="true">chevron_right</span>');
     const steps = S.navSteps.map((s, i) => {
       let extra = "";
       if (s.type === "stairs" || s.type === "level" || s.type === "elevator") {
         const sw = s.pt ? nearestSweep(s.pt) : null, th = sw && thumbFor(sw.id);
         const ic = s.type === "elevator" ? "elevator" : "stairs";
         const alt = s.type === "elevator" ? t("viewer.viewAtElevator") : t("viewer.viewAtStairs");
-        const title = s.type === "elevator"
-          ? (s.toFloor ? t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) }).replace(/^\s*/, "") || wf.floorLabel(s.toFloor) : t("viewer.catElevator"))
-          : `${/\bup\b/.test(s.text) ? t("viewer.up") : t("viewer.down")}${s.toFloor && s.toFloor !== (s.pt && s.pt.floor) ? t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) }) : ""}`;
-        extra = `<div class="fcard">${th ? `<img src="${th}" alt="${esc(alt)}">` : `<span class="ms">${ic}</span>`}<div><b>${s.type === "elevator" ? esc(t("viewer.catElevator")) + (s.toFloor ? esc(t("viewer.toFloor", { floor: wf.floorLabel(s.toFloor) })) : "") : esc(title)}</b><div class="muted">${esc(s.text.replace(/^Take (the )?/, ""))}</div></div></div>`;
+        const title = s.type === "elevator" ? t("viewer.catElevator") : (/\bup\b/.test(s.text) ? t("viewer.up") : t("viewer.down"));
+        extra = `<div class="fcard">${th ? `<img src="${th}" alt="${esc(alt)}">` : `<span class="ms">${ic}</span>`}<div><b>${esc(title)}</b><div class="muted">${esc(s.text.replace(/^Take (the )?/, ""))}</div></div></div>`;
       } else {
         // Plain turn/straight/arrive steps: same nearestSweep + thumbFor lookup as
         // above, just without the stairs/elevator title card — a photo only when one
@@ -1720,7 +1709,6 @@ function wfDbg(level, source, message, meta) {
         <button class="route-share" id="dShare" aria-label="${esc(t("viewer.share"))}" title="${esc(t("viewer.share"))}"><span class="ms">share</span></button>
       </div>
       <div class="muted">${esc(nameOf(S.from))} → ${esc(nameOf(S.to))}${r.warn ? " · " + esc(r.warn) : ""}</div>
-      <div class="segs" aria-label="${esc(t("viewer.timePerFloor"))}">${segHtml}</div>
       <div class="actions actions-row1 route-actions-primary">
         ${tm.embed_showcase ? `<button class="pill primary pill-sm" id="dTourMp"><span class="ms">play_circle</span>${esc(t("viewer.tourInterior") || "Preview")}</button>` : ""}
         <button class="pill ${tm.embed_showcase ? "" : "primary"} pill-sm" id="dStart">${isMpMode() ? `<svg class="walkthrough-footsteps" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><g transform="rotate(-18 6 12)"><ellipse cx="6" cy="9" rx="3" ry="5"/><rect x="3.8" y="15" width="4.4" height="4" rx="2"/></g><g transform="rotate(18 17 8)"><ellipse cx="17" cy="5" rx="3" ry="5"/><rect x="14.8" y="11" width="4.4" height="4" rx="2"/></g></svg>` : `<span class="ms fill">navigation</span>`}${esc(isMpMode() ? (t("viewer.startPreview") || "Walkthrough") : t("viewer.start"))}</button>
@@ -2097,7 +2085,7 @@ function wfDbg(level, source, message, meta) {
     hideToast();
     placeMe();
     if (S.mode !== "dir") openDirections(); else { syncDirFields(); computeRoute(); }
-    toast(t("viewer.locationSet", { floor: wf.floorLabel(wf.lastLoc.floor) }));
+    toast(t("viewer.locationSetSimple"));
   }
   function snapGpsToGraph(lon, lat, accuracy) {
     const [x, y] = wf.llToModel(lon, lat);
@@ -2314,7 +2302,7 @@ function wfDbg(level, source, message, meta) {
     if (wf.is3D()) toggle3D(false);
     wf.startLocalize(true); $("btnMe").classList.add("on");
     S.locThenRoute = !!thenRoute;
-    toast(t("viewer.tapWhereYouAre", { floor: wf.floorLabel(wf.currentFloor() === "none" ? WF.cfg.default_floor : wf.currentFloor()) }), t("common.cancel"), () => { wf.startLocalize(false); $("btnMe").classList.remove("on"); });
+    toast(t("viewer.tapWhereYouAreSimple"), t("common.cancel"), () => { wf.startLocalize(false); $("btnMe").classList.remove("on"); });
   }
   function onLocalized(loc, silent) {
     $("btnMe").classList.remove("on"); hideToast();
@@ -2323,7 +2311,7 @@ function wfDbg(level, source, message, meta) {
       S.locMeta = { source: (S.locMeta && S.locMeta.source) || "map", label: t("viewer.currentLocation"), accuracy: null };
     }
     if (S.mode === "dir" || S.locThenRoute) { S.from = "me"; syncDirFields(); }
-    if (!silent) toast(t("viewer.locationSet", { floor: wf.floorLabel(loc.floor) }));
+    if (!silent) toast(t("viewer.locationSetSimple"));
     if (S.locThenRoute || (S.mode === "dir" && S.from === "me")) { S.locThenRoute = false; if (S.mode !== "dir") { S.from = "me"; openDirections(); } else computeRoute(); }
   }
   function placeMe() {

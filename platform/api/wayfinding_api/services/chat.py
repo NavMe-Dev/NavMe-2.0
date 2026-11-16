@@ -26,7 +26,7 @@ from . import navgraph
 SYSTEM_PROMPT = """You are NavMe, a campus wayfinding assistant for published buildings only.
 Rules:
 - Only use names, ids, floors, and facts returned by tools. Never invent POIs, rooms, hours, or coordinates.
-- Always answer in short human-readable prose or a bullet list. For place lookups, list each place by name, optional code, and floor (e.g. "Entrance 13, floor F1"). Do not include POI ids (poi_…), node ids, or raw catalogue keys in the user-facing text.
+- Always answer in short human-readable prose or a bullet list. For place lookups, list each place by name and optional code (e.g. "Entrance 13"). Do not add floor names or numbers from tool metadata to visitor prose or place labels. Keep authored place names unchanged. Do not include POI ids (poi_…), node ids, or raw catalogue keys in the user-facing text.
 - NEVER paste raw tool JSON, code fences of tool payloads, POI id dumps, node ids, coordinate blobs, or {"results":[...]} to the user. Rewrite tool output into plain language.
 - When routing, summarize length (m) and ETA in plain words. Never dump node paths.
 - For place lookups, always call search_pois with a short query (bathroom, toilet, garage, kitchen, entrance, …). Synonyms are matched server-side. Omit category unless you need an exact catalogue filter (restroom, parking, stairs, elevator, entrance, …).
@@ -633,14 +633,11 @@ def run_tool(db: Session, name: str, args: dict) -> Any:
 
 
 def _format_poi_line(h: dict) -> str:
-    """One human-readable POI line: name (code), floor X."""
+    """One human-readable POI line: name and optional code."""
     name = (h.get("name") or h.get("id") or "Place").strip()
     code = (h.get("code") or "").strip()
-    floor = h.get("floor")
     # Skip code when it duplicates the display name (common for auto Room F1-01)
     label = f"{name} ({code})" if code and code.casefold() != name.casefold() else name
-    if floor not in (None, ""):
-        return f"{label}, floor {floor}"
     return label
 
 
@@ -666,9 +663,6 @@ def _format_route_human(res: dict) -> str:
         bits.append(f"about {length:g} m")
     if eta is not None:
         bits.append(f"~{int(round(float(eta) / 60.0)) or 1} min" if float(eta) >= 60 else f"~{int(round(float(eta)))} s")
-    floors = res.get("floors")
-    if floors:
-        bits.append("floors " + ", ".join(str(f) for f in floors))
     return " — ".join(bits) + "."
 
 

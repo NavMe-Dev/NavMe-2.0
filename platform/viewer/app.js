@@ -748,7 +748,7 @@ require([
         r.legs.filter(l => l.transition).forEach(l => {
           const p = l.points[0], q = ll(p.x, p.y), g = new Point({ longitude: q[0], latitude: q[1] });
           const up = l.points[l.points.length - 1].z > p.z;
-          const txt = `${l.points.length && r.links.some(k => k.stairs) ? 'Take stairs' : 'Go'} ${up ? 'up' : 'down'} to ${floorLabel(l.toFloor)}`;
+          const txt = `${l.points.length && r.links.some(k => k.stairs) ? 'Take stairs' : 'Go'} ${up ? 'up' : 'down'}`;
           routeLayer.add(new Graphic({ geometry: g, symbol: { type: "simple-marker", style: "circle", size: 16, color: COL.trans, outline: { color: "white", width: 2 } } }));
           routeLayer.add(new Graphic({ geometry: g, symbol: { type: "text", text: (up ? "▲ " : "▼ ") + txt, color: "white", haloColor: [120, 60, 0], haloSize: 2, yoffset: 16, font: { size: 11, weight: "bold" } } }));
         });
@@ -797,7 +797,7 @@ require([
         const to = poiById[toPoiId]; if (!to) { $("routeSummary").textContent = "Select where you'd like to go to start navigation."; return null; }
         let fromNode, fromName, warn = null; startInfo = null;
         if (fromKey === "__loc") {
-          if (!lastLoc) { $("routeSummary").innerHTML = "<span class=\"warn\">We don't know where you're starting from yet. Select your floor, then tap your location on the map.</span>"; if (window.wf.onRoute) window.wf.onRoute(null, "We don't know where you're starting from yet. Select your floor, then tap your location on the map."); return null; }
+          if (!lastLoc) { $("routeSummary").innerHTML = "<span class=\"warn\">We don't know where you're starting from yet. Tap your location on the map.</span>"; if (window.wf.onRoute) window.wf.onRoute(null, "We don't know where you're starting from yet. Tap your location on the map."); return null; }
           const s = WFRouting.snap(lastLoc.x, lastLoc.y, lastLoc.floor);
           fromNode = s.node.id; fromName = "My location"; startInfo = { fromDot: true, x: lastLoc.x, y: lastLoc.y };
           if (s.dist > 20) warn = `Your dot is ${Math.round(s.dist)} m from the nearest mapped point.`;
@@ -837,7 +837,7 @@ require([
         if (r.instructions.length) {
           r.instructions[0].text = i18nt("viewer.startAt", { name: fromName }) || `Start at ${fromName}`;
           r.instructions[r.instructions.length - 1].text =
-            i18nt("viewer.arriveAtPlace", { name: to.name, floor: floorLabel(to.floor) }) || `Arrive at ${to.name} (${floorLabel(to.floor)})`;
+            i18nt("viewer.youArrived", { name: to.name }) || `Arrive at ${to.name}`;
         }
         lastRoute = r; window.wf.lastRoute = r; lastRouteArgs = { fromKey, toPoiId, opts };
         drawRoute(); renderSteps(r);

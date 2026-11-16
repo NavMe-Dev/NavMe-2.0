@@ -159,7 +159,7 @@ def test_maybe_force_search_place_hint():
 
 
 def test_ensure_human_reply_strips_tool_json():
-    """LLM echo of search_pois JSON must become name/floor prose + deep links."""
+    """LLM echo of search_pois JSON must become place-name prose + deep links."""
     echo = (
         '{"results":[{"id":"poi_door_inf_kqtks5tmpsyhph9pxsw15","name":"Entrance 13",'
         '"code":null,"category":"entrance","floor":"F1"}],"count":1,"slug":"gcu-omr-libra"}'
@@ -179,14 +179,14 @@ def test_ensure_human_reply_strips_tool_json():
     }]
     msg, acts = chat_svc._ensure_human_reply(echo, tool_trace, "gcu-omr-libra")
     assert "Entrance 13" in msg
-    assert "floor F1" in msg
+    assert "floor F1" not in msg
     assert '"results"' not in msg
     assert "poi_door" not in msg  # no raw id dump in prose lines beyond optional deep link
     assert not chat_svc._looks_like_tool_echo(msg)
     assert acts and acts[0]["type"] == "deep_link"
     assert "to=poi_door_inf_kqtks5tmpsyhph9pxsw15" in acts[0]["url"]
     # Good prose passes through unchanged
-    plain = "Entrance 13 is on floor F1."
+    plain = "Entrance 13 is in the published catalogue."
     assert chat_svc._ensure_human_reply(plain, [], None)[0] == plain
 
 
@@ -198,13 +198,13 @@ def test_ensure_human_reply_from_empty_with_search_trace():
     trace = [{"name": "search_pois", "args": {"slug": "demo", "query": "bathroom"},
               "result": {"slug": "demo", "results": hits, "count": 2}}]
     msg, acts = chat_svc._ensure_human_reply("", trace, "demo")
-    assert "Bathroom" in msg and "floor F1" in msg and "floor F2" in msg
+    assert "Bathroom" in msg and "floor F1" not in msg and "floor F2" not in msg
     assert "(R1)" in msg
     assert len(acts) >= 1
 
 
 def test_search_pois_entrance_and_bathroom_live_shape():
-    """Entrance + bathroom queries return catalogue hits with name/floor (no crash)."""
+    """Entrance + bathroom queries retain metadata but present only place names."""
     entrances = [
         {"id": "poi_e13", "name": "Entrance 13", "category": "entrance", "floor": "F1"},
         {"id": "poi_e1", "name": "Entrance 1", "category": "entrance", "floor": "F1"},
@@ -217,8 +217,9 @@ def test_search_pois_entrance_and_bathroom_live_shape():
         assert hits["count"] >= 2
         assert all(r["category"] == "entrance" for r in hits["results"])
         assert any(r["name"] == "Entrance 13" for r in hits["results"])
+        assert all(r["floor"] == "F1" for r in hits["results"])
         human = chat_svc._format_poi_hits(hits["results"])
-        assert "Entrance 13, floor F1" in human
+        assert "Entrance 13" in human and "floor F1" not in human
         assert "{" not in human
         baths = chat_svc.tool_search_pois(DummyDB(), "demo", "bathroom")
         assert baths["count"] >= 1 and baths["results"][0]["name"] == "Bathroom"
@@ -273,7 +274,7 @@ def test_run_chat_postprocesses_json_echo(monkeypatch):
             )
     assert out["configured"] is True
     assert "Entrance 13" in out["message"]
-    assert "floor F1" in out["message"]
+    assert "floor F1" not in out["message"]
     assert '"results"' not in out["message"]
     assert not chat_svc._looks_like_tool_echo(out["message"])
     assert out["actions"] and out["actions"][0]["type"] == "deep_link"
@@ -297,7 +298,7 @@ def test_ensure_human_reply_strips_poi_id_leaks():
         },
     }]
     msg, acts = chat_svc._ensure_human_reply(leaky, trace, "gcu-omr-libra")
-    assert "Entrance 13" in msg and "floor F1" in msg
+    assert "Entrance 13" in msg and "floor F1" not in msg
     assert "poi_" not in msg
     assert acts and "to=poi_door_inf_kqtks5tmpsyhph9pxsw15" in acts[0]["url"]
 
@@ -314,13 +315,14 @@ def test_actions_include_place_labels():
     assert acts and all(a.get("type") == "deep_link" for a in acts)
     assert acts[0].get("poi_id") == "poi_e13"
     assert "Entrance 13" in (acts[0].get("label") or "")
+    assert "floor F1" not in (acts[0].get("label") or "")
     assert acts[0].get("intent") == "select"
     # merge must preserve labels
     merged = chat_svc._merge_actions([{"type": "deep_link", "url": acts[0]["url"]}], acts)
     assert merged[0].get("label")
 
 def test_format_poi_line_skips_duplicate_code():
-    assert chat_svc._format_poi_line({"name": "Room F1-01", "code": "Room F1-01", "floor": "F1"}) == "Room F1-01, floor F1"
+    assert chat_svc._format_poi_line({"name": "Room F1-01", "code": "Room F1-01", "floor": "F1"}) == "Room F1-01"
     assert "(R1)" in chat_svc._format_poi_line({"name": "Bathroom", "code": "R1", "floor": "F1"})
 
 

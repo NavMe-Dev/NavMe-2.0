@@ -30,17 +30,16 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <script>if(WFQuery().get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261116poweredby1">
-<link rel="stylesheet" href="student_union_plans.css?v=20261115spatialdraft1">
+<link rel="stylesheet" href="ui.css?v=20261116nofloors1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
 <script src="vendor/fuse.min.js"></script>
 <!-- Keep the established eager Recast runtime in the regular map viewer. Only mp=1
      defers it, preventing its WASM/binary import from competing with Matterport startup. -->
 <script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/recast-navigation.js"><\/script>');</script>
-<script src="wf_navmesh_route.js?v=20261026turns1"></script>
+<script src="wf_navmesh_route.js?v=20261116nofloors1"></script>
 <script src="wf_navmesh_bridge.js?v=20261026lazy1"></script>
-<script>if(WFQuery().get("mp")!=="1")document.write('<script src="navmesh_route.js?v=20260930access2"><\/script><script src="routing.js?v=20261026turns1"><\/script>');</script>
+<script>if(WFQuery().get("mp")!=="1")document.write('<script src="navmesh_route.js?v=20260930access2"><\/script><script src="routing.js?v=20261116nofloors1"><\/script>');</script>
 <script src="tour_modes_config.js?v=20260930access2"></script>
 <script src="access_config.js?v=20260930access2"></script>
 <script src="bundle_preview.js?v=20260930access2"></script>
@@ -147,7 +146,7 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
       <button class="sty" data-style="dark"><img src="img/style_dark.jpg" alt=""><span data-i18n="viewer.dark">Dark</span></button>
     </div>
     <div class="pophead sm" data-i18n="viewer.mapDetails">Map details</div>
-    <label class="tog"><span class="ms">image</span><span data-i18n="viewer.photoFloorPlan">Photo floor plan</span><input type="checkbox" id="togPhoto"><i></i></label>
+    <label class="tog" hidden><span class="ms">image</span><span data-i18n="viewer.photoFloorPlan">Photo floor plan</span><input type="checkbox" id="togPhoto"><i></i></label>
     <label class="tog"><span class="ms">hub</span><span data-i18n="viewer.debugGraph">Debug: sweep graph</span><input type="checkbox" id="togGraph"><i></i></label>
     <div class="pophead sm" data-i18n="viewer.map3dLayers">3D layers</div>
     <label class="tog"><span class="ms">domain</span><span data-i18n="viewer.hideShell">Hide 3D structure (glass building)</span><input type="checkbox" id="togHideShell"><i></i></label>
@@ -333,19 +332,16 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
 <script src="/locales/i18n.js?v=20261013lang3"></script>
 <script src="wf_debug.js?v=20260930access2"></script>
 <script>if(WFQuery().get("mp")!=="1")document.write('<script src="wf_mesh_overlay.js?v=20261005overlay8"><\/script>');</script>
-<script>document.write('<script src="'+(WFQuery().get("mp")==="1"?'mp_app.js?v=20261116cameraview1':'app.js?v=20261116cameraview1')+'"><\/script>');</script>
+<script>document.write('<script src="'+(WFQuery().get("mp")==="1"?'mp_app.js?v=20261116cameraview1':'app.js?v=20261116nofloors1')+'"><\/script>');</script>
 <script src="venue_info.js?v=20261024sidebar1"></script>
 <script src="category_markers.js?v=20261026alldollhouse1"></script>
 <script src="mp_preview.js?v=20261116cameraview1"></script>
 <script src="mp_background.js?v=20261024intro2"></script>
-<script src="threed_nav.js?v=20261116viewpoint1"></script>
+<script src="threed_nav.js?v=20261116nofloors1"></script>
 <script src="/ar_webxr/launch.js"></script>
-<script src="wf_chat.js?v=20261026mpmode1"></script>
-<script src="explore.js?v=20261024featured1"></script>
-<script src="ui.js?v=20261116cameraview1"></script>
+<script src="wf_chat.js?v=20261116nofloors1"></script>
+<script src="explore.js?v=20261116nofloors1"></script>
+<script src="ui.js?v=20261116nofloors1"></script>
 <script src="weather.js?v=20261116nochipmenu1"></script>
-<script src="plan_navigation.js?v=20261115draft1"></script>
-<script src="plan_navigation_ui.js?v=20261115draft1"></script>
-<script src="student_union_plans.js?v=20261115spatialdraft1"></script>
 </body>
 </html>

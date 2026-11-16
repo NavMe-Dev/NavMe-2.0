@@ -282,7 +282,6 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
   function instructions(seq, links, sm, hopDoors) {
     const out = [];
     const toLL = WF.modelToLL;
-    const floorName = F => (nav.floors[F] || {}).label || F;
     // events on graph links: stairs, elevators, entrances
     const events = {}; let stairRun = null;
     links.forEach((l, i) => {
@@ -292,16 +291,16 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
         const prev = i > 0 && links[i - 1].data.stairs === l.data.stairs && (seq[i].z > seq[i - 1].z) === up ? stairRun : null;
         const run = prev || { startId: a.id, name, up, rise: 0, fromFloor: a.floor };
         run.rise += Math.abs(b.z - a.z); run.toFloor = b.floor; stairRun = run;
-        const txt = (run.fromFloor !== run.toFloor ? `Take the ${name} ${up ? 'up' : 'down'} to ${floorName(run.toFloor)}` : `Take the ${name} ${up ? 'up' : 'down'}`) + ` (${run.rise.toFixed(1)} m ${up ? 'rise' : 'drop'})`;
+        const txt = `Take the ${name} ${up ? 'up' : 'down'}` + ` (${run.rise.toFixed(1)} m ${up ? 'rise' : 'drop'})`;
         events[run.startId] = { txt, type: 'stairs', floor: b.floor };
       } else stairRun = null;
       if (isElevator(l)) {
         const name = elevName(l.data);
-        const dest = floorName(b.floor);
-        const txt = (name && name !== 'elevator') ? `Take ${name} to ${dest}` : `Take the elevator to ${dest}`;
+        const direction = b.z > a.z ? ' up' : b.z < a.z ? ' down' : '';
+        const txt = (name && name !== 'elevator') ? `Take ${name}${direction}` : `Take the elevator${direction}`;
         events[a.id] = { txt, type: 'elevator', floor: b.floor };
       } else if (!l.data.stairs && a.floor !== b.floor) {
-        events[a.id] = { txt: `Continue ${b.z > a.z ? 'up' : 'down'} the slope onto ${floorName(b.floor)} level`, type: 'level' };
+        events[a.id] = { txt: `Continue ${b.z > a.z ? 'up' : 'down'} the slope`, type: 'level' };
       }
       if (b.kind === 'door') { const what = (b.door_type || '').includes('inferred') ? 'opening' : 'door';
         events[b.id] = { txt: b.exterior ? `${a.indoor ? 'Exit' : 'Enter'} the building through the ${what}` : `Go through the ${what}`, type: 'door' }; }
@@ -312,7 +311,7 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
       out.push({ type: ev.type, text: ev.txt, pt: { x: pt.x, y: pt.y, z: pt.z, floor: pt.floor }, toFloor: ev.floor });
     }
     let acc = 0, prevBrg = null;
-    out.push({ type: 'start', text: `Start at ${seq[0].label}${seq[0].kind === 'sweep' ? ' (' + floorName(seq[0].floor) + ')' : ''}`, pt: { x: sm[0].x, y: sm[0].y, z: sm[0].z, floor: sm[0].floor } });
+    out.push({ type: 'start', text: `Start at ${seq[0].label}`, pt: { x: sm[0].x, y: sm[0].y, z: sm[0].z, floor: sm[0].floor } });
     for (let i = 0; i < sm.length - 1; i++) {
       const p = sm[i], q = sm[i + 1];
       const d = Math.hypot(q.x - p.x, q.y - p.y);

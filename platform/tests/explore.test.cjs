@@ -34,7 +34,7 @@ test('card markup escapes authored names, rejects unsafe image schemes, and supp
  assert.equal(E.imageUrl('//untrusted.test/image'),null);
  const html=E.gridHtml([{id:'"><script>',name:'<script>name</script>',building:'A & B',floor:null,image:'https://images.test/photo.jpg'}],{floorUnavailable:'Floor not listed'});
  assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;script&gt;'));
- assert.ok(html.includes('loading="lazy"'));assert.ok(html.includes('type="button"'));assert.ok(html.includes('Floor not listed'));
+ assert.ok(html.includes('loading="lazy"'));assert.ok(html.includes('type="button"'));assert.ok(!html.includes('Floor not listed'));assert.ok(!html.includes('explore-floor'));
 });
 test('shared metadata requests are cached across tab switches',async()=>{
  let calls=0;const applied=[];
