@@ -43,6 +43,8 @@ function wfDbg(level, source, message, meta) {
   const HUD_TURN_EMPHASIS_DEG = 30;   // larger chevron when turn > 30° (never hide)
   const FACE_ROTATE_SPEED = 90;       // smooth setRotation after land (3A)
   let routeTotalM = null;             // route.total_m when provided (full path, info only)
+  let etaRoute = null;
+  let etaInvalidLogged = false;
   let cumDistM = [];                  // cumDistM[i] = meters along sweep path from start to sweep i
   let segDistM = [];                  // segDistM[i] = meters from sweep i → i+1 (last = to dest if any)
   let tourPaceScale = 1;              // multiplies FLY/dwell timing: >1 slower (small route), <1 faster (big route)
@@ -114,9 +116,16 @@ function wfDbg(level, source, message, meta) {
         const d = document.createElement("div");
         d.className = "mp-dock"; d.id = "mpDock"; d.hidden = true;
         d.innerHTML = '<div class="mp-dock-eta" id="mpDockEta" hidden><div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div><div class="mp-dock-val" id="mpDockDist">—</div></div>' +
+          '<div class="nav-time" id="mpDockTime" hidden><div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div><div class="mp-dock-val" id="mpDockTimeValue">—</div></div>' +
           '<button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>';
         wrap.appendChild(d);
       }
+    }
+    if ($("mpDock") && !$("mpDockTime")) {
+      const time = document.createElement("div");
+      time.className = "nav-time"; time.id = "mpDockTime"; time.hidden = true;
+      time.innerHTML = '<div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div><div class="mp-dock-val" id="mpDockTimeValue">—</div>';
+      $("mpDock").insertBefore(time, $("mpExit"));
     }
   }
 
@@ -154,6 +163,10 @@ function wfDbg(level, source, message, meta) {
             <div class="mp-dock-eta" id="mpDockEta" hidden>
               <div class="mp-dock-lbl" id="mpDockLbl">Distance remaining</div>
               <div class="mp-dock-val" id="mpDockDist">—</div>
+            </div>
+            <div class="nav-time" id="mpDockTime" hidden>
+              <div class="mp-dock-lbl" id="mpDockTimeLabel">Estimated time</div>
+              <div class="mp-dock-val" id="mpDockTimeValue">—</div>
             </div>
             <button type="button" class="mp-exit" id="mpExit" aria-label="Exit tour">Exit</button>
           </div>
@@ -992,6 +1005,8 @@ function wfDbg(level, source, message, meta) {
   }
 
   function prepareRoute(route) {
+    etaRoute = route || null;
+    etaInvalidLogged = false;
     navPathTour = false;
     const ids = dedupeConsecutive(route && route.sweep_ids);
     const allNodes = (route && route.nodes) || [];
@@ -1239,11 +1254,12 @@ function wfDbg(level, source, message, meta) {
     }
     const dockEta = $("mpDockEta");
     if (dockEta) dockEta.hidden = true;
+    const time = $("mpDockTime");
+    if (time) time.hidden = true;
   }
 
   function stopCountdown() {
-    // Kept as the shared pause/close hook. Time estimates are intentionally disabled;
-    // the preview now reports only route distance, which comes from actual route data.
+    // Shared pause/close hook: ETA updates from route data, never a clock countdown.
   }
 
   function startCountdown(fromIndex) {
@@ -1276,6 +1292,33 @@ function wfDbg(level, source, message, meta) {
     if (dockVal) dockVal.textContent = fmtMeters(rem);
     if (dockLbl) dockLbl.textContent = destName ? ("To " + destName) : "Distance remaining";
     if (dockEta) dockEta.hidden = false;
+    updateTravelTime(rem);
+  }
+
+  function updateTravelTime(remainingMeters) {
+    const time = $("mpDockTime"), value = $("mpDockTimeValue"), label = $("mpDockTimeLabel");
+    const helper = window.WFTravelTime;
+    // Camera playback is a preview, not a measurement of the visitor's position.
+    // Keep the total route duration unless the caller explicitly supplies live progress.
+    const hasPathGeometry = sweepNodes.some(node => node && node.x != null && node.y != null &&
+      Number.isFinite(+node.x) && Number.isFinite(+node.y));
+    const fullDistance = routeTotalM != null && routeTotalM >= 0 ? routeTotalM :
+      (hasPathGeometry ? remainingDistM(0) : null);
+    const distance = etaRoute && etaRoute._etaLiveProgress === true ? remainingMeters : fullDistance;
+    const seconds = helper && helper.estimate(etaRoute, distance);
+    if (!time || !value) return;
+    if (seconds == null || !Number.isFinite(seconds)) {
+      time.hidden = true;
+      if (!etaInvalidLogged) {
+        wfDbg("warn", "navigation.eta", "Travel time unavailable: route distance is invalid");
+        etaInvalidLogged = true;
+      }
+      return;
+    }
+    if (label) label.textContent = window.WFi18n && typeof window.WFi18n.t === "function"
+      ? window.WFi18n.t("viewer.estimatedTime") : "Estimated time";
+    value.textContent = helper.format(seconds);
+    time.hidden = false;
   }
 
   async function getPoseYaw() {
@@ -1964,6 +2007,10 @@ function wfDbg(level, source, message, meta) {
         sweep_ids: (route && route.sweep_ids) || [],
         nodes: (route && route.nodes) || [],
         total_m: (route && route.total_m != null) ? route.total_m : undefined,
+        time_s: (route && route.time_s != null) ? route.time_s : undefined,
+        mode: (route && route.mode) || undefined,
+        _stepFree: !!(route && route._stepFree),
+        _etaLiveProgress: !!(route && route._etaLiveProgress),
         links: (route && route.links) || undefined,
         navPath: (route && route.navPath) || undefined,
         smoothed: (route && route.smoothed) || undefined,

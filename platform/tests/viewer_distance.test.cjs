@@ -50,7 +50,7 @@ test('actual Matterport HUD updates the remaining dock and next leg in feet with
   const c=loadFunctions('mp_preview.js',['usesFeet','fmtMeters','updateDistHud'],{
     window:{WF:{building:{slug:'uncc-main-campus'}}},$:id=>ids[id],ensureDistHudMount:()=>hud,
     playing:true,stopped:false,sweepIds:['a','b'],stepI:0,destName:'Library',
-    remainingDistM:()=>metres.remaining,nextLegDistM:()=>metres.leg,hideDistHud(){throw Error('active route should remain visible');},
+    remainingDistM:()=>metres.remaining,nextLegDistM:()=>metres.leg,updateTravelTime(){},hideDistHud(){throw Error('active route should remain visible');},
   });
   c.updateDistHud(0);
   assert.equal(ids.mpDockDist.textContent,'299 ft');assert.equal(ids.mpDistRem.textContent,'299 ft');assert.equal(ids.mpDistLeg.textContent,'10 ft');
@@ -62,7 +62,7 @@ function walkthrough(config) {
   const ids=Object.fromEntries(['n3dDock','n3dDistV','n3dDistU','n3dDistLbl'].map(id=>[id,element()]));
   let remaining=91;
   const c=loadFunctions('threed_nav.js',['usesFeet','updateDistDisplay'],{
-    window:{WF:config},$:id=>ids[id],destName:'Library',remainingMetres:()=>remaining,
+    window:{WF:config},$:id=>ids[id],destName:'Library',remainingMetres:()=>remaining,updateTravelTime(){},
   });
   return {c,ids,set:value=>{remaining=value;}};
 }

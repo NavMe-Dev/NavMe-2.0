@@ -4,3 +4,5 @@
    dataBase: optional – load ONE building straight from a folder (legacy prototype layout), bypassing the API */
 /* Optional: vpsUrl: "https://host:8770" or full ".../localize" — else uses /api/v1/public/vps/localize when vps_enabled, or same-origin /localize */
 window.WF_CONFIG = window.WF_CONFIG || { apiBase: "/api/v1/public/", venue: "all" };
+/* Optional navigation_eta: { walking_speed_mps: 0.8, step_free_speed_mps: 0.7 }.
+   Used only when the route provides no duration; distances stay in metres internally. */

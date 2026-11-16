@@ -248,7 +248,12 @@
         "background:var(--bg,#fff);color:var(--txt,#202124);",
         "box-shadow:0 -2px 10px rgba(60,64,67,.25)}",
       "#n3dOverlay .n3d-dock[hidden]{display:none!important}",
-      "#n3dOverlay .n3d-dock-eta{flex:1;min-width:0}",
+      "#n3dOverlay .n3d-dock{flex-wrap:wrap}",
+      "#n3dOverlay .n3d-dock-eta,#n3dOverlay .nav-time{flex:1 1 120px;min-width:0}",
+      "#n3dOverlay .nav-time-label{font-size:12px;color:var(--txt2,#5f6368)}",
+      "#n3dOverlay .nav-time-value{font-size:20px;font-weight:600;overflow-wrap:anywhere}",
+      "#n3dOverlay .nav-time[hidden]{display:none!important}",
+      "#n3dOverlay .n3d-exit{min-height:44px}",
       "#n3dOverlay .n3d-dist-v{font-size:1.5em;font-weight:500;line-height:1.1;",
         "color:var(--green,#188038);font-variant-numeric:tabular-nums}",
       "#n3dOverlay .n3d-dist-u{font-size:13px;font-weight:600;color:var(--green,#188038);margin-left:3px}",
@@ -295,6 +300,7 @@
         '<div class="n3d-dock" id="n3dDock" hidden>',
           '<div class="n3d-dock-eta"><div class="n3d-dist-lbl" id="n3dDistLbl">Distance remaining</div>',
           '<div><span class="n3d-dist-v" id="n3dDistV">—</span><span class="n3d-dist-u" id="n3dDistU"></span></div></div>',
+          '<div class="nav-time" id="n3dTime" hidden><div class="nav-time-label" id="n3dTimeLabel">Estimated time</div><div class="nav-time-value" id="n3dTimeValue"></div></div>',
           '<button class="n3d-exit" id="n3dExit" type="button">Exit</button>',
         '</div>',
         '<div class="n3d-arrived" id="n3dArrived" hidden role="alertdialog" aria-modal="false">',
@@ -322,6 +328,29 @@
     el.hidden = false; el.textContent = msg;
   }
 
+  var etaRoute = null, etaRouteDistance = null;
+  function setEtaRoute(route) {
+    etaRoute = route;
+    etaRouteDistance = route && typeof route.total_m === "number" && Number.isFinite(route.total_m) && route.total_m >= 0 ? route.total_m : null;
+    if (etaRouteDistance == null && route) {
+      var path = route.navPath || route.smoothed || route.nodes || [];
+      if (path.length > 1 && path.every(function(p){return p && [p.x,p.y,p.z == null ? 0 : p.z].every(Number.isFinite);})) {
+        etaRouteDistance = 0;
+        for (var j=1;j<path.length;j++) etaRouteDistance += Math.hypot(path[j].x-path[j-1].x,path[j].y-path[j-1].y,(path[j].z||0)-(path[j-1].z||0));
+      }
+    }
+  }
+  function updateTravelTime(rem) {
+    var group=$("n3dTime"), value=$("n3dTimeValue"), label=$("n3dTimeLabel");
+    if (!group) return;
+    var helper=window.WFTravelTime;
+    var metres=etaRoute && etaRoute._etaLiveProgress === true ? rem : etaRouteDistance;
+    var seconds=helper && helper.estimate(etaRoute,metres);
+    group.hidden=seconds == null;
+    if (seconds == null) { if (etaRoute && helper && window.WFDebug && WFDebug.isEnabled()) WFDebug.log("warn","eta.distance","Travel time unavailable: invalid route distance"); return; }
+    if (label) label.textContent=window.WFi18n ? WFi18n.t("viewer.estimatedTime") : "Estimated time";
+    if (value) value.textContent=helper.format(seconds);
+  }
   function usesFeet() {
     var current = window.WF || {};
     return ((current.building && current.building.slug) || (current.cfg && current.cfg.slug)) === "uncc-main-campus";
@@ -339,6 +368,7 @@
     var inFeet = usesFeet();
     if (du) du.textContent = inFeet ? "ft" : "m";
     var rem = remainingMetres();
+    updateTravelTime(rem);
     if (rem == null || !Number.isFinite(rem)) { if (dv) dv.textContent = "—"; return; }
     if (inFeet) {
       var feet = Math.max(0, rem) / 0.3048;
@@ -2348,6 +2378,9 @@
         sweep_ids: (route && route.sweep_ids) || [],
         nodes: (route && route.nodes) || [],
         total_m: (route && route.total_m != null) ? route.total_m : undefined,
+        time_s: route && route.time_s,
+        _stepFree: !!(route && route._stepFree),
+        _etaLiveProgress: !!(route && route._etaLiveProgress),
         links: (route && route.links) || undefined,
         navPath: (route && route.navPath) || undefined,
         smoothed: (route && route.smoothed) || undefined,
@@ -2390,6 +2423,7 @@
    * already made Walkthrough draw on top of everything else.
    */
   function openUsingLiveConnection(route, live) {
+    setEtaRoute(route);
     var gen = ++openGen;
     usingLiveConnection = true;
 
@@ -2484,6 +2518,7 @@
   }
 
   async function open(route) {
+    setEtaRoute(route);
     var live = window.MpPreview && window.MpPreview.getLiveConnection && window.MpPreview.getLiveConnection();
     if (live) return openUsingLiveConnection(route, live);
     if (!window.__WF_NAV_WALKTHROUGH_PAGE && isCoarseMobile()) {

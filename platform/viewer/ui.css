@@ -392,6 +392,12 @@ body.dir .ctop{top:182px}
 .mp-dock-eta[hidden]{display:none!important}
 .mp-dock-val{font-size:1.5em;font-weight:500;line-height:1.1;color:var(--green,#188038);font-variant-numeric:tabular-nums}
 .mp-dock-lbl{font-size:13px;color:var(--txt2,#5f6368)}
+.nav-time{flex:1 1 150px;min-width:0;color:var(--txt,#202124)}
+.nav-time-label{font-size:12px;line-height:1.4;color:var(--txt2,#5f6368)}
+.nav-time-value{font-size:clamp(16px,4vw,21px);line-height:1.3;font-weight:600;overflow-wrap:anywhere}
+.mp-dock{flex-wrap:wrap}
+.mp-dock-eta{flex:1 1 120px}
+@media(max-width:430px){.mp-dock{gap:10px;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}.mp-dock-eta,.mp-dock .nav-time{flex:1 1 calc(50% - 10px)}.mp-dock .mp-exit{margin-left:auto;min-height:44px}}
 .mp-exit{flex:0 0 auto;height:40px;padding:0 20px;border-radius:999px;border:0;background:var(--red,#d93025);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
 .mp-exit:active{transform:scale(.97)}
 .mp-frame-wrap iframe,.mp-frame-wrap #mpFrame{position:absolute;inset:0;width:100%;height:100%;min-height:70vh;border:0;background:#000;transform:translateZ(0);-webkit-transform:translateZ(0)}
