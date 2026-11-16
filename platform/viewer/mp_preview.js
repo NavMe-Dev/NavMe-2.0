@@ -2913,12 +2913,18 @@ function wfDbg(level, source, message, meta) {
       return fail();
     }
     if (!current()) return false;
+    const isIOSDevice = (() => {
+      try {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent)
+          || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      } catch (_) { return false; }
+    })();
     const nativeStartup = (() => {
       const cfg = (window.WF && window.WF.cfg) || {};
       const building = (window.WF && window.WF.building) || {};
       const slug = String(building.slug || cfg.slug || cfg.building || "").toLowerCase();
       const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
-      return mobile && slug === "uncc-main-campus";
+      return (mobile || isIOSDevice) && slug === "uncc-main-campus";
     })();
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
