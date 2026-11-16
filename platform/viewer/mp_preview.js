@@ -7,12 +7,21 @@ function wfDbg(level, source, message, meta) {
    when configured; keys are domain-bound and intended for client embeds. */
 (function () {
   "use strict";
+  if (window.MpPreview) return;
 
   const DEFAULT_MODEL = "Hn36TwktGgz";
   const SDK_BOOTSTRAP = "https://static.matterport.com/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js";
   const SHOW_BASE = "https://my.matterport.com/show/";
 
   let mpSdk = null;
+  let viewerEpoch = 0, backgroundSession = null, sdkConnection = null;
+  function viewerTrace(event, meta) {
+    try { if (window.WFViewerLifecycle) window.WFViewerLifecycle.record(event, meta); } catch (_) {}
+  }
+  function viewerIdentity() {
+    const wf = window.WF || {}, cfg = wf.cfg || {}, building = wf.building || {};
+    return JSON.stringify([building.slug || cfg.slug || cfg.building || "", cfg.matterport_model_id || cfg.model_id || ""]);
+  }
   let playing = false;
   let stopped = true;
   let stepI = 0;
@@ -308,7 +317,11 @@ function wfDbg(level, source, message, meta) {
       s.src = SDK_BOOTSTRAP;
       s.async = true;
       s.onload = () => resolve();
-      s.onerror = () => reject(new Error("Failed to load Matterport SDK bootstrap"));
+      s.onerror = () => {
+        sdkScriptPromise = null;
+        if (s.remove) s.remove();
+        reject(new Error("Failed to load Matterport SDK bootstrap"));
+      };
       document.head.appendChild(s);
     });
     return sdkScriptPromise;
@@ -347,8 +360,9 @@ function wfDbg(level, source, message, meta) {
   }
 
   async function resolveConfig() {
-    modelId = DEFAULT_MODEL;
-    applicationKey = "";
+    // Resolve into local values: an older request must never change the model
+    // or key belonging to a newer viewer session while it awaits the network.
+    let modelId = DEFAULT_MODEL, applicationKey = "";
 
     // window.WF.cfg (building slug, model id, access policy) is filled in asynchronously
     // by wf-boot.js once window.WF.ready resolves. Every read of window.WF.cfg below
@@ -443,6 +457,7 @@ function wfDbg(level, source, message, meta) {
           try { sessionStorage.removeItem("wf_access_pin"); } catch (_) { /* ignore */ }
           accessToken = "";
           if (policy.twin_pin_required) {
+            if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:"auth-retry"});
             const pin2 = promptAccessPin();
             if (pin2) {
               accessToken = pin2;
@@ -1690,26 +1705,13 @@ function wfDbg(level, source, message, meta) {
   }
 
 
-  /** Setting the same iframe src twice is a no-op in browsers, so re-entering MP mode
-   *  a second time needs an about:blank reset to force a fresh navigation — but on
-   *  first load the iframe has no src at all yet, so that detour (one wasted
-   *  navigation + a flat 40ms sleep) can be skipped, letting the real — already
-   *  slow-on-mobile — Showcase bundle start loading immediately. Returns true if the
-   *  reset ran (caller should still re-check its own gen before navigating to url). */
-  async function resetFrameIfNeeded(iframe) {
-    const curSrc = iframe.getAttribute("src") || "";
-    if (!curSrc || curSrc === "about:blank") return false;
-    iframe.src = "about:blank";
-    await new Promise(r => setTimeout(r, 40));
-    return true;
-  }
-
   function waitIframeLoad(iframe, gen) {
     return new Promise((resolve) => {
-      let settled = false;
+      let settled = false, timer = null;
       const done = () => {
         if (settled) return;
         settled = true;
+        clearTimeout(timer);
         iframe.removeEventListener("load", onLoad);
         resolve();
       };
@@ -1721,7 +1723,7 @@ function wfDbg(level, source, message, meta) {
         done();
       };
       iframe.addEventListener("load", onLoad);
-      setTimeout(done, 12000);
+      timer = setTimeout(done, 12000);
       // If already complete for a real URL
       try {
         const src = iframe.getAttribute("src") || "";
@@ -1776,7 +1778,7 @@ function wfDbg(level, source, message, meta) {
     });
   }
 
-  async function waitPlaying(sdk, timeoutMs, onWaiting) {
+  async function waitPlaying(sdk, timeoutMs, onWaiting, isCurrent) {
     if (!sdk || !sdk.App || !sdk.App.state) return false;
     const Ph = phaseConsts(sdk);
     const deadline = Date.now() + (timeoutMs || 60000);
@@ -1784,7 +1786,9 @@ function wfDbg(level, source, message, meta) {
     try {
       // Poll + waitUntil so we never treat WAITING as ready (older bug: empty Phase made waitUntil resolve immediately).
       while (Date.now() < deadline) {
+        if (isCurrent && !isCurrent()) return false;
         const phase = await readPhase(sdk);
+        if (isCurrent && !isCurrent()) return false;
         if (phase === Ph.ERROR) {
           connectError = "Showcase reported an error phase";
           return false;
@@ -1795,14 +1799,15 @@ function wfDbg(level, source, message, meta) {
           if (typeof onWaiting === "function") onWaiting(phase || Ph.WAITING);
         }
         const remaining = Math.max(500, deadline - Date.now());
+        let pollTimer = null;
         try {
           await Promise.race([
             sdk.App.state.waitUntil(st => st && st.phase === Ph.PLAYING),
-            new Promise((r) => setTimeout(r, Math.min(4000, remaining)))
+            new Promise((r) => { pollTimer = setTimeout(r, Math.min(4000, remaining)); })
           ]);
         } catch (_) {
           await new Promise(r => setTimeout(r, 400));
-        }
+        } finally { clearTimeout(pollTimer); }
       }
       connectError = "timeout waiting for PLAYING (still on Matterport launch/Enter screen?)";
       return false;
@@ -1812,36 +1817,54 @@ function wfDbg(level, source, message, meta) {
     }
   }
 
-  async function connectSdk(iframe) {
-    connectError = "";
-    if (!applicationKey) return null;
-    await loadSdkScript();
-    if (!window.MP_SDK || !window.MP_SDK.connect) {
-      connectError = "Matterport SDK bootstrap loaded but MP_SDK.connect is unavailable.";
-      return null;
+  function connectSdk(iframe, epoch = viewerEpoch, canCommit = () => true) {
+    const source = iframe.getAttribute ? iframe.getAttribute("src") : iframe.src;
+    if (sdkConnection && sdkConnection.iframe === iframe && sdkConnection.epoch === epoch && sdkConnection.source === source) {
+      viewerTrace("navigation", {action:"background-open", reason:"duplicate"});
+      return sdkConnection.promise;
     }
-    try {
-      mpSdk = await window.MP_SDK.connect(iframe, applicationKey, "");
-      window.__mpSdk = mpSdk;   // debug handle for console inspection
-      // ModelDetails is authoritative for this connected space; fetch it without
-      // delaying rendering and never expose Model API credentials to the client.
-      if (window.WFVenueInfo && mpSdk.Model && mpSdk.Model.getDetails) {
-        const connected = mpSdk, connectedModel = modelId;
-        const wf = window.WF || {}, cfg = wf.cfg || {}, building = wf.building || {};
-        const context = { slug: building.slug || cfg.slug, modelId: connectedModel,
-          name: building.name || cfg.name, address: building.address || cfg.address };
-        void window.WFVenueInfo.load(context);
-        void Promise.resolve().then(() => connected.Model.getDetails()).then(details => {
-          const current = (window.WF && WF.building && WF.building.slug) || (window.WF && WF.cfg && WF.cfg.slug);
-          if (mpSdk === connected && modelId === connectedModel && current === context.slug) window.WFVenueInfo.acceptSdk(details, context);
-        }).catch(() => wfDbg("warn", "viewer.venue", "Matterport space details unavailable"));
+    const entry = {iframe, epoch, source, model:modelId};
+    sdkConnection = entry;
+    const key = applicationKey;
+    const current = () => sdkConnection === entry && viewerEpoch === epoch && canCommit()
+      && entry.model === modelId && source === (iframe.getAttribute ? iframe.getAttribute("src") : iframe.src);
+    entry.promise = (async () => {
+      if (!key) return null;
+      try {
+        await loadSdkScript();
+        if (!current()) { viewerTrace("operation.stale", {reason:"stale"}); return null; }
+        if (!window.MP_SDK || !window.MP_SDK.connect) throw new Error("SDK bootstrap unavailable");
+        viewerTrace("sdk.init.start", {generation:epoch, modelId:entry.model});
+        const connected = await window.MP_SDK.connect(iframe, key, "");
+        if (!current()) {
+          viewerTrace("operation.stale", {reason:"stale", generation:epoch});
+          try { if (connected !== mpSdk && connected && connected.disconnect) connected.disconnect(); } catch (_) {}
+          return null;
+        }
+        connectError = "";
+        mpSdk = connected;
+        window.__mpSdk = connected;
+        viewerTrace("sdk.init.success", {generation:epoch, modelId:entry.model});
+        if (window.WFVenueInfo && connected.Model && connected.Model.getDetails) {
+          const wf = window.WF || {}, cfg = wf.cfg || {}, building = wf.building || {};
+          const context = {slug:building.slug || cfg.slug, modelId:entry.model,
+            name:building.name || cfg.name, address:building.address || cfg.address};
+          void window.WFVenueInfo.load(context);
+          void Promise.resolve().then(() => connected.Model.getDetails()).then(details => {
+            const slug = (window.WF && WF.building && WF.building.slug) || (window.WF && WF.cfg && WF.cfg.slug);
+            if (current() && mpSdk === connected && slug === context.slug) window.WFVenueInfo.acceptSdk(details, context);
+          }).catch(() => {});
+        }
+        return connected;
+      } catch (error) {
+        if (!current()) { viewerTrace("operation.stale", {reason:"stale", generation:epoch}); return null; }
+        connectError = "Digital twin connection failed";
+        viewerTrace("sdk.init.failure", {generation:epoch, reason:"failure"});
+        // A stale failure must never clear a newer connected SDK.
+        return null;
       }
-      return mpSdk;
-    } catch (e) {
-      connectError = (e && (e.message || String(e))) || "SDK connect failed";
-      mpSdk = null;
-      return null;
-    }
+    })();
+    return entry.promise;
   }
 
   async function knownSweepIds(sdk) {
@@ -1885,13 +1908,16 @@ function wfDbg(level, source, message, meta) {
     return null;
   }
 
-  async function ensureDollhouse() {
-    const Mode = mpSdk.Mode;
+  async function ensureDollhouse(sdk = mpSdk) {
+    if (!sdk || sdk !== mpSdk) return false;
+    const Mode = sdk.Mode;
     if (Mode && Mode.moveTo && Mode.Mode) {
       const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
       await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
     }
-    await frameWholeBuilding(mpSdk);
+    if (sdk !== mpSdk) return false;
+    await frameWholeBuilding(sdk);
+    return sdk === mpSdk;
   }
 
   /**
@@ -1909,7 +1935,7 @@ function wfDbg(level, source, message, meta) {
     if (!sdk || !sdk.Camera) return;
     try {
       const sweeps = await rtReadSweeps(sdk);
-      if (!sweeps.length) return;
+      if (sdk !== mpSdk || !sweeps.length) return;
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
       for (const s of sweeps) {
         const p = s.position;
@@ -1925,13 +1951,14 @@ function wfDbg(level, source, message, meta) {
   /** floorId: one of WF.cfg.floors[].id (e.g. "F1"), or "all"/falsy to reset to the default,
    *  unfiltered Dollhouse overview this background view already opens into. */
   async function setFloor(floorId) {
-    if (!mpSdk) return false;
+    const sdk = mpSdk;
+    if (!sdk) return false;
     if (!floorId || floorId === "all") {
-      try { await ensureDollhouse(); return true; }
+      try { return await ensureDollhouse(sdk); }
       catch (e) { console.warn("[MpPreview] setFloor(all) failed", e); return false; }
     }
-    const rtSweeps = await rtReadSweeps(mpSdk);
-    if (!rtSweeps.length) return false;
+    const rtSweeps = await rtReadSweeps(sdk);
+    if (sdk !== mpSdk || !rtSweeps.length) return false;
     const onFloor = rtSweeps.filter(s => sweepFloorId(s.position.y) === floorId);
     if (!onFloor.length) return false;
     // Centroid of that floor's sweeps — the point the Dollhouse camera re-centres on.
@@ -1939,8 +1966,8 @@ function wfDbg(level, source, message, meta) {
     const cy = onFloor.reduce((a, s) => a + s.position.y, 0) / onFloor.length;
     const cz = onFloor.reduce((a, s) => a + s.position.z, 0) / onFloor.length;
     try {
-      await ensureDollhouse();
-      await mpSdk.Camera.lookAt({ x: cx, y: cy, z: cz });
+      if (!(await ensureDollhouse(sdk))) return false;
+      await sdk.Camera.lookAt({ x: cx, y: cy, z: cz });
       return true;
     } catch (e) { console.warn("[MpPreview] setFloor lookAt failed", e); return false; }
   }
@@ -1956,11 +1983,14 @@ function wfDbg(level, source, message, meta) {
    *  the opposite of a gentle zoom step). So Dollhouse zoom is left as a no-op here — the
    *  dollhouse view still supports native pinch/scroll zoom by interacting with it directly. */
   async function zoomBy(delta) {
-    if (!mpSdk || !mpSdk.Camera) return false;
+    viewerTrace("navigation", {action:"camera-zoom"});
+    const sdk = mpSdk;
+    if (!sdk || !sdk.Camera) return false;
     try {
-      const pose = await mpSdk.Camera.getPose();
-      if (pose && pose.mode === "mode.inside" && typeof mpSdk.Camera.zoomBy === "function") {
-        await mpSdk.Camera.zoomBy(delta);
+      const pose = await sdk.Camera.getPose();
+      if (sdk !== mpSdk) return false;
+      if (pose && pose.mode === "mode.inside" && typeof sdk.Camera.zoomBy === "function") {
+        await sdk.Camera.zoomBy(delta);
         return true;
       }
     } catch (e) { console.warn("[MpPreview] zoomBy failed", e); }
@@ -1976,22 +2006,25 @@ function wfDbg(level, source, message, meta) {
   // in the overview with no way back to where they were.
   let homeToggleSweep = null;
   async function toggleHomeView() {
-    if (!mpSdk) return { active: false };
+    const sdk = mpSdk;
+    if (!sdk) return { active: false };
     if (homeToggleSweep) {
       const sid = homeToggleSweep;
       homeToggleSweep = null;
       try {
-        const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
-        await mpSdk.Sweep.moveTo(sid, { transition: (tr && tr.FLY) || undefined });
+        const tr = sdk.Sweep && sdk.Sweep.Transition;
+        await sdk.Sweep.moveTo(sid, { transition: (tr && tr.FLY) || undefined });
       } catch (e) { console.warn("[MpPreview] toggleHomeView restore failed", e); }
       return { active: false };
     }
     let sid = null;
     try {
-      const pose = mpSdk.Camera && typeof mpSdk.Camera.getPose === "function" ? await mpSdk.Camera.getPose() : null;
+      const pose = sdk.Camera && typeof sdk.Camera.getPose === "function" ? await sdk.Camera.getPose() : null;
       sid = pose ? (pose.sweepId || pose.sweep || null) : null;
     } catch (_) { /* ignore */ }
+    if (sdk !== mpSdk) return {active:false};
     await setFloor(null);
+    if (sdk !== mpSdk) return {active:false};
     if (sid) homeToggleSweep = sid;
     return { active: !!sid };
   }
@@ -2621,6 +2654,14 @@ function wfDbg(level, source, message, meta) {
   }
 
   async function open(route) {
+    viewerTrace("navigation", {action:"route-preview"});
+    const requestedOpen = ++openGen;
+    // A preview requested during startup joins the existing model load. It
+    // never competes with that load for the iframe or SDK.
+    if (backgroundSession && !backgroundSession.ready) {
+      const session = backgroundSession;
+      if (!(await session.promise) || backgroundSession !== session || requestedOpen !== openGen) return;
+    }
     usingLiveConnection = false;
     const live = getLiveConnection(true);
     if (live) return openUsingLiveConnection(route, live);
@@ -2646,7 +2687,9 @@ function wfDbg(level, source, message, meta) {
     updateDest();
 
     try {
-      await resolveConfig();
+      const resolved = await resolveConfig();
+      if (gen !== openGen) return;
+      modelId = resolved.modelId; applicationKey = resolved.applicationKey;
     } catch (e) {
       console.warn("[MpPreview] configuration failed", e && e.code);
       const msg = "We couldn't open the 3D view right now. You can continue using the regular map.";
@@ -2683,6 +2726,8 @@ function wfDbg(level, source, message, meta) {
     if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null);
 
     const iframe = $("mpFrame");
+    const epoch = ++viewerEpoch;
+    sdkConnection = null;
     mpSdk = null;
     playing = false;
     stopped = true;
@@ -2691,7 +2736,6 @@ function wfDbg(level, source, message, meta) {
 
     // Attach load listener BEFORE navigating so we do not miss the event
     const loadP = waitIframeLoad(iframe, gen);
-    await resetFrameIfNeeded(iframe);
     if (gen !== openGen) return;
     iframe.src = url;
     await loadP;
@@ -2703,7 +2747,7 @@ function wfDbg(level, source, message, meta) {
     }
 
     setStatus("Connecting to digital twin…");
-    const sdk = await connectSdk(iframe);
+    const sdk = await connectSdk(iframe, epoch, () => gen === openGen);
     if (gen !== openGen) return;
     if (!sdk) {
       setStatus(
@@ -2767,6 +2811,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   function close() {
+    viewerTrace("navigation", {action:"route-exit"});
     openGen++;
     cancelPlayback();
     cancelWalkTo();
@@ -2784,7 +2829,7 @@ function wfDbg(level, source, message, meta) {
         document.body.classList.remove("nav");
       }
     } catch (e) { document.body.classList.remove("nav"); }
-    if (usingLiveConnection) {
+    if (usingLiveConnection || document.body.classList.contains("mp-bg-mode")) {
       // This session never owned mpSdk/#mpFrame/#mpOverlay — they're mp_background.js's
       // permanent mp=1 connection (see openUsingLiveConnection). Disconnecting the SDK,
       // blanking the iframe, or hiding the overlay here would kill the live background
@@ -2808,9 +2853,35 @@ function wfDbg(level, source, message, meta) {
   // native Inside view, like Showcase's Explore 3D Space control. Unlike open(),
   // there is no route/tour to prepare; it remains the page's live background. mp_background.js
   // calls this once; focusAt() (below) handles every camera move after that.
-  async function showBackground() {
+  function showBackground(options) {
+    const identity = viewerIdentity(), retry = !!(options && options.retry);
+    if (backgroundSession && backgroundSession.identity === identity && !retry) {
+      viewerTrace("navigation", {action:"background-open", reason:"reuse"});
+      return backgroundSession.promise;
+    }
+    const previous = backgroundSession;
+    const session = {identity, epoch:++viewerEpoch, previousModel:previous ? previous.model : null,
+      restore:retry && previous ? previous.pose : null, chromeReady:!!(window.WFStartup && window.WFStartup.chromeReady)};
+    backgroundSession = session;
+    homeToggleSweep = null;
+    focusGen++;
+    cancelPlayback(); cancelWalkTo();
+    if (previous && previous.cleanup) previous.cleanup();
+    try { if (mpSdk && mpSdk.disconnect) mpSdk.disconnect(); } catch (_) {}
+    mpSdk = null; window.__mpSdk = null; sdkConnection = null;
+    viewerTrace("navigation", {action:"background-open", reason:retry ? "retry" : previous ? "model-change" : "initial"});
+    session.promise = initializeBackground(session).catch(() => {
+      if (backgroundSession === session && window.WFStartup) window.WFStartup.fail(session.generation);
+      return false;
+    });
+    window.__mpBackgroundPromise = session.promise;
+    return session.promise;
+  }
+
+  async function initializeBackground(session) {
     if (categoryMarkers) { categoryMarkers.dispose(); categoryMarkers = null; }
     const gen = ++openGen;
+    session.generation = gen;
     ensureOverlay();
     const ov = $("mpOverlay");
     ov.hidden = false;
@@ -2818,13 +2889,23 @@ function wfDbg(level, source, message, meta) {
     document.body.classList.remove("mp-frame-loaded");
     const startup = window.WFStartup;
     if (startup) startup.begin(gen);
-    const current = () => gen === openGen && (!startup || startup.isCurrent(gen));
-    const fail = () => { if (gen === openGen && startup) startup.fail(gen); return false; };
+    const current = () => backgroundSession === session && viewerEpoch === session.epoch && (!startup || startup.isCurrent(gen));
+    const fail = () => { if (backgroundSession === session && startup) startup.fail(gen); return false; };
     setStatus("Loading digital twin…");
     try {
       if (window.WF) await (window.WF.configReady || window.WF.ready);
       if (!current()) return false;
-      await resolveConfig();
+      const requestedIdentity = viewerIdentity();
+      session.identity = requestedIdentity;
+      const resolved = await resolveConfig();
+      if (!current()) return false;
+      if (viewerIdentity() !== requestedIdentity) {
+        viewerTrace("operation.stale", {reason:"stale", generation:session.epoch});
+        return showBackground();
+      }
+      modelId = resolved.modelId; applicationKey = resolved.applicationKey;
+      session.model = modelId;
+      viewerTrace("model.change", {generation:session.epoch, modelId, previousModelId:session.previousModel});
     } catch (e) {
       if (!current()) return false;
       console.warn("[MpPreview] configuration failed", e && e.code);
@@ -2843,7 +2924,6 @@ function wfDbg(level, source, message, meta) {
     const iframe = $("mpFrame");
     mpSdk = null;
     const loadP = waitIframeLoad(iframe, gen);
-    await resetFrameIfNeeded(iframe);
     if (!current()) return false;
     iframe.src = url;
     // The SDK bootstrap does not depend on the iframe document finishing.
@@ -2855,7 +2935,7 @@ function wfDbg(level, source, message, meta) {
     // Keep the branded surface until PLAYING and the existing camera setup finish.
     if (!applicationKey) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
     setStatus("Connecting to digital twin…");
-    const sdk = await connectSdk(iframe);
+    const sdk = await connectSdk(iframe, session.epoch, current);
     if (!current()) return false;
     if (!sdk) { setStatus("We couldn't open the 3D view right now. You can continue using the regular map.", true); return fail(); }
     // Optional labels observe this existing camera; their data request never
@@ -2904,7 +2984,7 @@ function wfDbg(level, source, message, meta) {
           }
         });
       }
-      const ready = await waitPlaying(sdk, 90000);
+      const ready = await waitPlaying(sdk, 90000, undefined, current);
       if (!current()) return false;
       if (!ready) return fail();
       // Cached models may already be PLAYING by the time we subscribe. Reveal
@@ -2952,7 +3032,70 @@ function wfDbg(level, source, message, meta) {
       else setTimeout(mountWhenIdle, 2500);
     }
     setStatus("");
+    if (session.chromeReady && startup) startup.uiReady(gen);
+    session.ready = true;
+    monitorBackground(session, sdk);
+    if (!session.runtimeFailed && !window.__mpBackgroundReady) {
+      window.__mpBackgroundReady = true;
+      if (typeof window.dispatchEvent === "function" && typeof Event === "function") window.dispatchEvent(new Event("mp-background-ready"));
+    }
     return true;
+  }
+
+  function recoverBackground() {
+    // Only a real runtime failure can use viewer-only recovery. A failed first
+    // page bootstrap still needs its existing explicit full-page retry.
+    if (!backgroundSession || !backgroundSession.ready || !backgroundSession.runtimeFailed || !window.wfUI) return false;
+    viewerTrace("recovery", {reason:"user", retryable:true});
+    void showBackground({retry:true});
+    return true;
+  }
+
+  function monitorBackground(session, sdk) {
+    const subscriptions = [];
+    let phase = null, lastCameraEvent = 0;
+    const current = () => backgroundSession === session && viewerEpoch === session.epoch && mpSdk === sdk;
+    const observe = (observable, callback) => {
+      try { if (observable && observable.subscribe) subscriptions.push(observable.subscribe(callback)); } catch (_) {}
+    };
+    observe(sdk.App && sdk.App.state, state => {
+      if (!current() || !state || state.phase === phase) return;
+      phase = state.phase;
+      viewerTrace("app.phase", {phase, generation:session.epoch});
+      // Matterport's internal loading/starting phases can occur during a camera
+      // move. They are not a request to reload or reconnect the host viewer.
+      if (phase === phaseConsts(sdk).ERROR) {
+        session.runtimeFailed = true;
+        window.__mpBackgroundReady = false;
+        viewerTrace("recovery", {reason:"failure", retryable:true});
+        if (window.WFStartup && window.WFStartup.runtimeFailure) window.WFStartup.runtimeFailure(session.generation);
+      }
+    });
+    observe(sdk.Camera && sdk.Camera.pose, pose => {
+      if (current() && pose && typeof pose.sweep === "string" && pose.sweep && pose.rotation) {
+        const previous = session.pose;
+        if (previous && (previous.sweep !== pose.sweep || Math.abs(previous.rotation.x - pose.rotation.x) > 0.01
+            || Math.abs(previous.rotation.y - pose.rotation.y) > 0.01) && Date.now() - lastCameraEvent > 1000) {
+          viewerTrace("navigation", {action:previous.sweep !== pose.sweep ? "camera-move" : "camera-rotate"});
+          lastCameraEvent = Date.now();
+        }
+        session.pose = {sweep:pose.sweep, rotation:{x:pose.rotation.x, y:pose.rotation.y}};
+      }
+    });
+    session.cleanup = () => {
+      for (const subscription of subscriptions) try {
+        if (typeof subscription === "function") subscription();
+        else if (subscription && subscription.cancel) subscription.cancel();
+        else if (subscription && subscription.unsubscribe) subscription.unsubscribe();
+      } catch (_) {}
+    };
+    if (session.restore && session.model === session.previousModel && sdk.Sweep && sdk.Sweep.moveTo) {
+      void Promise.resolve().then(() => {
+        if (current()) return sdk.Sweep.moveTo(session.restore.sweep, {
+          transition:(sdk.Sweep.Transition || {}).INSTANT, rotation:session.restore.rotation
+        });
+      }).catch(() => { viewerTrace("recovery", {reason:"failure"}); });
+    }
   }
 
   /**
@@ -2963,6 +3106,7 @@ function wfDbg(level, source, message, meta) {
    * faceAlongRoute() use internally for the auto-played tour, just standalone.
    */
   async function focusAt(target, face, requestId) {
+    viewerTrace("navigation", {action:"camera-focus"});
     const gen = requestId == null ? ++focusGen : requestId;
     if (!mpSdk || !target || target.x == null || target.y == null) return false;
     const sdk = mpSdk;
@@ -3010,6 +3154,7 @@ function wfDbg(level, source, message, meta) {
    * Marker coordinates remain the fallback anchor; a captured position is never
    * used as an arbitrary walkthrough destination. */
   async function focusPoi(poi, options) {
+    viewerTrace("navigation", {action:"poi-select"});
     const gen = ++focusGen, sdk = mpSdk, activeModel = modelId;
     if (!sdk || !poi || poi.id == null) return false;
     const current = () => gen === focusGen && sdk === mpSdk && activeModel === modelId;
@@ -3280,7 +3425,7 @@ function wfDbg(level, source, message, meta) {
   function pauseForPlanNavigation() { if (playing) pause(); cancelWalkTo(); }
 
   window.MpPreview = {
-    open, close, showBackground, focusAt, focusPoi, setFloor, zoomBy, resetView, toggleHomeView,
+    open, close, showBackground, recoverBackground, focusAt, focusPoi, setFloor, zoomBy, resetView, toggleHomeView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo, moveTo,
     currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection,
     thumbnailSweepNodes, pauseForPlanNavigation

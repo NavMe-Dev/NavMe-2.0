@@ -1,0 +1,135 @@
+{
+  "date": "2026-11-16",
+  "scope": "Public mobile Matterport viewer; plain JavaScript, not React",
+  "confirmed_failure_paths": [
+    {
+      "function": "MpPreview.showBackground / initializeBackground",
+      "before": "Each repeated same-model call restarted startup, cleared the SDK and navigated the same iframe through about:blank. Repeated startup also cleared UI readiness even though UI initialization runs once.",
+      "after": "One shared initialization promise per stable venue/model identity; completed sessions reuse the existing iframe, SDK and camera. Actual model changes create a new lifecycle epoch."
+    },
+    {
+      "function": "connectSdk / resolveConfig",
+      "before": "Late SDK resolution or rejection could overwrite or clear a newer connection; configuration requests wrote shared model/key state while awaiting network responses.",
+      "after": "Local configuration results and SDK references commit only if the model identity, frame, source and lifecycle epoch are still current."
+    },
+    {
+      "function": "mp_background module / boot / createStartup",
+      "before": "Repeated script execution replaced startup state; late readiness could reopen loader DOM.",
+      "after": "Singleton module and boot guards; completion is retained until an actual model change or explicit failure."
+    },
+    {
+      "function": "MpPreview.open / close",
+      "before": "A route request could navigate an SDK that had connected but whose model startup was incomplete. Closing a queued request could hide the permanent background.",
+      "after": "Route requests join startup, closed requests cannot start later, and closing a preview preserves the permanent background."
+    }
+  ],
+  "controlled_duplicate_initialization_counts": {
+    "case": "Normal initial load, then two explicit same-model showBackground calls",
+    "before": {
+      "sdk_initializations": 2,
+      "host_iframe_source_writes": 3,
+      "startup_begin_calls": 3,
+      "iframe_dom_creations": 1,
+      "iframe_dom_removals": 0
+    },
+    "after": {
+      "sdk_initializations": 1,
+      "host_iframe_source_writes": 1,
+      "startup_begin_calls": 1,
+      "iframe_dom_creations": 1,
+      "iframe_dom_removals": 0
+    },
+    "interpretation": "The confirmed reload reused the iframe element; it was an iframe document reload, not a React remount or full browser navigation."
+  },
+  "normal_interaction_verification": {
+    "sequence": [
+      "initial load",
+      "open search",
+      "type POI name",
+      "select POI and view details",
+      "return to search",
+      "select second POI",
+      "zoom",
+      "rotate",
+      "directions",
+      "close directions",
+      "sidebar open and close"
+    ],
+    "baseline_android_profile": {
+      "observation_after_ready_ms": 76013,
+      "sdk_initializations": 1,
+      "iframe_source_writes": 1,
+      "iframe_dom_creations": 1,
+      "unexpected_reload_observed": false
+    },
+    "patched_android_profile": {
+      "observation_after_ready_ms": 75992,
+      "sdk_initializations": 1,
+      "iframe_source_writes": 1,
+      "iframe_dom_creations": 1,
+      "iframe_dom_removals": 0,
+      "unexpected_reload_observed": false,
+      "typing_and_sidebar_camera_checks_passed": 3
+    },
+    "patched_iphone_safari_ua_profile": {
+      "observation_after_ready_ms": 76004,
+      "sdk_initializations": 1,
+      "iframe_source_writes": 1,
+      "iframe_dom_creations": 1,
+      "iframe_dom_removals": 0,
+      "unexpected_reload_observed": false,
+      "typing_and_sidebar_camera_checks_passed": 3
+    },
+    "real_sdk_route_test": "Route calculation, Walkthrough, Next, Exit, automated preview and Exit passed with one iframe and one SDK initialization.",
+    "late_readiness_test": "Repeated uiReady for the completed generation preserved completion and kept the loader hidden."
+  },
+  "diagnostics": {
+    "snapshot_api": "window.WFViewerLifecycle.snapshot()",
+    "storage": "Bounded in-memory event history; no network upload",
+    "events": [
+      "document navigation type and supported discard flag",
+      "viewer mount/unmount",
+      "iframe identity, source revision and load",
+      "SDK initialization",
+      "model changes",
+      "generic navigation actions",
+      "loading states",
+      "JavaScript error categories",
+      "observable WebGL loss/restoration",
+      "page visibility"
+    ],
+    "privacy": "No credential values, URLs, search text, POI identifiers or raw error messages are retained.",
+    "failure_handling": "SDK runtime errors stay visible. Explicit retry replaces the failed viewer session and restores its last confirmed scan/rotation where supported; there is no automatic reload loop."
+  },
+  "validation": {
+    "targeted_tests_passed": 89,
+    "production_builds": {
+      "dashboard": "passed",
+      "2d": "passed",
+      "3d": "passed"
+    },
+    "typescript": {
+      "3d": "passed",
+      "2d": "24 existing errors across 8 unchanged files"
+    }
+  },
+  "files_modified": [
+    "platform/viewer/mp_preview.js",
+    "platform/viewer/mp_background.js",
+    "platform/viewer/viewer_lifecycle.js",
+    "platform/viewer/ui.js",
+    "platform/viewer/index.html",
+    "platform/viewer/tour.html",
+    "platform/tests/viewer_lifecycle.test.cjs",
+    "platform/tests/viewer_lifecycle_diagnostics.test.cjs",
+    "platform/tests/viewer_startup.test.cjs",
+    "platform/docs/matterport-lifecycle-report.json"
+  ],
+  "remaining_limitations": [
+    "The referenced 76-second recording was not available in attachments. Its spontaneous reload trigger was not reproduced by the normal baseline sequence; only the controlled repeated-initializer failure is confirmed.",
+    "Mobile profiles ran in Chromium with Apple Metal rendering. Physical Android Chrome and iPhone WebKit were not tested.",
+    "Some runs had an additional pre-readiness Matterport document navigation without a host source change or second SDK initialization. No such navigation occurred after readiness; the vendor-side initiator remains unconfirmed.",
+    "Cross-origin Matterport WebGL events cannot be observed directly by production parent-page JavaScript. The trace marks that limitation; SDK error phases are recorded and surfaced.",
+    "No mobile-memory-pressure cause was established. Successful browser runs had no WebGL context-loss event or runtime JavaScript exception."
+  ]
+}

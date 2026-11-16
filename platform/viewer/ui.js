@@ -222,7 +222,11 @@ function wfDbg(level, source, message, meta) {
     let startupGeneration = window.WFStartup && window.WFStartup.generation;
     Promise.resolve(ready).then(async () => {
       if (isMpMode()) {
-        const ok = await window.__mpBackgroundPromise;
+        let attempt, ok;
+        do {
+          attempt = window.__mpBackgroundPromise;
+          ok = await attempt;
+        } while (attempt !== window.__mpBackgroundPromise);
         startupGeneration = window.WFStartup && window.WFStartup.generation;
         if (!ok) throw new Error("Background not ready");
       }
@@ -519,6 +523,7 @@ function wfDbg(level, source, message, meta) {
     wf.view2d.on("click", (e) => wf.view2d.hitTest(e, { include: [lyr] }).then(h => { const g = h.results[0]; if (g && g.graphic.attributes) goBuilding(g.graphic.attributes.bslug); }));
   }
   function goBuilding(slug, poiId) {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:"building-change"});
     const u = new URL("/", location.href);
     const q0 = typeof WFQuery === "function" ? WFQuery() : new URLSearchParams(location.search);
     if (q0.get("venue")) u.searchParams.set("venue", q0.get("venue"));
@@ -537,6 +542,7 @@ function wfDbg(level, source, message, meta) {
     return res;
   }
   function renderAc(input, extra) {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:input.value ? "search-input" : "search-open"});
     acTarget = input;
     $("acClose").hidden = true;
     $("acList").classList.remove("direction-results");
@@ -636,7 +642,12 @@ function wfDbg(level, source, message, meta) {
       mpFocusSelection(which);
     }
   }
-  function closeAc() { $("acList").hidden = true; $("acClose").hidden = true; document.body.classList.remove("ac-open"); [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false")); }
+  function closeAc() {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:"search-close"});
+    $("acList").hidden = true; $("acClose").hidden = true;
+    document.body.classList.remove("ac-open");
+    [$("q"), $("fromQ"), $("toQ")].forEach(i => i.setAttribute("aria-expanded", "false"));
+  }
   function acKeys(input, extraFn) {
     const prepareSearchSurface = () => {
       // The campus/Explore sheet and the autocomplete are alternative surfaces.
@@ -1046,6 +1057,7 @@ function wfDbg(level, source, message, meta) {
     return `https://share.navme.space/${slugifyPoiShareName(poi.name)}?p=${encodeURIComponent(poi.id)}&x=${encodeURIComponent(ref)}`;
   }
   function selectPlace(p, o = {}) {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:o.fly === false ? "poi-details" : "poi-select"});
     if (typeof window !== "undefined" && window.WFPlanViewer) window.dispatchEvent(new CustomEvent("wf-place-selected", {detail: {id: String(p.id)}}));
     S.place = p; S.mode = "place"; document.body.classList.remove("dir");
     $("q").value = p.name; $("btnClearQ").hidden = false;
@@ -1470,6 +1482,7 @@ function wfDbg(level, source, message, meta) {
   }
 
     function openDirections(startNav) {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:"destination-select"});
     setUxMode("places");
     S.mode = "dir"; document.body.classList.add("dir");
     $("searchBox").hidden = true; $("dirBox").hidden = false; closeAc();
@@ -2636,6 +2649,7 @@ function wfDbg(level, source, message, meta) {
   }
   function closeDirectionsIfOpen() { if (S.mode === "nav") exitNav(); if (S.mode === "dir") closeDirections(); }
   function openDrawer() {
+    if (window.WFViewerLifecycle) window.WFViewerLifecycle.record("navigation", {action:"sidebar"});
     drawerReturnFocus = document.activeElement;
     syncSidebarPreferences();
     if (window.WFVenueInfo) window.WFVenueInfo.render();

@@ -12,7 +12,7 @@ function handler(file, name, dependencies) {
   for (let end = source.indexOf('}', start); end >= 0; end = source.indexOf('}', end + 1)) {
     let script;
     try { script = new vm.Script('(' + source.slice(start, end + 1) + ')'); } catch { continue; }
-    return script.runInNewContext(dependencies);
+    return script.runInNewContext({trace() {}, ...dependencies});
   }
   throw Error('Cannot parse ' + name);
 }
@@ -80,6 +80,15 @@ test('reduced-motion startup dismisses without waiting for a nonexistent transit
   const c = startup(true); c.state.begin(1); c.state.modelReady(1); c.state.uiReady(1);
   assert.equal(c.loader.hidden, true);
 });
+test('late readiness and duplicate begin cannot reopen a completed loader', () => {
+  const c = startup(true); c.state.begin(1); c.state.modelReady(1); c.state.uiReady(1);
+  assert.equal(c.loader.hidden, true);
+  c.state.uiReady(1); c.state.modelVisible(1); c.state.modelReady(1); c.state.begin(1);
+  assert.equal(c.loader.hidden, true);
+  assert.equal(c.body.classList.contains('mp-startup-complete'), true);
+  assert.equal(c.body.classList.contains('booting'), false);
+  assert.equal(c.timers.size, 0);
+});
 test('failed model or data loads produce a persistent error and working reload action', () => {
   for (const modelWasReady of [false, true]) {
     const c = startup(); c.state.begin(1);
@@ -122,12 +131,14 @@ function modelContext(overrides = {}) {
   const c = startup(), load = deferred(), playing = deferred(), mode = deferred();
   const frame = { src: '' }, overlay = element();
   const calls = [];
+  const session = {epoch:1, identity:"test-model"};
   let onPhase = () => {};
   const sdk = { App: { state: { subscribe(callback) { onPhase = callback; return { cancel() { calls.push('unsubscribe'); } }; } } }, Mode: { Mode: { DOLLHOUSE: 'dollhouse' }, moveTo: async target => { calls.push(target === 'dollhouse' ? 'mode' : target); await mode.promise; } } };
   const deps = {
+    backgroundSession:session, viewerEpoch:1, viewerIdentity:()=>"test-model", viewerTrace() {}, monitorBackground() {}, modelId:"test-model",
     categoryMarkers: null, openGen: 0, mpSdk: null, applicationKey: 'test', window: { WFStartup: c.state, WF: { ready: Promise.resolve() } },
     document: { body: c.body }, $: id => id === 'mpFrame' ? frame : overlay,
-    ensureOverlay() {}, setStatus() {}, resolveConfig: async () => {},
+    ensureOverlay() {}, setStatus() {}, resolveConfig: async () => ({modelId:"test-model",applicationKey:"test"}),
     showcaseUrl: () => 'https://example.invalid/model', waitIframeLoad: () => load.promise,
     resetFrameIfNeeded: async () => {}, loadSdkScript: async () => {}, connectSdk: async () => sdk,
     phaseConsts: () => ({ STARTING: 'starting', PLAYING: 'playing' }),
@@ -135,12 +146,12 @@ function modelContext(overrides = {}) {
     requestAnimationFrame: fn => fn(), console: { warn() {} },
     ...overrides,
   };
-  return { ...c, load, playing, mode, frame, calls, deps, emitPhase: phase => onPhase({ phase }) };
+  return { ...c, load, playing, mode, frame, calls, deps, session, emitPhase: phase => onPhase({ phase }) };
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
 test('cached model becomes visible before camera fly-in finishes, with controls still hidden', async () => {
   const c = modelContext();
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   await tick(); c.load.resolve(); await tick();
   assert.equal(c.body.classList.contains('mp-frame-loaded'), false);
   c.playing.resolve(true); await tick();
@@ -154,7 +165,7 @@ test('cached model becomes visible before camera fly-in finishes, with controls 
 });
 test('SDK/model connection failure keeps the branded error surface', async () => {
   const c = modelContext({ connectSdk: async () => null });
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve();
   assert.equal(await result, false);
   assert.equal(c.loader.classList.contains('err'), true);
@@ -163,7 +174,7 @@ test('SDK/model connection failure keeps the branded error surface', async () =>
 test('failed venue bootstrap never navigates the iframe to a fallback model', async () => {
   const c = modelContext();
   c.deps.window.WF.ready = Promise.reject(new Error('venue unavailable'));
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   assert.equal(await result, false);
   assert.equal(c.frame.src, '');
   assert.equal(c.loader.classList.contains('err'), true);
@@ -173,7 +184,7 @@ test('model starts from validated config while optional floor and DOM readiness 
   const c = modelContext(), later = deferred();
   c.deps.window.WF.ready = later.promise;
   c.deps.window.WF.configReady = Promise.resolve({ matterport_model_id: 'campus-model' });
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   await tick();
   assert.equal(c.frame.src, 'https://example.invalid/model');
   assert.equal(c.body.classList.contains('booting'), true);
@@ -186,7 +197,7 @@ test('rejected early config prevents model navigation even while the remaining b
   const c = modelContext();
   c.deps.window.WF.ready = deferred().promise;
   c.deps.window.WF.configReady = Promise.reject(new Error('published config unavailable'));
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   assert.equal(await result, false);
   assert.equal(c.frame.src, '');
   assert.equal(c.loader.classList.contains('err'), true);
@@ -198,7 +209,7 @@ test('SDK bootstrap starts while the iframe is still loading', async () => {
   const connect = c.deps.connectSdk;
   c.deps.loadSdkScript = async () => { sdkLoads++; };
   c.deps.connectSdk = async frame => { connections++; return connect(frame); };
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   await tick();
   assert.equal(c.frame.src, 'https://example.invalid/model');
   assert.equal(sdkLoads, 1);
@@ -210,7 +221,7 @@ test('SDK bootstrap starts while the iframe is still loading', async () => {
 
 test('Matterport STARTING reveals the original entrance effect before PLAYING', async () => {
   const c = modelContext();
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve(); await tick();
   c.emitPhase('loading'); await tick();
   assert.equal(c.body.classList.contains('mp-frame-loaded'), false);
@@ -242,7 +253,7 @@ test('startup enters native Inside only after dollhouse framing, without choosin
       if (mode === 'inside') await inside.promise;
     } }, Camera: { TransitionType: { FLY: 'fly' } } };
   c.deps.connectSdk = async () => sdk;
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve(); c.playing.resolve(true); await tick();
   assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
   assert.equal(c.body.classList.contains('booting'), true);
@@ -256,7 +267,7 @@ test('failed Inside transition retains the working dollhouse and displays recove
   c.deps.connectSdk = async () => ({ Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
     moveTo: async mode => { if (mode === 'inside') throw new Error('SDK unavailable'); }
   } });
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve(); c.playing.resolve(true);
   assert.equal(await result, true);
   assert.equal(c.loader.classList.contains('err'), false);
@@ -271,7 +282,7 @@ test('UNCC mobile uses native Matterport startup and defers category markers', a
   c.deps.window.WFCategoryMarkers = { mount() { markerMounts++; return { dispose() {} }; } };
   c.deps.window.requestIdleCallback = fn => { idleTask = fn; };
   c.deps.showcaseUrl = (_key, _sweep, options) => { urlOptions = options; return 'https://example.invalid/native'; };
-  const result = handler('mp_preview.js', 'showBackground', c.deps)();
+  const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve(); c.playing.resolve(true);
   assert.equal(await result, true);
   assert.equal(urlOptions.nativeStartup, true);

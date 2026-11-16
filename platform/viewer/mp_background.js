@@ -7,6 +7,8 @@
 (function () {
   function isMpMode() { return (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1"; }
   if (!isMpMode()) return;
+  if (window.WFStartup && window.__mpBackgroundPromise) return;
+  const trace = (event, meta) => { try { if (window.WFViewerLifecycle) window.WFViewerLifecycle.record(event, meta); } catch (_) {} };
 
   // Warm up DNS/TLS for the Showcase domains as early as possible — the iframe
   // navigation itself doesn't start until resolveConfig()'s fetch resolves, so
@@ -231,6 +233,7 @@
     function render() {
       const el = document.getElementById("mpBgLoading");
       if (!el) return;
+      if (complete && !failed) { el.hidden = true; return; }
       enhanceBgLoading(el);
       el.setAttribute("role", failed ? "alert" : "status");
       el.setAttribute("aria-live", "polite");
@@ -244,12 +247,17 @@
       if (failed && !document.getElementById("mpStartupRetry")) {
         const retry = document.createElement("button");
         retry.id = "mpStartupRetry"; retry.type = "button"; retry.textContent = "Try Again";
-        retry.onclick = () => location.reload(); // Keep the complete QR/shared URL intact.
+        retry.onclick = () => {
+          if (window.MpPreview && window.MpPreview.recoverBackground && window.MpPreview.recoverBackground()) return;
+          trace("recovery", {reason:"user", retryable:true});
+          location.reload(); // Explicit retry of an incomplete page bootstrap.
+        };
         const shell = el.querySelector(".navme-bg-splash");
         (shell || el).appendChild(retry);
       }
       if (modelReady && chromeReady && !failed && !complete) {
         complete = true;
+        trace("loading", {phase:"complete", generation});
         clearTimeout(watchdog);
         document.body.classList.add("mp-startup-complete");
         document.body.classList.remove("booting");
@@ -265,10 +273,13 @@
     const state = {
       get generation() { return generation; },
       get pending() { return !complete; },
+      get chromeReady() { return chromeReady; },
       begin(gen) {
+        if (generation === gen) return;
         // A required-data failure may arrive before DOMContentLoaded starts the model.
         if (failed && generation === 0) { generation = gen; render(); return; }
         generation = gen; modelVisible = false; modelReady = false; chromeReady = false; failed = false; complete = false;
+        trace("loading", {phase:"loading", generation});
         window.__mpBackgroundReady = false;
         lastStatus = "Loading digital twin…";
         document.body.classList.add("booting");
@@ -289,12 +300,14 @@
       modelVisible(gen) {
         if (!state.isCurrent(gen)) return;
         modelVisible = true;
+        trace("loading", {phase:"visible", generation});
         document.body.classList.add("mp-frame-loaded");
         render();
       },
       modelReady(gen) {
         if (!state.isCurrent(gen)) return;
         modelReady = true;
+        trace("loading", {phase:"ready", generation});
         state.modelVisible(gen);
       },
       uiReady(gen) {
@@ -305,6 +318,14 @@
         if (gen !== undefined && gen !== generation) return;
         if (complete || failed) return;
         failed = true; clearTimeout(watchdog);
+        trace("loading", {phase:"failed", generation, reason:"failure"});
+        render();
+      },
+      runtimeFailure(gen) {
+        if (gen !== generation || failed) return;
+        complete = false; failed = true; clearTimeout(watchdog);
+        document.body.classList.remove("mp-startup-complete");
+        trace("loading", {phase:"failed", generation, reason:"failure"});
         render();
       },
     };
@@ -314,7 +335,10 @@
   let resolveBackground;
   window.__mpBackgroundPromise = new Promise(resolve => { resolveBackground = resolve; });
 
+  let booted = false;
   function boot() {
+    if (booted) return;
+    booted = true;
     watchForBgLoading();
     if (!window.MpPreview || !window.MpPreview.showBackground) {
       window.WFStartup.fail(); resolveBackground(false); return;
@@ -323,8 +347,10 @@
     const generation = window.WFStartup.generation;
     attempt.then((ok) => {
       if (!ok || !window.WFStartup.isCurrent(generation)) return false;
-      window.__mpBackgroundReady = true;
-      window.dispatchEvent(new Event("mp-background-ready"));
+      if (!window.__mpBackgroundReady) {
+        window.__mpBackgroundReady = true;
+        window.dispatchEvent(new Event("mp-background-ready"));
+      }
       return true;
     }).catch(() => { window.WFStartup.fail(generation); return false; }).then(resolveBackground);
   }
