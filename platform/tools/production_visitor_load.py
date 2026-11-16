@@ -14,6 +14,7 @@ import collections
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 import random
 import time
@@ -59,6 +60,17 @@ def public_path(path):
     if "/camera-viewpoints/" in path:
         return path.split("/camera-viewpoints/", 1)[0] + "/camera-viewpoints/:location_id"
     return path
+
+
+def route_evidence(data):
+    """A zero-length/single-node response is not a meaningful route diagnostic."""
+    length = data.get("length_m") if isinstance(data, dict) else None
+    nodes = data.get("nodes") if isinstance(data, dict) else None
+    if (isinstance(length, bool) or not isinstance(length, (int, float))
+            or not math.isfinite(length) or length <= 5 or not isinstance(nodes, list) or len(nodes) < 2):
+        return None
+    return {"length_m": length, "nodes": len(nodes),
+            "response_sha256": hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()}
 
 
 class Pacer:
@@ -139,6 +151,11 @@ class Run:
                        content_type=response.headers.get("content-type", "").split(";", 1)[0],
                        cache_control=response.headers.get("cache-control"),
                        layer=error_layer(response))
+            if kind == "server_route_diagnostic" and response.status_code == 200:
+                evidence = route_evidence(response.json())
+                if not evidence or evidence["response_sha256"] != self.report["server_route_preflight"]["response_sha256"]:
+                    row.update(expected=False, layer="route_geometry_mismatch")
+                    self.halt("route_geometry_mismatch")
             if self.bytes > self.args.max_mib * 1024 ** 2:
                 self.halt("aggregate_response_body_budget_reached")
             return response
@@ -202,13 +219,24 @@ class Run:
         if self.args.include_server_route:
             pois = await self.json_get("published_pois", API + f"buildings/{SLUG}/data/pois.json")
             candidates = [p["id"] for p in pois.get("pois", []) if p.get("id") and p.get("nearest_node")]
-            for offset in range(min(4, len(candidates) - 1)):
-                pair = {"from_key": candidates[offset], "to_key": candidates[offset + 1], "step_free": False}
+            # Deterministic spread, no more than eight query-only attempts. Do
+            # not count two labels snapped to the same point as a route pass.
+            pairs = []
+            for index in range(min(8, len(candidates))):
+                a = index * len(candidates) // 8
+                b = (a + max(1, len(candidates) // 2)) % len(candidates)
+                if a != b and (a, b) not in pairs:
+                    pairs.append((a, b))
+            for a, b in pairs:
+                pair = {"from_key": candidates[a], "to_key": candidates[b], "step_free": False}
                 response = await self.request("server_route_preflight", API + f"buildings/{SLUG}/route",
                                               phase="discovery", expected=(200, 404), payload=pair)
                 if response is not None and response.status_code == 200:
-                    self.route_pair = pair
-                    break
+                    evidence = route_evidence(response.json())
+                    if evidence:
+                        self.route_pair = pair
+                        self.report["server_route_preflight"] = evidence
+                        break
             if not self.route_pair:
                 raise RuntimeError("No valid optional published server-route pair found")
         self.report["profile"] = {"bootstrap_requests_per_visitor": len(self.bootstrap),

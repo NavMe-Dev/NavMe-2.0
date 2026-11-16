@@ -32,10 +32,10 @@ const report={schema:'navme.browser-network/v1',started_utc:new Date().toISOStri
   privacy:'No raw HAR, cookies, headers, credentials, request/response bodies or URL queries saved',
   cache_note:'Fresh browser context; Playwright mutation interception disables the HTTP cache. This is conservative cold-cache traffic, not a warm-cache data-plan estimate.',
   byte_accounting:{
-    primary:'Playwright request.sizes() encoded responseBodySize plus separately reported responseHeadersSize',
+    primary:'Browser-reported encoded response/download bytes from request.sizes(); headers may be unsplit when responseHeadersSize is0. Legacy body-named counters are not necessarily pure body bytes.',
     cdp:'Network.loadingFinished encodedDataLength is an independent browser-reported diagnostic; do not add to primary totals',
     decoded:'ResourceTiming decodedBodySize when exposed; cross-origin timing restrictions can make this unknown',
-    excluded:'TLS overhead, retransmissions and failed-request partial bodies are not fully accounted; not an exact billing meter',
+    excluded:'TLS overhead, retransmissions and failed-request partial bytes are not fully accounted. Unavailable header counters do not mean zero header traffic; not an exact billing meter.',
   }};
 function save(){fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2)+'\n');}
 function safeUrl(raw){
@@ -85,7 +85,7 @@ async function challenge(page){
    const page=await context.newPage(),pending=new Set();
    const cdp=await context.newCDPSession(page);await cdp.send('Network.enable');
    cdp.on('Network.loadingFinished',event=>{record.cdp_encoded_transfer_bytes+=event.encodedDataLength||0;
-     record.cdp_finished_requests++;encodedSoFar+=event.encodedDataLength||0;});
+     record.cdp_finished_requests++;});
    cdp.on('Network.requestServedFromCache',()=>record.cdp_cache_requests++);
    record.cdp_websocket_received_payload_bytes=0;record.cdp_websocket_sent_payload_bytes=0;
    const frameBytes=frame=>frame.opcode===2?Buffer.from(frame.payloadData||'','base64').length:Buffer.byteLength(frame.payloadData||'','utf8');
@@ -97,6 +97,9 @@ async function challenge(page){
    page.on('requestfinished',request=>{
     const work=(async()=>{let response=null;try{response=await request.response();}catch{}let sizes=null;
       try{sizes=await request.sizes();}catch{}
+      // Playwright observes child-frame/OOPIF requests too. The independent
+      // main-page CDP session cannot be the cross-frame byte-budget counter.
+      if(sizes)encodedSoFar+=(sizes.responseBodySize||0)+(sizes.responseHeadersSize||0);
       record.network.push({...safeUrl(request.url()),status:response?.status()||0,
         resource_type:request.resourceType(),sizes,from_service_worker:response?.fromServiceWorker()||false,
         mime_type:response?.headers()['content-type']?.split(';')[0]||null});
@@ -126,15 +129,19 @@ async function challenge(page){
     if(ready){
      const observationStart=Date.now();await page.evaluate(()=>{window.__networkOriginalFrame=document.getElementById('mpFrame');});
      const before=await page.evaluate(currentState);
-     const pois=await page.evaluate(()=>wf.pois.slice(0,2).map(p=>({id:p.id,name:p.name})));
+     await page.evaluate(()=>{window.__networkFocus=[];const original=MpPreview.focusPoi;
+       MpPreview.focusPoi=function(...args){const item={done:false,acknowledged:false};__networkFocus.push(item);
+         const result=original.apply(this,args);Promise.resolve(result).then(value=>{item.done=true;item.acknowledged=value===true;},()=>{item.done=true;});return result;};});
+     const pois=await page.evaluate(()=>wf.pois.filter(p=>p.sdk).slice(0,2).map(p=>({id:p.id,name:p.name})));
      await check('search_and_two_POI_selections',async()=>{
       for(const poi of pois){
        if(await page.locator('#sheetClose').isVisible())await page.locator('#sheetClose').click();
        await page.locator('#q').fill(poi.name);
        const option=page.locator('#acList li[role=option]').filter({hasText:poi.name}).first();
-       await option.waitFor({timeout:10000});await option.click();
+       await option.waitFor({timeout:10000});const focusCount=await page.evaluate(()=>__networkFocus.length);await option.click();
        await page.waitForFunction(id=>String(wfUI.S.place?.id)===String(id),poi.id,{timeout:10000});
-       await page.waitForTimeout(2000);
+       await page.waitForFunction(count=>__networkFocus.length>count&&__networkFocus.at(-1).done,focusCount,{timeout:30000});
+       if(!await page.evaluate(()=>__networkFocus.at(-1).acknowledged))throw Error('POI camera focus was not acknowledged');
       }return{selections:pois.length};});
      await check('SDK_rotation_and_zoom',async()=>{
       const sdk=await page.evaluate(async()=>{const sdk=window.__mpSdk;
@@ -143,7 +150,7 @@ async function challenge(page){
        await sdk.Camera.setRotation({x:pose.rotation.x,y:pose.rotation.y+12},{speed:20});
        const zoom=await MpPreview.zoomBy(.05);
        return{supported:true,zoom_acknowledged:zoom===true};});
-      if(!sdk.supported)throw Error('Camera methods not available');return sdk;});
+      if(!sdk.supported||!sdk.zoom_acknowledged)throw Error('Camera rotation/zoom was not acknowledged');return sdk;});
      await check('route_preview_and_exit_preserve_model',async()=>{
       const pair=await page.evaluate(async()=>{
        await WFNav.initNavmesh(WF.building.slug,{floors:WF.cfg.floors,modelToLL:wf.modelToLL});
@@ -168,7 +175,7 @@ async function challenge(page){
      }
      record.observation_seconds=Number(((Date.now()-observationStart)/1000).toFixed(2));
      const after=await page.evaluate(currentState);record.final_state=after;
-     const stable=after.ready&&after.same_frame&&['iframe.create','iframe.source','sdk.init.start'].every(k=>(before.counts[k]||0)===(after.counts[k]||0));
+     const stable=after.ready&&after.same_frame&&['iframe.create','iframe.source','iframe.load','sdk.init.start'].every(k=>(before.counts[k]||0)===(after.counts[k]||0));
      record.checks.push({name:'loaded_viewer_lifecycle_stable',status:stable&&!record.stop_reason?'PASS':'FAIL',
        detail:{same_frame:after.same_frame,before_counts:before.counts,after_counts:after.counts}});
      record.checks.push({name:'no_unhandled_page_errors',status:record.page_error_classes.length?'FAIL':'PASS'});
@@ -185,6 +192,8 @@ async function challenge(page){
    record.network_by_host=aggregate(record.network,'host');record.network_by_path=aggregate(record.network,'path');
    record.primary_encoded_body_bytes=record.network.reduce((n,r)=>n+(r.sizes?.responseBodySize||0),0);
    record.primary_response_header_bytes=record.network.reduce((n,r)=>n+(r.sizes?.responseHeadersSize||0),0);
+   record.unknown_completed_request_sizes=record.network.filter(r=>!r.sizes).length;
+   record.failed_requests_with_unknown_partial_bytes=record.failed_requests.length;
    record.finished_utc=new Date().toISOString();save();
    await context.close();
    if(record.stop_reason==='network_budget')break;

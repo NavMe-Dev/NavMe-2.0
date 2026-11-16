@@ -1,0 +1,522 @@
+{
+  "deploy": "dep-dbtfv3lckfvc73eophp0",
+  "test_start_utc": "2026-11-16T13:08:15.611Z",
+  "current": {
+    "at": "2026-11-16T13:14:54Z",
+    "memory_peak_mib": 149.83,
+    "memory_last_mib": 147.56,
+    "memory_last_timestamp": "2026-11-16T13:14:45.611Z",
+    "cpu_peak_cores": 0.1661049,
+    "cpu_last": {
+      "timestamp": "2026-11-16T13:14:45.611Z",
+      "value": 0.111278035
+    },
+    "unexpected_events": 0,
+    "database_error_messages": 0
+  },
+  "poll_summaries": [
+    {
+      "at": "2026-11-16T13:09:45Z",
+      "memory_peak_mib": 123.37,
+      "memory_last_mib": 123.37,
+      "memory_last_timestamp": "2026-11-16T13:09:30Z",
+      "cpu_peak_cores": 0.028849633,
+      "cpu_last": {
+        "timestamp": "2026-11-16T13:09:30Z",
+        "value": 0.028849633
+      },
+      "unexpected_events": 0,
+      "database_error_messages": 0
+    },
+    {
+      "at": "2026-11-16T13:11:33Z",
+      "memory_peak_mib": 131.48,
+      "memory_last_mib": 131.48,
+      "memory_last_timestamp": "2026-11-16T13:11:15.611Z",
+      "cpu_peak_cores": 0.12835903,
+      "cpu_last": {
+        "timestamp": "2026-11-16T13:11:15.611Z",
+        "value": 0.12835903
+      },
+      "unexpected_events": 0,
+      "database_error_messages": 0,
+      "reader_idle_transaction_recheck": {
+        "reader_idle_in_transaction": 10,
+        "max_reader_idle_transaction_age_seconds": "0.817820",
+        "reader_idle_transactions_over_5_seconds": 0
+      }
+    },
+    {
+      "at": "2026-11-16T13:13:14Z",
+      "memory_peak_mib": 149.83,
+      "memory_last_mib": 149.83,
+      "memory_last_timestamp": "2026-11-16T13:12:45.611Z",
+      "cpu_peak_cores": 0.1661049,
+      "cpu_last": {
+        "timestamp": "2026-11-16T13:12:45.611Z",
+        "value": 0.1661049
+      },
+      "unexpected_events": 0,
+      "database_error_messages": 0
+    },
+    {
+      "at": "2026-11-16T13:14:54Z",
+      "memory_peak_mib": 149.83,
+      "memory_last_mib": 147.56,
+      "memory_last_timestamp": "2026-11-16T13:14:45.611Z",
+      "cpu_peak_cores": 0.1661049,
+      "cpu_last": {
+        "timestamp": "2026-11-16T13:14:45.611Z",
+        "value": 0.111278035
+      },
+      "unexpected_events": 0,
+      "database_error_messages": 0
+    }
+  ],
+  "measurements": {
+    "metrics": {
+      "resourceId": "srv-db32v3bncjis73e9l2cg",
+      "timeRange": {
+        "start": "2026-11-16T13:08:15.611Z",
+        "end": "2026-11-16T13:14:54Z"
+      },
+      "metrics": [
+        {
+          "type": "cpu_usage",
+          "data": [
+            {
+              "labels": [],
+              "unit": "cpu",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 0.0045334
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 0.012945133
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:15.611Z",
+                  "value": 0.028849633
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:45.611Z",
+                  "value": 0.050225567
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:15.611Z",
+                  "value": 0.0128303
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:45.611Z",
+                  "value": 0.12835903
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:15.611Z",
+                  "value": 0.0919437
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:45.611Z",
+                  "value": 0.12956463
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:15.611Z",
+                  "value": 0.060189668
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:45.611Z",
+                  "value": 0.1661049
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:15.611Z",
+                  "value": 0.1069637
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:45.611Z",
+                  "value": 0.08303947
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:15.611Z",
+                  "value": 0.111278035
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:45.611Z",
+                  "value": 0.111278035
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "cpu_limit",
+          "data": [
+            {
+              "labels": [
+                {
+                  "field": "instance",
+                  "value": "srv-db32v3bncjis73e9l2cg-xq6rf"
+                },
+                {
+                  "field": "service",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                }
+              ],
+              "unit": "cpu",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 0.5
+                }
+              ]
+            },
+            {
+              "labels": [
+                {
+                  "field": "service",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "instance",
+                  "value": "srv-db32v3bncjis73e9l2cg-wpc8d"
+                }
+              ],
+              "unit": "cpu",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:45.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:15.611Z",
+                  "value": 0.5
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:45.611Z",
+                  "value": 0.5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "memory_usage",
+          "data": [
+            {
+              "labels": [
+                {
+                  "field": "service",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "instance",
+                  "value": "srv-db32v3bncjis73e9l2cg-wpc8d"
+                }
+              ],
+              "unit": "bytes",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 119144450
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 124694530
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:15.611Z",
+                  "value": 129368060
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:45.611Z",
+                  "value": 130764800
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:15.611Z",
+                  "value": 134348800
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:45.611Z",
+                  "value": 137863170
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:15.611Z",
+                  "value": 147144700
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:45.611Z",
+                  "value": 145776640
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:15.611Z",
+                  "value": 151486460
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:45.611Z",
+                  "value": 157106180
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:15.611Z",
+                  "value": 155185150
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:45.611Z",
+                  "value": 155586560
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:15.611Z",
+                  "value": 154726400
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:45.611Z",
+                  "value": 154726400
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "memory_limit",
+          "data": [
+            {
+              "labels": [
+                {
+                  "field": "service",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "instance",
+                  "value": "srv-db32v3bncjis73e9l2cg-xq6rf"
+                }
+              ],
+              "unit": "bytes",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 536870900
+                }
+              ]
+            },
+            {
+              "labels": [
+                {
+                  "field": "service",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                },
+                {
+                  "field": "instance",
+                  "value": "srv-db32v3bncjis73e9l2cg-wpc8d"
+                }
+              ],
+              "unit": "bytes",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:45.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:15.611Z",
+                  "value": 536870900
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:45.611Z",
+                  "value": 536870900
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "instance_count",
+          "data": [
+            {
+              "labels": [
+                {
+                  "field": "resource",
+                  "value": "srv-db32v3bncjis73e9l2cg"
+                }
+              ],
+              "unit": "unitless",
+              "values": [
+                {
+                  "timestamp": "2026-11-16T13:08:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:08:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:09:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:10:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:11:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:12:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:13:45.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:15.611Z",
+                  "value": 1
+                },
+                {
+                  "timestamp": "2026-11-16T13:14:45.611Z",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "events": [],
+    "database_errors": []
+  }
+}

@@ -31,7 +31,9 @@ resize, deploy, mutate data, or run load itself.
 - Read startup log lines matching `API runtime limits` after the new deploy
   starts. Only the safe pool size/overflow/wait/token/read-only values are
   needed; no environment credential listing is required.
-- Error logs are summarized by type/count/timestamp. A healthy process plus
+- Error logs are summarized by type/count/timestamp. Also search the literal
+  `Database request failed` regardless of Render severity: the first run's
+  application `TimeoutError` was labeled INFO by Render. A healthy process plus
   HTTP errors is distinct from a crash or restart.
 - Root's load harness owns regular health probes. The monitor may issue one
   separate health request at the boundary; do not add a second high-rate loop.

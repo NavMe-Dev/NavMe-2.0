@@ -100,3 +100,9 @@ References reviewed: [Render rollbacks](https://render.com/docs/rollbacks), [rol
 ## Prepared candidate
 
 Tested implementation commit: `0d527b08e764369ee8fe5195e53374c31bab4838` on `fix/uncc-demo-stabilization`. The subsequent report-only commit records the final readiness decision. The candidate is **HOLD for production release** because repeated high-concurrency and real-device acceptance remain incomplete. No remote branch push, production deployment or restart occurred. See [final stabilization report](UNCC_DEMO_STABILIZATION_REPORT.md).
+
+## Current deployment after explicit release authorization
+
+The user subsequently authorized production deployment and controlled 60-user testing. Current application commit: `0d9fdbbb243a360db4a61ec0fee65e76012c7c02`; deployment: `dep-dbtfv3lckfvc73eophp0`. Effective pool 8+4, wait15 seconds, one instance/worker, read-only enabled. The production repeat and loaded browser checks passed; see [the current report](UNCC_PRODUCTION_60_REPORT.md).
+
+Keep the original `dep-dbtel0etlv9c73f542v0` artifact available. Prepared unused local rollback commit `aa54eba363a2deba061efdcd8b6359e7e229bb6b` restores the frozen application's tracked files and can be pushed/deployed as a rebuild fallback if retained-artifact access is unavailable. The Render environment is separate: restoring pool3+2 requires merging `DB_POOL_SIZE=3`, `DB_MAX_OVERFLOW=2`, `DB_POOL_TIMEOUT_SECONDS=15`, which redeploys the service. No database deletion or schema reversal is involved.

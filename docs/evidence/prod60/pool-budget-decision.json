@@ -1,0 +1,44 @@
+{
+  "recorded_utc": "2026-11-16T13:05:11.851230+00:00",
+  "trigger": "Firstproduction60stage produced1viewer_dataDB503; service remainedalive/recovery200",
+  "hosted_snapshot_utc": "2026-11-16T13:01:27Z",
+  "max_connections": 60,
+  "superuser_reserved": 3,
+  "general_reserved": 0,
+  "usable_nonreserved": 57,
+  "observed_client_connections": 13,
+  "observed_reader": 5,
+  "observed_other_clients": 8,
+  "instances": 1,
+  "workers": 1,
+  "previous_pool": {
+    "size": 3,
+    "overflow": 2,
+    "wait_seconds": 15
+  },
+  "selected_pool": {
+    "size": 8,
+    "overflow": 4,
+    "wait_seconds": 15
+  },
+  "maximum_application_connections": "1x1x(8+4)=12",
+  "projected_clients_at_app_cap_including_observed_others": 20,
+  "remaining_nonreserved_headroom_at_that_projection": 37,
+  "normal_rollout_old5_plus_new12_plus_others8": 25,
+  "local_preflight_requests": 600,
+  "local_preflight_failures": 0,
+  "local_latency_injection_ms_per_select": 180,
+  "no_schema_role_or_rls_changes": true,
+  "pooler_specific_limit": "Not exposed by connected tools; connectivity under the selected capped12 load must be verified.",
+  "rollback_environment": {
+    "DB_POOL_SIZE": "3",
+    "DB_MAX_OVERFLOW": "2",
+    "DB_POOL_TIMEOUT_SECONDS": "15"
+  },
+  "manual_phone_result": {
+    "source": "Userreply",
+    "result": "Stayed loaded without reloading",
+    "requested_observation_seconds": 120,
+    "device_browser_unspecified": true
+  }
+}

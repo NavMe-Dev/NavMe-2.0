@@ -1,0 +1,11 @@
+{
+  "deploy_id": "dep-dbtfv3lckfvc73eophp0",
+  "commit": "0d9fdbbb243a360db4a61ec0fee65e76012c7c02",
+  "logs": [
+    {
+      "timestamp": "2026-11-16T13:05:59.891558977Z",
+      "message": "INFO:     API runtime limits db_pool_size=8 db_max_overflow=4 db_pool_timeout_seconds=15 sync_thread_tokens=40 read_only=True",
+      "instance": "srv-db32v3bncjis73e9l2cg-wpc8d"
+    }
+  ]
+}

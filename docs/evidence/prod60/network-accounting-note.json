@@ -1,0 +1,20 @@
+{
+  "schema": "navme.network-accounting-note/v1",
+  "recorded_utc": "2026-11-16T13:20:55.076678+00:00",
+  "browser_observation": "responseHeadersSize was zero. A204response reports responseBodySize498, so the legacy body-size fields cannot be interpreted literally as pure HTTP bodies.",
+  "primary_installed_source": {
+    "file": "/private/tmp/navme-fallback-tools/node_modules/playwright-core/lib/server/chromium/crNetworkManager.js",
+    "function": "_onLoadingFinished",
+    "line": 435,
+    "formula": "response.setEncodedBodySize(event.encodedDataLength - responseHeadersSize)"
+  },
+  "preferred_browser_label": "Browser-reported encoded response/download bytes, including possible unsplit headers",
+  "do_not_add": "Do not add main-page CDP encodedDataLength to cross-frame Playwright totals. Do not add an invented header estimate to totals that may already include headers.",
+  "api_contrast": "HTTPX num_bytes_downloaded in production_visitor_load.py measures encoded response body chunks and was verified independently using a real gzip AsyncByteStream in the offline tests.",
+  "limitations": [
+    "Browser HTTP headers cannot be separated accurately in these captures",
+    "TLS/retransmissions, failed-request partial payloads and persistent-connection traffic are not exact billing measurements",
+    "Cold HTTP-cache-disabled browser captures are not universal per-user allowances",
+    "Legacy numeric fields are preserved exactly; only their interpretation is clarified"
+  ]
+}
