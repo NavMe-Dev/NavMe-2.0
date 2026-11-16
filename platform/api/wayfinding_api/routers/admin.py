@@ -12,7 +12,7 @@ from ..db import get_db
 from ..auth import current_admin, oauth2
 from ..config import get_settings
 from .. import models, schemas
-from ..services import workspace, publish as pub, navgraph, navme, poi_viewpoints, studio_live
+from ..services import workspace, publish as pub, navgraph, navme, poi_viewpoints, studio_live, camera_viewpoints
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"], dependencies=[Depends(current_admin)])
 PIPE_STEPS = ["ingest", "fetch_mp", "mesh", "colorplan", "imagery", "georef", "floors", "overlays", "glb", "voxel", "osm", "graph", "navmesh", "pois", "indoor", "thumbs", "vps_index", "export"]
@@ -740,6 +740,38 @@ def put_floors(slug: str, floors: list[schemas.FloorIn], db: Session = Depends(g
 
 
 # ---------------- POIs ----------------
+@router.get("/buildings/{slug}/camera-viewpoints")
+def camera_viewpoint_state(slug: str, db: Session = Depends(get_db)):
+    b = B(db, slug)
+    cfg = get_settings()
+    rows = db.query(models.POI).filter_by(building_id=b.id).order_by(models.POI.name, models.POI.id).all()
+    return {"enabled": camera_viewpoints.enabled(b), "writable": camera_viewpoints.writable(cfg, b),
+            "model_id": b.matterport_model_id,
+            "pois": [camera_viewpoints.admin_state(p, b.matterport_model_id) for p in rows]}
+
+
+@router.put("/buildings/{slug}/pois/{pid}/camera-viewpoint")
+def save_camera_viewpoint(slug: str, pid: int, inp: camera_viewpoints.CameraViewpointUpdate,
+                          db: Session = Depends(get_db)):
+    from .public import _release_read_session
+    b = B(db, slug)
+    cfg = get_settings()
+    try:
+        if not camera_viewpoints.enabled(b):
+            raise camera_viewpoints.ViewpointError(409, "Choose a Matterport model before capturing a viewpoint.")
+        if b.matterport_model_id != inp.model_id:
+            raise camera_viewpoints.ViewpointError(409, "The Matterport model changed. Reload locations before capturing a new viewpoint.")
+        if camera_viewpoints.read_only(cfg):
+            p = db.query(models.POI).filter_by(id=pid, building_id=b.id).first()
+            if p is None:
+                raise camera_viewpoints.ViewpointError(404, "Location not found")
+            _release_read_session(db)
+            return camera_viewpoints.write_restricted(cfg, b, pid, inp)
+        return camera_viewpoints.write_local(db, b, pid, inp)
+    except camera_viewpoints.ViewpointError as error:
+        raise HTTPException(error.status, error.message) from None
+
+
 @router.get("/buildings/{slug}/poi-viewpoints")
 def poi_viewpoint_state(slug: str, db: Session = Depends(get_db)):
     from .public import _dashboard_pois, _release_read_session

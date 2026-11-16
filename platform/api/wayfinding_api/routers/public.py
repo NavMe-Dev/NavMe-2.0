@@ -6,12 +6,13 @@ import json, mimetypes, logging
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from ..db import get_db
 from ..config import get_settings
 from .. import models, schemas
 from ..services.publish import current_version
-from ..services import navgraph, bundle_storage, navme, studio_live
+from ..services import navgraph, bundle_storage, navme, studio_live, camera_viewpoints
 
 router = APIRouter(prefix="/api/v1/public", tags=["public"])
 logger = logging.getLogger(__name__)
@@ -88,6 +89,32 @@ def buildings(db: Session = Depends(get_db)):
         mv = current_version(db, b)
         if mv: out.append({"slug": b.slug, "name": b.name, "address": b.address, "version": mv.version, "venue": b.venue.slug if b.venue else None})
     return out
+
+
+@router.get("/buildings/{slug}/camera-viewpoints/{location_id}")
+def public_camera_viewpoint(slug: str, location_id: str, db: Session = Depends(get_db)):
+    """Read the selected published location's current, model-scoped camera view.
+
+    A fresh selection can see a replacement without reconnecting the model.
+    Internal IDs, revisions, other-model history and arbitrary POI extra fields
+    stay private. Source UUIDs and legacy publication keys are both supported.
+    """
+    b = building_or_404(db, slug)
+    if not current_version(db, b):
+        raise HTTPException(404, "No saved view is available for this location.")
+    poi = db.query(models.POI).filter_by(building_id=b.id, published=True).filter(
+        or_(models.POI.key == location_id, models.POI.extra["gmap_src_id"].astext == location_id)
+    ).first()
+    if not poi:
+        raise HTTPException(404, "No saved view is available for this location.")
+    model_id = b.matterport_model_id or ""
+    viewpoint = camera_viewpoints.public_viewpoint(poi.extra, model_id)
+    state = camera_viewpoints.status(poi.extra, model_id)
+    result = {"building_slug": slug, "location_id": location_id, "model_id": model_id,
+              "viewpoint": viewpoint,
+              "status": "saved" if viewpoint else "incompatible" if state == "incompatible" else "missing"}
+    _release_read_session(db)
+    return JSONResponse(result, headers={"Cache-Control": "no-store"})
 
 
 @router.api_route("/buildings/{slug}/data/{path:path}", methods=["GET", "HEAD"])
@@ -589,7 +616,7 @@ def category_marker_data(slug: str, db: Session = Depends(get_db)):
                 "categories": data["categories"], "pois": [
                     {"id": p["id"], "venue": b.slug, "category_ids": p.get("category_ids", []),
                      "x": p["x"], "y": p["y"], "z": p["z"], "is_active": True}
-                    for p in data["pois"]]}
+                    for p in data["pois"] if all(p.get(axis) is not None for axis in ("x", "y", "z"))]}
     _release_read_session(db)
     if not cfg.supabase_url or not cfg.supabase_anon_key:
         return {"building_slug": b.slug, "categories": [], "pois": []}
@@ -617,18 +644,35 @@ def dashboard_navme_pois(slug: str, request: Request, db: Session = Depends(get_
 
 
 def _dashboard_pois(b, db):
-    rows = db.query(models.POI).filter_by(building_id=b.id, source="supabase", published=True).all()
+    mirrors = db.query(models.POI).filter_by(building_id=b.id, source="supabase", published=True).all()
+    registered = db.query(models.POI).filter_by(building_id=b.id, published=True).all()
+    # Keep the established Studio publication directory. A saved camera explicitly
+    # admits a registered local room into that directory; ordinary pipeline
+    # detections must not suddenly expand existing campus lists. Buildings without
+    # Studio mirrors use their existing registered/public POIs as the fallback.
+    model_id = getattr(b, "matterport_model_id", "") or ""
+    local = [row for row in registered if row.source != "supabase"
+             and (not mirrors or camera_viewpoints.public_viewpoint(row.extra, model_id))]
+    rows = [*mirrors, *local]
     pois = []
     for r in rows:
-        extra = r.extra or {}
+        extra = r.extra if isinstance(r.extra, dict) else {}
+        studio_source = r.source == "supabase"
         poi = {
-            "id": extra.get("gmap_src_id") or r.key,
+            "id": (extra.get("gmap_src_id") or r.key) if studio_source else r.key,
             "name": r.name,
             "floor": r.floor,
             "category": r.category,
-            # SDK coords: x=right, y=elevation, z=depth → pass as-is for snapping
-            "x": r.model_x, "y": r.model_y, "z": r.model_z,
+            # Studio mirrors already use SDK Y-up. Registered pipeline/admin
+            # marker coordinates use model Z-up: SDK = (x, z, -y).
+            "x": r.model_x,
+            "y": r.model_y if studio_source else r.model_z,
+            "z": r.model_z if studio_source else -r.model_y if r.model_y is not None else None,
         }
+        if not studio_source:
+            # A UUID-shaped local key is still not a Studio source identity.
+            # The explicit public projection strips this adapter-only flag.
+            poi["_studio_source"] = False
         if extra.get("expected_pos_x") is not None and extra.get("expected_pos_y") is not None and extra.get("expected_pos_z") is not None:
             poi["expected_pos_x"] = extra.get("expected_pos_x")
             poi["expected_pos_y"] = extra.get("expected_pos_y")
@@ -643,6 +687,9 @@ def _dashboard_pois(b, db):
             poi["_studio_calibration"] = extra["studio_calibration"]
         if isinstance(extra.get("directions_viewpoint"), dict):
             poi["_directions_viewpoint"] = extra["directions_viewpoint"]
+        camera = camera_viewpoints.public_viewpoint(extra, model_id)
+        if camera:
+            poi["camera_viewpoint"] = camera
         pois.append(poi)
     pois.sort(key=lambda p: p["name"].lower())
     return pois

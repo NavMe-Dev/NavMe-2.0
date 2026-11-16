@@ -294,6 +294,7 @@
       pointerModelXY: pointerModelXY,
       sweepModelXY: sweepModelXY,
       sweepData: function () { return sweepSnapshot; },
+      currentSweep: function () { return currentSweep; },
       hasPointer: function () { return !!(lastHit && lastHit.position); },
       hasSweep: function () { return !!(currentSweep && currentSweep.sid && currentSweep.position); }
     };

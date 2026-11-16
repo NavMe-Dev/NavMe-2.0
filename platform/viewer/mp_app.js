@@ -98,15 +98,17 @@
       return (ordered.reduce((a, f) => Math.abs((f.elevation || 0)-z) < Math.abs((a.elevation || 0)-z) ? f : a, ordered[0] || {id:"F1"})).id;
     };
     const pois = (navmePois || []).map(p => {
-      if (p.x == null || p.z == null) return p;
+      const hasMarker = [p.x, p.y, p.z].every(Number.isFinite);
       const o = { id:String(p.id), name:p.name, base_name:p.name, names:p.names || null,
         base_description:p.description || "", category:p.category || "room",
-        x:p.x, y:-p.z, z:p.y, floor:floorFor(p.y), sdk:{x:p.x,y:p.y,z:p.z} };
+        x:hasMarker?p.x:null, y:hasMarker?-p.z:null, z:hasMarker?p.y:null,
+        floor:hasMarker?floorFor(p.y):(p.floor || (ordered[0] || {}).id || "F1"),
+        sdk:hasMarker?{x:p.x,y:p.y,z:p.z}:null };
       ["code", "description", "descriptions", "amenities_desc", "highlight_desc", "technology_desc",
-        "icon_url", "hours", "photo_url", "photo_urls", "category_id", "category_ids", "floor_id"].forEach(key => {
+        "icon_url", "hours", "photo_url", "photo_urls", "category_id", "category_ids", "floor_id", "camera_viewpoint"].forEach(key => {
         if (p[key] != null) o[key] = p[key];
       });
-      o.lonlat = modelToLL(o.x, o.y);
+      if (hasMarker) o.lonlat = modelToLL(o.x, o.y);
       if ([p.expected_pos_x, p.expected_pos_y, p.expected_pos_z].every(v =>
         v != null && typeof v !== "boolean" && String(v).trim() !== "" && Number.isFinite(Number(v)))) {
         o.expected_x = +p.expected_pos_x;

@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     # Dedicated execute-only login, separate from the read-only application DB.
     poi_viewpoint_database_url: str = ""
     poi_viewpoint_buildings: str = ""
+    # Optional approved execute-only capability for full camera views in read-only
+    # deployments. Writable local installations use the normal application DB.
+    camera_viewpoint_database_url: str = ""
+    camera_viewpoint_buildings: str = ""
     # Backend-only secret — bypasses RLS, never sent to any client. Used solely to upload
     # published bundles to Supabase Storage so they survive a Render free-tier disk wipe
     # (see services/bundle_storage.py). Empty disables that fallback entirely (local disk

@@ -29,6 +29,7 @@ function wfDbg(level, source, message, meta) {
   let sdkScriptPromise = null;
   let categoryMarkers = null;
   let openGen = 0;
+  let focusGen = 0; // a late POI lookup must not move the camera away from a newer selection
   // True when this session is reusing mp_background.js's permanent mp=1 connection
   // (see getLiveConnection/openUsingLiveConnection) instead of owning a dedicated
   // mpSdk/#mpFrame/#mpOverlay of its own. close() must never disconnect the SDK, blank
@@ -2779,30 +2780,120 @@ function wfDbg(level, source, message, meta) {
    * background mode — the same Sweep.moveTo + yawSdk mechanics moveTo()/
    * faceAlongRoute() use internally for the auto-played tour, just standalone.
    */
-  async function focusAt(target, face) {
+  async function focusAt(target, face, requestId) {
+    const gen = requestId == null ? ++focusGen : requestId;
     if (!mpSdk || !target || target.x == null || target.y == null) return false;
-    const rtSweeps = await rtReadSweeps(mpSdk);
-    if (!rtSweeps.length) return false;
+    const sdk = mpSdk;
+    const current = () => gen === focusGen && sdk === mpSdk;
+    const rtSweeps = await rtReadSweeps(sdk);
+    if (!current() || !rtSweeps.length) return false;
     const mpTarget = modelToSdk(target);
     const sw = rtNearestSweep(rtSweeps, mpTarget);
     if (!sw) return false;
-    const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
+    const tr = sdk.Sweep && sdk.Sweep.Transition;
     const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200 };
     const mpFace = (face && face.x != null) ? modelToSdk(face) : null;
     const separateTarget = face && ["x", "y", "z"].some(axis => +face[axis] !== +target[axis]);
     const rotation = mpFace ? facingRotationSdk(sw.position, mpFace, separateTarget) : null;
     if (rotation) opts.rotation = rotation;
     try {
-      await mpSdk.Sweep.moveTo(sw.sid, opts);
+      await sdk.Sweep.moveTo(sw.sid, opts);
     } catch (e) {
       console.warn("[MpBackground] focusAt moveTo failed", sw.sid, e && (e.message || e));
       return false;
     }
+    if (!current()) return false;
     // Matterport's default Inside/Panorama zoom (~1.0-1.1) lands too tight/close-up for a
     // POI preview — Camera.zoomTo DOES work in this mode (unlike Dollhouse, where it
     // rejects live with "Zoom controls are currently only supported in Panorama mode").
     // Best-effort/fire-and-forget: a rejection here should never block the POI focus.
-    try { if (mpSdk.Camera && mpSdk.Camera.zoomTo) mpSdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
+    try { if (sdk.Camera && sdk.Camera.zoomTo) sdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
+    return true;
+  }
+
+  function capturedViewpoint(value) {
+    if (!value || typeof value !== "object"
+        || typeof value.model_id !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(value.model_id)
+        || typeof value.sweep_id !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(value.sweep_id)) return null;
+    const position = value.camera_position, rotation = value.camera_rotation;
+    if (!position || !rotation
+        || !["x", "y", "z"].every(axis => typeof position[axis] === "number"
+          && Number.isFinite(position[axis]) && Math.abs(position[axis]) <= 100000)
+        || typeof rotation.pitch !== "number" || !Number.isFinite(rotation.pitch) || Math.abs(rotation.pitch) > 90
+        || typeof rotation.yaw !== "number" || !Number.isFinite(rotation.yaw) || Math.abs(rotation.yaw) > 180) return null;
+    return value;
+  }
+
+  /** Restore a location's captured scan and direction on the current connection.
+   * Marker coordinates remain the fallback anchor; a captured position is never
+   * used as an arbitrary walkthrough destination. */
+  async function focusPoi(poi, options) {
+    const gen = ++focusGen, sdk = mpSdk, activeModel = modelId;
+    if (!sdk || !poi || poi.id == null) return false;
+    const current = () => gen === focusGen && sdk === mpSdk && activeModel === modelId;
+    const unavailable = () => { if (current()) toast("This saved view is no longer available. Please choose another location."); return false; };
+    const cfg = (window.WF && WF.cfg) || {};
+    const slug = (window.WF && WF.building && WF.building.slug) || cfg.slug || "";
+    let viewpoint = poi.camera_viewpoint || null, status = viewpoint ? "saved" : "missing";
+    if (slug && poi.id != null && typeof fetch === "function") {
+      const apiBase = (cfg.apiBase || (window.WF_CONFIG && WF_CONFIG.apiBase) || "/api/v1/public/").replace(/\/?$/, "/");
+      try {
+        const response = await fetch(apiBase + "buildings/" + encodeURIComponent(slug)
+          + "/camera-viewpoints/" + encodeURIComponent(String(poi.id)), {
+          cache: "no-store", headers: { Accept: "application/json" }
+        });
+        if (!current()) return false;
+        if (response.status === 404) {
+          viewpoint = null; status = "missing";
+        } else if (response.ok) {
+          const data = await response.json();
+          if (!current()) return false;
+          if (!data || data.building_slug !== slug || String(data.location_id) !== String(poi.id)
+              || data.model_id !== activeModel || !["saved", "missing", "incompatible"].includes(data.status)) return unavailable();
+          viewpoint = data.viewpoint;
+          status = data.status;
+          if (status === "missing" && viewpoint != null) return unavailable();
+        } else if (response.status >= 500) {
+          throw new Error("Viewpoint lookup unavailable");
+        } else return unavailable();
+      } catch (_) {
+        // A network failure may retain the already loaded, model-bound snapshot.
+        // The legacy marker focus remains available if no saved view was loaded.
+        if (!current()) return false;
+        if (!viewpoint) toast("Couldn't load the saved view. Showing the location instead.");
+      }
+    }
+    if (!current()) return false;
+    if (status === "missing" || (status === "incompatible" && viewpoint == null)) {
+      // History remains private when a model changes or its active view is
+      // removed. The ordinary marker focus is still a valid navigation fallback.
+      if (status === "incompatible") unavailable();
+      poi.camera_viewpoint = null;
+      if (![poi.x, poi.y].every(Number.isFinite)) {
+        if (status === "missing") toast("No saved view is available for this location.");
+        return false;
+      }
+      const face = options && Object.prototype.hasOwnProperty.call(options, "legacyFace") ? options.legacyFace
+        : poi.expected_x != null ? { x: poi.expected_x, y: poi.expected_y, z: poi.expected_z }
+          : { x: poi.x, y: poi.y, z: poi.z };
+      return focusAt({ x: poi.x, y: poi.y, z: poi.z }, face, gen);
+    }
+    const saved = capturedViewpoint(viewpoint);
+    if (status !== "saved" || !saved || saved.model_id !== activeModel) return unavailable();
+    const sweeps = await rtReadSweeps(sdk);
+    if (!current()) return false;
+    // rtReadSweeps excludes disabled scans. A removed scan cannot be replaced by
+    // the marker's XYZ without changing the administrator's captured viewpoint.
+    if (!sweeps.some(sweep => sweep.sid === saved.sweep_id) || !sdk.Sweep || typeof sdk.Sweep.moveTo !== "function") return unavailable();
+    const tr = sdk.Sweep.Transition;
+    try {
+      await sdk.Sweep.moveTo(saved.sweep_id, {
+        transition: (tr && tr.FLY) || "transition.fly", transitionTime: 1200,
+        rotation: { x: saved.camera_rotation.pitch, y: saved.camera_rotation.yaw }
+      });
+    } catch (_) { return unavailable(); }
+    if (!current()) return false;
+    poi.camera_viewpoint = saved;
     return true;
   }
 
@@ -3007,7 +3098,7 @@ function wfDbg(level, source, message, meta) {
   function pauseForPlanNavigation() { if (playing) pause(); cancelWalkTo(); }
 
   window.MpPreview = {
-    open, close, showBackground, focusAt, setFloor, zoomBy, resetView, toggleHomeView,
+    open, close, showBackground, focusAt, focusPoi, setFloor, zoomBy, resetView, toggleHomeView,
     prepareWalk, nearestIndexForPoint, walkToIndex, cancelWalkTo, moveTo,
     currentSweepIndex, totalSweepStops, sweepPointAt, pickOnMap, getLiveConnection,
     thumbnailSweepNodes, pauseForPlanNavigation

@@ -112,12 +112,14 @@ function wfDbg(level, source, message, meta) {
   function mpFocusSelection(which) {
     if (!isMpMode() || !window.MpPreview) return;
     const p = S[which];
-    if (!p || p === "me" || p.x == null) return;
+    if (!p || p === "me") return;
     if (which === "to") {
       const face = (p.expected_x != null) ? { x: p.expected_x, y: p.expected_y, z: p.expected_z } : { x: p.x, y: p.y, z: p.z };
-      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
+      if (window.MpPreview.focusPoi) window.MpPreview.focusPoi(p, { legacyFace: face });
+      else window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
     } else {
-      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, null);
+      if (window.MpPreview.focusPoi) window.MpPreview.focusPoi(p, { legacyFace: null });
+      else window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, null);
     }
   }
 
@@ -1077,27 +1079,30 @@ function wfDbg(level, source, message, meta) {
     // flat x/y/z, not the .model the ArcGIS 3D fly needs — flyTo3D would throw and abort
     // the rest of this function (including the Matterport focus below) before it runs.
     if (o.fly !== false && !isMpMode()) flyTo(p);
-    if (isMpMode() && window.MpPreview && p.x != null) {
+    if (o.fly !== false && isMpMode() && window.MpPreview && p.id != null) {
       // Fly the live, draggable Matterport background to this POI, facing its curated
       // "look here" direction — this IS the 360° view, no separate static photo needed.
       const face = (p.expected_x != null) ? { x: p.expected_x, y: p.expected_y, z: p.expected_z } : { x: p.x, y: p.y, z: p.z };
-      window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
+      if (window.MpPreview.focusPoi) window.MpPreview.focusPoi(p, { legacyFace: face });
+      else window.MpPreview.focusAt({ x: p.x, y: p.y, z: p.z }, face);
     }
   }
   function markPlace(p) {
     S.uiLayer.removeAll();
-    if (!p) return;
+    if (!p || !Array.isArray(p.lonlat) || p.lonlat.length < 2 || !p.lonlat.slice(0, 2).every(Number.isFinite)) return;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="48" viewBox="0 0 36 48"><path d="M18 1C8.6 1 1 8.4 1 17.6 1 30 18 47 18 47s17-17 17-29.4C35 8.4 27.4 1 18 1z" fill="#ea4335" stroke="#b31412" stroke-width="1.5"/><circle cx="18" cy="17.5" r="6.5" fill="#b31412"/></svg>`;
     S.uiLayer.add(new wf.esri.Graphic({ geometry: new wf.esri.Point({ longitude: p.lonlat[0], latitude: p.lonlat[1] }),
       symbol: { type: "picture-marker", url: "data:image/svg+xml;base64," + btoa(svg), width: 27, height: 36, yoffset: 18 } }));
   }
   function clearSelection() { S.place = null; markPlace(null); }
   function flyTo(p) {
+    if (!p || !Array.isArray(p.lonlat) || p.lonlat.length < 2 || !p.lonlat.slice(0, 2).every(Number.isFinite)) return;
     const v = wf.view();
     if (wf.is3D()) { flyTo3D(p); return; }
     v.goTo({ center: [p.lonlat[0], p.lonlat[1]], zoom: Math.max(v.zoom, 20.3) }, { duration: 900, easing: "ease-in-out" }).catch(() => { });
   }
   function flyTo3D(p) {
+    if (!p || !Array.isArray(p.lonlat) || p.lonlat.length < 2 || !p.lonlat.slice(0, 2).every(Number.isFinite)) return;
     const v = wf.getView3d(); if (!v) return;
     const z = wf.modelZtoAbs((p.model && p.model.z != null) ? p.model.z : 0);
     v.goTo({ target: new wf.esri.Point({ longitude: p.lonlat[0], latitude: p.lonlat[1], z }), tilt: 60, zoom: 20.5 }, { duration: 1200 }).catch(() => { });
@@ -1346,6 +1351,7 @@ function wfDbg(level, source, message, meta) {
   function fitLonLat(pts, expand, instant) {
     // Matterport owns its camera; the lightweight MP adapter has no ArcGIS
     // Extent operations. Category/floor changes must not invoke those APIs.
+    pts = pts.filter(p => Array.isArray(p) && p.length >= 2 && p.slice(0, 2).every(Number.isFinite));
     if (!pts.length || isMpMode()) return;
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     let dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys); const pad = 0.00012;

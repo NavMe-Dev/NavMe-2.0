@@ -59,3 +59,19 @@ new edits clear older confirmations. The stale-revision message names the
 **Reload POIs** action. Chrome exercises Open → Preview → Save → Reload,
 including the supplied coordinates and a rejected request with a retained
 draft. Existing saved target values are preserved by verification.
+
+## Capture the current view
+
+The former **Use pointed location** button read the last hovered surface.
+Moving the mouse out of the twin toward the button could replace an intended
+door point with a floor point, producing a downward preview after a successful
+save. **Use current view** now raycasts the surface at the centre crosshair
+with `Renderer.getWorldPositionData`, then previews that target from the POI.
+Mouse movement toward the button does not affect the captured point. Missing
+surfaces leave the draft unchanged and show an error. Saving remains explicit.
+
+The generic **Capture Current Viewpoint** workflow now supersedes this legacy
+look-target editor in the admin tab. It records an actual enabled scan and
+camera rotation for any registered location without changing the old targets.
+See [Camera viewpoints](../../platform/docs/CAMERA_VIEWPOINTS.md) for storage,
+permissions, visitor restoration and the unapplied production capability.

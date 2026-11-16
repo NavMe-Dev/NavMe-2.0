@@ -494,9 +494,12 @@ require([
         };
         const poiNamesById = (R2.navmeTranslations && R2.navmeTranslations.poi_names) || {};
         const conv = pois._navme.map((p) => {
-          const x = p.x, y = -p.z, z = p.y;                 // SDK -> model
+          const hasMarker = [p.x, p.y, p.z].every(Number.isFinite);
+          const x = hasMarker ? p.x : null, y = hasMarker ? -p.z : null, z = hasMarker ? p.y : null; // SDK -> model
           const o = { id: String(p.id), name: p.name, names: poiNamesById[String(p.id)] || null, category: p.category || "room",
-                      x: x, y: y, z: z, floor: floorFor(z), sdk: { x: p.x, y: p.y, z: p.z } };
+                      x: x, y: y, z: z, floor: hasMarker ? floorFor(z) : (p.floor || (ordered[0] || {}).id || "F1"),
+                      sdk: hasMarker ? { x: p.x, y: p.y, z: p.z } : null };
+          if (p.camera_viewpoint != null) o.camera_viewpoint = p.camera_viewpoint;
           // expected_pos_* is a separate curated "look here" anchor, same SDK -> model
           // conversion as the main position. Not every POI has one.
           if (p.expected_pos_x != null && p.expected_pos_y != null && p.expected_pos_z != null) {
@@ -505,8 +508,10 @@ require([
             o.expected_z = p.expected_pos_y;
             o.sdk.expected = { x: p.expected_pos_x, y: p.expected_pos_y, z: p.expected_pos_z };
           }
-          try { const s2 = WFRouting.snap(x, y, o.floor); if (s2 && s2.node) o.nearest_node = s2.node.id; } catch (e) {}
-          try { o.lonlat = modelToLL(x, y); } catch (e) {}
+          if (hasMarker) {
+            try { const s2 = WFRouting.snap(x, y, o.floor); if (s2 && s2.node) o.nearest_node = s2.node.id; } catch (e) {}
+            try { o.lonlat = modelToLL(x, y); } catch (e) {}
+          }
           return o;
         });
         // Keep every POI. nearest_node is only needed by the legacy graph fallback;
@@ -625,6 +630,7 @@ require([
         const floorOk = (p) => currentFloor === "all" || currentFloor === "none" || p.floor === currentFloor || ["parking", "outdoor"].includes(p.category);
         pois.pois.forEach(p => {
           if (!floorOk(p)) return;
+          if (!Array.isArray(p.lonlat) || !p.lonlat.slice(0, 2).every(Number.isFinite) || p.lonlat.length < 2) return;
           const flt = window.wf.poiFilter;
           const hit = flt && flt.has(p.category);
           if (flt && !hit && window.wf.poiFilterStrict) return;

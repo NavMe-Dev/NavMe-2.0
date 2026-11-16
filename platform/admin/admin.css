@@ -92,10 +92,25 @@ a.btn { background:#e8eaed; color:#202124; text-decoration:none; padding:8px 14p
 .viewpoint-coordinates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .viewpoint-coordinates label{margin:0}
 .viewpoint-coordinates input{margin-top:4px}
-iframe.viewpoint-twin{height:460px;margin-top:12px}
+.viewpoint-twin-wrap{position:relative;margin-top:12px}
+iframe.viewpoint-twin{display:block;height:460px;margin:0}
+.viewpoint-crosshair{position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 0 2px #000)}
+.viewpoint-crosshair::before,.viewpoint-crosshair::after{content:"";position:absolute;background:#fff;border-radius:1px}
+.viewpoint-crosshair::before{width:22px;height:2px;left:0;top:10px}
+.viewpoint-crosshair::after{width:2px;height:22px;left:10px;top:0}
 .viewpoint-actions{margin-top:14px}
 .viewpoint-feedback{min-height:32px;scroll-margin-block:16px}
 .viewpoint-feedback p{margin:10px 0 0}
+.camera-viewpoints{min-width:0}
+.camera-viewpoints button,.camera-viewpoints .btn{min-height:44px;max-width:100%;white-space:normal}
+.camera-viewpoints h2,.viewpoint-capture-panel strong{overflow-wrap:anywhere}
+.camera-viewpoints .viewpoint-list button{min-height:60px}
+.viewpoint-capture-panel{position:sticky;top:64px;z-index:3;margin:12px 0;padding:12px;background:#e8f0fe;border:1px solid #c6dafc;border-radius:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.viewpoint-capture-panel>.grow{flex:1 1 240px;min-width:0}
+.viewpoint-capture-panel p{font-size:12px;margin:4px 0 0}
+.viewpoint-capture-panel>.row{flex:0 1 auto;min-width:0}
+.viewpoint-twin-controls{margin-top:12px}
+@media(max-width:800px){.camera-viewpoints .viewpoint-list ul{max-height:200px}.viewpoint-capture-panel{top:56px;padding:10px}.viewpoint-capture-panel>.row{width:100%}.viewpoint-capture-panel button{flex:1 1 160px}.camera-viewpoints iframe.viewpoint-twin{height:clamp(280px,50vh,460px)}}
 @media(max-width:800px){.viewpoint-layout{grid-template-columns:1fr}.viewpoint-list ul{max-height:240px}iframe.viewpoint-twin{height:360px}}
 .twin-status.ok{background:#e6f4ea;color:var(--green)}
 iframe.showcase{min-height:280px}

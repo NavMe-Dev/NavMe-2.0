@@ -641,7 +641,7 @@ const JobLog = {
 const Building = {
   props: ["slug", "tab"],
   template: `<div v-if="b"><div class="row"><h1 class="grow" style="margin:0">{{b.name}}</h1><span class="badge" :class="stCls(b.status)">{{b.status}}</span>
-      <a class="btn" v-if="b.slug==='uncc-main-campus'" :href="'#/b/'+slug+'/viewpoints'">Adjust POI viewpoints</a>
+      <a class="btn" v-if="b.matterport_model_id" :href="'#/b/'+slug+'/viewpoints'">Set location viewpoints</a>
       <a class="btn" :href="viewerUrl(b)" target="_blank" v-if="b.published_version">{{t("admin.openViewer")}}</a></div>
     <div class="muted" style="margin:4px 0 12px">{{b.address}}</div>
     <nav class="tabs"><a v-for="t in tabs" :href="'#/b/'+slug+'/'+t[0]" :class="{on: (tab||'overview')===t[0]}">{{t[1]}}</a></nav>
@@ -653,7 +653,7 @@ const Building = {
     <tour-modes v-if="sawTour" v-show="tab==='tour'" :b="b" @reload="load"></tour-modes>
     <access-settings v-if="sawAccess" v-show="tab==='access'" :b="b" @reload="load"></access-settings>
     <pois v-if="tab==='pois'" :b="b"></pois>
-    <poi-viewpoints v-if="tab==='viewpoints' && b.slug==='uncc-main-campus'" :b="b"></poi-viewpoints>
+    <poi-viewpoints v-if="tab==='viewpoints'" :b="b"></poi-viewpoints>
     <routes v-if="tab==='routes'" :b="b"></routes>
     <publish v-if="tab==='publish'" :b="b" @reload="load"></publish>
     <jobs v-if="tab==='jobs'" :b="b"></jobs></div>`,
@@ -669,7 +669,7 @@ const Building = {
       ["media", t("admin.media") || "Media"],
       ["tour", t("admin.tour") || "Tour"],
       ["access", t("admin.access") || "Access"],
-      ["pois", t("admin.pois")], ...(props.slug==='uncc-main-campus' ? [["viewpoints", "POI viewpoints"]] : []),
+      ["pois", t("admin.pois")], ["viewpoints", "Viewpoints"],
       ["routes", t("admin.routeTester")], ["publish", t("admin.publish")], ["jobs", t("admin.jobs")]
     ]; });
     async function load() {
@@ -1638,7 +1638,8 @@ const Pois = {
         <label class="row" style="gap:6px"><input type="checkbox" v-model="sel.published" style="width:auto"> Published</label>
         <div class="small muted" style="margin-top:6px">Routing anchor: <span class="mono">{{sel.nearest_sweep_label || sel.nearest_node}}</span> · {{sel.lat && sel.lat.toFixed(6)}}, {{sel.lon && sel.lon.toFixed(6)}}</div>
         <div class="row" style="margin-top:10px"><button class="primary" @click="save">Save</button><button @click="snap" title="Move onto the nearest Matterport sweep">Snap to sweep</button><button class="danger" @click="del">Delete</button>
-          <button class="sm" @click="viewMode='twin'" title="Open Digital twin mode at this POI">Digital twin</button></div>
+          <button class="sm" @click="viewMode='twin'" title="Open Digital twin mode at this POI">Digital twin</button>
+          <a class="btn sm" v-if="b.matterport_model_id" :href="'#/b/'+b.slug+'/viewpoints?poi='+sel.id+'&setup=1'">Set / Replace Viewpoint</a></div>
       </div>
       <div class="card poilist"><div class="row"><b class="grow">{{shown.length}} POIs on {{floor}}</b><a class="btn sm" :href="csvHref" @click.prevent="exportCsv">Export CSV</a>
           <label class="btn sm" style="margin:0;color:var(--txt)">Import CSV<input type="file" accept=".csv" @change="importCsv" hidden></label></div>
@@ -4110,7 +4111,7 @@ const App = {
   }
 };
 const app = createApp(App);
-app.component("poi-viewpoints", WFPoiViewpoint.createComponent({ api, fetchShowcaseUrl }));
+app.component("poi-viewpoints", WFPoiViewpoint.createCameraComponent({ api, fetchShowcaseUrl, viewerUrl }));
 Object.entries({ login: Login, buildings: Buildings, dashboard: Dashboard, "config-page": ConfigPage, wizard: Wizard, building: Building, overview: Overview, georef: Georef, floors: Floors, elevators: Elevators, "media-panels": MediaPanels, "tour-modes": TourModes, "access-settings": AccessSettings, pois: Pois, routes: Routes, publish: Publish, jobs: Jobs, "job-log": JobLog, "scan-plans": ScanPlans, "scan-plan": ScanPlan, "view-mode-bar": ViewModeBar, "map-style-bar": MapStyleBar })
   .forEach(([k, v]) => app.component(k, v));
 app.mount("#app");

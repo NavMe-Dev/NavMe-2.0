@@ -18,7 +18,7 @@ import time
 from urllib.parse import urlsplit
 from uuid import UUID
 
-from . import navme, navme_sync, poi_viewpoints
+from . import navme, navme_sync, poi_viewpoints, camera_viewpoints
 
 
 logger = logging.getLogger(__name__)
@@ -156,6 +156,10 @@ def _public_poi(row):
         if values is not None:
             result.update({prefix + axis: value for axis, value in zip(("x", "y", "z"), values)})
     _apply_viewpoint(result, row)
+    view = row.get("camera_viewpoint")
+    camera = camera_viewpoints.sanitize_viewpoint(view, view.get("model_id") if isinstance(view, dict) else None)
+    if camera:
+        result["camera_viewpoint"] = camera
     return result
 
 
@@ -255,9 +259,9 @@ def _overlay(building, published, rows, fallback):
     pois = []
     for original in published:
         identifier = _uuid(original.get("id"))
-        if identifier is None:
-            # An existing legacy publication key is not a Studio UUID. It may
-            # remain published, but can never authorize a new source identity.
+        if identifier is None or original.get("_studio_source") is False:
+            # Registered local rooms remain independent of Studio, even when a
+            # local key happens to be UUID-shaped. Legacy keys are independent too.
             pois.append(_public_poi(original))
             continue
         source = by_id.get(identifier)
@@ -305,7 +309,8 @@ def load(cfg, building, published_pois) -> dict:
     """Return a public snapshot; source rows can never add publication members."""
     published = [row for row in published_pois if isinstance(row, dict)]
     fallback = _fallback(building, published)
-    identifiers = {_uuid(row.get("id")) for row in published} - {None}
+    identifiers = {_uuid(row.get("id")) for row in published
+                   if row.get("_studio_source") is not False} - {None}
     if not enabled(cfg, building) or not identifiers:
         return fallback
     source = metadata_settings(cfg, building)

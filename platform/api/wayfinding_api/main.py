@@ -78,13 +78,18 @@ def create_app() -> FastAPI:
                 or re.fullmatch(r"/api/v1/public/buildings/[a-z0-9-]+/route", request.url.path)
                 or re.fullmatch(r"/api/v1/public/dashboard/buildings/[a-z0-9-]+/route-by-coords", request.url.path)
             )
-            # This one admin mutation uses an isolated execute-only login. The
-            # route still requires current_admin and checks publication scope;
-            # the normal database connection remains transaction read-only.
+            # These admin mutations use isolated execute-only logins. Their
+            # routes retain current_admin and per-record checks; the normal
+            # database connection remains transaction read-only.
             viewpoint_put = (request.method == "PUT" and bool(s.poi_viewpoint_database_url)
                 and "uncc-main-campus" in {v.strip() for v in s.poi_viewpoint_buildings.split(",")}
                 and re.fullmatch(r"/api/v1/admin/buildings/uncc-main-campus/pois/[0-9]+/viewpoint", request.url.path))
-            if not (query_post or viewpoint_put):
+            camera_match = re.fullmatch(r"/api/v1/admin/buildings/([a-z0-9-]+)/pois/[0-9]+/camera-viewpoint", request.url.path)
+            camera_buildings = {v.strip() for v in getattr(s, "camera_viewpoint_buildings", "").split(",")}
+            camera_put = (request.method == "PUT" and camera_match
+                and bool(getattr(s, "camera_viewpoint_database_url", ""))
+                and (camera_match.group(1) in camera_buildings or "*" in camera_buildings))
+            if not (query_post or viewpoint_put or camera_put):
                 return JSONResponse(status_code=503, content={"detail": "application is read-only"},
                                     headers={"Retry-After": "60"})
         from .services import debug_log as dbg
