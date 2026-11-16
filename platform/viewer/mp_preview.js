@@ -2913,18 +2913,13 @@ function wfDbg(level, source, message, meta) {
       return fail();
     }
     if (!current()) return false;
-    const isIOSDevice = (() => {
-      try {
-        return /iPad|iPhone|iPod/.test(navigator.userAgent)
-          || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      } catch (_) { return false; }
-    })();
     const nativeStartup = (() => {
       const cfg = (window.WF && window.WF.cfg) || {};
       const building = (window.WF && window.WF.building) || {};
       const slug = String(building.slug || cfg.slug || cfg.building || "").toLowerCase();
       const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
-      return (mobile || isIOSDevice) && slug === "uncc-main-campus";
+      const iosUA = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+      return (mobile || iosUA) && slug === "uncc-main-campus";
     })();
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
@@ -3139,7 +3134,13 @@ function wfDbg(level, source, message, meta) {
     // POI preview — Camera.zoomTo DOES work in this mode (unlike Dollhouse, where it
     // rejects live with "Zoom controls are currently only supported in Panorama mode").
     // Best-effort/fire-and-forget: a rejection here should never block the POI focus.
-    try { if (sdk.Camera && sdk.Camera.zoomTo) sdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
+    // On iOS, skip zoomTo entirely: calling it immediately after Sweep.moveTo fires a
+    // second GPU texture decode while the panorama assets from moveTo are still loading,
+    // spiking RAM past the WebKit jetsam limit (~1.5 GB) and killing the tab.
+    const iosDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (!iosDevice) {
+      try { if (sdk.Camera && sdk.Camera.zoomTo) sdk.Camera.zoomTo(0.7).catch(() => {}); } catch (_) { /* ignore */ }
+    }
     return true;
   }
 
