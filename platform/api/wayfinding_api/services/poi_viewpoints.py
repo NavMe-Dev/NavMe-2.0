@@ -121,7 +121,7 @@ def write(cfg, building, poi_id, update):
         raise
     except psycopg.Error as error:
         messages = {"P0002": (404, "Published POI not found"),
-                    "40001": (409, "The viewpoint changed. Reload the POI before saving again."),
+                    "40001": (409, "This POI was updated in another tab. Click Reload POIs, then select your point and save again."),
                     "22023": (422, "Invalid viewpoint")}
         status, message = messages.get(error.sqlstate, (503, "Could not save the viewpoint. Please retry."))
         logger.warning("POI viewpoint write unavailable: %s", type(error).__name__)

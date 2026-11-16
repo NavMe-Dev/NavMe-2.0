@@ -44,3 +44,18 @@ precedence, axis conversion, arrival aiming and SDK lifecycle. A real
 dedicated-login save/reset rehearsal rolled back and verified all 277 POI
 rows unchanged. Private reports remain under ignored
 `platform/var/data/production_migration/2026-11-16-poi-viewpoints/`.
+
+## Save feedback follow-up
+
+The live authenticated endpoint returned 200 for the current Starbucks target;
+both reloading the admin list and the public viewer retained that target. A
+stale editor with the older `default` revision correctly returned 409. The
+original save error appeared above the large twin viewport, making the failed
+attempt look silent when the operator was at the bottom of the page.
+
+Save feedback now appears beside the controls and scrolls into view. The UI
+checks the returned POI ID, target and revision before confirming success;
+new edits clear older confirmations. The stale-revision message names the
+**Reload POIs** action. Chrome exercises Open → Preview → Save → Reload,
+including the supplied coordinates and a rejected request with a retained
+draft. Existing saved target values are preserved by verification.

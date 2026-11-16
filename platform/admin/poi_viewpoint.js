@@ -113,7 +113,7 @@
       template: `<section class="poi-viewpoints" aria-labelledby="viewpoint-title">
         <div class="card"><div class="row"><h2 id="viewpoint-title" class="grow">POI viewpoints</h2><button @click="load" :disabled="loading || saving || twinBusy">Reload POIs</button></div>
           <p class="muted">Aim directions at the selected point. The route destination stays the same.</p>
-          <p class="err" role="alert" v-if="error">{{error}}</p>
+          <p class="err" role="alert" v-if="error && !selected">{{error}}</p>
           <p role="status" v-if="loading">Loading POIs…</p>
           <p class="muted" v-else-if="!enabled">Viewpoint editing is unavailable for this building.</p>
           <p class="muted" v-else-if="!writable">Viewpoints are available to preview. Saving is currently unavailable.</p>
@@ -143,7 +143,10 @@
                 <button class="primary" @click="save" :disabled="!writable || !validTarget || !dirty || saving || twinBusy">{{saving ? 'Saving…' : 'Save viewpoint'}}</button>
                 <button @click="reset" :disabled="!writable || !selected.override || saving || twinBusy">Reset to Studio default</button>
                 <button @click="discard" :disabled="!dirty || saving">Discard edits</button></div>
-              <p class="ok" role="status" v-if="message">{{message}}</p>
+              <div ref="feedback" class="viewpoint-feedback" aria-live="polite" aria-atomic="true">
+                <p class="err" role="alert" v-if="error">{{error}}</p>
+                <p class="ok" role="status" v-else-if="message">{{message}}</p>
+              </div>
             </div>
           </div>
           <div class="card muted" v-else>Select a POI to adjust the point that directions face.</div>
@@ -153,6 +156,7 @@
         const rows = ref([]), selectedId = ref(null), query = ref("");
         const enabled = ref(false), writable = ref(false), loading = ref(false), saving = ref(false);
         const error = ref(""), message = ref("");
+        const feedback = ref(null);
         const draft = reactive({ x: "", y: "", z: "" });
         const twinFrame = ref(null), showcase = ref(""), twinBusy = ref(false), twinStatus = ref(""), connected = ref(false);
         const selected = computed(() => rows.value.find(poi => poi.id === selectedId.value) || null);
@@ -160,6 +164,13 @@
         const validTarget = computed(() => point(draft));
         const dirty = computed(() => !!selected.value && !equalPoint(draft, selected.value.target));
         let session = null, sweepReader = null, disposed = false, epoch = 0;
+
+        async function revealFeedback(run) {
+          await nextTick();
+          if (!disposed && run === epoch && feedback.value && typeof feedback.value.scrollIntoView === "function") {
+            feedback.value.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }
 
         function disconnect() {
           const old = session; session = null; connected.value = false;
@@ -261,11 +272,17 @@
               method: "PUT", json: { target, revision: poi.revision }
             });
             if (disposed || run !== epoch || slug !== props.b.slug) return;
+            if (!result || result.id !== id || typeof result.revision !== "string" || !result.revision
+                || result.override !== !!target || (target && !equalPoint(result.target, target))) {
+              throw new Error("Could not verify the saved viewpoint. Reload POIs to check it before trying again.");
+            }
             Object.assign(poi, result); discard();
             message.value = target ? "Viewpoint saved. Refresh the public viewer to use it in directions." : "Studio default restored. Refresh the public viewer to use it.";
           } catch (ex) {
             if (!disposed && run === epoch) error.value = ex.message || "Could not save the viewpoint. Your edits are still here.";
-          } finally { if (!disposed && run === epoch) saving.value = false; }
+          } finally {
+            if (!disposed && run === epoch) { saving.value = false; await revealFeedback(run); }
+          }
         }
         function save() {
           const target = point(draft);
@@ -275,8 +292,9 @@
         function reset() { return persist(null); }
         onMounted(load);
         watch(() => props.b.slug, load);
+        watch(() => [draft.x, draft.y, draft.z], () => { message.value = ""; error.value = ""; }, { flush: "sync" });
         onBeforeUnmount(() => { disposed = true; closeTwin(); });
-        return { rows, selectedId, query, enabled, writable, loading, saving, error, message, draft,
+        return { rows, selectedId, query, enabled, writable, loading, saving, error, message, feedback, draft,
           selected, filtered, validTarget, dirty, twinFrame, showcase, twinBusy, twinStatus, connected,
           load, select, discard, openTwin, closeTwin, capturePointer, preview, save, reset };
       }

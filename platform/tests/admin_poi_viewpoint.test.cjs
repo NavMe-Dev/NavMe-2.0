@@ -117,6 +117,49 @@ test('failed or conflicting saves keep edits and never report success', async ()
   assert.equal(r.state.saving.value, false);
 });
 
+test('save feedback is brought into view even when the server rejects the write', async () => {
+  const scrolls = [];
+  const r = runtime({api: async (url, args) => {
+    if (args) throw new Error('Could not save the viewpoint. Please retry.');
+    return {enabled: true, writable: true, pois: [{id: 454, name: '110 Starbucks', target: null, revision: 'default'}]};
+  }});
+  await r.mount();
+  r.state.feedback.value = {scrollIntoView: options => scrolls.push(options)};
+  Object.assign(r.state.draft, {x: 183.169, y: 0.352, z: -2.872});
+  await r.state.save();
+  assert.match(r.state.error.value, /Could not save/);
+  assert.equal(r.state.message.value, '');
+  assert.equal(scrolls.length, 1); assert.equal(scrolls[0].block, 'nearest');
+  assert.equal(r.state.draft.x, 183.169);
+});
+
+test('save response must match the requested POI and target before confirming success', async () => {
+  const r = runtime({api: async (url, args) => args ? {id: 999, target: args.json.target, override: true, revision: 'wrong-poi'}
+    : {enabled: true, writable: true, pois: [{id: 454, name: '110 Starbucks', target: null, revision: 'default'}]}});
+  await r.mount(); Object.assign(r.state.draft, {x: 183.169, y: 0.352, z: -2.872});
+  await r.state.save();
+  assert.match(r.state.error.value, /Could not verify/);
+  assert.equal(r.state.message.value, ''); assert.equal(r.state.selected.value.revision, 'default');
+});
+
+test('saved target survives Reload POIs and the next write uses the stored revision', async () => {
+  let stored = {id: 454, name: '110 Starbucks', target: null, override: false, revision: 'default'};
+  const r = runtime({api: async (url, args) => {
+    if (!args) return {enabled: true, writable: true, pois: [JSON.parse(JSON.stringify(stored))]};
+    assert.equal(args.json.revision, stored.revision);
+    stored = {...stored, target: args.json.target, override: !!args.json.target,
+      revision: '11111111-1111-4111-8111-111111111111'};
+    return {...stored};
+  }});
+  await r.mount(); Object.assign(r.state.draft, {x: 183.169, y: 0.352, z: -2.872});
+  await r.state.save(); await r.state.load();
+  assert.equal(r.state.selected.value.override, true);
+  assert.equal(r.state.draft.x, 183.169); assert.equal(r.state.draft.y, 0.352); assert.equal(r.state.draft.z, -2.872);
+  assert.equal(r.state.dirty.value, false);
+  r.state.draft.x = 183.171; await r.state.save();
+  assert.equal(r.calls[3].args.json.revision, '11111111-1111-4111-8111-111111111111');
+});
+
 test('selection is frozen during a save and response updates the matching POI only', async () => {
   const pending = deferred();
   const r = runtime({api: async (url, args) => args ? pending.promise : {enabled: true, writable: true,

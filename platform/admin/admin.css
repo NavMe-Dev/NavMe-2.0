@@ -94,6 +94,8 @@ a.btn { background:#e8eaed; color:#202124; text-decoration:none; padding:8px 14p
 .viewpoint-coordinates input{margin-top:4px}
 iframe.viewpoint-twin{height:460px;margin-top:12px}
 .viewpoint-actions{margin-top:14px}
+.viewpoint-feedback{min-height:32px;scroll-margin-block:16px}
+.viewpoint-feedback p{margin:10px 0 0}
 @media(max-width:800px){.viewpoint-layout{grid-template-columns:1fr}.viewpoint-list ul{max-height:240px}iframe.viewpoint-twin{height:360px}}
 .twin-status.ok{background:#e6f4ea;color:var(--green)}
 iframe.showcase{min-height:280px}
