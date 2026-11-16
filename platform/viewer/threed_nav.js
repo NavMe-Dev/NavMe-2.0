@@ -294,7 +294,7 @@
         '<div class="n3d-status" id="n3dStatus" hidden></div>',
         '<div class="n3d-dock" id="n3dDock" hidden>',
           '<div class="n3d-dock-eta"><div class="n3d-dist-lbl" id="n3dDistLbl">Distance remaining</div>',
-          '<div><span class="n3d-dist-v" id="n3dDistV">—</span><span class="n3d-dist-u" id="n3dDistU">m</span></div></div>',
+          '<div><span class="n3d-dist-v" id="n3dDistV">—</span><span class="n3d-dist-u" id="n3dDistU"></span></div></div>',
           '<button class="n3d-exit" id="n3dExit" type="button">Exit</button>',
         '</div>',
         '<div class="n3d-arrived" id="n3dArrived" hidden role="alertdialog" aria-modal="false">',
@@ -322,6 +322,11 @@
     el.hidden = false; el.textContent = msg;
   }
 
+  function usesFeet() {
+    var current = window.WF || {};
+    return ((current.building && current.building.slug) || (current.cfg && current.cfg.slug)) === "uncc-main-campus";
+  }
+
   function updateDistDisplay() {
     var dock = $("n3dDock"), dv = $("n3dDistV"), du = $("n3dDistU"), lbl = $("n3dDistLbl");
     if (!dock) return;
@@ -331,8 +336,15 @@
     // returns something.
     dock.hidden = false;
     if (lbl) lbl.textContent = destName ? ("To " + destName) : "Distance remaining";
+    var inFeet = usesFeet();
+    if (du) du.textContent = inFeet ? "ft" : "m";
     var rem = remainingMetres();
-    if (rem === null) { if (dv) dv.textContent = "—"; return; }
+    if (rem == null || !Number.isFinite(rem)) { if (dv) dv.textContent = "—"; return; }
+    if (inFeet) {
+      var feet = Math.max(0, rem) / 0.3048;
+      if (dv) dv.textContent = feet === 0 ? "0" : feet < 1 ? "<1" : Math.round(feet).toString();
+      return;
+    }
     if (rem < 0.5) { if (dv) dv.textContent = "0"; return; }
     if (dv) {
       if (rem >= 1000) { dv.textContent = (rem/1000).toFixed(2); if (du) du.textContent = "km"; }

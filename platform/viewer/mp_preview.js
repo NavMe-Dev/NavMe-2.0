@@ -1108,8 +1108,17 @@ function wfDbg(level, source, message, meta) {
     return (d != null && Number.isFinite(d) && d > 0.05) ? d : null;
   }
 
+  function usesFeet() {
+    const current = window.WF || {};
+    return ((current.building && current.building.slug) || (current.cfg && current.cfg.slug)) === "uncc-main-campus";
+  }
+
   function fmtMeters(m) {
     if (m == null || !Number.isFinite(m)) return "—";
+    if (usesFeet()) {
+      const feet = Math.max(0, m) / 0.3048;
+      return feet === 0 ? "0 ft" : feet < 1 ? "<1 ft" : Math.round(feet) + " ft";
+    }
     if (m < 1) return "<1 m";
     if (m >= 1000) return (m / 1000).toFixed(1) + " km";
     return Math.round(m) + " m";

@@ -282,6 +282,8 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
   function instructions(seq, links, sm, hopDoors) {
     const out = [];
     const toLL = WF.modelToLL;
+    const current = window.WF || {};
+    const inFeet = ((current.building && current.building.slug) || (current.cfg && current.cfg.slug)) === "uncc-main-campus";
     // events on graph links: stairs, elevators, entrances
     const events = {}; let stairRun = null;
     links.forEach((l, i) => {
@@ -291,7 +293,7 @@ const wfRoutingT = (key, vars) => (window.WFi18n && WFi18n.t) ? WFi18n.t(key, va
         const prev = i > 0 && links[i - 1].data.stairs === l.data.stairs && (seq[i].z > seq[i - 1].z) === up ? stairRun : null;
         const run = prev || { startId: a.id, name, up, rise: 0, fromFloor: a.floor };
         run.rise += Math.abs(b.z - a.z); run.toFloor = b.floor; stairRun = run;
-        const txt = `Take the ${name} ${up ? 'up' : 'down'}` + ` (${run.rise.toFixed(1)} m ${up ? 'rise' : 'drop'})`;
+        const txt = `Take the ${name} ${up ? 'up' : 'down'}` + ` (${(inFeet ? run.rise / 0.3048 : run.rise).toFixed(1)} ${inFeet ? 'ft' : 'm'} ${up ? 'rise' : 'drop'})`;
         events[run.startId] = { txt, type: 'stairs', floor: b.floor };
       } else stairRun = null;
       if (isElevator(l)) {

@@ -199,6 +199,9 @@
    */
   function guidance(path, opts) {
     opts = opts || {};
+    var current = global.WF || {};
+    var inFeet = ((current.building && current.building.slug) || (current.cfg && current.cfg.slug)) === "uncc-main-campus";
+    function walkText(metres) { return "Walk ahead " + Math.round(inFeet ? metres / 0.3048 : metres) + (inFeet ? " ft" : " m"); }
     var floors = opts.floors || [];
     var MIN_TURN_DEG = opts.minTurnDeg != null ? opts.minTurnDeg : 20;
     var STAIR_MIN_DEG = opts.stairMinDeg != null ? opts.stairMinDeg : 35;
@@ -294,7 +297,7 @@
         if (acc >= 1) {
           steps.push({ type: "walk", i: k, point: path[k + 1], dist_m: Math.round(acc),
                        arrow: "\u2191", dir: "straight", rotate: 0,
-                       text: "Walk ahead " + Math.round(acc) + " m" });
+                       text: walkText(acc) });
         }
         var ar = turnArrow(d);
         steps.push({ type: "turn", i: k + 1, point: path[k + 1], turn_deg: Math.round(d),
@@ -304,7 +307,7 @@
       if (acc >= 1) {
         steps.push({ type: "walk", i: seg.to, point: path[seg.to], dist_m: Math.round(acc),
                      arrow: "\u2191", dir: "straight", rotate: 0,
-                     text: "Walk ahead " + Math.round(acc) + " m" });
+                     text: walkText(acc) });
       }
     }
 
