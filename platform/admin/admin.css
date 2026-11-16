@@ -23,6 +23,9 @@ pre.log{background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:8px;max-heig
 .poilist li{list-style:none;padding:6px 8px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}.poilist ul{padding:0;margin:0}.poilist li:hover,.poilist li.on{background:#e8f0fe}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 10px}
 .login{max-width:360px;margin:12vh auto}.err{color:var(--red);margin-top:8px}.ok{color:var(--green)}
+.login-password{display:flex;align-items:center;gap:8px}
+.login-password input{min-width:0;flex:1}
+.login-password button{flex:0 0 auto;min-width:64px}
 .steps{display:flex;gap:8px;margin-bottom:16px}.steps span{padding:4px 10px;border-radius:12px;background:#e8eaed;font-size:12px}.steps span.on{background:var(--blue);color:#fff}
 .kv{display:grid;grid-template-columns:170px 1fr;gap:4px 12px}.kv div:nth-child(odd){color:var(--txt2)}
 .poi-marker{width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);cursor:grab}

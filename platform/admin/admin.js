@@ -240,14 +240,15 @@ function preferredShowcaseViewMode(b, fallback) {
 // ===================== components =====================
 const Login = {
   template: `<div class="login card"><div class="login-brand"><img class="navme-logo" src="img/navme-logo.png" alt="NavMe" width="72" height="72"><h1>{{t("admin.brand")}}</h1><p class="muted small">Admin for NavMe</p></div>
-    <form @submit.prevent="login"><label>{{t("admin.email")}}</label><input v-model="email" autocomplete="username" required>
-    <label>{{t("admin.password")}}</label><input v-model="pw" type="password" autocomplete="current-password" required>
+    <form @submit.prevent="login"><label for="login-email">{{t("admin.email")}}</label><input id="login-email" name="username" v-model="email" autocomplete="username" required>
+    <label for="login-password">{{t("admin.password")}}</label><div class="login-password"><input id="login-password" name="password" v-model="pw" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required>
+      <button type="button" @click="showPassword=!showPassword" :aria-pressed="showPassword" aria-controls="login-password" :aria-label="t(showPassword ? 'admin.hidePassword' : 'admin.showPassword')">{{t(showPassword ? 'admin.hide' : 'admin.show')}}</button></div>
     <div class="row" style="margin-top:14px"><button class="primary" :disabled="busy">{{t("admin.signIn")}}</button></div>
     <div class="err" v-if="err">{{err}}</div></form>
     <p class="muted small">{{t("admin.adminsCli")}}</p>
     <div id="loginLang" style="margin-top:14px"></div></div>`,
   setup() {
-    const email = ref(""), pw = ref(""), err = ref(""), busy = ref(false);
+    const email = ref(""), pw = ref(""), err = ref(""), busy = ref(false), showPassword = ref(false);
     onMounted(() => {
       const el = document.getElementById("loginLang");
       if (el && window.WFi18n) WFi18n.mountSwitcher(el, { className: "wf-lang-switch", alwaysShow: true });
@@ -260,7 +261,7 @@ const Login = {
         store.token = j.access_token; localStorage.setItem("wf_admin_token", j.access_token); go("/");
       } catch (e) { err.value = e.message; } busy.value = false;
     }
-    return { email, pw, err, busy, login, t, i18nTick };
+    return { email, pw, err, busy, showPassword, login, t, i18nTick };
   }
 };
 
