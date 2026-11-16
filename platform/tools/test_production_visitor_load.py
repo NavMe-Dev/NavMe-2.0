@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import unittest
 
 import httpx
-from production_visitor_load import Run, allowed_base, public_path
+from production_visitor_load import Run, allowed_base, public_path, route_evidence
 
 
 def args(directory):
@@ -36,6 +36,16 @@ class HarnessTests(unittest.TestCase):
     def test_public_identifiers_are_not_needed_in_aggregate_paths(self):
         self.assertEqual(public_path("/api/building/camera-viewpoints/public-location-id"),
                          "/api/building/camera-viewpoints/:location_id")
+
+    def test_server_diagnostic_rejects_trivial_or_invalid_routes(self):
+        for route in [{"length_m": 0, "nodes": ["a"]}, {"length_m": 6, "nodes": ["a"]},
+                      {"length_m": 5, "nodes": ["a", "b"]},
+                      {"length_m": float("nan"), "nodes": ["a", "b"]}]:
+            self.assertIsNone(route_evidence(route))
+        evidence = route_evidence({"length_m": 8, "nodes": ["a", "b"]})
+        self.assertEqual(evidence["length_m"], 8)
+        self.assertEqual(evidence["nodes"], 2)
+        self.assertEqual(len(evidence["response_sha256"]), 64)
 
     def test_gzip_encoded_body_is_counted_separately_from_decoded_payload(self):
         async def verify():

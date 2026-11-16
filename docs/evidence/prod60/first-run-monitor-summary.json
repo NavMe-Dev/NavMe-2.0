@@ -1,0 +1,70 @@
+{
+  "scope": "First production run plus60seconds recovery; platform samples, not client measurements",
+  "test_start_utc": "2026-11-16T12:52:50Z",
+  "test_end_utc": "2026-11-16T12:58:31.864Z",
+  "metrics_end_utc": "2026-11-16T12:59:32Z",
+  "events_end_utc": "2026-11-16T13:01:27Z",
+  "deploy": "dep-dbtfnkgn74is73bpmkq0",
+  "instance": "srv-db32v3bncjis73e9l2cg-xq6rf",
+  "memory_bytes": {
+    "samples": 14,
+    "min": 120877060,
+    "max": 159711230,
+    "last": {
+      "timestamp": "2026-11-16T12:59:20Z",
+      "value": 157663230
+    }
+  },
+  "cpu_cores": {
+    "samples": 14,
+    "min": 0.0017747667,
+    "max": 0.10550657,
+    "last": {
+      "timestamp": "2026-11-16T12:59:20Z",
+      "value": 0.030267367
+    }
+  },
+  "cpu_scope": "Service MAX aggregation; rolloutoldinstancecanbeincluded, valuesnotperrequest",
+  "unexpected_failure_restart_events": 0,
+  "error_log_count": 1,
+  "error_log_has_more": false,
+  "after_load_database": {
+    "max_connections": 60,
+    "superuser_reserved_connections": 3,
+    "reserved_connections": 0,
+    "client_connections": 13,
+    "reader_connections": 5,
+    "other_client_connections": 8,
+    "idle_in_transaction": 0,
+    "reader_active": 0,
+    "reader_idle": 5,
+    "reader_waiting_for_lock": 0,
+    "reader_role_connection_limit": -1
+  },
+  "after_load_database_utc": "2026-11-16T13:01:27Z",
+  "test_outcome": "Stopped at60after1HTTP503perroot; no restart/crash evidence, healthy rootliveness/recovery probes",
+  "monitor_stop_signaled": false,
+  "bandwidth": "ImmediateRenderbillingseriesunavailable(hourly/delayed); rootclientcapturecoversHTTPtestbodybytes",
+  "error_logs": [
+    {
+      "timestamp": "2026-11-16T12:58:13.239298983Z",
+      "kind": "request",
+      "level": "error",
+      "status_code": "503",
+      "method": "GET",
+      "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data",
+      "error_class": null,
+      "note": "Request log, not an application traceback; cause is established separately by the root's response/startup analysis."
+    }
+  ],
+  "application_database_errors_independent_of_level": [
+    {
+      "timestamp": "2026-11-16T12:58:13.238064823Z",
+      "kind": "app",
+      "label_level": "info",
+      "instance": "srv-db32v3bncjis73e9l2cg-xq6rf",
+      "message_match": "Database request failed (TimeoutError)"
+    }
+  ],
+  "error_log_label_limitation": "Render labeled the application database error INFO; literal message query independently confirms TimeoutError. Error-level request log confirms503."
+}

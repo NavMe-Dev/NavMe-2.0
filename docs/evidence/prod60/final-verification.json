@@ -1,0 +1,28 @@
+{
+  "recorded_utc": "2026-11-16T13:25:21.089867+00:00",
+  "production_commit": "0d9fdbbb243a360db4a61ec0fee65e76012c7c02",
+  "production_deploy": "dep-dbtfv3lckfvc73eophp0",
+  "production_config": {
+    "pool_size": 8,
+    "max_overflow": 4,
+    "wait_seconds": 15,
+    "thread_tokens": 40,
+    "readonly": true
+  },
+  "api_test": "PASS2992requests0failures;1906HTTP200at60users;120secondloadedsoak",
+  "observed_crashes_restarts": 0,
+  "browser_observation": "PASSdesktop75s,mobile75s,mobile60.8s(~39sunder60APIsoak)",
+  "manual_phone_result": "User confirmed stayed loaded",
+  "application_changes_after_deployment": [],
+  "original_feature_patch_preserved": true,
+  "original_patch_sha256": "8909bf97fcd0608593f297c1ed19c132179b35617775e5af4acf04b7e060ce67",
+  "privacy_scan": {
+    "jwt_like_strings": 0,
+    "URL_query_strings": 0
+  },
+  "limits": [
+    "FinitepublicAPIprofile,not60simultaneousrenderersor100capacity",
+    "Browserdownloadcounterheadersunsplit; noexactbillingclaim",
+    "ExistingARresourcefailureandbaseline2Dtypeerrorsdocumented"
+  ]
+}

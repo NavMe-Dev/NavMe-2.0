@@ -1,0 +1,77 @@
+{
+  "scope": "Second production run plus60seconds recovery;30-second platform samples; separate from client request metrics",
+  "test_start_utc": "2026-11-16T13:08:15.611Z",
+  "test_end_utc": "2026-11-16T13:14:35.116Z",
+  "metrics_end_utc": "2026-11-16T13:15:35.116Z",
+  "events_checked_through_utc": "2026-11-16T13:16:57Z",
+  "deploy": "dep-dbtfv3lckfvc73eophp0",
+  "commit": "0d9fdbb",
+  "instance": "srv-db32v3bncjis73e9l2cg-wpc8d",
+  "effective_startup": [
+    {
+      "timestamp": "2026-11-16T13:05:59.891558977Z",
+      "instance": "srv-db32v3bncjis73e9l2cg-wpc8d",
+      "limits": "API runtime limits db_pool_size=8 db_max_overflow=4 db_pool_timeout_seconds=15 sync_thread_tokens=40 read_only=True"
+    }
+  ],
+  "memory_bytes": {
+    "samples": 15,
+    "min": 119144450,
+    "max": 157106180,
+    "last": {
+      "timestamp": "2026-11-16T13:15:15.611Z",
+      "value": 153731070
+    }
+  },
+  "memory_peak_mib": 149.82812881469727,
+  "memory_peak_percent_of_512_mib": 29.26330640912056,
+  "memory_after_recovery_mib": 146.60937309265137,
+  "cpu_cores": {
+    "samples": 15,
+    "min": 0.0045334,
+    "max": 0.1661049,
+    "last": {
+      "timestamp": "2026-11-16T13:15:15.611Z",
+      "value": 0.023301667
+    }
+  },
+  "cpu_peak_percent_of_half_cpu": 33.22098,
+  "cpu_scope": "Service-level MAX aggregation across available series; rolloutoldinstancecanbeincluded. Dominanttestinstanceidentifiedseparatelyinmemoryseries.",
+  "unexpected_failure_restart_events": 0,
+  "database_error_messages": [],
+  "error_level_log_count": 0,
+  "after_load_database": {
+    "max_connections": 60,
+    "superuser_reserved_connections": 3,
+    "reserved_connections": 0,
+    "client_connections": 20,
+    "reader_connections": 12,
+    "other_client_connections": 8,
+    "idle_in_transaction": 0,
+    "reader_idle_in_transaction": 0,
+    "reader_active": 0,
+    "reader_idle": 12,
+    "reader_waiting_for_lock": 0,
+    "reader_role_connection_limit": -1
+  },
+  "after_load_database_utc": "2026-11-16T13:16:57Z",
+  "reader_connection_attribution": "Aggregate server/pooler backends; no perinstance application_name, so distinctworker identity is not claimed. Observed12 reader connections, matchingstartup8+4 cap; allidle afterload, zeroidle-in-transaction.",
+  "other_traffic": "Resourcewindowincludesheadedmobileobserverandnormalusertraffic; rootAPIharnessrequesttimings/bytecounts remainseparate.",
+  "root_reported_api_result": {
+    "requests": 2992,
+    "unexpected_failures": 0,
+    "stage60_requests": 1906,
+    "stage60_successes": 1906,
+    "stage60_loaded_soak_seconds": 120,
+    "peak_inflight": 61,
+    "interpretation": "60visitorrequests plus probe; not60Matterportbrowserrenderers"
+  },
+  "monitor_stop_signaled": false,
+  "observed_crash_or_restart": false,
+  "limits": [
+    "Sampledplatformmetricscannotexcludeunobservedsub30-secondresourcepeaks",
+    "No permanentno-crashguarantee or100-usercapacityclaim",
+    "Renderer/mobilelifecycleevidenceownedbyrootandbrowseragent, notinferredfromAPIhealth",
+    "Renderbillingbandwidthisdelayedhourly; immediatebytesownedbyrootclientcapture"
+  ]
+}

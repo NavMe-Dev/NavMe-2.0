@@ -1,0 +1,129 @@
+{
+  "scope": "Local-only60-user bounded-pool preflight; not hosted/Matterport capacity acceptance",
+  "recorded_utc": "2026-11-16T13:04:39.630821+00:00",
+  "runs": [
+    {
+      "evidence": "local-pool12-fast.json",
+      "pool_size": 8,
+      "max_overflow": 4,
+      "checkout_wait_seconds": 15,
+      "synthetic_select_delay_ms": 0,
+      "requests": 300,
+      "failures": 0,
+      "geometry_mismatches": 0,
+      "route_p95_ms": 4307.57,
+      "floor_p95_ms": 342.93,
+      "all_http": {
+        "count": 300,
+        "p50_ms": 456.92,
+        "p95_ms": 3895.81,
+        "p99_ms": 4720.77,
+        "max_ms": 5408.32
+      },
+      "rss_peak_mib": 264.7,
+      "cpu_percent_of_one_core": 95.4,
+      "db_pool_peak": 12,
+      "db_pool_checked_out_after": 0,
+      "db_checkout_wait": {
+        "count": 300,
+        "p50_ms": 1.85,
+        "p95_ms": 1635.43,
+        "p99_ms": 2472.32,
+        "max_ms": 3329.82
+      },
+      "db_connection_hold": {
+        "count": 300,
+        "p50_ms": 28.97,
+        "p95_ms": 932.15,
+        "p99_ms": 1085.34,
+        "max_ms": 1125.46
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 8.62
+        },
+        {
+          "status": 200,
+          "ms": 13.35
+        },
+        {
+          "status": 200,
+          "ms": 14.81
+        }
+      ],
+      "liveness_failures": 0,
+      "source_fingerprint": "7ab3881d882ea8982b59bf4924cfd0b5ef03e217353e07eb9a391e5d61e3f925"
+    },
+    {
+      "evidence": "local-pool12-select180ms.json",
+      "pool_size": 8,
+      "max_overflow": 4,
+      "checkout_wait_seconds": 15,
+      "synthetic_select_delay_ms": 180,
+      "requests": 300,
+      "failures": 0,
+      "geometry_mismatches": 0,
+      "route_p95_ms": 4959.22,
+      "floor_p95_ms": 2273.57,
+      "all_http": {
+        "count": 300,
+        "p50_ms": 2018.9,
+        "p95_ms": 4298.9,
+        "p99_ms": 5555.9,
+        "max_ms": 6057.05
+      },
+      "rss_peak_mib": 270.0,
+      "cpu_percent_of_one_core": 68.3,
+      "db_pool_peak": 12,
+      "db_pool_checked_out_after": 0,
+      "db_checkout_wait": {
+        "count": 300,
+        "p50_ms": 910.35,
+        "p95_ms": 1856.81,
+        "p99_ms": 3500.37,
+        "max_ms": 3672.84
+      },
+      "db_connection_hold": {
+        "count": 300,
+        "p50_ms": 377.51,
+        "p95_ms": 970.74,
+        "p99_ms": 1069.56,
+        "max_ms": 1231.42
+      },
+      "recovery_readiness": [
+        {
+          "status": 200,
+          "ms": 374.73
+        },
+        {
+          "status": 200,
+          "ms": 386.57
+        },
+        {
+          "status": 200,
+          "ms": 385.33
+        }
+      ],
+      "liveness_failures": 0,
+      "source_fingerprint": "7ab3881d882ea8982b59bf4924cfd0b5ef03e217353e07eb9a391e5d61e3f925"
+    }
+  ],
+  "passed": true,
+  "harness_changes": [
+    "--pool-size and--max-overflow defaults remain3+2; sumguard16",
+    "--db-roundtrip-delay-ms defaults0 and guard0..500; SELECT-only local sleep"
+  ],
+  "cli_guard_tests": {
+    "total17_rejected": true,
+    "pool0_rejected": true,
+    "delay501_rejected": true
+  },
+  "comparison_to_pool5": "The earlier two3+2/15-second-wait local repeats also passed600/600. These new short cohorts verify the proposedcap12isbounded and recovers; they do not establish causal speedup or justify the hosted connection budget by themselves.",
+  "limitations": [
+    "One finite journey per user, not a soak",
+    "Local PostgreSQL/AppleCPU;180ms sleeps only approximate connection occupancy, excluding actual network/protocol/connect/ping behavior",
+    "No production requests, settingschanges, databasewritesoutsideisolatedtestDB, Matterport or browserinstances",
+    "Root must verify hostedconnectionheadroom, actualworker count and realproductionacceptance before treatingcap12asapprovedoperatingcapacity"
+  ]
+}

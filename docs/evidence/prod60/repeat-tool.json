@@ -1,0 +1,15 @@
+{
+  "executed_tool": "/private/tmp/navme-prod60-repeat-tool/production_visitor_load.py",
+  "sha256": "adec2f13df2e8e19fc13ad0b34f439c869fd64634d0ee16e33498ba192a7c18f",
+  "production_commit": "0d9fdbbb243a360db4a61ec0fee65e76012c7c02",
+  "production_deploy": "dep-dbtfv3lckfvc73eophp0",
+  "profile_changes_from_first_attempt": "None in selected normalvisitorprofile; unusedoptionalserverroutevalidationstricter",
+  "selected_configuration": {
+    "db_pool_size": 8,
+    "db_max_overflow": 4,
+    "timeout_seconds": 15,
+    "sync_thread_tokens": 40,
+    "admission": 128
+  },
+  "previous_attempt_preserved": "production-visitors.json"
+}

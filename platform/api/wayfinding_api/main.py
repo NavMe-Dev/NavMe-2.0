@@ -36,6 +36,54 @@ def create_app() -> FastAPI:
         if s.worker_inline and not (s.wf_read_only or s.db_read_only):
             from .services.jobs import start_inline_worker
             worker = await run_in_threadpool(start_inline_worker, stop_event=stop)
+
+        # Asset pre-warming on boot to eliminate cold-start retrieval latency
+        def _prewarm_assets():
+            try:
+                from .db import SessionLocal
+                from . import models
+                from .services.publish import current_version
+                from .services import bundle_storage, routing_cache
+                from .routers.public import get_cached_building_version
+
+                with SessionLocal() as db:
+                    # Target published buildings (specifically uncc-main-campus if present, plus any active published)
+                    query = db.query(models.Building).filter_by(status="published")
+                    buildings = query.all()
+                    if not buildings:
+                        uncc = db.query(models.Building).filter_by(slug="uncc-main-campus").first()
+                        if uncc:
+                            buildings = [uncc]
+
+                    for b in buildings:
+                        try:
+                            _bid, version, stored_path, georef = get_cached_building_version(db, b.slug)
+                            root = bundle_storage.local_version_dir(stored_path, b.slug, version)
+                            root_path = root.resolve()
+
+                            # Ensure core bundle files are cached locally
+                            warm_files = ["config.json", "pois.json", "indoor_F1.geojson", "indoor_F2.geojson", "site_shell.geojson"]
+                            for fname in warm_files:
+                                try:
+                                    fpath = (root_path / fname).resolve()
+                                    if not fpath.is_file():
+                                        bundle_storage.cache_bundle_file(root_path, b.slug, version, fname)
+                                except Exception as fe:
+                                    logging.getLogger("uvicorn.error").debug("Prewarm file skip %s: %s", fname, fe)
+
+                            # Pre-warm routing graph into memory
+                            try:
+                                routing_cache.get_for_publication(root_path, b.slug, version)
+                                logging.getLogger("uvicorn.error").info("Pre-warmed routing graph for %s v%s", b.slug, version)
+                            except Exception as re:
+                                logging.getLogger("uvicorn.error").debug("Prewarm routing skip for %s: %s", b.slug, re)
+                        except Exception as be:
+                            logging.getLogger("uvicorn.error").warning("Prewarm building %s failed: %s", b.slug, be)
+            except Exception as e:
+                logging.getLogger("uvicorn.error").warning("Startup asset pre-warming encountered error: %s", e)
+
+        await run_in_threadpool(_prewarm_assets)
+
         try:
             yield
         finally:

@@ -1,0 +1,19 @@
+{
+  "schema": "navme.manual-observation/v1",
+  "recorded_utc": "2026-11-16T13:10:02.274252+00:00",
+  "source": "User confirmation relayed by parent agent; not automated instrumentation",
+  "observation": "Phone stayed loaded while selecting two POIs over approximately two minutes",
+  "duration_seconds_reported_approx": 120,
+  "poi_selections_reported": 2,
+  "reported_result": "stayed_loaded",
+  "device_model": "NOT_SPECIFIED",
+  "operating_system": "NOT_SPECIFIED",
+  "browser": "NOT_SPECIFIED",
+  "network_bytes": "NOT_MEASURED",
+  "iframe_sdk_counts": "NOT_INSTRUMENTED",
+  "deployment_window": "Not independently established; keep separate from timed automated mobile-emulation observation",
+  "limitations": [
+    "Single user-reported phone observation; not a fleet or device-matrix test",
+    "No measured relationship to sixty simultaneous rendering devices"
+  ]
+}

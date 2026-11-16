@@ -1,0 +1,3851 @@
+{
+  "schema": "navme.browser-network/v1",
+  "started_utc": "2026-11-16T12:54:34.016Z",
+  "origin": "https://wayfinding.navme.space",
+  "headless": true,
+  "scope": "One real cold-cache visitor per viewport, not60simultaneous renderers or physical phones",
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "started_utc": "2026-11-16T12:54:34.545Z",
+      "checks": [],
+      "network": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/unc-charlotte",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "document",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 478,
+            "responseBodySize": 7646,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/html"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 364,
+            "responseBodySize": 885,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 364,
+            "responseBodySize": 1795,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/bundle_preview.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 375,
+            "responseBodySize": 2081,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/tour_modes_config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 1375,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_map.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 436,
+            "responseBodySize": 3575,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_bridge.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 2030,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_satellite.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 442,
+            "responseBodySize": 8282,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/vendor/fuse.min.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 376,
+            "responseBodySize": 7625,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_route.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 6853,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/access_config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 374,
+            "responseBodySize": 1696,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/dev.css",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 380,
+            "responseBodySize": 990,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 370,
+            "responseBodySize": 489,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.css",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 379,
+            "responseBodySize": 17181,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-boot.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 4782,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/viewer_lifecycle.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 3185,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v51/:opaque-id",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "font",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 445,
+            "responseBodySize": 38070,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "font/woff2"
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/materialsymbolsrounded/v386/:opaque-id",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "font",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 501,
+            "responseBodySize": 1399743,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "font/woff2"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_light.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 438,
+            "responseBodySize": 3526,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_dark.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 437,
+            "responseBodySize": 3285,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/venue_info.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 1826,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_debug.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 369,
+            "responseBodySize": 2256,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_background.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 374,
+            "responseBodySize": 6630,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/weather.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 2538,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/explore.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 2127,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_chat.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 5189,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/i18n.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 373,
+            "responseBodySize": 2773,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/preview_timing.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 375,
+            "responseBodySize": 1480,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/category_markers.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 6634,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/threed_nav.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 39774,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_preview.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 45507,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 363,
+            "responseBodySize": 48658,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_app.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 367,
+            "responseBodySize": 5309,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/navme-logo.png",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 437,
+            "responseBodySize": 275146,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/png"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/config",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 345,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/venues/all/manifest.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 396,
+            "responseBodySize": 711,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 415,
+            "responseBodySize": 1367,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 411,
+            "responseBodySize": 225,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/en.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 373,
+            "responseBodySize": 6181,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 409,
+            "responseBodySize": 309,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 416,
+            "responseBodySize": 321,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "static.matterport.com",
+          "path": "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 394,
+            "responseBodySize": 3610,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/x-javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/shops",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 404,
+            "responseBodySize": 213,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/show/",
+          "first_party": false,
+          "status": 403,
+          "resource_type": "document",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 512,
+            "responseBodySize": 5566,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/html"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 702,
+            "responseBodySize": 201323,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/weather",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 406,
+            "responseBodySize": 433,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 420,
+            "responseBodySize": 17272,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/debug/status",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 384,
+            "responseBodySize": 273,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/venue-info",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 409,
+            "responseBodySize": 368,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/translations",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 411,
+            "responseBodySize": 9284,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/thumbs/index.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 421,
+            "responseBodySize": 19355,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "challenges.cloudflare.com",
+          "path": "/turnstile/v0/b/f8df4d4a0cd6/api.js",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 372,
+            "responseBodySize": 28401,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/javascript"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/fo/:opaque-id/a5b6a53ece34c143/:opaque-id",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "xhr",
+          "sizes": {
+            "requestBodySize": 3756,
+            "requestHeadersSize": 996,
+            "responseBodySize": 176198,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/plain"
+        }
+      ],
+      "cdp_encoded_transfer_bytes": 2021208,
+      "cdp_finished_requests": 49,
+      "cdp_cache_requests": 0,
+      "failed_requests": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ar_webxr/launch.js",
+          "first_party": true,
+          "resource_type": "script",
+          "failure_class": "browser_request_failed"
+        },
+        {
+          "host": "challenges.cloudflare.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/turnstile/f/av0/rch/ot7n6/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal",
+          "first_party": false,
+          "resource_type": "document",
+          "failure_class": "browser_request_failed"
+        }
+      ],
+      "page_error_classes": [],
+      "cdp_websocket_received_payload_bytes": 0,
+      "cdp_websocket_sent_payload_bytes": 0,
+      "stop_reason": "external_security_verification",
+      "initial_state": {
+        "ready": false,
+        "model_id": "kQBN52JqFE9",
+        "poi_count": 46,
+        "same_frame": null,
+        "loader_hidden": false,
+        "loader_error": false,
+        "counts": {
+          "document.load": 1,
+          "viewer.mount": 1,
+          "iframe.create": 1,
+          "iframe.load": 1,
+          "iframe.context-observability": 1,
+          "javascript.error": 1,
+          "navigation": 1,
+          "loading": 1,
+          "page.show": 1,
+          "model.change": 1,
+          "iframe.source": 1
+        },
+        "layout": {
+          "width": 1440,
+          "scroll_width": 1440
+        }
+      },
+      "model_playing_verified": false,
+      "result": "BLOCKED_EXTERNAL_VERIFICATION",
+      "resource_timing": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/viewer_lifecycle.js",
+          "first_party": true,
+          "decoded_body_bytes": 9401,
+          "encoded_body_bytes": 3079,
+          "transfer_bytes": 3379
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-config.js",
+          "first_party": true,
+          "decoded_body_bytes": 613,
+          "encoded_body_bytes": 384,
+          "transfer_bytes": 684
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "decoded_body_bytes": 685,
+          "encoded_body_bytes": 412,
+          "transfer_bytes": 712
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "decoded_body_bytes": 16857,
+          "encoded_body_bytes": 1693,
+          "transfer_bytes": 1993
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-boot.js",
+          "first_party": true,
+          "decoded_body_bytes": 12241,
+          "encoded_body_bytes": 4682,
+          "transfer_bytes": 4982
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/dev.css",
+          "first_party": true,
+          "decoded_body_bytes": 2607,
+          "encoded_body_bytes": 867,
+          "transfer_bytes": 1167
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/vendor/fuse.min.js",
+          "first_party": true,
+          "decoded_body_bytes": 23850,
+          "encoded_body_bytes": 7524,
+          "transfer_bytes": 7824
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_route.js",
+          "first_party": true,
+          "decoded_body_bytes": 19621,
+          "encoded_body_bytes": 6753,
+          "transfer_bytes": 7053
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.css",
+          "first_party": true,
+          "decoded_body_bytes": 66893,
+          "encoded_body_bytes": 17062,
+          "transfer_bytes": 17362
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_bridge.js",
+          "first_party": true,
+          "decoded_body_bytes": 4402,
+          "encoded_body_bytes": 1925,
+          "transfer_bytes": 2225
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/tour_modes_config.js",
+          "first_party": true,
+          "decoded_body_bytes": 3479,
+          "encoded_body_bytes": 1270,
+          "transfer_bytes": 1570
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/bundle_preview.js",
+          "first_party": true,
+          "decoded_body_bytes": 5129,
+          "encoded_body_bytes": 1930,
+          "transfer_bytes": 2230
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_map.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3463,
+          "encoded_body_bytes": 3463,
+          "transfer_bytes": 3763
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/access_config.js",
+          "first_party": true,
+          "decoded_body_bytes": 4441,
+          "encoded_body_bytes": 1590,
+          "transfer_bytes": 1890
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/navme-logo.png",
+          "first_party": true,
+          "decoded_body_bytes": 274856,
+          "encoded_body_bytes": 274856,
+          "transfer_bytes": 275156
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_satellite.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 8179,
+          "encoded_body_bytes": 8179,
+          "transfer_bytes": 8479
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_light.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3243,
+          "encoded_body_bytes": 3243,
+          "transfer_bytes": 3543
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_dark.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3038,
+          "encoded_body_bytes": 3038,
+          "transfer_bytes": 3338
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/venue_info.js",
+          "first_party": true,
+          "decoded_body_bytes": 4022,
+          "encoded_body_bytes": 1537,
+          "transfer_bytes": 1837
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_debug.js",
+          "first_party": true,
+          "decoded_body_bytes": 5646,
+          "encoded_body_bytes": 1966,
+          "transfer_bytes": 2266
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/i18n.js",
+          "first_party": true,
+          "decoded_body_bytes": 7202,
+          "encoded_body_bytes": 2484,
+          "transfer_bytes": 2784
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/preview_timing.js",
+          "first_party": true,
+          "decoded_body_bytes": 4006,
+          "encoded_body_bytes": 1190,
+          "transfer_bytes": 1490
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/category_markers.js",
+          "first_party": true,
+          "decoded_body_bytes": 19385,
+          "encoded_body_bytes": 6349,
+          "transfer_bytes": 6649
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_preview.js",
+          "first_party": true,
+          "decoded_body_bytes": 155005,
+          "encoded_body_bytes": 45211,
+          "transfer_bytes": 45511
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_background.js",
+          "first_party": true,
+          "decoded_body_bytes": 19387,
+          "encoded_body_bytes": 6343,
+          "transfer_bytes": 6643
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/threed_nav.js",
+          "first_party": true,
+          "decoded_body_bytes": 125165,
+          "encoded_body_bytes": 39482,
+          "transfer_bytes": 39782
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ar_webxr/launch.js",
+          "first_party": true,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": 300
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/explore.js",
+          "first_party": true,
+          "decoded_body_bytes": 4948,
+          "encoded_body_bytes": 1838,
+          "transfer_bytes": 2138
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_chat.js",
+          "first_party": true,
+          "decoded_body_bytes": 15466,
+          "encoded_body_bytes": 4902,
+          "transfer_bytes": 5202
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/weather.js",
+          "first_party": true,
+          "decoded_body_bytes": 6237,
+          "encoded_body_bytes": 2247,
+          "transfer_bytes": 2547
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.js",
+          "first_party": true,
+          "decoded_body_bytes": 163446,
+          "encoded_body_bytes": 48363,
+          "transfer_bytes": 48663
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/venues/all/manifest.json",
+          "first_party": true,
+          "decoded_body_bytes": 1215,
+          "encoded_body_bytes": 502,
+          "transfer_bytes": 802
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_app.js",
+          "first_party": true,
+          "decoded_body_bytes": 12700,
+          "encoded_body_bytes": 5025,
+          "transfer_bytes": 5325
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/config",
+          "first_party": true,
+          "decoded_body_bytes": 253,
+          "encoded_body_bytes": 135,
+          "transfer_bytes": 435
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+          "first_party": true,
+          "decoded_body_bytes": 13,
+          "encoded_body_bytes": 17,
+          "transfer_bytes": 317
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data",
+          "first_party": true,
+          "decoded_body_bytes": 74396,
+          "encoded_body_bytes": 17064,
+          "transfer_bytes": 17364
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+          "first_party": true,
+          "decoded_body_bytes": 118,
+          "encoded_body_bytes": 100,
+          "transfer_bytes": 400
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+          "first_party": true,
+          "decoded_body_bytes": 3174,
+          "encoded_body_bytes": 1086,
+          "transfer_bytes": 1386
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/shops",
+          "first_party": true,
+          "decoded_body_bytes": 2,
+          "encoded_body_bytes": 6,
+          "transfer_bytes": 306
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref",
+          "first_party": true,
+          "decoded_body_bytes": 142,
+          "encoded_body_bytes": 112,
+          "transfer_bytes": 412
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/translations",
+          "first_party": true,
+          "decoded_body_bytes": 27549,
+          "encoded_body_bytes": 9076,
+          "transfer_bytes": 9376
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/debug/status",
+          "first_party": true,
+          "decoded_body_bytes": 78,
+          "encoded_body_bytes": 64,
+          "transfer_bytes": 364
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/en.json",
+          "first_party": true,
+          "decoded_body_bytes": 18025,
+          "encoded_body_bytes": 5921,
+          "transfer_bytes": 6221
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/venue-info",
+          "first_party": true,
+          "decoded_body_bytes": 200,
+          "encoded_body_bytes": 158,
+          "transfer_bytes": 458
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/weather",
+          "first_party": true,
+          "decoded_body_bytes": 323,
+          "encoded_body_bytes": 206,
+          "transfer_bytes": 506
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/show/",
+          "first_party": false,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": null
+        },
+        {
+          "host": "static.matterport.com",
+          "path": "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js",
+          "first_party": false,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": null
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/thumbs/index.json",
+          "first_party": true,
+          "decoded_body_bytes": 35162,
+          "encoded_body_bytes": 19077,
+          "transfer_bytes": 19377
+        }
+      ],
+      "network_by_host": {
+        "wayfinding.navme.space": {
+          "requests": 44,
+          "encoded_response_body_bytes": 577105,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 17268,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 44
+          },
+          "resource_types": {
+            "document": 1,
+            "script": 22,
+            "image": 5,
+            "stylesheet": 2,
+            "fetch": 14
+          }
+        },
+        "fonts.googleapis.com": {
+          "requests": 2,
+          "encoded_response_body_bytes": 2680,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 728,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "stylesheet": 2
+          }
+        },
+        "fonts.gstatic.com": {
+          "requests": 2,
+          "encoded_response_body_bytes": 1437813,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 946,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "font": 2
+          }
+        },
+        "static.matterport.com": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3610,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 394,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "my.matterport.com": {
+          "requests": 3,
+          "encoded_response_body_bytes": 383087,
+          "response_header_bytes": 0,
+          "request_body_bytes": 3756,
+          "request_header_bytes": 2210,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2,
+            "403": 1
+          },
+          "resource_types": {
+            "document": 1,
+            "script": 1,
+            "xhr": 1
+          }
+        },
+        "challenges.cloudflare.com": {
+          "requests": 1,
+          "encoded_response_body_bytes": 28401,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 372,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        }
+      },
+      "network_by_path": {
+        "/unc-charlotte": {
+          "requests": 1,
+          "encoded_response_body_bytes": 7646,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 478,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "document": 1
+          }
+        },
+        "/css2": {
+          "requests": 2,
+          "encoded_response_body_bytes": 2680,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 728,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "stylesheet": 2
+          }
+        },
+        "/bundle_preview.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2081,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 375,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/tour_modes_config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1375,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/img/style_map.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3575,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 436,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/wf_navmesh_bridge.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2030,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/img/style_satellite.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 8282,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 442,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/vendor/fuse.min.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 7625,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 376,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_navmesh_route.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6853,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/access_config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1696,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 374,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/dev.css": {
+          "requests": 1,
+          "encoded_response_body_bytes": 990,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 380,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "stylesheet": 1
+          }
+        },
+        "/wf-config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 489,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 370,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/ui.css": {
+          "requests": 1,
+          "encoded_response_body_bytes": 17181,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 379,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "stylesheet": 1
+          }
+        },
+        "/wf-boot.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 4782,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/viewer_lifecycle.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3185,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/s/roboto/v51/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 38070,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 445,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "font": 1
+          }
+        },
+        "/s/materialsymbolsrounded/v386/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1399743,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 501,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "font": 1
+          }
+        },
+        "/img/style_light.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3526,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 438,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/img/style_dark.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3285,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 437,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/venue_info.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1826,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_debug.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2256,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 369,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/mp_background.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6630,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 374,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/weather.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2538,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/explore.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2127,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_chat.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5189,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/locales/i18n.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2773,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 373,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/preview_timing.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1480,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 375,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/category_markers.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6634,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/threed_nav.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 39774,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/mp_preview.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 45507,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/ui.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 48658,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 363,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/mp_app.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5309,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 367,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/img/navme-logo.png": {
+          "requests": 1,
+          "encoded_response_body_bytes": 275146,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 437,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/api/v1/public/config": {
+          "requests": 1,
+          "encoded_response_body_bytes": 345,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 711,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 396,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1367,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 415,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 1,
+          "encoded_response_body_bytes": 225,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 411,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/locales/en.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6181,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 373,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 1,
+          "encoded_response_body_bytes": 309,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 409,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/ar-experience-ref": {
+          "requests": 1,
+          "encoded_response_body_bytes": 321,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 416,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3610,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 394,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/shops": {
+          "requests": 1,
+          "encoded_response_body_bytes": 213,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 404,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/show/": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5566,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 512,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "403": 1
+          },
+          "resource_types": {
+            "document": 1
+          }
+        },
+        "/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1": {
+          "requests": 1,
+          "encoded_response_body_bytes": 201323,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 702,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/weather": {
+          "requests": 1,
+          "encoded_response_body_bytes": 433,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 406,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/dashboard/buildings/uncc-main-campus/viewer-data": {
+          "requests": 1,
+          "encoded_response_body_bytes": 17272,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 420,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/debug/status": {
+          "requests": 1,
+          "encoded_response_body_bytes": 273,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 384,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/venue-info": {
+          "requests": 1,
+          "encoded_response_body_bytes": 368,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 409,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/translations": {
+          "requests": 1,
+          "encoded_response_body_bytes": 9284,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 411,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/thumbs/index.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 19355,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 421,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/turnstile/v0/b/f8df4d4a0cd6/api.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 28401,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 372,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/cdn-cgi/challenge-platform/h/b/fo/:opaque-id/a5b6a53ece34c143/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 176198,
+          "response_header_bytes": 0,
+          "request_body_bytes": 3756,
+          "request_header_bytes": 996,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "xhr": 1
+          }
+        }
+      },
+      "primary_encoded_body_bytes": 2432696,
+      "primary_response_header_bytes": 0,
+      "unknown_completed_request_sizes": 0,
+      "failed_requests_with_unknown_partial_bytes": 1,
+      "finished_utc": "2026-11-16T12:54:42.134Z",
+      "browser_reported_encoded_response_bytes": 2432696,
+      "legacy_body_label_limit": "primary_encoded_body_bytes and nested encoded_response_body_bytes are retained verbatim for reproducibility; read them as browser-reported encoded response sizes with unsplit headers."
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "started_utc": "2026-11-16T12:54:42.142Z",
+      "checks": [],
+      "network": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/unc-charlotte",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "document",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 478,
+            "responseBodySize": 7646,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/html"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 364,
+            "responseBodySize": 2166,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 364,
+            "responseBodySize": 514,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/viewer_lifecycle.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 3207,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/tour_modes_config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 1375,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-boot.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 4782,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/dev.css",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 380,
+            "responseBodySize": 990,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 370,
+            "responseBodySize": 490,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_bridge.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 2030,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/access_config.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 374,
+            "responseBodySize": 1696,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/vendor/fuse.min.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 376,
+            "responseBodySize": 7625,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_route.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 6853,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_map.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 436,
+            "responseBodySize": 3575,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_satellite.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 442,
+            "responseBodySize": 8291,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.css",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "stylesheet",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 379,
+            "responseBodySize": 17181,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/css"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/bundle_preview.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 375,
+            "responseBodySize": 2035,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/roboto/v51/:opaque-id",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "font",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 445,
+            "responseBodySize": 38070,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "font/woff2"
+        },
+        {
+          "host": "fonts.gstatic.com",
+          "path": "/s/materialsymbolsrounded/v386/:opaque-id",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "font",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 501,
+            "responseBodySize": 1399743,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "font/woff2"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_light.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 438,
+            "responseBodySize": 3526,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_dark.jpg",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 437,
+            "responseBodySize": 3285,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/jpeg"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/i18n.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 373,
+            "responseBodySize": 2773,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/venue_info.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 1827,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/preview_timing.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 375,
+            "responseBodySize": 1481,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_debug.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 369,
+            "responseBodySize": 2256,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/explore.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 2127,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_chat.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 5189,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_background.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 374,
+            "responseBodySize": 6630,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/category_markers.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 377,
+            "responseBodySize": 6637,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/weather.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 368,
+            "responseBodySize": 2537,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/threed_nav.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 39774,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 363,
+            "responseBodySize": 48656,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/navme-logo.png",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "image",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 437,
+            "responseBodySize": 275160,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "image/png"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_app.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 367,
+            "responseBodySize": 5312,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_preview.js",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 371,
+            "responseBodySize": 45507,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/javascript"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/config",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 378,
+            "responseBodySize": 345,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/venues/all/manifest.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 396,
+            "responseBodySize": 711,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 415,
+            "responseBodySize": 1366,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 409,
+            "responseBodySize": 309,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/show/",
+          "first_party": false,
+          "status": 403,
+          "resource_type": "document",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 512,
+            "responseBodySize": 5537,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/html"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 697,
+            "responseBodySize": 205997,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/javascript"
+        },
+        {
+          "host": "static.matterport.com",
+          "path": "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 394,
+            "responseBodySize": 3610,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/x-javascript"
+        },
+        {
+          "host": "challenges.cloudflare.com",
+          "path": "/turnstile/v0/b/f8df4d4a0cd6/api.js",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "script",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 372,
+            "responseBodySize": 28401,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/javascript"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/fo/:opaque-id/a5b6a59dcb3b6f7a/:opaque-id",
+          "first_party": false,
+          "status": 400,
+          "resource_type": "xhr",
+          "sizes": {
+            "requestBodySize": 3724,
+            "requestHeadersSize": 991,
+            "responseBodySize": 747,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/cdn-cgi/challenge-platform/h/b/eb/:opaque-id/a5b6a59dcb3b6f7a/managed",
+          "first_party": false,
+          "status": 200,
+          "resource_type": "xhr",
+          "sizes": {
+            "requestBodySize": 1346,
+            "requestHeadersSize": 720,
+            "responseBodySize": 446,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "text/html"
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+          "first_party": true,
+          "status": 200,
+          "resource_type": "fetch",
+          "sizes": {
+            "requestBodySize": 0,
+            "requestHeadersSize": 411,
+            "responseBodySize": 225,
+            "responseHeadersSize": 0
+          },
+          "from_service_worker": false,
+          "mime_type": "application/json"
+        }
+      ],
+      "cdp_encoded_transfer_bytes": 1967512,
+      "cdp_finished_requests": 40,
+      "cdp_cache_requests": 0,
+      "failed_requests": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ar_webxr/launch.js",
+          "first_party": true,
+          "resource_type": "script",
+          "failure_class": "browser_request_failed"
+        }
+      ],
+      "page_error_classes": [],
+      "cdp_websocket_received_payload_bytes": 0,
+      "cdp_websocket_sent_payload_bytes": 0,
+      "stop_reason": "external_security_verification",
+      "initial_state": {
+        "ready": false,
+        "model_id": "kQBN52JqFE9",
+        "same_frame": null,
+        "loader_hidden": false,
+        "loader_error": false,
+        "counts": {
+          "document.load": 1,
+          "viewer.mount": 1,
+          "iframe.create": 1,
+          "iframe.load": 2,
+          "iframe.context-observability": 2,
+          "javascript.error": 1,
+          "navigation": 1,
+          "loading": 1,
+          "page.show": 1,
+          "model.change": 1,
+          "iframe.source": 1,
+          "sdk.init.start": 1
+        },
+        "layout": {
+          "width": 390,
+          "scroll_width": 390
+        }
+      },
+      "model_playing_verified": false,
+      "result": "BLOCKED_EXTERNAL_VERIFICATION",
+      "resource_timing": [
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/viewer_lifecycle.js",
+          "first_party": true,
+          "decoded_body_bytes": 9401,
+          "encoded_body_bytes": 3079,
+          "transfer_bytes": 3379
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-config.js",
+          "first_party": true,
+          "decoded_body_bytes": 613,
+          "encoded_body_bytes": 384,
+          "transfer_bytes": 684
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf-boot.js",
+          "first_party": true,
+          "decoded_body_bytes": 12241,
+          "encoded_body_bytes": 4682,
+          "transfer_bytes": 4982
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "decoded_body_bytes": 16857,
+          "encoded_body_bytes": 1693,
+          "transfer_bytes": 1993
+        },
+        {
+          "host": "fonts.googleapis.com",
+          "path": "/css2",
+          "first_party": false,
+          "decoded_body_bytes": 685,
+          "encoded_body_bytes": 412,
+          "transfer_bytes": 712
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/dev.css",
+          "first_party": true,
+          "decoded_body_bytes": 2607,
+          "encoded_body_bytes": 867,
+          "transfer_bytes": 1167
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.css",
+          "first_party": true,
+          "decoded_body_bytes": 66893,
+          "encoded_body_bytes": 17062,
+          "transfer_bytes": 17362
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/vendor/fuse.min.js",
+          "first_party": true,
+          "decoded_body_bytes": 23850,
+          "encoded_body_bytes": 7524,
+          "transfer_bytes": 7824
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_route.js",
+          "first_party": true,
+          "decoded_body_bytes": 19621,
+          "encoded_body_bytes": 6753,
+          "transfer_bytes": 7053
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/tour_modes_config.js",
+          "first_party": true,
+          "decoded_body_bytes": 3479,
+          "encoded_body_bytes": 1270,
+          "transfer_bytes": 1570
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_navmesh_bridge.js",
+          "first_party": true,
+          "decoded_body_bytes": 4402,
+          "encoded_body_bytes": 1925,
+          "transfer_bytes": 2225
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/access_config.js",
+          "first_party": true,
+          "decoded_body_bytes": 4441,
+          "encoded_body_bytes": 1590,
+          "transfer_bytes": 1890
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/bundle_preview.js",
+          "first_party": true,
+          "decoded_body_bytes": 5129,
+          "encoded_body_bytes": 1930,
+          "transfer_bytes": 2230
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_map.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3463,
+          "encoded_body_bytes": 3463,
+          "transfer_bytes": 3763
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/navme-logo.png",
+          "first_party": true,
+          "decoded_body_bytes": 274856,
+          "encoded_body_bytes": 274856,
+          "transfer_bytes": 275156
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_satellite.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 8179,
+          "encoded_body_bytes": 8179,
+          "transfer_bytes": 8479
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_light.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3243,
+          "encoded_body_bytes": 3243,
+          "transfer_bytes": 3543
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/img/style_dark.jpg",
+          "first_party": true,
+          "decoded_body_bytes": 3038,
+          "encoded_body_bytes": 3038,
+          "transfer_bytes": 3338
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/locales/i18n.js",
+          "first_party": true,
+          "decoded_body_bytes": 7202,
+          "encoded_body_bytes": 2484,
+          "transfer_bytes": 2784
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/venue_info.js",
+          "first_party": true,
+          "decoded_body_bytes": 4022,
+          "encoded_body_bytes": 1537,
+          "transfer_bytes": 1837
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_debug.js",
+          "first_party": true,
+          "decoded_body_bytes": 5646,
+          "encoded_body_bytes": 1966,
+          "transfer_bytes": 2266
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/category_markers.js",
+          "first_party": true,
+          "decoded_body_bytes": 19385,
+          "encoded_body_bytes": 6349,
+          "transfer_bytes": 6649
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/preview_timing.js",
+          "first_party": true,
+          "decoded_body_bytes": 4006,
+          "encoded_body_bytes": 1190,
+          "transfer_bytes": 1490
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_preview.js",
+          "first_party": true,
+          "decoded_body_bytes": 155005,
+          "encoded_body_bytes": 45211,
+          "transfer_bytes": 45511
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_background.js",
+          "first_party": true,
+          "decoded_body_bytes": 19387,
+          "encoded_body_bytes": 6343,
+          "transfer_bytes": 6643
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/threed_nav.js",
+          "first_party": true,
+          "decoded_body_bytes": 125165,
+          "encoded_body_bytes": 39482,
+          "transfer_bytes": 39782
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ar_webxr/launch.js",
+          "first_party": true,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": 300
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/wf_chat.js",
+          "first_party": true,
+          "decoded_body_bytes": 15466,
+          "encoded_body_bytes": 4902,
+          "transfer_bytes": 5202
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/explore.js",
+          "first_party": true,
+          "decoded_body_bytes": 4948,
+          "encoded_body_bytes": 1838,
+          "transfer_bytes": 2138
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/ui.js",
+          "first_party": true,
+          "decoded_body_bytes": 163446,
+          "encoded_body_bytes": 48363,
+          "transfer_bytes": 48663
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/weather.js",
+          "first_party": true,
+          "decoded_body_bytes": 6237,
+          "encoded_body_bytes": 2247,
+          "transfer_bytes": 2547
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/venues/all/manifest.json",
+          "first_party": true,
+          "decoded_body_bytes": 1215,
+          "encoded_body_bytes": 502,
+          "transfer_bytes": 802
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/mp_app.js",
+          "first_party": true,
+          "decoded_body_bytes": 12700,
+          "encoded_body_bytes": 5025,
+          "transfer_bytes": 5325
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/config",
+          "first_party": true,
+          "decoded_body_bytes": 253,
+          "encoded_body_bytes": 135,
+          "transfer_bytes": 435
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/navme-floors",
+          "first_party": true,
+          "decoded_body_bytes": 13,
+          "encoded_body_bytes": 17,
+          "transfer_bytes": 317
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/matterport",
+          "first_party": true,
+          "decoded_body_bytes": 118,
+          "encoded_body_bytes": 100,
+          "transfer_bytes": 400
+        },
+        {
+          "host": "wayfinding.navme.space",
+          "path": "/api/v1/public/buildings/uncc-main-campus/data/config.json",
+          "first_party": true,
+          "decoded_body_bytes": 3174,
+          "encoded_body_bytes": 1086,
+          "transfer_bytes": 1386
+        },
+        {
+          "host": "my.matterport.com",
+          "path": "/show/",
+          "first_party": false,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": null
+        },
+        {
+          "host": "static.matterport.com",
+          "path": "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js",
+          "first_party": false,
+          "decoded_body_bytes": null,
+          "encoded_body_bytes": null,
+          "transfer_bytes": null
+        }
+      ],
+      "network_by_host": {
+        "wayfinding.navme.space": {
+          "requests": 35,
+          "encoded_response_body_bytes": 523409,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 13624,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 35
+          },
+          "resource_types": {
+            "document": 1,
+            "script": 22,
+            "stylesheet": 2,
+            "image": 5,
+            "fetch": 5
+          }
+        },
+        "fonts.googleapis.com": {
+          "requests": 2,
+          "encoded_response_body_bytes": 2680,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 728,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "stylesheet": 2
+          }
+        },
+        "fonts.gstatic.com": {
+          "requests": 2,
+          "encoded_response_body_bytes": 1437813,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 946,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "font": 2
+          }
+        },
+        "my.matterport.com": {
+          "requests": 4,
+          "encoded_response_body_bytes": 212727,
+          "response_header_bytes": 0,
+          "request_body_bytes": 5070,
+          "request_header_bytes": 2920,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2,
+            "400": 1,
+            "403": 1
+          },
+          "resource_types": {
+            "document": 1,
+            "script": 1,
+            "xhr": 2
+          }
+        },
+        "static.matterport.com": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3610,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 394,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "challenges.cloudflare.com": {
+          "requests": 1,
+          "encoded_response_body_bytes": 28401,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 372,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        }
+      },
+      "network_by_path": {
+        "/unc-charlotte": {
+          "requests": 1,
+          "encoded_response_body_bytes": 7646,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 478,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "document": 1
+          }
+        },
+        "/css2": {
+          "requests": 2,
+          "encoded_response_body_bytes": 2680,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 728,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 2
+          },
+          "resource_types": {
+            "stylesheet": 2
+          }
+        },
+        "/viewer_lifecycle.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3207,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/tour_modes_config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1375,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf-boot.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 4782,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/dev.css": {
+          "requests": 1,
+          "encoded_response_body_bytes": 990,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 380,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "stylesheet": 1
+          }
+        },
+        "/wf-config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 490,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 370,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_navmesh_bridge.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2030,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/access_config.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1696,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 374,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/vendor/fuse.min.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 7625,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 376,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_navmesh_route.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6853,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/img/style_map.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3575,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 436,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/img/style_satellite.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 8291,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 442,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/ui.css": {
+          "requests": 1,
+          "encoded_response_body_bytes": 17181,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 379,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "stylesheet": 1
+          }
+        },
+        "/bundle_preview.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2035,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 375,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/s/roboto/v51/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 38070,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 445,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "font": 1
+          }
+        },
+        "/s/materialsymbolsrounded/v386/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1399743,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 501,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "font": 1
+          }
+        },
+        "/img/style_light.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3526,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 438,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/img/style_dark.jpg": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3285,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 437,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/locales/i18n.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2773,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 373,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/venue_info.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1827,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/preview_timing.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1481,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 375,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_debug.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2256,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 369,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/explore.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2127,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/wf_chat.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5189,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/mp_background.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6630,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 374,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/category_markers.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 6637,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 377,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/weather.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 2537,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 368,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/threed_nav.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 39774,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/ui.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 48656,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 363,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/img/navme-logo.png": {
+          "requests": 1,
+          "encoded_response_body_bytes": 275160,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 437,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "image": 1
+          }
+        },
+        "/mp_app.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5312,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 367,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/mp_preview.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 45507,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 371,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/api/v1/public/config": {
+          "requests": 1,
+          "encoded_response_body_bytes": 345,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 378,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/venues/all/manifest.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 711,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 396,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/data/config.json": {
+          "requests": 1,
+          "encoded_response_body_bytes": 1366,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 415,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/matterport": {
+          "requests": 1,
+          "encoded_response_body_bytes": 309,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 409,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        },
+        "/show/": {
+          "requests": 1,
+          "encoded_response_body_bytes": 5537,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 512,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "403": 1
+          },
+          "resource_types": {
+            "document": 1
+          }
+        },
+        "/cdn-cgi/challenge-platform/h/b/orchestrate/chl_page/v1": {
+          "requests": 1,
+          "encoded_response_body_bytes": 205997,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 697,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/showcase-sdk/bootstrap/3.0.0-0-g0517b8d76c/sdk.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 3610,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 394,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/turnstile/v0/b/f8df4d4a0cd6/api.js": {
+          "requests": 1,
+          "encoded_response_body_bytes": 28401,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 372,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "script": 1
+          }
+        },
+        "/cdn-cgi/challenge-platform/h/b/fo/:opaque-id/a5b6a59dcb3b6f7a/:opaque-id": {
+          "requests": 1,
+          "encoded_response_body_bytes": 747,
+          "response_header_bytes": 0,
+          "request_body_bytes": 3724,
+          "request_header_bytes": 991,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "400": 1
+          },
+          "resource_types": {
+            "xhr": 1
+          }
+        },
+        "/cdn-cgi/challenge-platform/h/b/eb/:opaque-id/a5b6a59dcb3b6f7a/managed": {
+          "requests": 1,
+          "encoded_response_body_bytes": 446,
+          "response_header_bytes": 0,
+          "request_body_bytes": 1346,
+          "request_header_bytes": 720,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "xhr": 1
+          }
+        },
+        "/api/v1/public/buildings/uncc-main-campus/navme-floors": {
+          "requests": 1,
+          "encoded_response_body_bytes": 225,
+          "response_header_bytes": 0,
+          "request_body_bytes": 0,
+          "request_header_bytes": 411,
+          "unknown_size_requests": 0,
+          "status_counts": {
+            "200": 1
+          },
+          "resource_types": {
+            "fetch": 1
+          }
+        }
+      },
+      "primary_encoded_body_bytes": 2208640,
+      "primary_response_header_bytes": 0,
+      "unknown_completed_request_sizes": 0,
+      "failed_requests_with_unknown_partial_bytes": 1,
+      "finished_utc": "2026-11-16T12:54:54.710Z",
+      "browser_reported_encoded_response_bytes": 2208640,
+      "legacy_body_label_limit": "primary_encoded_body_bytes and nested encoded_response_body_bytes are retained verbatim for reproducibility; read them as browser-reported encoded response sizes with unsplit headers."
+    }
+  ],
+  "privacy": "No raw HAR, cookies, headers, credentials, request/response bodies or URL queries saved",
+  "cache_note": "Fresh browser context; Playwright mutation interception disables the HTTP cache. This is conservative cold-cache traffic, not a warm-cache data-plan estimate.",
+  "byte_accounting": {
+    "primary": "Browser-reported encoded response size from Playwright. Legacy body-named fields may include unsplit HTTP headers because Chromium header size was reported as zero.",
+    "cdp": "Network.loadingFinished encodedDataLength is an independent browser-reported diagnostic; do not add to primary totals",
+    "decoded": "ResourceTiming decodedBodySize when exposed; cross-origin timing restrictions can make this unknown",
+    "excluded": "TLS overhead, retransmissions, unknown failed-request partial payloads and some persistent-connection traffic are not fully accounted.",
+    "observed_header_size_limitation": "Installed Playwright computes responseBodySize=CDP encodedDataLength-responseHeadersSize. With responseHeadersSize0, encoded header bytes may remain inside the legacy body field. Do not treat these figures as pure bodies or add headers again.",
+    "preferred_label": "Browser-reported encoded response/download size (headers unsplit); not exact data-plan/billing bytes"
+  },
+  "finished_utc": "2026-11-16T12:54:54.738Z",
+  "tool_sha256": "25079926b5083fb4f7d031eb680aa3713f97f29c2d34fd42e61077a8398c12a3"
+}
