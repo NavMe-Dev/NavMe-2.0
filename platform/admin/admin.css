@@ -102,6 +102,8 @@ iframe.viewpoint-twin{display:block;height:460px;margin:0}
 .viewpoint-feedback{min-height:32px;scroll-margin-block:16px}
 .viewpoint-feedback p{margin:10px 0 0}
 .camera-viewpoints{min-width:0}
+main:has(.camera-viewpoints){max-width:none}
+.camera-viewpoints iframe.viewpoint-twin{height:clamp(520px,70vh,900px)}
 .camera-viewpoints button,.camera-viewpoints .btn{min-height:44px;max-width:100%;white-space:normal}
 .camera-viewpoints h2,.viewpoint-capture-panel strong{overflow-wrap:anywhere}
 .camera-viewpoints .viewpoint-list button{min-height:60px}
@@ -110,8 +112,11 @@ iframe.viewpoint-twin{display:block;height:460px;margin:0}
 .viewpoint-capture-panel p{font-size:12px;margin:4px 0 0}
 .viewpoint-capture-panel>.row{flex:0 1 auto;min-width:0}
 .viewpoint-twin-controls{margin-top:12px}
-@media(max-width:800px){.camera-viewpoints .viewpoint-list ul{max-height:200px}.viewpoint-capture-panel{top:56px;padding:10px}.viewpoint-capture-panel>.row{width:100%}.viewpoint-capture-panel button{flex:1 1 160px}.camera-viewpoints iframe.viewpoint-twin{height:clamp(280px,50vh,460px)}}
+@media(max-width:800px){.camera-viewpoints .viewpoint-list ul{max-height:200px}.viewpoint-capture-panel{top:56px;padding:10px}.viewpoint-capture-panel>.row{width:100%}.viewpoint-capture-panel button{flex:1 1 160px}.camera-viewpoints iframe.viewpoint-twin{height:clamp(360px,65dvh,720px)}}
 @media(max-width:800px){.viewpoint-layout{grid-template-columns:1fr}.viewpoint-list ul{max-height:240px}iframe.viewpoint-twin{height:360px}}
+.camera-viewpoints.viewpoint-expanded .viewpoint-layout{grid-template-columns:minmax(0,1fr)}
+.camera-viewpoints.viewpoint-expanded .viewpoint-list,.camera-viewpoints.viewpoint-expanded .viewpoint-intro{display:none}
+.camera-viewpoints.viewpoint-expanded iframe.viewpoint-twin{height:80vh;height:80dvh;min-height:360px}
 .twin-status.ok{background:#e6f4ea;color:var(--green)}
 iframe.showcase{min-height:280px}
 

@@ -388,8 +388,8 @@
     const {api, fetchShowcaseUrl, viewerUrl} = deps;
     return {
       props: ["b"],
-      template: `<section class="poi-viewpoints camera-viewpoints" aria-labelledby="camera-viewpoint-title">
-        <div class="card"><div class="row"><h2 id="camera-viewpoint-title" class="grow">Location viewpoints</h2><button @click="load" :disabled="loading || saving || capturing || twinBusy">Reload locations</button></div>
+      template: `<section class="poi-viewpoints camera-viewpoints" :class="{'viewpoint-expanded':expanded}" aria-labelledby="camera-viewpoint-title">
+        <div class="card viewpoint-intro"><div class="row"><h2 id="camera-viewpoint-title" class="grow">Location viewpoints</h2><button @click="load" :disabled="loading || saving || capturing || twinBusy">Reload locations</button></div>
           <p class="muted">Select a location to go to its saved view or nearest scan, then set its viewpoint. Location markers and directions stay unchanged.</p>
           <p role="status" v-if="loading">Loading locations…</p>
           <p class="muted" v-else-if="!enabled">Add a Matterport model to this building to set location viewpoints.</p>
@@ -421,6 +421,7 @@
                 <button @click="cancelSetup" :disabled="saving">Cancel Viewpoint Setup</button></div>
             </div>
             <div class="row viewpoint-twin-controls" v-if="setupMode || showcase"><button @click="openTwin" :disabled="saving || capturing || twinBusy">{{twinBusy ? 'Connecting…' : (connected ? 'Reconnect digital twin' : 'Open digital twin')}}</button>
+              <button @click="expanded=!expanded" v-if="showcase" :aria-pressed="expanded">{{expanded ? 'Restore viewer size' : 'Expand viewer'}}</button>
               <button @click="closeTwin" v-if="showcase" :disabled="saving">Close twin</button></div>
             <p class="twin-status" role="status" v-if="twinStatus">{{twinStatus}}</p>
             <div class="viewpoint-twin-wrap" v-show="showcase"><iframe ref="twinFrame" :src="showcase || 'about:blank'" class="showcase viewpoint-twin" title="Location viewpoint digital twin" allow="xr-spatial-tracking"></iframe></div>
@@ -434,7 +435,7 @@
         const enabled = ref(false), writable = ref(false), modelId = ref("");
         const loading = ref(false), saving = ref(false), capturing = ref(false), setupMode = ref(false), captured = ref(null);
         const error = ref(""), message = ref(""), twinStatus = ref("");
-        const twinFrame = ref(null), showcase = ref(""), connected = ref(false), twinBusy = ref(false), feedback = ref(null);
+        const twinFrame = ref(null), showcase = ref(""), connected = ref(false), twinBusy = ref(false), feedback = ref(null), expanded = ref(false);
         const selected = computed(() => rows.value.find(poi => poi.id === selectedId.value) || null);
         const filtered = computed(() => rows.value.filter(poi => String(poi.name || "").toLowerCase().includes(query.value.trim().toLowerCase())));
         const visitorViewUrl = computed(() => {
@@ -459,7 +460,7 @@
           const old = session; session = null;
           if (sweepReader) sweepReader.close(); sweepReader = null;
           try { if (old && old.disconnect) old.disconnect(); } catch (_) { /* already closed */ }
-          showcase.value = ""; twinStatus.value = "";
+          showcase.value = ""; twinStatus.value = ""; expanded.value = false;
         }
         function cancelSetup() { if (saving.value) return; operation++; setupMode.value = false; capturing.value = false; captured.value = null; error.value = ""; message.value = ""; twinStatus.value = ""; }
         async function select(poi) {
@@ -623,7 +624,7 @@
         onMounted(async () => { await load(); let initialSetup = false; try { initialSetup = new URLSearchParams(((root.location && root.location.hash)||"").split("?")[1]||"").get("setup")==="1"; } catch (_) {} if (initialSetup) await beginSetup(); });
         watch(() => props.b.slug, () => load(true));
         onBeforeUnmount(() => { disposed = true; closeTwin(); });
-        return {rows,selectedId,query,enabled,writable,modelId,loading,saving,capturing,setupMode,captured,error,message,twinStatus,twinFrame,showcase,connected,twinBusy,feedback,selected,filtered,visitorViewUrl,
+        return {rows,selectedId,query,enabled,writable,modelId,loading,saving,capturing,setupMode,captured,error,message,twinStatus,twinFrame,showcase,connected,twinBusy,feedback,expanded,selected,filtered,visitorViewUrl,
           load,select,openTwin,closeTwin,beginSetup,cancelSetup,captureCurrentViewpoint,retrySave,remove,previewSaved};
       }
     };
