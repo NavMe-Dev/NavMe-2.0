@@ -247,6 +247,18 @@ body.dark .fcard.plain{background:#2a2d30}
 .warn{color:#b06000;background:#fef7e0;border-radius:10px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
 /* ---------- right controls ---------- */
 .ctrls{position:absolute;right:10px;bottom:calc(min(var(--sheetH), 40vh) + 14px);z-index:20;display:flex;flex-direction:column;gap:10px;align-items:center;transition:bottom .28s}
+/* Platform credit stays clear of map attribution and touch controls. */
+.viewer-credit{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;align-items:center;gap:10px;box-sizing:border-box;max-width:calc(100vw - 88px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;color:#202124;box-shadow:0 2px 8px rgba(0,0,0,.14);direction:ltr;pointer-events:none}
+.viewer-credit img{display:block;flex:none;width:32px;height:32px;object-fit:contain}
+.viewer-credit-copy{display:flex;flex-direction:column;gap:2px;min-width:0;padding-left:10px;border-left:1px solid #e5e7eb;font-size:10px;line-height:1.35;color:#5f6368}
+.viewer-credit-copy strong{font-size:12px;line-height:1.35;font-weight:700;color:#202124}
+body.mp-bg-mode .viewer-credit{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+body.nav .viewer-credit{bottom:calc(124px + env(safe-area-inset-bottom,0px))}
+@media(max-width:767px){
+  body:not(.nav) #sheet:not([hidden])~.viewer-credit{bottom:calc(var(--sheetH,0px) + 12px + env(safe-area-inset-bottom,0px))}
+  body:not(.nav) #sheet:not([hidden])[data-state=full]~.viewer-credit{display:none}
+  body.nav .viewer-credit{bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+}
 .fab{width:44px;height:44px;border-radius:50%!important;background:var(--bg)!important;box-shadow:var(--sh2);display:flex;align-items:center;justify-content:center;color:var(--txt2)!important}
 .fab.txt{font-weight:700!important;font-size:14px!important;color:var(--txt)!important}.fab.on{color:var(--blue)!important}
 .fab.me{width:52px;height:52px}.fab.me.on{color:var(--blue)!important;background:#e8f0fe!important}

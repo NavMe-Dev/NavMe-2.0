@@ -30,7 +30,7 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block">
 <script>if(WFQuery().get("mp")!=="1")document.write('<link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">');</script>
 <link rel="stylesheet" href="dev.css">
-<link rel="stylesheet" href="ui.css?v=20261116nochipmenu1">
+<link rel="stylesheet" href="ui.css?v=20261116poweredby1">
 <link rel="stylesheet" href="student_union_plans.css?v=20261115spatialdraft1">
 <!-- open-source libs loaded BEFORE the ArcGIS AMD loader so their UMD wrappers attach to window -->
 <script>if(WFQuery().get("mp")!=="1")document.write('<script src="vendor/ngraph.graph.min.js"><\/script><script src="vendor/ngraph.path.min.js"><\/script><script src="vendor/turf.min.js"><\/script>');</script>
@@ -131,6 +131,11 @@ window.WFQuery=function(){var q=new URLSearchParams(location.search),p=location.
       <button id="btnZoomIn" class="fab flat" aria-label="Zoom in" data-i18n-aria-label="viewer.zoomIn"><span class="ms">add</span></button>
       <button id="btnZoomOut" class="fab flat" aria-label="Zoom out" data-i18n-aria-label="viewer.zoomOut"><span class="ms">remove</span></button>
     </div>
+  </div>
+
+  <div class="viewer-credit">
+    <img src="img/navme-logo.png" alt="NavMe" width="32" height="32">
+    <span class="viewer-credit-copy"><span>Powered by</span><strong>MetaDigi Labs Inc.</strong></span>
   </div>
 
   <div id="layersPop" class="pop" role="dialog" aria-label="Map type and details" data-i18n-aria-label="viewer.mapType" hidden>
