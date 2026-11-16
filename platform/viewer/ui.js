@@ -1055,7 +1055,6 @@ function wfDbg(level, source, message, meta) {
       ${shop ? shopSectionHtml(shop) : ""}
       <ul class="facts">
         <li><span class="ms">location_on</span><div>${p.code && p.code !== p.name ? esc(p.code) : ""}<div class="muted">${esc(WF.cfg.name || "")}${WF.cfg.address ? ", " + esc(WF.cfg.address) : ""}</div></div></li>
-        <li><span class="ms">accessible</span><div>${p.step_free_from_parking ? esc(t("viewer.reachableStepFree")) : esc(t("viewer.routesIncludeSteps"))}<div class="muted">${esc(t("viewer.basedOnScan"))}</div></div></li>
         ${p.area_m2 ? `<li><span class="ms">square_foot</span><div>${Math.round(p.area_m2)} m² <span class="muted">(${Math.round(p.area_m2 * 10.764)} ft²)</span></div></li>` : ""}
         ${!shop && p.hours ? `<li><span class="ms">schedule</span><div>${esc(p.hours)}</div></li>` : ""}
         ${!shop && (p.description || p.note) ? `<li><span class="ms">info</span><div>${esc(p.description || p.note)}</div></li>` : ""}
