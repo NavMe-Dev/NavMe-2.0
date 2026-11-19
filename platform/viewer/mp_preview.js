@@ -2924,7 +2924,12 @@ function wfDbg(level, source, message, meta) {
       const slug = String(building.slug || cfg.slug || cfg.building || querySlug || "").toLowerCase();
       const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
       const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-      return isIOSDevice || (mobile && (slug === "uncc-main-campus" || slug === "unc-charlotte" || !slug));
+      // iOS jetsam limit (~1.5 GB) is hit on any building when Quickstart fires alongside
+      // model decode and camera setup. Treat every iOS device (and every coarse-pointer
+      // mobile) as a "large space" so the gentler nativeStartup path is always used.
+      // shortcut: slug allowlist removed; upgrade only if Matterport ships a faster cold-start
+      //   path that is confirmed safe with qs=1 on iOS, re-evaluate per-building then.
+      return isIOSDevice || mobile;
     })();
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");

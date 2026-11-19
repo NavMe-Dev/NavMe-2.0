@@ -1,5 +1,18 @@
 /* Wayfinding prototype P1+P2 – ArcGIS Maps SDK for JS 4.34 (AMD CDN), no API key.
    Basemap = public Esri World Imagery MapServer tiles via TileLayer (no key needed). */
+
+// Freeze the mp=1 flag at parse time, before any history.replaceState can mutate the URL.
+// All isMpMode() calls in this file read this constant — enterHeavyOverlay/exitHeavyOverlay
+// always agree regardless of subsequent URL mutations (e.g. wf-boot.js's replaceState).
+const _WF_MP_MODE = (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1";
+
+// In mp=1 mode mp_app.js already provides the full window.wf interface.
+// Skip the entire 20-module ArcGIS AMD load: parsing + evaluating those modules while the
+// Matterport iframe is also starting up spikes JS heap enough to hit iOS Safari's per-tab
+// memory limit and silently reload the tab (surfaces as "app reloads on entry").
+if (_WF_MP_MODE) {
+  // Nothing to do — mp_app.js handles everything. app.js is a no-op in this mode.
+} else {
 require([
   "esri/Map", "esri/Basemap", "esri/layers/TileLayer", "esri/views/MapView", "esri/views/SceneView",
   "esri/layers/MediaLayer", "esri/layers/support/ImageElement", "esri/layers/support/CornersGeoreference",
@@ -19,7 +32,9 @@ require([
   // on mobile, two simultaneous heavy WebGL contexts can exceed the browser's GPU memory
   // budget and trigger a silent tab reload (surfaced as "selecting a destination kicks
   // me out"). See the isMpMode() guards below that keep view2d's own layers stripped.
-  const isMpMode = () => (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1";
+  // isMpMode is frozen at module load (see _WF_MP_MODE above) so enterHeavyOverlay /
+  // exitHeavyOverlay always read the same value regardless of history.replaceState.
+  const isMpMode = () => _WF_MP_MODE;
   // georef.rms_m/max_err_m are null by design for "fixed" mode (a manual transform has no
   // fitted residual to report) — this debug readout assumed every georef field is always
   // a number and crashed the first time a location got set against a fixed-mode building.
@@ -1178,3 +1193,4 @@ require([
     window.wf.modelToScreen = (x, y) => { const ll = modelToLL(x, y); const p = activeView.toScreen(new Point({ longitude: ll[0], latitude: ll[1] })); return [p.x, p.y]; };
   }
 });
+} // end else (!_WF_MP_MODE) — ArcGIS block skipped in mp=1 mode
