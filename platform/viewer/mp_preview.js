@@ -62,6 +62,17 @@ function wfDbg(level, source, message, meta) {
   let segDistM = [];                  // segDistM[i] = meters from sweep i → i+1 (last = to dest if any)
   let tourPaceScale = 1;              // multiplies FLY/dwell timing: >1 slower (small route), <1 faster (big route)
 
+  function isIOSClient() {
+    try {
+      return (typeof navigator !== "undefined") && (
+        /iPad|iPhone|iPod/.test(navigator.userAgent || "") ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
   function $(id) { return document.getElementById(id); }
 
   function toast(msg) {
@@ -970,9 +981,9 @@ function wfDbg(level, source, message, meta) {
     for (const s of rtSweeps) byId[s.sid] = s;
 
     // FROM + up to 22 sharpest turns + a stop at least every 5m of straight corridor + TO,
-    // capped at 40 total stops — many more scan points than before so the tour reads as a
-    // walk through the space rather than a handful of long jumps.
-    const keyPts = rtSampleKeyPoints(pts, 22, 5, 40);
+    // capped at 40 total stops — on iOS throttle to 16 total stops / 10m min gap to prevent WebKit OOM
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    const keyPts = rtSampleKeyPoints(pts, isIOS ? 10 : 22, isIOS ? 10 : 5, isIOS ? 16 : 40);
 
     // For each key waypoint, find the nearest scan point in Matterport Y-up space.
     const ids = [];
@@ -1384,12 +1395,16 @@ function wfDbg(level, source, message, meta) {
     playbackTask = null;
   }
   function scheduledMoveMs(i) {
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (isIOS) return 600;
     const hop = i > 0 && segDistM[i-1] != null ? +segDistM[i-1] : 0;
     let duration = !navPathTour && i === 0 ? Math.round(1000 * tourPaceScale) : flyTransitionMs(hop);
     if (i === sweepIds.length-1 && i > 0) duration = Math.min(Math.round(duration*1.5),4500);
     return duration;
   }
   function scheduledDwellMs(i) {
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (isIOS) return 900;
     return Math.round((i < 2 ? 400 : 220) * Math.max(0.5,Math.min(1.6,tourPaceScale)));
   }
   function remainingPlaybackSchedule(from) {
@@ -1490,6 +1505,8 @@ function wfDbg(level, source, message, meta) {
     }, run));
   }
   function timedFacing(i, run) {
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (isIOS) return Promise.resolve(true);
     return withCameraActivity(run, active => playbackPhase(180, () => faceAlongRoute(i, run, active), run));
   }
 
@@ -1616,6 +1633,8 @@ function wfDbg(level, source, message, meta) {
    * Prefer smooth Camera.setRotation({speed}); lookAt second; INSTANT Sweep.moveTo last (avoid remount thrash).
    */
   async function faceAlongRoute(i, run, activity) {
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (isIOS) return;
     const ready = () => run == null ? Promise.resolve(true) : waitForPlayback(run);
     if (!mpSdk || !mpSdk.Camera || !(await ready())) return;
     // This settling pause is part of the playback schedule. SDK corrections
@@ -2072,14 +2091,18 @@ function wfDbg(level, source, message, meta) {
     if (!mpSdk || i < 0 || i >= sweepIds.length || (run != null && !(await waitForPlayback(run)))) return false;
     const id = sweepIds[i];
     const tr = mpSdk.Sweep.Transition;
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    const transition = isIOS
+      ? ((tr && (tr.FADEOUT || tr.MOVEFADE || tr.INSTANT)) || "transition.fade")
+      : ((tr && tr.FLY) || "transition.fly");
+    const tFly = isIOS ? 600 : scheduledMoveMs(i);
     // navPathTour: same distance-scaled cinematic FLY as the standard branch — this used
     // to be a hardcoded fast 600ms regardless of hop length, which read as "teleporting".
     if (navPathTour) {
-      const tFly = scheduledMoveMs(i);
       // Rotate toward the NEXT waypoint (look-ahead) DURING the flight itself, so the turn
       // happens smoothly mid-transit and the camera lands already facing where it's going
       // next — instead of arriving facing backward and snap-rotating after stopping.
-      const navOpts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
+      const navOpts = { transition, transitionTime: tFly };
       const hNav = headingToward(i);
       if (hNav != null && Number.isFinite(hNav)) navOpts.rotation = { x: 0, y: hNav };
       try {
@@ -2091,9 +2114,11 @@ function wfDbg(level, source, message, meta) {
       }
       // Safety-net correction only — the in-flight rotation above should already have
       // landed on this heading, so faceAlongRoute is a no-op unless something drifted.
-      if (run != null) {
-        if (!(await timedFacing(i, run))) return false;
-      } else try { await faceAlongRoute(i); } catch (_) {}
+      if (!isIOS) {
+        if (run != null) {
+          if (!(await timedFacing(i, run))) return false;
+        } else try { await faceAlongRoute(i); } catch (_) {}
+      }
       if (run != null && !playbackCurrent(run)) return false;
       lastConfirmedSweep=id;
       stepI = i;
@@ -2104,8 +2129,7 @@ function wfDbg(level, source, message, meta) {
       return true;
     }
     // Standard FLY transition for routes with server-provided sweep IDs.
-    const tFly = scheduledMoveMs(i);
-    const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
+    const opts = { transition, transitionTime: tFly };
     // Rotate toward the NEXT waypoint (look-ahead) during the flight so the turn happens
     // mid-transit, landing already facing onward instead of snap-rotating after arrival.
     const h = headingToward(i);
@@ -2116,16 +2140,18 @@ function wfDbg(level, source, message, meta) {
     } catch (e1) {
       try {
         if (run != null) { if (!playbackCurrent(run)) return false; if (playbackClock) playbackClock.reset(playbackClock.remainingMs()+tFly); }
-        if (!(await timedCameraMove(id,{transition:(tr && tr.FLY)||"transition.fly",transitionTime:tFly},run))) return false;
+        if (!(await timedCameraMove(id,{ transition, transitionTime: tFly },run))) return false;
         if (run != null) lastConfirmedSweep = id;
       } catch (e2) {
         console.warn("Sweep.moveTo failed", id, e2); wfDbg("warn","tour.sweep","Sweep.moveTo failed "+id+" "+(e2&&e2.message||e2));
         return false;
       }
     }
-    if (run != null) {
-      if (!(await timedFacing(i, run))) return false;
-    } else try { await faceAlongRoute(i); } catch (e3) { console.warn("faceAlongRoute",e3); }
+    if (!isIOS) {
+      if (run != null) {
+        if (!(await timedFacing(i, run))) return false;
+      } else try { await faceAlongRoute(i); } catch (e3) { console.warn("faceAlongRoute",e3); }
+    }
     if (run != null && !playbackCurrent(run)) return false;
     lastConfirmedSweep=id;
     stepI = i;
@@ -2212,19 +2238,26 @@ function wfDbg(level, source, message, meta) {
   }
 
   async function startRoutePlayback(entryMs, leadMs = 0, tailMs = 0) {
-    const run = beginPlayback(1, leadMs + entryMs + tailMs + 180);
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    const effectiveEntryMs = isIOS ? 600 : entryMs;
+    const effectiveLeadMs = isIOS ? 0 : leadMs;
+    const effectiveTailMs = isIOS ? 0 : tailMs;
+    const run = beginPlayback(1, effectiveLeadMs + effectiveEntryMs + effectiveTailMs + 180);
     introductionActive = true;
     updateDistHud(0);
     try {
-      if (leadMs && !(await playbackPhase(leadMs, () => playbackDelay(leadMs, run), run))) return;
+      if (effectiveLeadMs && !(await playbackPhase(effectiveLeadMs, () => playbackDelay(effectiveLeadMs, run), run))) return;
       const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
-      const options = {transition:(tr && tr.FLY) || "transition.fly", transitionTime:entryMs};
+      const transition = isIOS
+        ? ((tr && (tr.FADEOUT || tr.MOVEFADE || tr.INSTANT)) || "transition.fade")
+        : ((tr && tr.FLY) || "transition.fly");
+      const options = { transition, transitionTime: effectiveEntryMs };
       const heading = headingToward(0);
       if (heading != null && Number.isFinite(heading)) options.rotation = {x:0,y:heading};
       if (!(await timedCameraMove(sweepIds[0], options, run))) return;
       lastConfirmedSweep = sweepIds[0];
-      if (tailMs && !(await playbackPhase(tailMs, () => playbackDelay(tailMs, run), run))) return;
-      if (!(await timedFacing(0, run))) return;
+      if (effectiveTailMs && !(await playbackPhase(effectiveTailMs, () => playbackDelay(effectiveTailMs, run), run))) return;
+      if (!isIOS && !(await timedFacing(0, run))) return;
       if (!playbackCurrent(run)) return;
       stepI = 1;
       updateStep();
@@ -2721,11 +2754,12 @@ function wfDbg(level, source, message, meta) {
     // the Inside-mode-at-a-floor flash before our JS even got a chance to run: that flash
     // was the iframe's OWN initial render, which happens before Mode.moveTo/Floor.showAll
     // can execute, so no amount of reordering those calls could have fixed it.
-    const url = showcaseUrl(applicationKey, null);
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    const url = showcaseUrl(applicationKey, null, { nativeStartup: isIOS });
     const tab = $("mpOpenTab");
     // The "open in new tab" link is separate manual exploration — still jump it to the
     // route's start sweep for convenience there.
-    if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null);
+    if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null, { nativeStartup: isIOS });
 
     const iframe = $("mpFrame");
     const epoch = ++viewerEpoch;
@@ -2784,7 +2818,9 @@ function wfDbg(level, source, message, meta) {
       const Mode = sdk.Mode;
       if (Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+        const transition = isIOS ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined) : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+        await Mode.moveTo(dh, { transition });
       }
     } catch (e) { console.warn("[Tour] dollhouse moveTo failed", e && (e.message || e)); }
     if (gen !== openGen) return;
@@ -3013,7 +3049,9 @@ function wfDbg(level, source, message, meta) {
       if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
       if (!nativeStartup && Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+        const transition = isIOS ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined) : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+        await Mode.moveTo(dh, { transition });
       }
     } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
     if (!nativeStartup) await frameWholeBuilding(sdk);
@@ -3294,7 +3332,9 @@ function wfDbg(level, source, message, meta) {
       const Mode = mpSdk.Mode;
       if (Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-        await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+        const transition = isIOS ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined) : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+        await Mode.moveTo(dh, { transition });
       }
     } catch (e) { console.warn("[MpBackground] pickOnMap dollhouse moveTo failed", e && (e.message || e)); }
     if (gen !== pickGen) return null;
@@ -3378,14 +3418,18 @@ function wfDbg(level, source, message, meta) {
     const fromIdx = stepI;
     if (fromIdx === targetIdx) return true;
     const id = sweepIds[targetIdx];
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
     const tr = mpSdk.Sweep && mpSdk.Sweep.Transition;
     const lo = Math.min(fromIdx, targetIdx), hi = Math.max(fromIdx, targetIdx);
     let hopM = 0;
     for (let k = lo; k < hi; k++) { if (segDistM[k] != null) hopM += segDistM[k]; }
     const isLastStop = targetIdx === sweepIds.length - 1;
-    let tFly = flyTransitionMs(hopM);
-    if (isLastStop && targetIdx > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500);
-    const opts = { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly };
+    let tFly = isIOS ? 600 : flyTransitionMs(hopM);
+    if (!isIOS && isLastStop && targetIdx > 0) tFly = Math.min(Math.round(tFly * 1.5), 4500);
+    const transition = isIOS
+      ? ((tr && (tr.FADEOUT || tr.MOVEFADE || tr.INSTANT)) || "transition.fade")
+      : ((tr && tr.FLY) || "transition.fly");
+    const opts = { transition, transitionTime: tFly };
     const h = headingToward(targetIdx);
     if (h != null && Number.isFinite(h)) opts.rotation = { x: 0, y: h };
 
@@ -3405,7 +3449,7 @@ function wfDbg(level, source, message, meta) {
       try {
         await mpSdk.Sweep.moveTo(id, opts);
       } catch (e1) {
-        await mpSdk.Sweep.moveTo(id, { transition: (tr && tr.FLY) || "transition.fly", transitionTime: tFly });
+        await mpSdk.Sweep.moveTo(id, { transition, transitionTime: tFly });
       }
     } catch (e2) {
       if (tickTimer) clearInterval(tickTimer);
@@ -3414,8 +3458,10 @@ function wfDbg(level, source, message, meta) {
     }
     if (tickTimer) clearInterval(tickTimer);
     if (gen !== walkGen) return false;
-    try { await faceAlongRoute(targetIdx); } catch (_) { /* ignore */ }
-    if (gen !== walkGen) return false;
+    if (!isIOS) {
+      try { await faceAlongRoute(targetIdx); } catch (_) { /* ignore */ }
+      if (gen !== walkGen) return false;
+    }
     stepI = targetIdx;
     updateStep();
     try { await updateDirArrow(targetIdx); } catch (_) { /* ignore */ }

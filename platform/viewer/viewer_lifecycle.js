@@ -113,23 +113,10 @@
   function onError(event) { record("javascript.error", {kind: event.error ? classify(event.error) : typeof event.message === "string" ? "javascript" : "resource"}); }
   function onRejection(event) { record("javascript.error", {kind: classify(event.reason)}); }
   function onVisibility() { record("page.visibility", {visibility: doc.visibilityState}); }
-  function onShow(event) {
-    record("page.show", {persisted: event.persisted});
-    // Cancel any pending destroy from onHide: iOS Safari 15-16 fires
-    // pagehide(persisted:false) then immediately pageshow(persisted:true) for
-    // same-document back-nav when a cross-origin iframe is present (BFCache quirk).
-    // Without this guard, destroy() runs and leaves the app in a half-dead state.
-    if (destroyTimer) { clearTimeout(destroyTimer); destroyTimer = null; }
-  }
-  let destroyTimer = null;
+  function onShow(event) { record("page.show", {persisted: event.persisted}); }
   function onHide(event) {
     record("page.hide", {persisted: event.persisted});
-    // BFCache keeps the same document and viewer identity — only destroy on a true
-    // non-cached unload. Use a 200ms grace so a BFCache back-nav (pagehide false →
-    // pageshow true in rapid succession) can cancel before destroy runs.
-    if (!event.persisted) {
-      destroyTimer = setTimeout(() => { destroyTimer = null; destroy(); }, 200);
-    }
+    if (!event.persisted) destroy(); // BFCache keeps the same document and viewer identity.
   }
   function destroy() {
     if (stopped) return;

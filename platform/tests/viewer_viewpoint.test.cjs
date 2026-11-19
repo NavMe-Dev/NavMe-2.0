@@ -229,6 +229,32 @@ test('on iOS devices, focusPoi and focusAt use mobile-safe transition and skip z
   assert.equal(zooms, 0, 'iOS must skip Camera.zoomTo');
 });
 
+test('on iOS devices, walkToIndex and moveTo use mobile-safe transition and skip faceAlongRoute', async () => {
+  const {c,sdk}=cameraScenario();
+  sdk.sdk.Sweep.Transition = { INSTANT: 'instant', FLY: 'fly', FADEOUT: 'fade' };
+  c.navigator = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', platform: 'iPhone' };
+
+  c.__preview.prepare({
+    sweep_ids: ['marker-near', 'saved-sweep'],
+    nodes: [
+      { id: 'marker-near', kind: 'sweep', x: 10, y: 20, z: 1.6 },
+      { id: 'saved-sweep', kind: 'sweep', x: 50, y: 6, z: 4 }
+    ]
+  });
+
+  assert.equal(await c.MpPreview.moveTo(1), true);
+  assert.equal(sdk.calls.length, 1);
+  assert.equal(sdk.calls[0].opts.transition, 'fade', 'iOS moveTo must use FADEOUT transition');
+  assert.equal(sdk.calls[0].opts.transitionTime, 600, 'iOS moveTo must use 600ms transition time');
+  assert.equal(sdk.rotations.length, 0, 'iOS moveTo must skip secondary Camera.setRotation');
+
+  assert.equal(await c.MpPreview.walkToIndex(0), true);
+  assert.equal(sdk.calls.length, 2);
+  assert.equal(sdk.calls[1].opts.transition, 'fade', 'iOS walkToIndex must use FADEOUT transition');
+  assert.equal(sdk.calls[1].opts.transitionTime, 600, 'iOS walkToIndex must use 600ms transition time');
+  assert.equal(sdk.rotations.length, 0, 'iOS walkToIndex must skip secondary Camera.setRotation');
+});
+
 test('selecting again uses a replacement saved on the server without reloading the model',async()=>{
   const {c,sdk,requests}=cameraScenario();
   const poi=savedPoi();
