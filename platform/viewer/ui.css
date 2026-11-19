@@ -784,3 +784,13 @@ body.nav .weather-row,body.dir .weather-row,body.n3d-open .weather-row{display:n
   body.large .explore-grid{grid-template-columns:minmax(0,1fr)}
 }
 @media(max-width:300px){.explore-grid{grid-template-columns:minmax(0,1fr)}}
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS WebKit GPU optimization: avoid real-time GPU blur passes over 60fps WebGL canvas */
+  .searchbox { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(255,255,255,.96) !important; }
+  body.dark .searchbox { background: rgba(32,33,36,.96) !important; }
+  .mp-pick-bar { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(20,20,24,.92) !important; }
+  .mp-media-glass-card { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(255,255,255,.96) !important; }
+  .mp-media-glass-card.dark { background: rgba(20,22,28,.96) !important; }
+  .wf-chat-panel { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: #ffffff !important; }
+}

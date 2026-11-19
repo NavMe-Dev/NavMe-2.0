@@ -284,8 +284,26 @@
       const context = getContext() || {};
       void load(context.venue);
     }
+    const isIOSDevice = (() => {
+      try {
+        return (typeof navigator !== "undefined") && (
+          /iPad|iPhone|iPod/.test(navigator.userAgent || "") ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+        );
+      } catch (_) { return false; }
+    })();
+    let lastPoseTime = 0;
     try {
-      subscriptions.push(sdk.Camera.pose.subscribe(next => { pose = next; if (next && next.mode !== "mode.dollhouse") layer.hidden = true; schedule(); }));
+      subscriptions.push(sdk.Camera.pose.subscribe(next => {
+        pose = next;
+        if (next && next.mode !== "mode.dollhouse") { layer.hidden = true; return; }
+        if (isIOSDevice) {
+          const now = Date.now();
+          if (now - lastPoseTime < 80) return;
+          lastPoseTime = now;
+        }
+        schedule();
+      }));
       if (sdk.Mode && sdk.Mode.current) subscriptions.push(sdk.Mode.current.subscribe(next => { mode = next; if (next !== "mode.dollhouse") layer.hidden = true; schedule(); }));
       if (sdk.Mode && sdk.Mode.transition) subscriptions.push(sdk.Mode.transition.subscribe(next => { transitioning = !!(next && (next.from || next.to)); if (transitioning) layer.hidden = true; schedule(); }));
       if (sdk.Camera.pose.getLatest) pose = sdk.Camera.pose.getLatest();

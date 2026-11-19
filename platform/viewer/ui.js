@@ -1064,7 +1064,9 @@ function wfDbg(level, source, message, meta) {
     if (p.floor !== wf.currentFloor()) wf.setFloor(p.floor);
     markPlace(p);
     const shop = (window.WF.shopsByPoiId || {})[String(p.id)] || null;
-    const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, isMpMode() ? 3 : 8);
+    const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    const galleryLimit = isIOSDevice && isMpMode() ? 1 : (isMpMode() ? 3 : 8);
+    const c = cat(p), galleryUrls = poiGalleryUrls(p, shop, galleryLimit);
     setSheet(`
       <h1 class="pname">${esc(shop ? shop.name : p.name)}</h1>
       <div class="prow"><span>${esc(shop && shop.category ? shop.category : c.label)}</span>${sfBadge(p)}</div>
@@ -1548,10 +1550,11 @@ function wfDbg(level, source, message, meta) {
     if (isMpMode() && window.MpPreview && MpPreview.thumbnailSweepNodes
         && (!wf.nav.nodes || !wf.nav.nodes.some(n => n.kind === "sweep"))) {
       const activeRoute = r;
+      const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
       MpPreview.thumbnailSweepNodes().then(nodes => {
         if (!nodes || !nodes.length || S.route !== activeRoute) return;
         wf.nav.nodes = nodes;
-        renderDirections(activeRoute);
+        if (!isIOSDevice) renderDirections(activeRoute);
       }).catch(() => {});
     }
     if (pendingNav) { pendingNav = false; startNav(); }
@@ -1707,12 +1710,14 @@ function wfDbg(level, source, message, meta) {
   function renderDirections(r) {
     const steps = S.navSteps.map((s, i) => {
       let extra = "";
+      const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+      const showThumbs = !isIOSDevice || !isMpMode();
       if (s.type === "stairs" || s.type === "level" || s.type === "elevator") {
         const sw = s.pt ? nearestSweep(s.pt) : null, th = sw && thumbFor(sw.id);
         const ic = s.type === "elevator" ? "elevator" : "stairs";
         const alt = s.type === "elevator" ? t("viewer.viewAtElevator") : t("viewer.viewAtStairs");
         const title = s.type === "elevator" ? t("viewer.catElevator") : (/\bup\b/.test(s.text) ? t("viewer.up") : t("viewer.down"));
-        extra = `<div class="fcard">${th ? `<img src="${th}" alt="${esc(alt)}">` : `<span class="ms">${ic}</span>`}<div><b>${esc(title)}</b><div class="muted">${esc(s.text.replace(/^Take (the )?/, ""))}</div></div></div>`;
+        extra = `<div class="fcard">${(showThumbs && th) ? `<img src="${th}" alt="${esc(alt)}">` : `<span class="ms">${ic}</span>`}<div><b>${esc(title)}</b><div class="muted">${esc(s.text.replace(/^Take (the )?/, ""))}</div></div></div>`;
       } else {
         // Plain turn/straight/arrive steps: same nearestSweep + thumbFor lookup as
         // above, just without the stairs/elevator title card — a photo only when one
@@ -1721,7 +1726,7 @@ function wfDbg(level, source, message, meta) {
         // Routing/navigation logic is untouched — this only adds a display, same as
         // the stairs/elevator case already did.
         const sw = s.pt ? nearestSweep(s.pt) : null, th = sw && thumbFor(sw.id);
-        if (th) {
+        if (showThumbs && th) {
           extra = `<div class="fcard plain"><img src="${th}" alt="${esc(t("viewer.viewAtTurn") || "View at this turn")}" loading="lazy"></div>`;
         }
       }

@@ -981,9 +981,9 @@ function wfDbg(level, source, message, meta) {
     for (const s of rtSweeps) byId[s.sid] = s;
 
     // FROM + up to 22 sharpest turns + a stop at least every 5m of straight corridor + TO,
-    // capped at 40 total stops — on iOS throttle to 16 total stops / 10m min gap to prevent WebKit OOM
+    // capped at 40 total stops — on iOS throttle to 10 total stops / 15m min gap to prevent WebKit OOM
     const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-    const keyPts = rtSampleKeyPoints(pts, isIOS ? 10 : 22, isIOS ? 10 : 5, isIOS ? 16 : 40);
+    const keyPts = rtSampleKeyPoints(pts, isIOS ? 6 : 22, isIOS ? 15 : 5, isIOS ? 10 : 40);
 
     // For each key waypoint, find the nearest scan point in Matterport Y-up space.
     const ids = [];
@@ -1377,6 +1377,8 @@ function wfDbg(level, source, message, meta) {
     const active = activeCameraMove;
     activeCameraMove = null;
     if (active) clearInterval(active.watch);
+    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
+    if (isIOS) return;
     // Sweep exposes no cancellation API. Replace an unfinished flight with the
     // last confirmed scan where possible, keeping the same SDK and iframe.
     if (!active || !active.started || !active.fromSid || !active.sdk || !active.sdk.Sweep) return;
@@ -1404,7 +1406,7 @@ function wfDbg(level, source, message, meta) {
   }
   function scheduledDwellMs(i) {
     const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-    if (isIOS) return 900;
+    if (isIOS) return 1400;
     return Math.round((i < 2 ? 400 : 220) * Math.max(0.5,Math.min(1.6,tourPaceScale)));
   }
   function remainingPlaybackSchedule(from) {

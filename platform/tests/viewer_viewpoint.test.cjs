@@ -107,7 +107,7 @@ test('a closed or replaced directions session cannot apply a pending arrival aim
 function previewController() {
   const c=environment();
   const source=read('mp_preview.js').replace('  window.MpPreview = {', `
-    window.__preview={bind:function(sdk,model){mpSdk=sdk;modelId=model||'test-model';},prepare:prepareRoute,face:faceAlongRoute};
+    window.__preview={bind:function(sdk,model){mpSdk=sdk;modelId=model||'test-model';},prepare:prepareRoute,face:faceAlongRoute,dwell:scheduledDwellMs,interrupt:interruptPlaybackMove};
     window.MpPreview = {`);
   vm.runInContext(source,c);
   return c;
@@ -253,6 +253,17 @@ test('on iOS devices, walkToIndex and moveTo use mobile-safe transition and skip
   assert.equal(sdk.calls[1].opts.transition, 'fade', 'iOS walkToIndex must use FADEOUT transition');
   assert.equal(sdk.calls[1].opts.transitionTime, 600, 'iOS walkToIndex must use 600ms transition time');
   assert.equal(sdk.rotations.length, 0, 'iOS walkToIndex must skip secondary Camera.setRotation');
+});
+
+test('on iOS devices, tour dwell is increased to 1400ms and interruptPlaybackMove skips fallback moveTo', () => {
+  const c = previewController(), sdk = fakeSdk();
+  c.navigator = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', platform: 'iPhone' };
+  c.__preview.bind(sdk.sdk);
+  assert.equal(c.__preview.dwell(0), 1400, 'iOS tour dwell must be 1400ms for texture GC');
+  assert.equal(c.__preview.dwell(5), 1400, 'iOS tour dwell must remain 1400ms across all stops');
+
+  c.navigator = { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', platform: 'Win32' };
+  assert.ok(c.__preview.dwell(0) < 1000, 'desktop tour dwell is standard timing');
 });
 
 test('selecting again uses a replacement saved on the server without reloading the model',async()=>{

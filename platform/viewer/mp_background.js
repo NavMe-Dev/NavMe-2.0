@@ -59,9 +59,14 @@
        clips a strip of the real 3D view along with the chrome, which is the accepted
        trade-off for removing chrome Showcase won't let this page hide any other way. */
     body.mp-bg-mode .mp-frame-wrap { overflow:hidden !important; }
-    body.mp-bg-mode .mp-frame-wrap #mpFrame, body.mp-bg-mode.mp-mobile .mp-frame-wrap #mpFrame {
-      top:-56px !important; height:calc(100% + 128px) !important; min-height:0 !important;
+    body.mp-bg-mode .mp-frame-wrap #mpFrame {
+      top:-56px !important; height:calc(100% + 56px) !important; min-height:0 !important;
       width:100% !important; left:0 !important; border:0 !important;
+    }
+    @media (max-width: 900px), (pointer: coarse) {
+      body.mp-bg-mode .mp-frame-wrap #mpFrame, body.mp-bg-mode.mp-mobile .mp-frame-wrap #mpFrame {
+        top:0 !important; height:100% !important;
+      }
     }
     /* ArcGIS-only map controls and the dev-only Map Layers panel (style/photo-plan/graph/
        mesh-debug toggles) — meaningless once the map itself is hidden. */
