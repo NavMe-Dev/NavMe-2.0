@@ -2488,7 +2488,8 @@
   async function open(route) {
     var live = window.MpPreview && window.MpPreview.getLiveConnection && window.MpPreview.getLiveConnection();
     if (live) return openUsingLiveConnection(route, live);
-    if (!window.__WF_NAV_WALKTHROUGH_PAGE && isCoarseMobile()) {
+    var isMp = (window.WFQuery ? WFQuery() : new URLSearchParams(location.search)).get("mp") === "1";
+    if (!isMp && !window.__WF_NAV_WALKTHROUGH_PAGE && isCoarseMobile()) {
       if (handoffToWalkthroughPage(route || {})) return;
     }
     var gen = ++openGen;

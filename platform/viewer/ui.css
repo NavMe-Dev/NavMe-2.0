@@ -418,6 +418,9 @@ body.dir .ctop{top:182px}
    point of this rule is covering Tour interior, which carries mp-open but not mp-bg-mode. */
 body.mp-open .mp-frame-wrap{overflow:hidden}
 body.mp-open .mp-frame-wrap #mpFrame{top:-56px;height:calc(100% + 128px)}
+@media (max-width:900px), (pointer:coarse) {
+  body.mp-open .mp-frame-wrap #mpFrame { top:0!important; height:100%!important; width:100%!important; }
+}
 /* Arrow: top-right corner */
 .mp-dir-arrow{display:none!important}
 .mp-dist-hud{display:none!important}

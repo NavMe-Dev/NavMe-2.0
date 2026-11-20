@@ -313,8 +313,10 @@ function wfDbg(level, source, message, meta) {
     // model decoding and our own camera animation all peak together. Matterport's
     // documented embed example uses play=1 without qs=1, so the mobile stability
     // path intentionally follows that gentler native startup.
+    const isIOS = isIOSClient();
     const quickstart = !(options && options.nativeStartup);
     let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1${quickstart ? "&qs=1" : ""}&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
+    if (isIOS) u += `&quality=low&no_panos=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
     return u;
@@ -2692,6 +2694,9 @@ function wfDbg(level, source, message, meta) {
 
   async function open(route) {
     viewerTrace("navigation", {action:"route-preview"});
+    if (window.wf && typeof window.wf.enterHeavyOverlay === "function") {
+      try { window.wf.enterHeavyOverlay(); } catch (e) { console.warn("[MpPreview] enterHeavyOverlay failed", e); }
+    }
     const requestedOpen = ++openGen;
     // A preview requested during startup joins the existing model load. It
     // never competes with that load for the iframe or SDK.
@@ -2878,6 +2883,9 @@ function wfDbg(level, source, message, meta) {
       document.body.classList.remove("mp-open", "mp-mobile");
       setStatus("");
       return;
+    }
+    if (window.wf && typeof window.wf.exitHeavyOverlay === "function") {
+      try { window.wf.exitHeavyOverlay(); } catch (e) { console.warn("[MpPreview] exitHeavyOverlay failed", e); }
     }
     // Keep a dedicated viewer connected too: Exit only dismisses its overlay,
     // and the next preview reuses this iframe/SDK through getLiveConnection().

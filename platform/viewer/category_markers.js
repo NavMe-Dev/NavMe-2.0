@@ -298,6 +298,10 @@
         pose = next;
         if (next && next.mode !== "mode.dollhouse") { layer.hidden = true; return; }
         if (isIOSDevice) {
+          if (doc.body.classList.contains("mp-open") || doc.body.classList.contains("nav")) {
+            layer.hidden = true;
+            return;
+          }
           const now = Date.now();
           if (now - lastPoseTime < 80) return;
           lastPoseTime = now;

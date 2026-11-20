@@ -196,11 +196,14 @@ function wfDbg(level, source, message, meta) {
       if (e.key === "Escape") { closeAc(); closePop(); closeDrawer(); closeShareSheet(); }
     });
     // prefs
-    if (localStorage.getItem("wf_large") === "1") { $("togLarge").checked = true; document.body.classList.add("large"); }
+    try {
+      if (localStorage.getItem("wf_large") === "1") { $("togLarge").checked = true; document.body.classList.add("large"); }
+    } catch (_) {}
     // Light/dark theme (decoupled from the 2D map's own style swatches): explicit user
     // choice always wins; absent one, light is the default everywhere (see
     // mp_background.js for the mp=1 default).
-    const savedTheme = localStorage.getItem("wf_theme");
+    let savedTheme = null;
+    try { savedTheme = localStorage.getItem("wf_theme"); } catch (_) {}
     if (savedTheme) {
       const light = savedTheme === "light";
       $("togHC").checked = light;
@@ -480,7 +483,12 @@ function wfDbg(level, source, message, meta) {
       return (Array.isArray(stored) ? stored : []).filter(id => byId[id]).slice(0, 3);
     } catch (e) { return []; }
   };
-  const pushRecent = (id) => { const r = [id].concat(recent().filter(x => x !== id)).slice(0, 3); localStorage.setItem("wf_recent", JSON.stringify(r)); };
+  const pushRecent = (id) => {
+    try {
+      const r = [id].concat(recent().filter(x => x !== id)).slice(0, 3);
+      localStorage.setItem("wf_recent", JSON.stringify(r));
+    } catch (_) {}
+  };
   function removeRecent(id) {
     try {
       const stored = JSON.parse(localStorage.getItem("wf_recent") || "[]");
@@ -2624,11 +2632,15 @@ function wfDbg(level, source, message, meta) {
     $("btnMenu").setAttribute("aria-expanded", "false");
     const dh = document.querySelector(".drawhead");
     if (dh) dh.onclick = () => { closeDrawer(); showBuildingPicker(); try { $("q").focus(); } catch (_) {} };
-    $("togLarge").onchange = () => { document.body.classList.toggle("large", $("togLarge").checked); localStorage.setItem("wf_large", $("togLarge").checked ? "1" : "0"); };
+    $("togLarge").onchange = () => {
+      document.body.classList.toggle("large", $("togLarge").checked);
+      try { localStorage.setItem("wf_large", $("togLarge").checked ? "1" : "0"); } catch (_) {}
+    };
     $("togHC").onchange = () => {
       const light = $("togHC").checked;
       document.body.classList.toggle("dark", !light);
-      localStorage.setItem("wf_theme", light ? "light" : "dark"); syncSidebarPreferences();
+      try { localStorage.setItem("wf_theme", light ? "light" : "dark"); } catch (_) {}
+      syncSidebarPreferences();
     };
     $("appearanceSelect").onchange = () => { $("togHC").checked = $("appearanceSelect").value === "light"; $("togHC").onchange(); };
     $("drawer").querySelectorAll("button.ditem").forEach(b => b.onclick = () => {
