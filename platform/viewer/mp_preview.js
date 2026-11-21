@@ -1965,7 +1965,11 @@ function wfDbg(level, source, message, meta) {
     const Mode = sdk.Mode;
     if (Mode && Mode.moveTo && Mode.Mode) {
       const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-      await Mode.moveTo(dh, { transition: (Mode.Transition && Mode.Transition.FLY) || undefined });
+      const isIOS = typeof isIOSClient === "function" ? isIOSClient() : false;
+      const transition = isIOS
+        ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
+        : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+      await Mode.moveTo(dh, { transition });
     }
     if (sdk !== mpSdk) return false;
     await frameWholeBuilding(sdk);
@@ -2077,9 +2081,11 @@ function wfDbg(level, source, message, meta) {
       sid = pose ? (pose.sweepId || pose.sweep || null) : null;
     } catch (_) { /* ignore */ }
     if (sdk !== mpSdk) return {active:false};
+    if (typeof document !== "undefined" && document.body) document.body.classList.remove("nav", "dir");
     await setFloor(null);
     if (sdk !== mpSdk) return {active:false};
     if (sid) homeToggleSweep = sid;
+    if (categoryMarkers && typeof categoryMarkers.refresh === "function") categoryMarkers.refresh();
     return { active: !!sid };
   }
 
@@ -3094,20 +3100,27 @@ function wfDbg(level, source, message, meta) {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     if (!current()) return false;
     mountCategoryMarkers();
-    // Enter Matterport's native first-person view after the dollhouse has
-    // finished framing and painted. Omitting a position lets Showcase choose
-    // its normal entry point, as with its hidden “Explore 3D Space” control.
-    try {
-      const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
-      const transition = sdk.Camera && sdk.Camera.TransitionType;
-      const insideTransition = isIOS
-        ? ((transition && (transition.FADEOUT || transition.INSTANT)) || undefined)
-        : ((transition && transition.FLY) || undefined);
-      await sdk.Mode.moveTo(inside, { transition: insideTransition });
-    } catch (e) {
-      if (!current()) return false;
-      console.warn("[MpBackground] enter inside failed", e && e.name);
-      toast("We couldn't open the walkthrough right now. You can still explore the 3D view.");
+    const hasDeepLink = (() => {
+      try {
+        const q = (typeof WFQuery === "function" ? WFQuery()
+          : (typeof window !== "undefined" && typeof window.WFQuery === "function" ? window.WFQuery()
+          : (typeof location !== "undefined" && new URLSearchParams(location.search))));
+        return !!(q && (q.get("to") || q.get("sweep") || q.get("poi") || q.get("place") || q.get("from") || q.get("mode") === "dir"));
+      } catch (_) { return false; }
+    })();
+    if (hasDeepLink) {
+      try {
+        const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
+        const transition = sdk.Camera && sdk.Camera.TransitionType;
+        const insideTransition = isIOS
+          ? ((transition && (transition.FADEOUT || transition.INSTANT)) || undefined)
+          : ((transition && transition.FLY) || undefined);
+        await sdk.Mode.moveTo(inside, { transition: insideTransition });
+      } catch (e) {
+        if (!current()) return false;
+        console.warn("[MpBackground] enter inside failed", e && e.name);
+        toast("We couldn't open the walkthrough right now. You can still explore the 3D view.");
+      }
     }
     if (!current()) return false;
     if (startup) startup.modelReady(gen);

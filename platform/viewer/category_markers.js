@@ -13,6 +13,18 @@
     return { heightOffset: height != null && height >= 0 ? height : DEFAULTS.heightOffset,
       maxClusterGap: gap != null && gap > 0 ? gap : DEFAULTS.maxClusterGap };
   }
+  function normalizeVenue(v) {
+    if (!v) return "";
+    const s = String(v).trim().toLowerCase().replace(/^\/+/, "");
+    if (s === "unc-charlotte" || s === "uncc-main-campus") return "uncc-main-campus";
+    if (s === "gcu-omr" || s === "gcu") return "gcu";
+    return s;
+  }
+  function venueMatches(a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    return normalizeVenue(a) === normalizeVenue(b);
+  }
   function components(points, gap) {
     const unseen = new Set(points.map((_, i) => i)), sizes = [];
     while (unseen.size) {
@@ -32,17 +44,32 @@
   function calculate(categories, pois, config) {
     const { heightOffset, maxClusterGap } = options(config);
     const venue = config && config.venue;
-    const markers = [], diagnostics = [], eligible = new Map();
+    const markers = [], diagnostics = [], eligible = new Map(), categoryNameMap = new Map();
     for (const c of categories || []) {
-      if (c && c.id && String(c.name || "").trim()) eligible.set(String(c.id), { ...c, id: String(c.id), points: new Map() });
+      if (c && c.id && String(c.name || "").trim()) {
+        const entry = { ...c, id: String(c.id), points: new Map() };
+        eligible.set(String(c.id), entry);
+        categoryNameMap.set(String(c.name || "").trim().toLowerCase(), entry);
+      }
     }
     for (const p of pois || []) {
-      if (!p || !p.id || !venue || p.venue !== venue || p.is_active === false || p.hidden === true) continue;
+      if (!p || !p.id || !venue || !venueMatches(p.venue, venue) || p.is_active === false || p.hidden === true) continue;
       const xyz = [p.x, p.y, p.z].map(numeric);
       if (xyz.includes(null)) continue;
-      for (const id of new Set(p.category_ids || [])) {
+      let matched = false;
+      const catIds = Array.isArray(p.category_ids) ? p.category_ids : (p.category_id ? [p.category_id] : []);
+      for (const id of new Set(catIds)) {
         const c = eligible.get(String(id));
-        if (c) c.points.set(String(p.id), { id: String(p.id), x: xyz[0], y: xyz[1], z: xyz[2] });
+        if (c) {
+          c.points.set(String(p.id), { id: String(p.id), x: xyz[0], y: xyz[1], z: xyz[2] });
+          matched = true;
+        }
+      }
+      if (!matched && p.category) {
+        const c = categoryNameMap.get(String(p.category).trim().toLowerCase());
+        if (c) {
+          c.points.set(String(p.id), { id: String(p.id), x: xyz[0], y: xyz[1], z: xyz[2] });
+        }
       }
     }
     for (const c of eligible.values()) {
@@ -52,7 +79,7 @@
       }
       const groups = components(points, maxClusterGap);
       if (groups.length > 1) {
-        diagnostics.push({ categoryId: c.id, name: c.name, reason: "distant-clusters", groups, maxClusterGap }); continue;
+        diagnostics.push({ categoryId: c.id, name: c.name, reason: "distant-clusters", groups, maxClusterGap });
       }
       const position = { x: points.reduce((sum, p) => sum + p.x / points.length, 0),
         y: points.reduce((highest, p) => Math.max(highest, p.y), -Infinity) + heightOffset,
@@ -179,7 +206,7 @@
       if (!venue) return;
       try {
         const data = await fetchData(venue, abort.signal);
-        if (disposed || ticket !== request || data.building_slug !== venue) return;
+        if (disposed || ticket !== request || !venueMatches(data.building_slug, venue)) return;
         source = data; dirty = true; schedule();
       } catch (error) {
         if (!disposed && ticket === request && (!error || error.name !== "AbortError")) report({ venue, reason: "data-unavailable" });
@@ -187,13 +214,34 @@
     }
     function rebuild(context) {
       entries.forEach(entry => entry.button.remove()); entries = [];
-      if (!source || !context || context.venue !== venue || !Array.isArray(context.pois)) return;
-      const ids = new Set(context.pois.filter(p => p.hidden !== true && p.is_active !== false).map(p => String(p.id)));
+      if (!source || !context || !venueMatches(context.venue, venue) || !Array.isArray(context.pois)) return;
+      function normalizeId(id) {
+        if (!id) return "";
+        let s = String(id).trim().toLowerCase();
+        if (s.startsWith("gmap_")) s = s.slice(5);
+        return s;
+      }
+      const rawIds = context.pois.filter(p => p.hidden !== true && p.is_active !== false);
+      const ids = new Set();
+      for (const p of rawIds) {
+        if (p.id != null) { ids.add(String(p.id)); ids.add(normalizeId(p.id)); }
+        if (p.key != null) { ids.add(String(p.key)); ids.add(normalizeId(p.key)); }
+        if (p.gmap_src_id != null) { ids.add(String(p.gmap_src_id)); ids.add(normalizeId(p.gmap_src_id)); }
+        if (p.extra && p.extra.gmap_src_id != null) { ids.add(String(p.extra.gmap_src_id)); ids.add(normalizeId(p.extra.gmap_src_id)); }
+      }
+      const hasId = id => {
+        const s = String(id);
+        return ids.has(s) || ids.has(normalizeId(s));
+      };
       // The list/chip filter controls which POIs appear in the sheet, not which
       // category landmarks remain visible in the Dollhouse. Keeping the complete
       // marker set prevents a tag click from making every other landmark disappear.
       const categories = source.categories;
-      const result = calculate(categories, (source.pois || []).filter(p => ids.has(String(p.id))), { ...config, venue });
+      let matchedPois = (source.pois || []).filter(p => hasId(p.id));
+      if (!matchedPois.length && source.pois && source.pois.length && rawIds.length) {
+        matchedPois = source.pois;
+      }
+      const result = calculate(categories, matchedPois, { ...config, venue });
       result.diagnostics.forEach(report);
       for (const marker of result.markers) {
         const style = (getStyle ? getStyle(marker) : null) || {};
@@ -224,12 +272,13 @@
       const context = getContext() || {};
       const body = doc.body.classList;
       const bundle = doc.getElementById("bundleOverlay");
-      return { ...context, mode: mode && pose && pose.mode && mode !== pose.mode ? null : (mode || (pose && pose.mode)), transitioning,
+      const currentMode = mode && pose && pose.mode && mode !== pose.mode ? null : (mode || (pose && pose.mode));
+      return { ...context, mode: currentMode, transitioning,
         background: body.contains("mp-bg-mode"), rendered: body.contains("mp-frame-loaded"),
         // Directions can temporarily return Showcase to Dollhouse (for example,
         // while choosing a start point). Markers belong to that view and should
         // remain visible; only a separate heavy 3D overlay blocks them.
-        blocked: body.contains("n3d-open") || body.contains("nav")
+        blocked: body.contains("n3d-open") || (body.contains("nav") && currentMode !== "mode.dollhouse")
           || !!(bundle && !bundle.hidden && bundle.style.display !== "none"),
         fullscreenTour: !!win.__WF_MP_TOUR_PAGE || !!win.__WF_NAV_WALKTHROUGH_PAGE,
         failed: !!doc.querySelector("#mpBgLoading.err") };
@@ -237,7 +286,7 @@
     function render() {
       if (disposed) return;
       const context = getContext() || {};
-      if (context.venue && context.venue !== venue) { void load(context.venue); }
+      if (context.venue && !venueMatches(context.venue, venue)) { void load(context.venue); }
       if (dirty || context.pois !== lastPois || context.filter !== lastFilter) {
         lastPois = context.pois; lastFilter = context.filter; dirty = false; rebuild(context);
       }
@@ -298,7 +347,7 @@
         pose = next;
         if (next && next.mode !== "mode.dollhouse") { layer.hidden = true; return; }
         if (isIOSDevice) {
-          if (doc.body.classList.contains("nav")) {
+          if (doc.body.classList.contains("nav") && next && next.mode !== "mode.dollhouse") {
             layer.hidden = true;
             return;
           }
@@ -348,7 +397,7 @@
     void load(context.venue);
     return { refresh, reload, dispose, get diagnostics() { return [...reported].map(item => JSON.parse(item)); } };
   }
-  const api = { calculate, components, isVisible, project, overlaps, layout, options, mount };
+  const api = { calculate, components, isVisible, project, overlaps, layout, options, mount, normalizeVenue, venueMatches };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.WFCategoryMarkers = api;
 })(typeof window !== "undefined" ? window : globalThis);

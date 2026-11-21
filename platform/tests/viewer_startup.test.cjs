@@ -158,7 +158,7 @@ test('cached model becomes visible before camera fly-in finishes, with controls 
   assert.equal(c.body.classList.contains('mp-frame-loaded'), true);
   assert.equal(c.body.classList.contains('booting'), true);
   c.mode.resolve(); assert.equal(await result, true);
-  assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame', 'mode.inside']);
+  assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame']);
   assert.equal(c.body.classList.contains('mp-frame-loaded'), true);
   assert.equal(c.text.textContent, 'Preparing your experience…');
   assert.equal(c.frame.src, 'https://example.invalid/model');
@@ -243,27 +243,109 @@ test('visible entrance animation does not by itself enable navigation controls',
   assert.equal(c.body.classList.contains('mp-startup-complete'), true);
 });
 
-test('startup enters native Inside only after dollhouse framing, without choosing a route', async () => {
+test('enhanceBgLoading initializes subtitle to "Preparing your experience…" from 0% and preserves it across milestones', () => {
+  const body = element();
+  let observerCb = null;
+  class MockMutationObserver {
+    constructor(cb) { observerCb = cb; }
+    observe() {}
+    disconnect() {}
+  }
+  const subEl = { textContent: '' };
+  const titleEl = { textContent: '' };
+  const pctEl = { textContent: '' };
+  let shellEl = null;
+  const textEl = { textContent: 'Loading digital twin…' };
+  const loader = {
+    dataset: {},
+    classList: body.classList,
+    querySelector(sel) {
+      if (sel === '#mpBgLoadingText') return textEl;
+      return null;
+    },
+    insertBefore(child) { shellEl = child; },
+    firstChild: null,
+  };
+  const doc = {
+    body,
+    createElement(tag) {
+      return {
+        tagName: tag,
+        className: '',
+        set innerHTML(html) {
+          this._html = html;
+          const subMatch = html.match(/<div class="navme-bg-splash-sub">(.*?)<\/div>/);
+          if (subMatch) subEl.textContent = subMatch[1];
+          const titleMatch = html.match(/<div class="navme-bg-splash-title">(.*?)<\/div>/);
+          if (titleMatch) titleEl.textContent = titleMatch[1];
+          const pctMatch = html.match(/<div class="navme-bg-splash-pct">(.*?)<\/div>/);
+          if (pctMatch) pctEl.textContent = pctMatch[1];
+        },
+        querySelector(sel) {
+          if (sel === '.navme-bg-splash-sub') return subEl;
+          if (sel === '.navme-bg-splash-title') return titleEl;
+          if (sel === '.navme-bg-splash-pct') return pctEl;
+          return null;
+        },
+        classList: {
+          toggle() {},
+          contains() { return false; },
+        },
+      };
+    },
+  };
+  const enhance = handler('mp_background.js', 'enhanceBgLoading', {
+    document: doc,
+    MutationObserver: MockMutationObserver,
+    setInterval() { return 1; },
+    clearInterval() {},
+  });
+  enhance(loader);
+  assert.equal(loader.dataset.navmeEnhanced, '1');
+  assert.equal(subEl.textContent, 'Preparing your experience…');
+  assert.equal(titleEl.textContent, 'Loading Wayfinding');
+
+  // Milestone without custom sub defaults to DEFAULT_SUBTITLE
+  textEl.textContent = 'Connecting to digital twin…';
+  observerCb();
+  assert.equal(subEl.textContent, 'Preparing your experience…');
+
+  textEl.textContent = 'Waiting for twin to be ready…';
+  observerCb();
+  assert.equal(subEl.textContent, 'Preparing your experience…');
+
+  // Milestone with custom sub displays custom text
+  textEl.textContent = 'Tap enter to begin';
+  observerCb();
+  assert.equal(subEl.textContent, 'Tap inside the window below to continue');
+
+  // Error state displays error guidance
+  loader.classList.add('err');
+  observerCb();
+  assert.equal(titleEl.textContent, 'Unable to load NavMe');
+  assert.equal(subEl.textContent, "We couldn't load your navigation experience. Please try again.");
+});
+
+test('startup lands in Dollhouse mode with category markers mounted and visible, without choosing a route', async () => {
   const c = modelContext();
-  const inside = deferred();
   const sdk = { Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
     moveTo: async (mode, options) => {
       c.calls.push(mode);
       assert.equal(options.position, undefined);
-      if (mode === 'inside') await inside.promise;
     } }, Camera: { TransitionType: { FLY: 'fly' } } };
   c.deps.connectSdk = async () => sdk;
   const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
   c.load.resolve(); c.playing.resolve(true); await tick();
-  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  assert.deepEqual(c.calls, ['dollhouse', 'frame']);
   assert.equal(c.body.classList.contains('booting'), true);
-  inside.resolve(); assert.equal(await result, true);
+  assert.equal(await result, true);
   assert.equal(c.frame.src, 'https://example.invalid/model');
 });
-test('failed Inside transition retains the working dollhouse and displays recovery guidance', async () => {
+test('failed Inside transition with deep link retains the working dollhouse and displays recovery guidance', async () => {
   const c = modelContext();
   const shown = [];
   c.deps.toast = text => shown.push(text);
+  c.deps.WFQuery = () => new URLSearchParams('to=test');
   c.deps.connectSdk = async () => ({ Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
     moveTo: async mode => { if (mode === 'inside') throw new Error('SDK unavailable'); }
   } });
@@ -287,7 +369,7 @@ for (const slug of ['uncc-main-campus', 'gcu']) {
     c.load.resolve(); c.playing.resolve(true);
     assert.equal(await result, true);
     assert.equal(!urlOptions || !urlOptions.nativeStartup, true);
-    assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame', 'mode.inside']);
+    assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame']);
     assert.equal(markerMounts, 1);
   });
 }
@@ -305,6 +387,6 @@ test('iOS devices restore dollhouse transition and mount category markers even w
   c.load.resolve(); c.playing.resolve(true);
   assert.equal(await result, true);
   assert.equal(!urlOptions || !urlOptions.nativeStartup, true);
-  assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame', 'mode.inside']);
+  assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame']);
   assert.equal(markerMounts, 1);
 });

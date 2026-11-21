@@ -29,13 +29,28 @@ test('memberships use category IDs, including secondary categories and equal nam
   assert.equal(result.markers.length, 2);
   assert.deepEqual(result.markers.find(c => c.id === 'b').position, { x: 2, y: 8, z: 4 });
 });
-test('multiple floors use the highest Y; disconnected horizontal clusters are reported and skipped', () => {
+test('multiple floors use the highest Y; disconnected horizontal clusters are reported and preserved at centroid', () => {
   const rows = [poi('low', 0, -3, 0), poi('upper', 10, 15, 10)];
   assert.equal(M.calculate([category()], rows, config).markers[0].position.y, 17);
   const result = M.calculate([category()], [...rows, poi('far', 200, 1, 200)], config);
-  assert.equal(result.markers.length, 0);
+  assert.equal(result.markers.length, 1);
   assert.deepEqual(result.diagnostics[0].groups, [2, 1]);
   assert.equal(result.diagnostics[0].reason, 'distant-clusters');
+  assert.deepEqual(result.markers[0].position, { x: 70, y: 17, z: 70 });
+});
+test('category matching supports name fallback when category_ids is missing or empty', () => {
+  const result = M.calculate([category('union-id', 'Student Union')], [poi('one', 10, 2, 20, { category_ids: [], category: 'student union' })], config);
+  assert.equal(result.markers.length, 1);
+  assert.equal(result.markers[0].id, 'union-id');
+  assert.equal(result.markers[0].name, 'Student Union');
+});
+test('venue matching equates route aliases such as unc-charlotte and uncc-main-campus', () => {
+  assert.equal(M.venueMatches('unc-charlotte', 'uncc-main-campus'), true);
+  assert.equal(M.venueMatches('/unc-charlotte', 'uncc-main-campus'), true);
+  assert.equal(M.venueMatches('gcu-omr', 'gcu'), true);
+  assert.equal(M.venueMatches('gcu', 'uncc-main-campus'), false);
+  const result = M.calculate([category('union-id', 'Student Union')], [poi('one', 10, 2, 20, { venue: 'uncc-main-campus', category_ids: ['union-id'] })], { venue: '/unc-charlotte' });
+  assert.equal(result.markers.length, 1);
 });
 test('visibility follows Dollhouse mode even while directions or navigation UI is open', () => {
   const visible = { background: true, rendered: true, mode: 'mode.dollhouse', uiMode: 'home' };

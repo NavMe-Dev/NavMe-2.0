@@ -661,6 +661,7 @@ def category_marker_data(slug: str, db: Session = Depends(get_db)):
         return {"building_slug": b.slug, "coordinate_system": "matterport-sdk-y-up",
                 "categories": data["categories"], "pois": [
                     {"id": p["id"], "venue": b.slug, "category_ids": p.get("category_ids", []),
+                     "category": p.get("category"),
                      "x": p["x"], "y": p["y"], "z": p["z"], "is_active": True}
                     for p in data["pois"] if all(p.get(axis) is not None for axis in ("x", "y", "z"))]}
     _release_read_session(db)

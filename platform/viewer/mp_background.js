@@ -142,20 +142,30 @@
     { match: /tap enter/i, pct: 95, sub: "Tap inside the window below to continue" },
   ];
   const DEFAULT_TITLE = "Loading Wayfinding";
+  const DEFAULT_SUBTITLE = "Preparing your experience…";
 
   /** Re-skin #mpBgLoading once, the first time it exists — see the CSS block above. */
   function enhanceBgLoading(el) {
     if (!el || el.dataset.navmeEnhanced) return;
     el.dataset.navmeEnhanced = "1";
+    const title = typeof DEFAULT_TITLE !== "undefined" ? DEFAULT_TITLE : "Loading Wayfinding";
+    const DEFAULT_SUBTITLE = "Preparing your experience…";
+    const milestones = typeof STATUS_MILESTONES !== "undefined" ? STATUS_MILESTONES : [
+      { match: /loading digital twin/i, pct: 12 },
+      { match: /connecting to digital twin/i, pct: 45 },
+      { match: /waiting for twin to be ready/i, pct: 75 },
+      { match: /preparing your experience/i, pct: 92 },
+      { match: /tap enter/i, pct: 95, sub: "Tap inside the window below to continue" },
+    ];
     const textEl = el.querySelector("#mpBgLoadingText");
     const shell = document.createElement("div");
     shell.className = "navme-bg-splash";
     shell.innerHTML =
       '<img class="navme-bg-splash-logo" src="img/navme-logo.png" alt="" />' +
-      '<div class="navme-bg-splash-title">' + DEFAULT_TITLE + "</div>" +
+      '<div class="navme-bg-splash-title">' + title + "</div>" +
       '<div class="navme-bg-splash-spinner" aria-hidden="true"></div>' +
       '<div class="navme-bg-splash-pct">0%</div>' +
-      '<div class="navme-bg-splash-sub"></div>';
+      '<div class="navme-bg-splash-sub">' + DEFAULT_SUBTITLE + "</div>";
     el.insertBefore(shell, el.firstChild);
 
     const titleEl = shell.querySelector(".navme-bg-splash-title");
@@ -188,10 +198,10 @@
         subEl.textContent = "We couldn't load your navigation experience. Please try again.";
         return;
       }
-      const hit = STATUS_MILESTONES.filter((m) => m.match.test(msg))[0];
+      const hit = milestones.filter((m) => m.match.test(msg))[0];
       const target = hit ? hit.pct : Math.max(shownPct, 30);
-      titleEl.textContent = DEFAULT_TITLE;
-      subEl.textContent = (hit && hit.sub) || (msg.includes("Preparing") ? msg : "");
+      titleEl.textContent = title;
+      subEl.textContent = (hit && hit.sub) || (msg.includes("Preparing") ? msg : DEFAULT_SUBTITLE);
       if (target > shownPct) {
         shownPct = Math.min(shownPct, target - 2 < 0 ? 0 : target - 2);
         pctEl.textContent = Math.round(shownPct) + "%";

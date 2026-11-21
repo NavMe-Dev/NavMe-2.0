@@ -2441,6 +2441,8 @@ function wfDbg(level, source, message, meta) {
       // user is never stranded in the overview; the icon swaps to show which state
       // the button is in.
       if (isMpMode() && window.MpPreview) {
+        if (typeof closeDirectionsIfOpen === "function") closeDirectionsIfOpen();
+        document.body.classList.remove("nav", "dir");
         window.MpPreview.toggleHomeView().then(res => {
           const btn = $("btnMe");
           if (!btn) return;
