@@ -2693,6 +2693,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   async function open(route) {
+    cancelPickOnMap();
     viewerTrace("navigation", {action:"route-preview"});
     if (window.wf && typeof window.wf.enterHeavyOverlay === "function") {
       try { window.wf.enterHeavyOverlay(); } catch (e) { console.warn("[MpPreview] enterHeavyOverlay failed", e); }
@@ -2856,6 +2857,7 @@ function wfDbg(level, source, message, meta) {
   }
 
   function close() {
+    cancelPickOnMap();
     viewerTrace("navigation", {action:"route-exit"});
     openGen++;
     cancelPlayback();
@@ -2907,6 +2909,7 @@ function wfDbg(level, source, message, meta) {
       viewerTrace("navigation", {action:"background-open", reason:"reuse"});
       return backgroundSession.promise;
     }
+    cancelPickOnMap();
     const previous = backgroundSession;
     const session = {identity, epoch:++viewerEpoch, previousModel:previous ? previous.model : null,
       restore:retry && previous ? previous.pose : null, chromeReady:!!(window.WFStartup && window.WFStartup.chromeReady)};
@@ -3323,7 +3326,11 @@ function wfDbg(level, source, message, meta) {
     return el;
   }
 
-  let pickGen = 0;
+  let pickGen = 0, activePick = null;
+  function cancelPickOnMap() {
+    pickGen++;
+    if (activePick) activePick.finish(null);
+  }
   /** "Pick on map" for MP mode: switch to Dollhouse, let the user aim (orbit/pan — native
    *  Showcase dollhouse controls, untouched), track Pointer.intersection for the live 3D
    *  point under the pointer, and on confirm walk there (same focusAt() FLY used by
@@ -3333,41 +3340,68 @@ function wfDbg(level, source, message, meta) {
    *  itself just tracks hover/drag continuously) — hence the explicit confirm button
    *  instead of a single tap-to-commit gesture. */
   async function pickOnMap() {
-    if (!mpSdk) return null;
-    const gen = ++pickGen;
+    cancelPickOnMap();
+    const gen = pickGen, sdk = mpSdk;
+    if (!sdk) return null;
     const bar = ensurePickOverlay();
     const goBtn = $("mpPickGo"), cancelBtn = $("mpPickCancel");
     if (!bar || !goBtn || !cancelBtn) return null;
-    try {
-      const Mode = mpSdk.Mode;
-      if (Mode && Mode.moveTo && Mode.Mode) {
-        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-        const transition = isIOS ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined) : ((Mode.Transition && Mode.Transition.FLY) || undefined);
-        await Mode.moveTo(dh, { transition });
-      }
-    } catch (e) { console.warn("[MpBackground] pickOnMap dollhouse moveTo failed", e && (e.message || e)); }
-    if (gen !== pickGen) return null;
-    let lastHit = null;
-    const sub = mpSdk.Pointer.intersection.subscribe((d) => {
-      if (d && d.object === "intersectedobject.model") lastHit = d;
-    });
-    bar.hidden = false;
-    goBtn.disabled = true;
-    const stopWatch = setInterval(() => { goBtn.disabled = !lastHit; }, 150);
     const result = await new Promise((resolve) => {
-      goBtn.onclick = () => resolve(lastHit);
-      cancelBtn.onclick = () => resolve(null);
+      let sub = null, timer = null, settled = false, lastHit = null;
+      const session = { finish: null };
+      activePick = session;
+      const current = () => activePick === session && gen === pickGen && sdk === mpSdk;
+      const confirm = () => session.finish(lastHit), cancel = () => session.finish(null);
+      session.finish = (hit) => {
+        if (settled) return;
+        settled = true;
+        clearInterval(timer);
+        try {
+          if (typeof sub === "function") sub();
+          else if (sub && sub.cancel) sub.cancel();
+          else if (sub && sub.unsubscribe) sub.unsubscribe();
+        } catch (_) { /* SDK cleanup is best effort. */ }
+        if (goBtn.onclick === confirm) goBtn.onclick = null;
+        if (cancelBtn.onclick === cancel) cancelBtn.onclick = null;
+        if (activePick === session) { activePick = null; bar.hidden = true; }
+        resolve(hit);
+      };
+      // Cancellation settles this request even if an SDK transition is still pending.
+      void (async () => {
+        try {
+          const Mode = sdk.Mode;
+          if (Mode && Mode.moveTo && Mode.Mode) {
+            const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+            const transition = isIOSClient()
+              ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
+              : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+            await Mode.moveTo(dh, { transition });
+          }
+          if (!current()) { session.finish(null); return; }
+          sub = sdk.Pointer.intersection.subscribe((d) => {
+            if (current() && d && d.object === "intersectedobject.model") lastHit = d;
+          });
+          if (!current()) { session.finish(null); return; }
+          bar.hidden = false;
+          goBtn.disabled = !lastHit;
+          goBtn.onclick = confirm;
+          cancelBtn.onclick = cancel;
+          timer = setInterval(() => {
+            if (!current()) { session.finish(null); return; }
+            goBtn.disabled = !lastHit;
+          }, 150);
+        } catch (e) {
+          console.warn("[MpBackground] map picker failed", e && (e.message || e));
+          session.finish(null);
+        }
+      })();
     });
-    clearInterval(stopWatch);
-    try { sub.cancel(); } catch (_) { /* ignore */ }
-    bar.hidden = true;
-    if (gen !== pickGen || !result) return null;
+    if (gen !== pickGen || sdk !== mpSdk || !result) return null;
     const modelPt = sdkToModel(result.position);
     if (!modelPt) return null;
     modelPt.floorIndex = result.floorIndex;
     try { await focusAt(modelPt, null); } catch (_) { /* ignore — point is still valid even if the fly-there animation fails */ }
-    return modelPt;
+    return gen === pickGen && sdk === mpSdk ? modelPt : null;
   }
 
   // ── "Start Preview" walkthrough: the exact same sweep-by-sweep engine Tour interior
@@ -3379,6 +3413,7 @@ function wfDbg(level, source, message, meta) {
   /** Prepare the module's sweepIds/sweepNodes/distances for `route`, reusing mpSdk
    *  that's already connected in mp background mode (see showBackground()). */
   async function prepareWalk(route) {
+    cancelPickOnMap();
     tourNavSteps = Array.isArray(route && route._navSteps) ? route._navSteps : [];
     destName = (route && route._destName) || null;
     fromName = (route && route._fromName) || null;

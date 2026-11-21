@@ -21,6 +21,8 @@
   var navMesh = null;   // imported mesh for the current building
   var navKey = "";      // which building/url the loaded mesh belongs to
   var initPromise = null;
+  var queryFilter = null;
+  var navQuery = null;
 
   function rt() {
     if (!RT) RT = global.NavMeshRT;
@@ -40,7 +42,13 @@
     if (!res.ok) throw new Error("navmesh download failed (" + res.status + ")");
     var bytes = new Uint8Array(await res.arrayBuffer());
     if (!bytes.byteLength) throw new Error("navmesh file is empty");
+    // Queries retain the mesh's native pointers; release their pool before the mesh.
+    if (navQuery) {
+      try { navQuery.destroy(); } catch (_) { /* Cleanup must not block replacement. */ }
+      navQuery = null;
+    }
     if (navMesh) { try { navMesh.destroy(); } catch (e) { /* already gone */ } }
+    navMesh = null;
     var out = rt().importNavMesh(bytes);
     if (!out || !out.navMesh) throw new Error("could not import navmesh");
     navMesh = out.navMesh;
@@ -49,6 +57,17 @@
   }
 
   function isLoaded() { return !!navMesh; }
+
+  function getQuery() {
+    if (navQuery) return navQuery;
+    var q = new (rt().NavMeshQuery)(navMesh, { maxNodes: 16384, defaultQueryFilter: queryFilter || undefined });
+    // Query.destroy() frees its search pool, but not its separate default filter.
+    // Keep one model-independent filter for this runtime instead of leaking one per route.
+    if (!queryFilter) queryFilter = q.defaultFilter;
+    // Reuse the query too: its WebIDL wrapper is not reclaimed by destroy().
+    navQuery = q;
+    return q;
+  }
 
   function dist3(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -60,40 +79,34 @@
     var q;
     // 16384 nodes: the default 2048 is too small for large outdoor navmeshes
     // where A* floods thousands of ground-floor polygons before finding stairs.
-    try { q = new (rt().NavMeshQuery)(navMesh, { maxNodes: 16384 }); }
+    try { q = getQuery(); }
     catch (e) { return { ok: false, error: "NavMeshQuery failed: " + e.message }; }
 
-    try {
-      var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
-      var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
-      if (!a || !a.point) return { ok: false, error: "Start is not on the navmesh" };
-      if (!b || !b.point) return { ok: false, error: "Destination is not on the navmesh" };
+    var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
+    var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
+    if (!a || !a.point) return { ok: false, error: "Start is not on the navmesh" };
+    if (!b || !b.point) return { ok: false, error: "Destination is not on the navmesh" };
 
-      var res;
-      try { res = q.computePath(a.point, b.point); }
-      catch (e) { return { ok: false, error: "computePath: " + e.message }; }
+    var res;
+    try { res = q.computePath(a.point, b.point); }
+    catch (e) { return { ok: false, error: "computePath: " + e.message }; }
 
-      var pts = (res && res.path) ? res.path : (Array.isArray(res) ? res : []);
-      if (!pts.length) return { ok: false, error: "No path between those points" };
+    var pts = (res && res.path) ? res.path : (Array.isArray(res) ? res : []);
+    if (!pts.length) return { ok: false, error: "No path between those points" };
 
-      var path = pts.map(function (p) { return { x: p.x, y: p.y, z: p.z }; });
-      var length = 0;
-      for (var i = 1; i < path.length; i++) length += dist3(path[i], path[i - 1]);
+    var path = pts.map(function (p) { return { x: p.x, y: p.y, z: p.z }; });
+    var length = 0;
+    for (var i = 1; i < path.length; i++) length += dist3(path[i], path[i - 1]);
 
-      // How far the mesh-snapped ends sit from the requested POIs. Reported, never corrected —
-      // nudging the endpoints would mean the drawn route is no longer the mesh's own path.
-      var startGap = dist3(path[0], from);
-      var endGap = dist3(path[path.length - 1], to);
+    // How far the mesh-snapped ends sit from the requested POIs. Reported, never corrected —
+    // nudging the endpoints would mean the drawn route is no longer the mesh's own path.
+    var startGap = dist3(path[0], from);
+    var endGap = dist3(path[path.length - 1], to);
 
-      return { ok: true, path: path, length_m: Math.round(length * 10) / 10,
-               start_gap_m: Math.round(startGap * 10) / 10,
-               end_gap_m: Math.round(endGap * 10) / 10,
-               partial: endGap > 2 };
-    } finally {
-      // Detour queries own native/WASM allocations. Release on every return or
-      // exception, keeping only the copied JavaScript route points above.
-      try { q.destroy(); } catch (_) { /* Cleanup cannot replace the route result. */ }
-    }
+    return { ok: true, path: path, length_m: Math.round(length * 10) / 10,
+             start_gap_m: Math.round(startGap * 10) / 10,
+             end_gap_m: Math.round(endGap * 10) / 10,
+             partial: endGap > 2 };
   }
 
   // ---------------------------------------------------------------- guidance
@@ -390,37 +403,41 @@
   /** Debug: expose snap points and poly refs for diagnosis. */
   function routeDebug(from, to) {
     if (!navMesh) return { error: "No navmesh loaded" };
-    var q = new (rt().NavMeshQuery)(navMesh, { maxNodes: 16384 });
-    var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
-    var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
-    var aSnap = a && a.point ? {x:+a.point.x.toFixed(3),y:+a.point.y.toFixed(3),z:+a.point.z.toFixed(3)} : null;
-    var bSnap = b && b.point ? {x:+b.point.x.toFixed(3),y:+b.point.y.toFixed(3),z:+b.point.z.toFixed(3)} : null;
-    // Low-level findPath with poly refs directly
+    var q = getQuery();
     var fpResult = null;
-    if (a && b && a.polyRef && b.polyRef) {
-      try {
-        fpResult = q.findPath(a.polyRef, b.polyRef, a.point, b.point);
-      } catch(e) { fpResult = {error: e.message}; }
-    }
+    try {
+      var a = q.findClosestPoint({ x: from.x, y: from.y, z: from.z });
+      var b = q.findClosestPoint({ x: to.x, y: to.y, z: to.z });
+      var aSnap = a && a.point ? {x:+a.point.x.toFixed(3),y:+a.point.y.toFixed(3),z:+a.point.z.toFixed(3)} : null;
+      var bSnap = b && b.point ? {x:+b.point.x.toFixed(3),y:+b.point.y.toFixed(3),z:+b.point.z.toFixed(3)} : null;
+      // Low-level findPath with poly refs directly
+      if (a && b && a.polyRef && b.polyRef) {
+        try {
+          fpResult = q.findPath(a.polyRef, b.polyRef, a.point, b.point);
+        } catch(e) { fpResult = {error: e.message}; }
+      }
 
-    // Also try computePath with raised maxPathPolys
-    var res = (a && b && a.point && b.point)
-      ? q.computePath(a.point, b.point, {maxPathPolys: 1024}) : null;
-    var pts = res && res.path ? res.path : [];
-    var ys = pts.map(function(p){return p.y;});
-    return {
-      fromSnap: aSnap, toSnap: bSnap,
-      fromPolyRef: a ? a.polyRef : null,
-      toPolyRef: b ? b.polyRef : null,
-      findPath_success: fpResult ? fpResult.success : null,
-      findPath_polys: fpResult && fpResult.polys ? fpResult.polys.size : null,
-      findPath_lastPoly_isEnd: fpResult && fpResult.polys && b
-        ? (fpResult.polys.get(fpResult.polys.size-1) === b.polyRef) : null,
-      computePath_success: res ? res.success : null,
-      pathPts: pts.length,
-      pathMinY: ys.length ? +Math.min.apply(null,ys).toFixed(3) : null,
-      pathMaxY: ys.length ? +Math.max.apply(null,ys).toFixed(3) : null,
-    };
+      // Also try computePath with raised maxPathPolys
+      var res = (a && b && a.point && b.point)
+        ? q.computePath(a.point, b.point, {maxPathPolys: 1024}) : null;
+      var pts = res && res.path ? res.path : [];
+      var ys = pts.map(function(p){return p.y;});
+      return {
+        fromSnap: aSnap, toSnap: bSnap,
+        fromPolyRef: a ? a.polyRef : null,
+        toPolyRef: b ? b.polyRef : null,
+        findPath_success: fpResult ? fpResult.success : null,
+        findPath_polys: fpResult && fpResult.polys ? fpResult.polys.size : null,
+        findPath_lastPoly_isEnd: fpResult && fpResult.polys && b
+          ? (fpResult.polys.get(fpResult.polys.size-1) === b.polyRef) : null,
+        computePath_success: res ? res.success : null,
+        pathPts: pts.length,
+        pathMinY: ys.length ? +Math.min.apply(null,ys).toFixed(3) : null,
+        pathMaxY: ys.length ? +Math.max.apply(null,ys).toFixed(3) : null,
+      };
+    } finally {
+      try { if (fpResult && fpResult.polys) fpResult.polys.destroy(); } catch (_) { /* Best effort. */ }
+    }
   }
 
   global.WFNavmeshRoute = {

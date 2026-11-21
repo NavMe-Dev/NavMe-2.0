@@ -39,10 +39,11 @@ async function fixture(scenario = 'success') {
   vm.runInNewContext(source, context);
   await context.window.WFNavmeshRoute.load('/local-test.navmesh', 'uncc-test');
   return {route: () => context.window.WFNavmeshRoute.route(points[0], points[1]),
+    replace: () => context.window.WFNavmeshRoute.load('/replacement.navmesh', 'replacement'),
     counts: () => ({created, destroyed}), points};
 }
 
-test('repeated successful routes release every native query and retain exact copied geometry', async () => {
+test('repeated successful routes reuse one native query and retain exact copied geometry', async () => {
   const f = await fixture();
   for (let index = 0; index < 100; index++) {
     const result = f.route();
@@ -53,24 +54,32 @@ test('repeated successful routes release every native query and retain exact cop
     assert.equal(result.end_gap_m, 0);
     assert.equal(result.partial, false);
   }
-  assert.deepEqual(f.counts(), {created: 100, destroyed: 100});
+  assert.deepEqual(f.counts(), {created: 1, destroyed: 0});
+  await f.replace();
+  assert.deepEqual(f.counts(), {created: 1, destroyed: 1});
+  assert.equal(f.route().ok, true);
+  assert.deepEqual(f.counts(), {created: 2, destroyed: 1});
 });
 
 for (const [scenario, error] of [['no-start', 'Start is not on the navmesh'],
   ['no-destination', 'Destination is not on the navmesh'],
   ['empty-path', 'No path between those points'], ['path-error', 'computePath: path failed']]) {
-  test(`native query is released on ${scenario}`, async () => {
+  test(`${scenario} preserves its error and releases the retained query on mesh replacement`, async () => {
     const f = await fixture(scenario);
     const result = f.route();
     assert.equal(result.ok, false);
     assert.equal(result.error, error);
+    assert.deepEqual(f.counts(), {created: 1, destroyed: 0});
+    await f.replace();
     assert.deepEqual(f.counts(), {created: 1, destroyed: 1});
   });
 }
 
-test('native query is released when closest-point lookup throws', async () => {
+test('closest-point errors preserve their exception and release the query on mesh replacement', async () => {
   const f = await fixture('closest-error');
   assert.throws(f.route, /closest failed/);
+  assert.deepEqual(f.counts(), {created: 1, destroyed: 0});
+  await f.replace();
   assert.deepEqual(f.counts(), {created: 1, destroyed: 1});
 });
 
@@ -80,8 +89,11 @@ test('a constructor failure preserves the existing error without cleaning an abs
   assert.deepEqual(f.counts(), {created: 0, destroyed: 0});
 });
 
-test('cleanup failure cannot replace a valid route', async () => {
+test('query cleanup failure cannot block mesh replacement or replace a valid route', async () => {
   const f = await fixture('cleanup-error');
   assert.equal(f.route().ok, true);
-  assert.deepEqual(f.counts(), {created: 1, destroyed: 1});
+  assert.deepEqual(f.counts(), {created: 1, destroyed: 0});
+  await f.replace();
+  assert.equal(f.route().ok, true);
+  assert.deepEqual(f.counts(), {created: 2, destroyed: 1});
 });
