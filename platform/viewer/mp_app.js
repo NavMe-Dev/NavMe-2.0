@@ -146,7 +146,11 @@
       let from = byId[fromKey];
       if (fromKey === "__loc" && lastLoc) {
         const fm = ordered.find(f => f.id === lastLoc.floor) || ordered[0] || { elevation: 0 };
-        from = { name: "My location", sdk: { x: lastLoc.x, y: fm.elevation || 0, z: -lastLoc.y } };
+        const derived = derivedFloors && derivedFloors.find(f => f.id === lastLoc.floor);
+        const height = Number.isFinite(lastLoc.modelHeight) ? lastLoc.modelHeight
+          : derived && Number.isFinite(derived.elevation) ? derived.elevation
+          : Number.isFinite(fm.elevation) ? fm.elevation : 0;
+        from = { name: "My location", sdk: { x: lastLoc.x, y: height, z: -lastLoc.y } };
       }
       if (!from || !to) return null;
       if (!WFNav.navmeshReady() && !opts._waited) {
@@ -186,7 +190,11 @@
       setStyle:s=>{window.wf.style=s;return Promise.resolve();},route,
       clearRoute:()=>{requestId++;lastRoute=null;window.wf.lastRoute=null;},redrawPOIs:()=>{},showGraph:()=>{},
       setShowLabels:on=>{window.wf.showLabels=!!on;},startLocalize:()=>false,isLocalizing:()=>false,
-      localizeAt:(lon,lat)=>{const xy=llToModel(lon,lat);lastLoc={lon,lat,x:xy[0],y:xy[1],floor:currentFloor};window.wf.lastLoc=lastLoc;if(window.wf.onLocalized)window.wf.onLocalized(lastLoc);},
+      localizeAt:(lon,lat,options)=>{
+        const xy=llToModel(lon,lat);lastLoc={lon,lat,x:xy[0],y:xy[1],floor:currentFloor};
+        if(options && Number.isFinite(options.modelHeight)) lastLoc.modelHeight=options.modelHeight;
+        window.wf.lastLoc=lastLoc;if(window.wf.onLocalized)window.wf.onLocalized(lastLoc);
+      },
       modelZtoAbs:z=>z,cam:()=>Promise.resolve(),fit3D:()=>Promise.resolve(),enterHeavyOverlay:()=>{},exitHeavyOverlay:()=>{},
       setRealMesh:()=>{},setMeshEdgeColor:()=>{},setMeshEdgeIntensity:()=>{},setHideShell:()=>{},setHideOsmBlocks:()=>{},setHideMesh:()=>{},setSolidBuildings:()=>{}
     };

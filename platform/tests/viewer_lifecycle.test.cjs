@@ -9,7 +9,8 @@ const flush = async () => { for (let n = 0; n < 50; n++) await Promise.resolve()
 function deferred() { let resolve, reject; const promise = new Promise((r, j) => { resolve = r; reject = j; }); return {promise, resolve, reject}; }
 
 function fixture({holdConnections = false, holdConfig = false, holdPlaying = false} = {}) {
-  const elements = new Map(), writes = [], attempts = [], events = [], idle = [];
+  const elements = new Map(), writes = [], attempts = [], events = [], idle = [], deadlines = new Map();
+  let nextDeadline = 0;
   const element = id => {
     const classes = new Set(id === 'body' ? ['mp-bg-mode'] : []);
     return {id, hidden: false, isConnected: true, style: {}, dataset: {}, attributes: {},
@@ -30,7 +31,10 @@ function fixture({holdConnections = false, holdConfig = false, holdPlaying = fal
   const c = {window: null, document: {body: element('body'), getElementById: $, querySelector: () => null},
     navigator: {userAgent: 'mobile-test'}, location: {href: 'https://viewer.test/unc-charlotte', search: ''},
     performance, URL, URLSearchParams, console: {warn() {}, info() {}, error() {}},
-    setTimeout: callback => { queueMicrotask(callback); return 1; }, clearTimeout() {}, setInterval: () => 1, clearInterval() {},
+    setTimeout(callback, delay) {
+      if (delay === 60000) { const id = ++nextDeadline; deadlines.set(id, callback); return id; }
+      queueMicrotask(callback); return 0;
+    }, clearTimeout: id => deadlines.delete(id), setInterval: () => 1, clearInterval() {},
     requestAnimationFrame: callback => { queueMicrotask(callback); return 1; }, cancelAnimationFrame() {},
     requestIdleCallback: callback => { idle.push(callback); return idle.length; }, cancelIdleCallback() {},
     addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
@@ -88,7 +92,11 @@ function fixture({holdConnections = false, holdConfig = false, holdPlaying = fal
     };
     return sdk;
   }
-  return {c, frame, writes, attempts, events, makeSdk, configWait, playingWait, elements,
+  return {c, frame, writes, attempts, events, makeSdk, configWait, playingWait, elements, deadlines,
+    expireConnection() {
+      assert.equal(deadlines.size, 1, 'one pending connection deadline');
+      const callbacks = [...deadlines.values()]; deadlines.clear(); callbacks.forEach(callback => callback());
+    },
     reloadControllerScript: () => vm.runInContext(hooked, c),
     model(value) { c.WF.cfg = {...c.WF.cfg, matterport_model_id: value}; },
     counts: () => ({iframeElements: 1, srcWrites: writes.length, sdkInitializations: attempts.length, starts, ready})};
@@ -110,6 +118,37 @@ test('same-model requests share pending initialization and reuse the ready ifram
   assert.equal(f.c.__lifecycleTest.state().sdk, sdk);
   assert.deepEqual(await sdk.Camera.getPose(), pose);
   assert.equal(f.writes.length, 1);
+  assert.equal(f.deadlines.size, 0, 'successful connection releases its deadline');
+});
+
+test('a stalled SDK handshake settles failed startup and releases a late connection', async () => {
+  const f = fixture({holdConnections: true});
+  const startup = f.c.MpPreview.showBackground(); await flush();
+  assert.equal(f.attempts.length, 1);
+  f.expireConnection();
+  assert.equal(await startup, false);
+  assert.ok(f.events.includes('startup.fail'));
+  assert.equal(f.c.__lifecycleTest.state().sdk, null);
+  const late = f.makeSdk('timed-out'); f.attempts[0].resolve(late); await flush();
+  assert.equal(late.disconnected, 1);
+  assert.equal(f.c.__lifecycleTest.state().sdk, null);
+  assert.equal(f.c.__mpBackgroundReady, undefined);
+  assert.equal(f.deadlines.size, 0);
+});
+
+test('a timed-out SDK cannot replace the successful explicit retry', async () => {
+  const f = fixture({holdConnections: true});
+  const first = f.c.MpPreview.showBackground(); await flush();
+  f.expireConnection(); assert.equal(await first, false);
+  const retry = f.c.MpPreview.showBackground({retry: true}); await flush();
+  assert.equal(f.attempts.length, 2);
+  const ready = f.makeSdk('retry'); f.attempts[1].resolve(ready);
+  assert.equal(await retry, true);
+  const late = f.makeSdk('late'); f.attempts[0].resolve(late); await flush();
+  assert.equal(late.disconnected, 1);
+  assert.equal(ready.disconnected, 0);
+  assert.equal(f.c.__lifecycleTest.state().sdk, ready);
+  assert.equal(f.deadlines.size, 0);
 });
 
 test('a genuine model change starts once and keeps the existing iframe element', async () => {

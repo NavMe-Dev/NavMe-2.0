@@ -323,21 +323,34 @@ function wfDbg(level, source, message, meta) {
   }
 
   function loadSdkScript() {
-    if (window.MP_SDK) return Promise.resolve();
+    if (window.MP_SDK && typeof window.MP_SDK.connect === "function") return Promise.resolve();
     if (sdkScriptPromise) return sdkScriptPromise;
-    sdkScriptPromise = new Promise((resolve, reject) => {
+    const attempt = new Promise((resolve, reject) => {
       const s = document.createElement("script");
+      let settled = false, deadline = null;
+      const finish = error => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(deadline);
+        s.onload = s.onerror = null;
+        if (error) {
+          if (s.remove) s.remove();
+          reject(error);
+        } else resolve();
+      };
       s.src = SDK_BOOTSTRAP;
       s.async = true;
-      s.onload = () => resolve();
-      s.onerror = () => {
-        sdkScriptPromise = null;
-        if (s.remove) s.remove();
-        reject(new Error("Failed to load Matterport SDK bootstrap"));
-      };
+      s.onload = () => finish(window.MP_SDK && typeof window.MP_SDK.connect === "function"
+        ? null : new Error("Matterport SDK bootstrap unavailable"));
+      s.onerror = () => finish(new Error("Failed to load Matterport SDK bootstrap"));
+      // A blocked or stalled vendor script may never emit load/error. Settle the
+      // shared attempt so startup can fail and an explicit retry can load again.
+      deadline = setTimeout(() => finish(new Error("Matterport SDK bootstrap timed out")), 30000);
       document.head.appendChild(s);
     });
-    return sdkScriptPromise;
+    sdkScriptPromise = attempt;
+    void attempt.catch(() => { if (sdkScriptPromise === attempt) sdkScriptPromise = null; });
+    return attempt;
   }
 
   function readAccessPolicy() {
@@ -1858,7 +1871,24 @@ function wfDbg(level, source, message, meta) {
         if (!current()) { viewerTrace("operation.stale", {reason:"stale"}); return null; }
         if (!window.MP_SDK || !window.MP_SDK.connect) throw new Error("SDK bootstrap unavailable");
         viewerTrace("sdk.init.start", {generation:epoch, modelId:entry.model});
-        const connected = await window.MP_SDK.connect(iframe, key, "");
+        let expired = false, deadline = null;
+        const connection = Promise.resolve(window.MP_SDK.connect(iframe, key, ""));
+        // The vendor handshake can remain pending behind a verification page.
+        // A timed-out result must never become the live SDK after a retry.
+        void connection.then(connected => {
+          if (expired) try { if (connected && connected !== mpSdk && connected.disconnect) connected.disconnect(); } catch (_) {}
+        }, () => {});
+        const connected = await Promise.race([
+          connection,
+          new Promise((_, reject) => {
+            deadline = setTimeout(() => {
+              expired = true;
+              const error = new Error("Matterport SDK connection timed out");
+              error.code = "sdk_timeout";
+              reject(error);
+            }, 60000);
+          })
+        ]).finally(() => clearTimeout(deadline));
         if (!current()) {
           viewerTrace("operation.stale", {reason:"stale", generation:epoch});
           try { if (connected !== mpSdk && connected && connected.disconnect) connected.disconnect(); } catch (_) {}
@@ -1882,7 +1912,7 @@ function wfDbg(level, source, message, meta) {
       } catch (error) {
         if (!current()) { viewerTrace("operation.stale", {reason:"stale", generation:epoch}); return null; }
         connectError = "Digital twin connection failed";
-        viewerTrace("sdk.init.failure", {generation:epoch, reason:"failure"});
+        viewerTrace("sdk.init.failure", {generation:epoch, reason:error && error.code === "sdk_timeout" ? "timeout" : "failure"});
         // A stale failure must never clear a newer connected SDK.
         return null;
       }

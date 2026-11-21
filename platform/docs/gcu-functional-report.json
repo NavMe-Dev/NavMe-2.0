@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-21",
+  "experience": "https://wayfinding.navme.space/gcu-omr",
+  "base_commit": "234f3c8083401b681e5a30b180999960b1788df4",
+  "scope": "Public GCU experience. Candidate frontend served over the production origin with actual production GET data, Matterport scene and SDK. No vendor verification bypass or mocked SDK readiness.",
+  "publication": {
+    "building": "gcu",
+    "version": 5,
+    "places": 99,
+    "categories": 11
+  },
+  "fixes": [
+    {
+      "id": "public-map-start",
+      "before": "The empty From flow hid the Pick on map prompt and exposed no map-picking autocomplete action.",
+      "after": "From includes the localized Choose on Map action, alongside POI search; To search and endpoint swapping retain their existing behavior.",
+      "files": [
+        "platform/viewer/ui.js"
+      ]
+    },
+    {
+      "id": "picker-controls-and-cancel",
+      "before": "On mobile the directions sheet intercepted picker Cancel taps; cancellation could leave the directions prompt hidden. The Not right action called an unavailable map adapter.",
+      "after": "Opening the picker closes overlapping sheets; Cancel restores the current directions state, stale attempts cannot restore old UI, and Not right reopens Matterport picking.",
+      "files": [
+        "platform/viewer/ui.js"
+      ]
+    },
+    {
+      "id": "picked-height",
+      "before": "A picked point lost its vertical coordinate; routing reconstructed it from configured floor elevation and could use another level. Shared location links also lost height.",
+      "after": "The finite picked height is stored before localization callbacks, used for the route origin, and preserved in the optional fourth me-link field. Existing three-field links remain supported.",
+      "files": [
+        "platform/viewer/ui.js",
+        "platform/viewer/mp_app.js"
+      ]
+    },
+    {
+      "id": "bounded-sdk-startup",
+      "before": "A stalled bootstrap or SDK handshake could leave the startup promise pending after the loader reported failure.",
+      "after": "SDK bootstrap and handshake attempts have 30-second and 60-second deadlines; failed loads can retry and late timed-out SDK connections are released without replacing the active connection.",
+      "files": [
+        "platform/viewer/mp_preview.js"
+      ]
+    },
+    {
+      "id": "cross-origin-diagnostics",
+      "before": "Lifecycle diagnostics probed a cross-origin Matterport document and could fail while cleaning the previous document in WebKit.",
+      "after": "Diagnostics avoid known cross-origin document reads and tolerate revoked access during cleanup. Candidate core interactions recorded zero page errors.",
+      "files": [
+        "platform/viewer/viewer_lifecycle.js"
+      ]
+    },
+    {
+      "id": "missing-ar-launcher",
+      "before": "Every visit requested the absent optional /ar_webxr/launch.js module and returned 404.",
+      "after": "The unused eager import is removed. Existing published external place/route AR handoffs remain working.",
+      "files": [
+        "platform/viewer/index.html"
+      ]
+    }
+  ],
+  "validation": {
+    "frontend_regressions": {
+      "command": "node --test platform/tests/*.test.cjs",
+      "passed": 371,
+      "failed": 0
+    },
+    "mobile_browser": {
+      "engine": "Playwright WebKit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "touch": true,
+      "physical_iphone": false,
+      "passed_checks": 29,
+      "failed_harness_checks": 1,
+      "core_page_errors": 0,
+      "note": "The retained Home/marker check attempted a hidden marker in directions state. Home and zoom were retested successfully in the desktop follow-up; marker click was not established by this candidate run."
+    },
+    "desktop_browser": {
+      "engine": "Playwright WebKit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "passed_checks": 6,
+      "failed_checks": 0,
+      "page_errors": 0
+    },
+    "all_destination_routing": {
+      "origin": "Security",
+      "destinations_tested": 99,
+      "complete_routes": 99,
+      "partial_routes": 0,
+      "failures": 0,
+      "max_endpoint_gap_m": 0.4,
+      "native_queries": 1,
+      "native_filters": 1,
+      "note": "Actual public coordinates and navmesh. One origin to each published destination, not all possible pairs."
+    },
+    "genuine_map_pick": {
+      "pointer_hits": 2,
+      "confirmed_model_height_m": -2.226983465,
+      "navmesh_origin_height_m": -2.198971748,
+      "share_link_reload_preserves_height": true
+    },
+    "stable_interactions": {
+      "seconds_after_startup": 76,
+      "sdk_initializations": 1,
+      "host_iframe_source_writes": 1,
+      "native_queries": 1,
+      "unexpected_main_document_reload": false,
+      "production_app_writes": 0
+    },
+    "features_passed": [
+      "All 11 authored category list counts",
+      "Search, empty results, clear and real camera focus",
+      "Place details and supplied images",
+      "Sidebar, large text and appearance",
+      "Help and About",
+      "French, Arabic RTL and English restoration",
+      "Recent search removal",
+      "From and To editing, swap, units and route share",
+      "Sample multi-level route geometry",
+      "Public map-picker Cancel, reopen and genuine confirmation",
+      "Manual Walkthrough, Next, Previous and Exit",
+      "Automatic Preview progress and Exit",
+      "Desktop zoom and actual Home/return camera modes",
+      "External place and route AR URL handoffs",
+      "Campus Explore selection and About",
+      "Place link opening and refresh",
+      "Directions link opening",
+      "Picked-height directions link reload"
+    ]
+  },
+  "remaining_limits": [
+    "A physical iPhone is required to establish Safari/Chrome memory-pressure and reload behavior.",
+    "External AR URL handoff was tested; real camera/location-based AR was not.",
+    "No authenticated admin edits, feedback submissions or other production data writes were tested.",
+    "Known Matterport analytics blocking, verification pages and vendor/unknown errors during deliberate navigation remain recorded; they are not suppressed or claimed fixed.",
+    "Marker selection was pending a focused fresh-page check at the time of this pre-deploy report.",
+    "Legacy deployments that separately provide the removed optional WebXR launcher must load that module explicitly."
+  ],
+  "browser_artifact_directory": "/private/tmp/navme-gcu-functional-validation-20261121",
+  "report_stage": "pre-deploy candidate acceptance; deployment verification is recorded separately"
+}
