@@ -294,7 +294,12 @@ function wfDbg(level, source, message, meta) {
     const style = q.get("style") || (document.body.classList.contains("hc") ? "dark" : "map");
     await setStyle(style);
     if (q.get("floor")) wf.setFloor(q.get("floor"));
-    if (q.get("me")) { const [lon, lat, F] = q.get("me").split(","); if (F) wf.setFloor(F); wf.localizeAt(+lon, +lat); onLocalized(wf.lastLoc, true); }
+    if (q.get("me")) {
+      const [lon, lat, F, height] = q.get("me").split(",");
+      const modelHeight = height != null && height.trim() !== "" && Number.isFinite(Number(height)) ? Number(height) : undefined;
+      if (F) wf.setFloor(F);
+      wf.localizeAt(+lon, +lat, {modelHeight}); onLocalized(wf.lastLoc, true);
+    }
     if (q.get("mode") === "stepfree") S.stepFree = true;
     const to = byId[q.get("to")], fromK = q.get("from");
     if (to && fromK) { S.to = to; S.from = fromK === "me" ? "me" : byId[fromK] || null; openDirections(); }
@@ -339,7 +344,9 @@ function wfDbg(level, source, message, meta) {
       P.set("to", place.id);
     }
     if (wf.lastLoc && ((kind === "dir" && from === "me") || opts.includeMe)) {
-      P.set("me", [wf.lastLoc.lon.toFixed(7), wf.lastLoc.lat.toFixed(7), wf.lastLoc.floor].join(","));
+      const me = [wf.lastLoc.lon.toFixed(7), wf.lastLoc.lat.toFixed(7), wf.lastLoc.floor];
+      if (Number.isFinite(wf.lastLoc.modelHeight)) me.push(wf.lastLoc.modelHeight);
+      P.set("me", me.join(","));
     }
     P.set("floor", wf.currentFloor()); P.set("style", wf.style || "map");
     if (wf.is3D()) P.set("view", "3d");
@@ -584,7 +591,7 @@ function wfDbg(level, source, message, meta) {
       syncCategoryButtons(selectedCategory);
     }
     const list = $("acList"); let html = ""; acItems = [];
-    if (extra) extra.forEach(x => { acItems.push(x); html += `<li role="option" id="ac${acItems.length - 1}"><span class="ic" style="background:${x.color}"><span class="ms fill">${x.icon}</span></span><span class="t"><b>${esc(x.label)}</b><div class="s">${esc(x.sub || "")}</div></span></li>`; });
+    if (extra) extra.forEach(x => { acItems.push(x); html += `<li role="option" id="ac${acItems.length - 1}" aria-label="${esc(x.label)}"${x.pickMap ? ' data-ac-action="pick-map"' : ""}><span class="ic" style="background:${x.color}"><span class="ms fill">${x.icon}</span></span><span class="t"><b>${esc(x.label)}</b><div class="s">${esc(x.sub || "")}</div></span></li>`; });
     if (directionSearch && !txt.trim()) {
       const remembered = recent().filter(id => selectedCategory === ALL_CAT || byId[id].category === selectedCategory);
       if (remembered.length) {
@@ -642,6 +649,11 @@ function wfDbg(level, source, message, meta) {
     if (target === $("q")) { if (it.poi) { pushRecent(it.poi.id); target.value = it.poi.name; target.blur(); setUxMode("places"); selectPlace(it.poi, { fly: true }); } }
     else {
       const which = target === $("fromQ") ? "from" : "to";
+      if (it.pickMap && which === "from") {
+        target.blur(); syncDirFields();
+        isMpMode() ? pickOnMapMp() : startLocalize(true);
+        return;
+      }
       if (it.me) { S[which] = "me"; if (which === "from" && !wf.lastLoc) { if (isMpMode()) pickOnMapMp(); else startLocalize(true); } }
       else if (it.poi) { S[which] = it.poi; pushRecent(it.poi.id); if (which === "from") S.locMeta = null; }
       target.blur(); syncDirFields();
@@ -674,7 +686,7 @@ function wfDbg(level, source, message, meta) {
     input.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") { e.preventDefault(); if ($("acList").hidden) { prepareSearchSurface(); renderAc(input, extraFn && extraFn()); } moveAc(1); }
       else if (e.key === "ArrowUp") { e.preventDefault(); moveAc(-1); }
-      else if (e.key === "Enter") { e.preventDefault(); if (acSel < 0) acSel = acItems.findIndex(x => x.poi || x.me); pickAc(acSel); }
+      else if (e.key === "Enter") { e.preventDefault(); if (acSel < 0) acSel = acItems.findIndex(x => x.poi || x.me || (!input.value.trim() && x.pickMap)); pickAc(acSel); }
       else if (e.key === "Escape") { closeAc(); input.blur(); }
     });
     input.addEventListener("input", () => { prepareSearchSurface(); renderAc(input, extraFn && extraFn()); });
@@ -1403,10 +1415,9 @@ function wfDbg(level, source, message, meta) {
 
   // ---------------- directions ----------------
   function bindDirections() {
-    // Starting points are map-picked for now. Do not advertise GPS/photo location
-    // in autocomplete while those acquisition methods are intentionally disabled.
-    const noLocationOption = () => [];
-    acKeys($("fromQ"), noLocationOption); acKeys($("toQ"), noLocationOption);
+    // Map picking is available beside POI starts, without implying GPS acquisition.
+    const mapStartOption = () => [{ pickMap: true, label: t("viewer.pickOnMap"), icon: "touch_app", color: "rgba(26,115,232,.12)" }];
+    acKeys($("fromQ"), mapStartOption); acKeys($("toQ"));
     $("btnDirBack").onclick = closeDirections;
     if ($("btnDirX")) $("btnDirX").onclick = closeDirections;
     $("btnSwap").onclick = () => { const tmp = S.from; S.from = S.to; S.to = tmp; if (S.from !== "me") S.locMeta = null; syncDirFields(); computeRoute(); };
@@ -1415,7 +1426,10 @@ function wfDbg(level, source, message, meta) {
       e.preventDefault(); e.stopPropagation();
       isMpMode() ? pickOnMapMp() : startLocalize(true);
     };
-    if ($("fromNotRight")) $("fromNotRight").onclick = () => { S.locMeta = null; syncDirFields(); startLocalize(S.mode === "dir"); };
+    if ($("fromNotRight")) $("fromNotRight").onclick = () => {
+      if (isMpMode()) { pickOnMapMp(); return; }
+      S.locMeta = null; syncDirFields(); startLocalize(S.mode === "dir");
+    };
     bindLocateChooser();
     bindLocateModal();
   }
@@ -1499,8 +1513,7 @@ function wfDbg(level, source, message, meta) {
     syncDirFields(); applyPadding();
     if (!S.to) { setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.chooseDestination"))}</div>`, "peek"); S.dirFocus = "to"; try { $("toQ").classList.add("dir-focus-input"); $("fromQ").classList.remove("dir-focus-input"); } catch (e) {} $("toQ").focus(); closeSheet(); if ($("acList").hidden) $("toQ").click(); return; }
     if (!S.from) {
-      // MP mode: no 2D map to tap, but "Pick on map" still exists there as a dollhouse
-      // pick-and-walk (see pickOnMapMp()) — and GPS has real meaning (on-site visitor).
+      // The From autocomplete includes map picking beside the available POIs.
       setSheet(`<div class="muted" style="padding:8px 0">${esc(t("viewer.pickOnMap"))}</div>
         <div class="actions">
           <button class="pill primary" id="dSetMe"><span class="ms">touch_app</span>${esc(t("viewer.pickOnMap"))}</button>
@@ -2102,7 +2115,7 @@ function wfDbg(level, source, message, meta) {
   }
   function applyLocated(lon, lat, meta) {
     if (meta && meta.floor) wf.setFloor(meta.floor);
-    wf.localizeAt(lon, lat);
+    wf.localizeAt(lon, lat, {modelHeight: meta && meta.modelHeight});
     // wf.localizeAt only updates 2D/web-mercator state (wf.lastLoc, the dot on the
     // map) — it has no isMpMode() awareness, so without this the Matterport camera
     // never moves on a GPS fix. applyVpsResult and pickOnMapMp() do their own version
@@ -2320,11 +2333,20 @@ function wfDbg(level, source, message, meta) {
   // the camera there (mp_preview.js's pickOnMap() does the Dollhouse-mode switch +
   // Pointer.intersection tracking + the walk-there fly) and sets that point as "from",
   // same as a GPS fix or an image match would.
+  let mapPickAttempt = 0;
   async function pickOnMapMp() {
     if (!window.MpPreview || !window.MpPreview.pickOnMap) { toast(t("viewer.vpsNotConfigured") || "Not available"); return; }
+    const attempt = ++mapPickAttempt, from = S.from, to = S.to, mode = S.mode;
+    // The picker overlays the twin. A directions sheet can otherwise cover its
+    // Go/Cancel controls on phones even though the picker itself is visible.
+    closeAc(); closeSheet();
     toast(t("viewer.pickOnMapHint"));
     const pt = await window.MpPreview.pickOnMap();
-    if (!pt) return; // user cancelled
+    if (attempt !== mapPickAttempt) return;
+    if (!pt) {
+      if (mode === "dir" && S.mode === "dir" && S.from === from && S.to === to) openDirections();
+      return;
+    }
     const ll = wf.modelToLL(pt.x, pt.y);
     let floor = null;
     try {
@@ -2340,7 +2362,7 @@ function wfDbg(level, source, message, meta) {
         if (snap.node.label) label = t("viewer.nearPlace", { name: snap.node.label });
       }
     } catch (e) { }
-    applyLocated(lon, lat, { source: "map", floor, label, accuracy: null });
+    applyLocated(lon, lat, { source: "map", floor, label, accuracy: null, modelHeight: pt.z });
   }
 
   // ---------------- you are here ----------------

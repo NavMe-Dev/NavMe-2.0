@@ -5,6 +5,28 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const J = u => fetch(u).then(r => { if (!r.ok) throw new Error("Data request failed (" + r.status + ")"); return r.json(); });
+  async function optionalMetadata(u) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let response;
+      try { response = await fetch(u); }
+      catch (error) { if (attempt === 2) throw error; }
+      if (response) {
+        if (response.ok) return response.json();
+        if (![429, 502, 503, 504].includes(response.status) || attempt === 2) {
+          throw new Error("Data request failed (" + response.status + ")");
+        }
+      }
+      let delay = 500 * (attempt + 1);
+      const retryAfter = response && response.headers && response.headers.get("Retry-After");
+      if (retryAfter != null && String(retryAfter).trim() !== "") {
+        const value = String(retryAfter).trim();
+        const requested = /^\d+(?:\.\d+)?$/.test(value) ? Number(value) * 1000
+          : /[a-z]/i.test(value) ? Date.parse(value) - Date.now() : NaN;
+        if (Number.isFinite(requested)) delay = Math.max(0, Math.min(10000, requested));
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
   const R = 6378137;
   let CFG, currentFloor, lastLoc = null, lastRoute = null;
 
@@ -65,9 +87,9 @@
   (window.WF.configReady || window.WF.ready).then(async () => {
     CFG = WF.cfg;
     const metadata = Promise.all([
-      J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/shops").catch(() => []),
-      J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/ar-experience-ref").catch(() => ({})),
-      J("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))
+      optionalMetadata("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/shops").catch(() => []),
+      optionalMetadata("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/ar-experience-ref").catch(() => ({})),
+      optionalMetadata("/api/v1/public/buildings/" + encodeURIComponent(slug()) + "/translations").catch(() => ({ poi_names: {}, category_names: {} }))
     ]);
     const viewerData = await (WF.viewerData || J("/api/v1/public/dashboard/buildings/" + encodeURIComponent(slug()) + "/viewer-data"));
     if (viewerData.building_slug !== slug() || !Array.isArray(viewerData.pois)) throw new Error("Invalid viewer publication");
@@ -146,7 +168,11 @@
       let from = byId[fromKey];
       if (fromKey === "__loc" && lastLoc) {
         const fm = ordered.find(f => f.id === lastLoc.floor) || ordered[0] || { elevation: 0 };
-        from = { name: "My location", sdk: { x: lastLoc.x, y: fm.elevation || 0, z: -lastLoc.y } };
+        const derived = derivedFloors && derivedFloors.find(f => f.id === lastLoc.floor);
+        const height = Number.isFinite(lastLoc.modelHeight) ? lastLoc.modelHeight
+          : derived && Number.isFinite(derived.elevation) ? derived.elevation
+          : Number.isFinite(fm.elevation) ? fm.elevation : 0;
+        from = { name: "My location", sdk: { x: lastLoc.x, y: height, z: -lastLoc.y } };
       }
       if (!from || !to) return null;
       if (!WFNav.navmeshReady() && !opts._waited) {
@@ -186,7 +212,11 @@
       setStyle:s=>{window.wf.style=s;return Promise.resolve();},route,
       clearRoute:()=>{requestId++;lastRoute=null;window.wf.lastRoute=null;},redrawPOIs:()=>{},showGraph:()=>{},
       setShowLabels:on=>{window.wf.showLabels=!!on;},startLocalize:()=>false,isLocalizing:()=>false,
-      localizeAt:(lon,lat)=>{const xy=llToModel(lon,lat);lastLoc={lon,lat,x:xy[0],y:xy[1],floor:currentFloor};window.wf.lastLoc=lastLoc;if(window.wf.onLocalized)window.wf.onLocalized(lastLoc);},
+      localizeAt:(lon,lat,options)=>{
+        const xy=llToModel(lon,lat);lastLoc={lon,lat,x:xy[0],y:xy[1],floor:currentFloor};
+        if(options && Number.isFinite(options.modelHeight)) lastLoc.modelHeight=options.modelHeight;
+        window.wf.lastLoc=lastLoc;if(window.wf.onLocalized)window.wf.onLocalized(lastLoc);
+      },
       modelZtoAbs:z=>z,cam:()=>Promise.resolve(),fit3D:()=>Promise.resolve(),enterHeavyOverlay:()=>{},exitHeavyOverlay:()=>{},
       setRealMesh:()=>{},setMeshEdgeColor:()=>{},setMeshEdgeIntensity:()=>{},setHideShell:()=>{},setHideOsmBlocks:()=>{},setHideMesh:()=>{},setSolidBuildings:()=>{}
     };

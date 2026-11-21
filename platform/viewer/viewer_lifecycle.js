@@ -54,9 +54,14 @@
   function contextRestored(event) { record("webgl.context.restored", {scope: event.currentTarget === doc ? "parent" : "same-origin-frame"}); }
   function clearFrameDocument() {
     if (!frameDocument) return;
-    frameDocument.removeEventListener("webglcontextlost", contextLost, true);
-    frameDocument.removeEventListener("webglcontextrestored", contextRestored, true);
+    const previous = frameDocument;
     frameDocument = null;
+    // WebKit can revoke access to the previous about:blank document when its
+    // frame navigates to Showcase. Diagnostics must not interrupt that load.
+    try {
+      previous.removeEventListener("webglcontextlost", contextLost, true);
+      previous.removeEventListener("webglcontextrestored", contextRestored, true);
+    } catch (_) {}
   }
   function releaseFrame(removed) {
     if (!frame) return;
@@ -83,7 +88,10 @@
       record("iframe.load", {frameId: identity.id, revision: identity.revision, ...describeSource(next.getAttribute("src"))});
       clearFrameDocument();
       try {
-        frameDocument = next.contentDocument;
+        const url = new URL(next.getAttribute("src") || "about:blank", root.location.href);
+        // The Matterport document is intentionally cross-origin. Do not probe
+        // it: WebKit can report a security error even for this diagnostic read.
+        if (url.href === "about:blank" || url.origin === new URL(root.location.href).origin) frameDocument = next.contentDocument;
         if (frameDocument) {
           frameDocument.addEventListener("webglcontextlost", contextLost, true);
           frameDocument.addEventListener("webglcontextrestored", contextRestored, true);

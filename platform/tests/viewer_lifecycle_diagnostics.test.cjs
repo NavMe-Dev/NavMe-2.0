@@ -180,3 +180,26 @@ test('WebGL evidence records observable events and identifies cross-origin visib
   assert.equal(snapshot.events.at(-1).scope, 'cross-origin-frame');
   assert.equal(sameOriginDocument.listenerCount(), 0);
 });
+
+test('a cross-origin Showcase load is recorded without probing its document', () => {
+  const f = fixture(), frame = f.frame('https://my.matterport.com/show/?m=MODEL_A');
+  let reads = 0;
+  Object.defineProperty(frame, 'contentDocument', {get() { reads++; throw Error('Cross-origin access denied'); }});
+  f.attach(frame);
+  assert.doesNotThrow(() => frame.dispatch('load'));
+  assert.equal(reads, 0);
+  assert.equal(f.snapshot().events.at(-1).scope, 'cross-origin-frame');
+});
+
+test('revoked access to an old frame document cannot interrupt load or unload cleanup', () => {
+  const f = fixture(), frame = f.frame(), previous = target();
+  frame.contentDocument = previous; f.attach(frame); frame.dispatch('load');
+  Object.defineProperty(previous, 'removeEventListener', {get() { throw Error('Cross-origin access denied'); }});
+  f.source(frame, 'https://my.matterport.com/show/?m=MODEL_A');
+  assert.doesNotThrow(() => frame.dispatch('load'));
+  assert.equal(f.snapshot().events.at(-1).scope, 'cross-origin-frame');
+  assert.doesNotThrow(() => f.window.dispatch('pagehide', {persisted: false}));
+  assert.equal(f.window.listenerCount(), 0);
+  assert.equal(frame.listenerCount(), 0);
+  assert.ok(f.observers.every(observer => !observer.active));
+});
