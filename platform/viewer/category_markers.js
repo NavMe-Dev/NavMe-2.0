@@ -229,7 +229,7 @@
         // Directions can temporarily return Showcase to Dollhouse (for example,
         // while choosing a start point). Markers belong to that view and should
         // remain visible; only a separate heavy 3D overlay blocks them.
-        blocked: body.contains("n3d-open")
+        blocked: body.contains("n3d-open") || body.contains("nav")
           || !!(bundle && !bundle.hidden && bundle.style.display !== "none"),
         fullscreenTour: !!win.__WF_MP_TOUR_PAGE || !!win.__WF_NAV_WALKTHROUGH_PAGE,
         failed: !!doc.querySelector("#mpBgLoading.err") };
@@ -298,7 +298,7 @@
         pose = next;
         if (next && next.mode !== "mode.dollhouse") { layer.hidden = true; return; }
         if (isIOSDevice) {
-          if (doc.body.classList.contains("mp-open") || doc.body.classList.contains("nav")) {
+          if (doc.body.classList.contains("nav")) {
             layer.hidden = true;
             return;
           }

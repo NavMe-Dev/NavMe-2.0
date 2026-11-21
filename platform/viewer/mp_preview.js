@@ -314,8 +314,7 @@ function wfDbg(level, source, message, meta) {
     // documented embed example uses play=1 without qs=1, so the mobile stability
     // path intentionally follows that gentler native startup.
     const isIOS = isIOSClient();
-    const quickstart = !(options && options.nativeStartup);
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1${quickstart ? "&qs=1" : ""}&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
     if (isIOS) u += `&quality=low&no_panos=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
@@ -2762,12 +2761,11 @@ function wfDbg(level, source, message, meta) {
     // the Inside-mode-at-a-floor flash before our JS even got a chance to run: that flash
     // was the iframe's OWN initial render, which happens before Mode.moveTo/Floor.showAll
     // can execute, so no amount of reordering those calls could have fixed it.
-    const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-    const url = showcaseUrl(applicationKey, null, { nativeStartup: isIOS });
+    const url = showcaseUrl(applicationKey, null);
     const tab = $("mpOpenTab");
     // The "open in new tab" link is separate manual exploration — still jump it to the
     // route's start sweep for convenience there.
-    if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null, { nativeStartup: isIOS });
+    if (tab) tab.href = showcaseUrl(applicationKey, ids[0] || null);
 
     const iframe = $("mpFrame");
     const epoch = ++viewerEpoch;
@@ -2964,22 +2962,7 @@ function wfDbg(level, source, message, meta) {
       return fail();
     }
     if (!current()) return false;
-    const nativeStartup = (() => {
-      const q = (typeof window !== "undefined" && window.WFQuery) ? window.WFQuery()
-        : (typeof URLSearchParams !== "undefined" && typeof location !== "undefined") ? new URLSearchParams(location.search) : null;
-      const querySlug = (q && q.get("b")) || "";
-      const cfg = (window.WF && window.WF.cfg) || {};
-      const building = (window.WF && window.WF.building) || {};
-      const slug = String(building.slug || cfg.slug || cfg.building || querySlug || "").toLowerCase();
-      const mobile = !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches);
-      const isIOSDevice = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-      // iOS jetsam limit (~1.5 GB) is hit on any building when Quickstart fires alongside
-      // model decode and camera setup. Treat every iOS device (and every coarse-pointer
-      // mobile) as a "large space" so the gentler nativeStartup path is always used.
-      // shortcut: slug allowlist removed; upgrade only if Matterport ships a faster cold-start
-      //   path that is confirmed safe with qs=1 on iOS, re-evaluate per-building then.
-      return isIOSDevice || mobile;
-    })();
+    const nativeStartup = false;
     const url = showcaseUrl(applicationKey, null, { nativeStartup });
     const iframe = $("mpFrame");
     mpSdk = null;
@@ -3018,7 +3001,6 @@ function wfDbg(level, source, message, meta) {
         },
       });
     } catch (_) { console.warn("[Category markers] optional layer unavailable"); } };
-    if (!nativeStartup) mountCategoryMarkers();
     setStatus("Waiting for twin to be ready…");
     // Let Matterport's own entrance animation remain visible. STARTING means
     // the transition into the model has begun; PLAYING means interaction is ready.
@@ -3057,29 +3039,41 @@ function wfDbg(level, source, message, meta) {
         else if (introSubscription && introSubscription.cancel) introSubscription.cancel();
       } catch (_) { /* SDK subscription cleanup is best effort. */ }
     }
+    const isIOS = (() => {
+      try {
+        if (typeof isIOSClient === "function") return isIOSClient();
+        return (typeof navigator !== "undefined") && (
+          /iPad|iPhone|iPod/.test(navigator.userAgent || "") ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+        );
+      } catch (_) { return false; }
+    })();
     try {
       const Mode = sdk.Mode;
       if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
-      if (!nativeStartup && Mode && Mode.moveTo && Mode.Mode) {
-        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-        const transition = isIOS ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined) : ((Mode.Transition && Mode.Transition.FLY) || undefined);
-        await Mode.moveTo(dh, { transition });
-      }
+      const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+      const transition = isIOS
+        ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
+        : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+      await Mode.moveTo(dh, { transition });
     } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
-    if (!nativeStartup) await frameWholeBuilding(sdk);
+    await frameWholeBuilding(sdk);
     if (!current()) return false;
     // Keep preparation and hidden controls through the visible fly-in. Only
     // completed mode/camera setup and UI readiness can finish startup.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     if (!current()) return false;
+    mountCategoryMarkers();
     // Enter Matterport's native first-person view after the dollhouse has
     // finished framing and painted. Omitting a position lets Showcase choose
     // its normal entry point, as with its hidden “Explore 3D Space” control.
     try {
       const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
       const transition = sdk.Camera && sdk.Camera.TransitionType;
-      if (!nativeStartup) await sdk.Mode.moveTo(inside, { transition: (transition && transition.FLY) || undefined });
+      const insideTransition = isIOS
+        ? ((transition && (transition.FADEOUT || transition.INSTANT)) || undefined)
+        : ((transition && transition.FLY) || undefined);
+      await sdk.Mode.moveTo(inside, { transition: insideTransition });
     } catch (e) {
       if (!current()) return false;
       console.warn("[MpBackground] enter inside failed", e && e.name);
@@ -3088,11 +3082,6 @@ function wfDbg(level, source, message, meta) {
     if (!current()) return false;
     if (startup) startup.modelReady(gen);
     else document.body.classList.add("mp-frame-loaded");
-    if (nativeStartup) {
-      const mountWhenIdle = () => { if (current()) mountCategoryMarkers(); };
-      if (window.requestIdleCallback) window.requestIdleCallback(mountWhenIdle, { timeout: 5000 });
-      else setTimeout(mountWhenIdle, 2500);
-    }
     setStatus("");
     if (session.chromeReady && startup) startup.uiReady(gen);
     session.ready = true;

@@ -63,11 +63,6 @@
       top:-56px !important; height:calc(100% + 56px) !important; min-height:0 !important;
       width:100% !important; left:0 !important; border:0 !important;
     }
-    @media (max-width: 900px), (pointer: coarse) {
-      body.mp-bg-mode .mp-frame-wrap #mpFrame, body.mp-bg-mode.mp-mobile .mp-frame-wrap #mpFrame {
-        top:0 !important; height:100% !important;
-      }
-    }
     /* ArcGIS-only map controls and the dev-only Map Layers panel (style/photo-plan/graph/
        mesh-debug toggles) — meaningless once the map itself is hidden. */
     body.mp-bg-mode #btn3D, body.mp-bg-mode #btnLayers, body.mp-bg-mode #btnLabels,
@@ -79,16 +74,9 @@
       position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center;
       justify-content:center; gap:14px; background:#000; color:#e8eaed;
       font:14px/1.4 Roboto,system-ui,-apple-system,sans-serif; text-align:center; padding:24px;
+      box-sizing:border-box; opacity:1; transition:opacity .2s ease;
     }
     body.mp-bg-mode #mpBgLoading[hidden] { display:none !important; }
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoading {
-      background:transparent; pointer-events:none;
-    }
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoadingText {
-      padding:6px 12px; border-radius:12px; background:rgba(0,0,0,.25);
-      text-shadow:0 1px 4px rgba(0,0,0,.7); max-width:calc(100vw - 48px);
-    }
-    body.mp-bg-mode #mpBgLoading { box-sizing:border-box; opacity:1; transition:opacity .2s ease; }
     body.mp-bg-mode.mp-startup-complete #mpBgLoading { opacity:0; pointer-events:none; }
     body.mp-bg-mode #mpBgLoading.err { pointer-events:auto; background:rgba(0,0,0,.75); }
     body.mp-bg-mode #mpBgLoading.err .navme-bg-splash { display:flex !important; }
@@ -109,13 +97,11 @@
     body.mp-bg-mode #mpBgLoading.err { color:#f28b82; }
     @keyframes mpBgSpin { to { transform:rotate(360deg); } }
     @media (prefers-reduced-motion:reduce) { body.mp-bg-mode .mp-bg-spinner { animation:none; } }
-    /* Preserve the existing logo, spinner, and milestone-based percentage.
-       The rendered entrance replaces this surface with the preparation text. */
-    body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > .mp-bg-spinner,
-    body.mp-bg-mode:not(.mp-frame-loaded) #mpBgLoading > #mpBgLoadingText {
+    /* Preserve the existing logo, spinner, and milestone-based percentage. */
+    body.mp-bg-mode #mpBgLoading > .mp-bg-spinner,
+    body.mp-bg-mode #mpBgLoading > #mpBgLoadingText {
       display:none !important;
     }
-    body.mp-bg-mode.mp-frame-loaded #mpBgLoading:not(.err) .navme-bg-splash { display:none !important; }
     body.mp-bg-mode .navme-bg-splash {
       display:flex; flex-direction:column; align-items:center; gap:16px;
     }
@@ -152,7 +138,8 @@
     { match: /loading digital twin/i, pct: 12 },
     { match: /connecting to digital twin/i, pct: 45 },
     { match: /waiting for twin to be ready/i, pct: 75 },
-    { match: /tap enter/i, pct: 92, sub: "Tap inside the window below to continue" },
+    { match: /preparing your experience/i, pct: 92 },
+    { match: /tap enter/i, pct: 95, sub: "Tap inside the window below to continue" },
   ];
   const DEFAULT_TITLE = "Loading Wayfinding";
 
@@ -191,7 +178,7 @@
     }
 
     function syncFromText() {
-      if (document.body.classList.contains("mp-frame-loaded") || el.hidden) clearInterval(creepTimer);
+      if (document.body.classList.contains("mp-startup-complete") || el.hidden) { clearInterval(creepTimer); return; }
       const msg = (textEl && textEl.textContent) || "";
       const isErr = el.classList.contains("err");
       shell.classList.toggle("is-err", isErr);
@@ -201,11 +188,10 @@
         subEl.textContent = "We couldn't load your navigation experience. Please try again.";
         return;
       }
-      if (document.body.classList.contains("mp-frame-loaded") || el.hidden) return;
       const hit = STATUS_MILESTONES.filter((m) => m.match.test(msg))[0];
       const target = hit ? hit.pct : Math.max(shownPct, 30);
       titleEl.textContent = DEFAULT_TITLE;
-      subEl.textContent = (hit && hit.sub) || "";
+      subEl.textContent = (hit && hit.sub) || (msg.includes("Preparing") ? msg : "");
       if (target > shownPct) {
         shownPct = Math.min(shownPct, target - 2 < 0 ? 0 : target - 2);
         pctEl.textContent = Math.round(shownPct) + "%";
@@ -264,6 +250,8 @@
         complete = true;
         trace("loading", {phase:"complete", generation});
         clearTimeout(watchdog);
+        const pctEl = el.querySelector(".navme-bg-splash-pct");
+        if (pctEl) pctEl.textContent = "100%";
         document.body.classList.add("mp-startup-complete");
         document.body.classList.remove("booting");
         const finish = () => {
