@@ -416,8 +416,8 @@ body.dir .ctop{top:182px}
    chrome. Scoped to body.mp-open, which both the Tour interior modal AND the background
    mp=1 view set — harmless overlap with mp-bg-mode's identical crop values there; the
    point of this rule is covering Tour interior, which carries mp-open but not mp-bg-mode. */
-body.mp-open .mp-frame-wrap{overflow:hidden !important}
-body.mp-open .mp-frame-wrap #mpFrame{top:-56px !important;height:calc(100% + 128px) !important}
+body.mp-open .mp-frame-wrap,body.mp-bg-mode .mp-frame-wrap{overflow:hidden !important}
+body.mp-open .mp-frame-wrap #mpFrame,body.mp-bg-mode .mp-frame-wrap #mpFrame{top:-56px !important;height:calc(100% + 144px) !important}
 /* Arrow: top-right corner */
 .mp-dir-arrow{display:none!important}
 .mp-dist-hud{display:none!important}

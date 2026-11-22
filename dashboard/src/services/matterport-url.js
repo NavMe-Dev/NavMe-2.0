@@ -65,6 +65,9 @@ export function matterportShowcaseUrl(modelIdOrUrl, opts = {}) {
   if (opts.minimalChrome) {
     u.searchParams.set('dh', '0'); // dollhouse button
     u.searchParams.set('f', '0'); // floor selector
+    u.searchParams.set('fp', '0'); // floor plan button
+    u.searchParams.set('measurements', '0'); // measurement tool (ruler)
+    u.searchParams.set('measure', '0');
     u.searchParams.set('hr', '0'); // highlight reel
     u.searchParams.set('gt', '0'); // guided tour
     u.searchParams.set('tourcta', '0'); // tour call-to-action

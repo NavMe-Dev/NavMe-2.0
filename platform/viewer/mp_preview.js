@@ -314,7 +314,7 @@ function wfDbg(level, source, message, meta) {
     // documented embed example uses play=1 without qs=1, so the mobile stability
     // path intentionally follows that gentler native startup.
     const isIOS = isIOSClient();
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&f=0&hr=0&mls=2&logo=0&newtop=0&mt=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=0&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&mls=2&logo=0&newtop=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
     if (isIOS) u += `&quality=low&no_panos=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;

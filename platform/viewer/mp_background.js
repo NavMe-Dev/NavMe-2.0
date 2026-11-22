@@ -60,7 +60,7 @@
        trade-off for removing chrome Showcase won't let this page hide any other way. */
     body.mp-bg-mode .mp-frame-wrap { overflow:hidden !important; }
     body.mp-bg-mode .mp-frame-wrap #mpFrame {
-      top:-56px !important; height:calc(100% + 56px) !important; min-height:0 !important;
+      top:-56px !important; height:calc(100% + 144px) !important; min-height:0 !important;
       width:100% !important; left:0 !important; border:0 !important;
     }
     /* ArcGIS-only map controls and the dev-only Map Layers panel (style/photo-plan/graph/
@@ -121,8 +121,9 @@
       letter-spacing:.02em;
     }
     body.mp-bg-mode .navme-bg-splash-sub {
-      font-size:12.5px; color:rgba(232,234,237,.65); min-height:1.4em;
+      font-size:12.5px; color:rgba(232,234,237,.65);
     }
+    body.mp-bg-mode .navme-bg-splash-sub:empty { display:none; }
     body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-spinner,
     body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-pct { display:none; }
     body.mp-bg-mode .navme-bg-splash.is-err .navme-bg-splash-title { color:#f28b82; }
@@ -139,23 +140,21 @@
     { match: /connecting to digital twin/i, pct: 45 },
     { match: /waiting for twin to be ready/i, pct: 75 },
     { match: /preparing your experience/i, pct: 92 },
-    { match: /tap enter/i, pct: 95, sub: "Tap inside the window below to continue" },
+    { match: /tap enter/i, pct: 95 },
   ];
   const DEFAULT_TITLE = "Loading Wayfinding";
-  const DEFAULT_SUBTITLE = "Preparing your experience…";
 
   /** Re-skin #mpBgLoading once, the first time it exists — see the CSS block above. */
   function enhanceBgLoading(el) {
     if (!el || el.dataset.navmeEnhanced) return;
     el.dataset.navmeEnhanced = "1";
     const title = typeof DEFAULT_TITLE !== "undefined" ? DEFAULT_TITLE : "Loading Wayfinding";
-    const DEFAULT_SUBTITLE = "Preparing your experience…";
     const milestones = typeof STATUS_MILESTONES !== "undefined" ? STATUS_MILESTONES : [
       { match: /loading digital twin/i, pct: 12 },
       { match: /connecting to digital twin/i, pct: 45 },
       { match: /waiting for twin to be ready/i, pct: 75 },
       { match: /preparing your experience/i, pct: 92 },
-      { match: /tap enter/i, pct: 95, sub: "Tap inside the window below to continue" },
+      { match: /tap enter/i, pct: 95 },
     ];
     const textEl = el.querySelector("#mpBgLoadingText");
     const shell = document.createElement("div");
@@ -165,48 +164,66 @@
       '<div class="navme-bg-splash-title">' + title + "</div>" +
       '<div class="navme-bg-splash-spinner" aria-hidden="true"></div>' +
       '<div class="navme-bg-splash-pct">0%</div>' +
-      '<div class="navme-bg-splash-sub">' + DEFAULT_SUBTITLE + "</div>";
+      '<div class="navme-bg-splash-sub"></div>';
     el.insertBefore(shell, el.firstChild);
 
     const titleEl = shell.querySelector(".navme-bg-splash-title");
     const pctEl = shell.querySelector(".navme-bg-splash-pct");
     const subEl = shell.querySelector(".navme-bg-splash-sub");
     let shownPct = 0;
+    let targetPct = 0;
     let creepTimer = null;
 
-    function stepToward(target) {
-      clearInterval(creepTimer);
-      creepTimer = setInterval(() => {
-        // Ease toward the target, never reaching it on its own — the next real
-        // status (or completion) always supplies the actual jump, same spirit
-        // as a classic "creep to 90%, snap to 100% on finish" progress bar.
-        const cap = Math.max(0, target - 2);
-        if (shownPct >= cap) { clearInterval(creepTimer); return; }
-        shownPct += (cap - shownPct) * 0.12 + 0.4;
-        pctEl.textContent = Math.round(Math.min(shownPct, cap)) + "%";
-      }, 180);
+    function tick() {
+      if (document.body.classList.contains("mp-startup-complete") || el.hidden) {
+        clearInterval(creepTimer);
+        creepTimer = null;
+        return;
+      }
+      const diff = targetPct - shownPct;
+      if (diff > 0.05) {
+        shownPct += Math.max(0.15, diff * 0.06);
+      } else {
+        const ceiling = targetPct >= 90 ? 95 : 90;
+        const creepDiff = ceiling - shownPct;
+        if (creepDiff > 0) {
+          shownPct += Math.min(0.025, creepDiff * 0.005 + 0.005);
+        }
+      }
+      shownPct = Math.min(shownPct, 99);
+      pctEl.textContent = Math.round(shownPct) + "%";
+    }
+
+    function startAnimation() {
+      if (!creepTimer) {
+        creepTimer = setInterval(tick, 25);
+      }
     }
 
     function syncFromText() {
-      if (document.body.classList.contains("mp-startup-complete") || el.hidden) { clearInterval(creepTimer); return; }
+      if (document.body.classList.contains("mp-startup-complete") || el.hidden) {
+        clearInterval(creepTimer);
+        creepTimer = null;
+        return;
+      }
       const msg = (textEl && textEl.textContent) || "";
       const isErr = el.classList.contains("err");
       shell.classList.toggle("is-err", isErr);
       if (isErr) {
         clearInterval(creepTimer);
+        creepTimer = null;
         titleEl.textContent = "Unable to load NavMe";
         subEl.textContent = "We couldn't load your navigation experience. Please try again.";
         return;
       }
       const hit = milestones.filter((m) => m.match.test(msg))[0];
-      const target = hit ? hit.pct : Math.max(shownPct, 30);
-      titleEl.textContent = title;
-      subEl.textContent = (hit && hit.sub) || (msg.includes("Preparing") ? msg : DEFAULT_SUBTITLE);
-      if (target > shownPct) {
-        shownPct = Math.min(shownPct, target - 2 < 0 ? 0 : target - 2);
-        pctEl.textContent = Math.round(shownPct) + "%";
-        stepToward(target);
+      const nextTarget = hit ? hit.pct : targetPct;
+      if (nextTarget > targetPct) {
+        targetPct = nextTarget;
       }
+      titleEl.textContent = title;
+      subEl.textContent = "";
+      startAnimation();
     }
     syncFromText();
     const mo = new MutationObserver(syncFromText);

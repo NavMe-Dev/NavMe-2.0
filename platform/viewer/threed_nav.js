@@ -180,7 +180,7 @@
       "#n3dOverlay .n3d-stage{position:relative;flex:1 1 auto;overflow:hidden}",
       "#n3dOverlay iframe{position:absolute;left:0;width:100%;",
         "top:calc(-1 * " + CROP_TOP_PX + "px);",
-        "height:calc(100% + " + CROP_TOP_PX + "px + 64px);border:none}",
+        "height:calc(100% + " + CROP_TOP_PX + "px + 88px);border:none}",
       // Reused mp=1 background connection (openUsingLiveConnection): this overlay
       // never gets its own iframe/src, so its background must go transparent and
       // its (empty) iframe must get out of the way — otherwise there would be
@@ -366,7 +366,7 @@
   function showcaseUrl() {
     var u = "https://my.matterport.com/show/?m=" + encodeURIComponent(modelId);
     u += "&play=1&qs=1&brand=0&title=0&logo=0&newtop=0&mls=2&lp=0&lang=en";
-    u += "&dh=1&hr=0&gt=0&tourcta=0&vr=0&mt=0&help=0&search=0&f=0&pin=0&ss=0&sr=0&kb=0";
+    u += "&dh=0&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&gt=0&tourcta=0&vr=0&help=0&search=0&pin=0&ss=0&sr=0&kb=0";
     if (appKey) u += "&applicationKey=" + encodeURIComponent(appKey);
     return u;
   }

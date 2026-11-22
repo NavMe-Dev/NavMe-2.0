@@ -243,7 +243,7 @@ test('visible entrance animation does not by itself enable navigation controls',
   assert.equal(c.body.classList.contains('mp-startup-complete'), true);
 });
 
-test('enhanceBgLoading initializes subtitle to "Preparing your experience…" from 0% and preserves it across milestones', () => {
+test('enhanceBgLoading removes subtitle during loading and animates progress smoothly without freezing', () => {
   const body = element();
   let observerCb = null;
   class MockMutationObserver {
@@ -275,7 +275,7 @@ test('enhanceBgLoading initializes subtitle to "Preparing your experience…" fr
         set innerHTML(html) {
           this._html = html;
           const subMatch = html.match(/<div class="navme-bg-splash-sub">(.*?)<\/div>/);
-          if (subMatch) subEl.textContent = subMatch[1];
+          subEl.textContent = subMatch ? subMatch[1] : '';
           const titleMatch = html.match(/<div class="navme-bg-splash-title">(.*?)<\/div>/);
           if (titleMatch) titleEl.textContent = titleMatch[1];
           const pctMatch = html.match(/<div class="navme-bg-splash-pct">(.*?)<\/div>/);
@@ -294,36 +294,59 @@ test('enhanceBgLoading initializes subtitle to "Preparing your experience…" fr
       };
     },
   };
+  let tickCb = null;
   const enhance = handler('mp_background.js', 'enhanceBgLoading', {
     document: doc,
     MutationObserver: MockMutationObserver,
-    setInterval() { return 1; },
-    clearInterval() {},
+    setInterval(fn) { tickCb = fn; return 100; },
+    clearInterval() { tickCb = null; },
   });
   enhance(loader);
   assert.equal(loader.dataset.navmeEnhanced, '1');
-  assert.equal(subEl.textContent, 'Preparing your experience…');
   assert.equal(titleEl.textContent, 'Loading Wayfinding');
+  assert.equal(subEl.textContent, ''); // Subtitle is empty during loading
+  assert.equal(pctEl.textContent, '0%');
+  assert.ok(tickCb !== null);
 
-  // Milestone without custom sub defaults to DEFAULT_SUBTITLE
-  textEl.textContent = 'Connecting to digital twin…';
-  observerCb();
-  assert.equal(subEl.textContent, 'Preparing your experience…');
+  // Smooth animation progresses toward 12% milestone
+  tickCb();
+  const tick1Pct = parseInt(pctEl.textContent, 10);
+  assert.ok(tick1Pct >= 0 && tick1Pct <= 2);
 
+  // Advance ticks until milestone target is reached
+  for (let i = 0; i < 40; i++) tickCb();
+  const midPct = parseInt(pctEl.textContent, 10);
+  assert.ok(midPct >= 11, `Expected progress >= 11%, got ${midPct}%`);
+  assert.equal(subEl.textContent, ''); // Subtitle remains empty
+
+  // When approaching milestone target, continuous creep ensures it never freezes
+  for (let i = 0; i < 40; i++) tickCb();
+  const creepPct = parseInt(pctEl.textContent, 10);
+  assert.ok(creepPct > midPct, `Expected continuous creep (${creepPct}% > ${midPct}%)`);
+  assert.equal(subEl.textContent, '');
+
+  // Update to waiting milestone (75%)
   textEl.textContent = 'Waiting for twin to be ready…';
   observerCb();
-  assert.equal(subEl.textContent, 'Preparing your experience…');
+  assert.equal(subEl.textContent, '');
 
-  // Milestone with custom sub displays custom text
-  textEl.textContent = 'Tap enter to begin';
-  observerCb();
-  assert.equal(subEl.textContent, 'Tap inside the window below to continue');
+  // Advance ticks to reach ~75%
+  for (let i = 0; i < 40; i++) tickCb();
+  const waitingPct = parseInt(pctEl.textContent, 10);
+  assert.ok(waitingPct >= 70, `Expected progress >= 70%, got ${waitingPct}%`);
 
-  // Error state displays error guidance
+  // Verify non-freezing progression past 73% (Problem 2)
+  for (let i = 0; i < 50; i++) tickCb();
+  const post75Pct = parseInt(pctEl.textContent, 10);
+  assert.ok(post75Pct > waitingPct && post75Pct > 73, `Expected creep beyond 73%, got ${post75Pct}%`);
+  assert.equal(subEl.textContent, '');
+
+  // Error state displays error guidance and stops animation
   loader.classList.add('err');
   observerCb();
   assert.equal(titleEl.textContent, 'Unable to load NavMe');
   assert.equal(subEl.textContent, "We couldn't load your navigation experience. Please try again.");
+  assert.equal(tickCb, null); // Timer cleared on error
 });
 
 test('startup lands in Dollhouse mode with category markers mounted and visible, without choosing a route', async () => {
