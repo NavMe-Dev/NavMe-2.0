@@ -1,0 +1,157 @@
+{
+ "schema": "wayfinding.building/v1",
+ "slug": "uncc-main-campus",
+ "name": "UNCC Main Campus",
+ "address": "9201 University City Blvd, Charlotte, NC 28223, United States",
+ "matterport_model_id": "kQBN52JqFE9",
+ "center": {
+  "lon": -80.74108564,
+  "lat": 35.3080082
+ },
+ "bounds": [
+  -80.74517712,
+  35.30484249,
+  -80.73699416,
+  35.31117379
+ ],
+ "floors": [
+  {
+   "id": "F1",
+   "label": "Floor 1",
+   "short": "1",
+   "ordinal": 0,
+   "elevation": -14.86,
+   "height": 7.51,
+   "overlay": "floor_F1.webp",
+   "glb": "model_F1.glb"
+  },
+  {
+   "id": "F2",
+   "label": "Floor 2",
+   "short": "2",
+   "ordinal": 1,
+   "elevation": -7.35,
+   "height": 5.33,
+   "overlay": "floor_F2.webp",
+   "glb": "model_F2.glb"
+  },
+  {
+   "id": "F3",
+   "label": "Floor 3",
+   "short": "3",
+   "ordinal": 2,
+   "elevation": -2.02,
+   "height": 2.42,
+   "overlay": "floor_F3.webp",
+   "glb": "model_F3.glb"
+  },
+  {
+   "id": "F4",
+   "label": "Floor 4",
+   "short": "4",
+   "ordinal": 3,
+   "elevation": 0.4,
+   "height": 14.19,
+   "overlay": "floor_F4.webp",
+   "glb": "model_F4.glb"
+  },
+  {
+   "id": "F5",
+   "label": "Floor 5",
+   "short": "5",
+   "ordinal": 4,
+   "elevation": 14.59,
+   "height": -7.47,
+   "overlay": "floor_F5.webp",
+   "glb": "model_F5.glb"
+  },
+  {
+   "id": "F6",
+   "label": "Floor 6",
+   "short": "6",
+   "ordinal": 5,
+   "elevation": 7.12,
+   "height": 5.51,
+   "overlay": "floor_F6.webp",
+   "glb": "model_F6.glb"
+  },
+  {
+   "id": "F7",
+   "label": "Floor 7",
+   "short": "7",
+   "ordinal": 6,
+   "elevation": 12.63,
+   "height": 3.1,
+   "overlay": "floor_F7.webp",
+   "glb": "model_full.glb"
+  }
+ ],
+ "default_floor": "F1",
+ "model_bbox": [
+  -73.47,
+  -259.96,
+  512.03,
+  206.56
+ ],
+ "grade_z": -1.38,
+ "grade_note": "model z of outdoor grade near model origin (3D terrain anchoring)",
+ "rotation_deg": -31.748687596912497,
+ "files": {
+  "georef": "georef.json",
+  "floors": "floors.json",
+  "nav_graph": "nav_graph.json",
+  "walkgrid": "walkgrid.json",
+  "navmesh": "navmesh.json",
+  "pois": "pois.json",
+  "mp_graph_raw": "mp_graph_raw.json",
+  "indoor": {
+   "F1": "indoor_F1.geojson",
+   "F2": "indoor_F2.geojson",
+   "F3": "indoor_F3.geojson",
+   "F4": "indoor_F4.geojson",
+   "F5": "indoor_F5.geojson",
+   "F6": "indoor_F6.geojson",
+   "F7": "indoor_F7.geojson"
+  },
+  "buildings_osm": "buildings_osm.geojson",
+  "site_shell": "site_shell.geojson",
+  "model_glb": "model_glb.json",
+  "thumbs": "thumbs/index.json",
+  "media_panels": "media_panels.json"
+ },
+ "stats": {
+  "pois": 170,
+  "nav_nodes": 4900,
+  "nav_edges": 15783,
+  "entrances": 5,
+  "step_free_entrance": false,
+  "media_panels": 0,
+  "has_glb": true
+ },
+ "branding": {},
+ "arrival_poi": null,
+ "venue": null,
+ "sdk_key_configured": true,
+ "vps_enabled": true,
+ "media_panels": [],
+ "tour_modes": {
+  "embed_showcase": true,
+  "mesh_tour": false,
+  "bundle_scene": false,
+  "bundle_camera": "dollhouse",
+  "bundle_configured": false,
+  "has_glb": true
+ },
+ "has_glb": true,
+ "access": {
+  "twin": "public",
+  "tour_public": true,
+  "routing": {
+   "mode": "all_public",
+   "excluded_edge_ids": []
+  },
+  "pin_required": false
+ },
+ "debug": false,
+ "debug_scope": "published_hint"
+}

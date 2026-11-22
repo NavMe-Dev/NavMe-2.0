@@ -63,7 +63,7 @@ export function matterportShowcaseUrl(modelIdOrUrl, opts = {}) {
   // These are Showcase URL params — the bottom control bar lives inside the
   // iframe and cannot be reached with CSS from the parent page.
   if (opts.minimalChrome) {
-    u.searchParams.set('dh', '0'); // dollhouse button
+    u.searchParams.set('dh', '1'); // keep dollhouse enabled
     u.searchParams.set('f', '0'); // floor selector
     u.searchParams.set('fp', '0'); // floor plan button
     u.searchParams.set('measurements', '0'); // measurement tool (ruler)

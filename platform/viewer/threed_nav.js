@@ -366,7 +366,7 @@
   function showcaseUrl() {
     var u = "https://my.matterport.com/show/?m=" + encodeURIComponent(modelId);
     u += "&play=1&qs=1&brand=0&title=0&logo=0&newtop=0&mls=2&lp=0&lang=en";
-    u += "&dh=0&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&gt=0&tourcta=0&vr=0&help=0&search=0&pin=0&ss=0&sr=0&kb=0";
+    u += "&dh=1&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&gt=0&tourcta=0&vr=0&help=0&search=0&pin=0&ss=0&sr=0&kb=0";
     if (appKey) u += "&applicationKey=" + encodeURIComponent(appKey);
     return u;
   }

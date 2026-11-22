@@ -314,7 +314,7 @@ function wfDbg(level, source, message, meta) {
     // documented embed example uses play=1 without qs=1, so the mobile stability
     // path intentionally follows that gentler native startup.
     const isIOS = isIOSClient();
-    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=0&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&mls=2&logo=0&newtop=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
+    let u = `${SHOW_BASE}?m=${encodeURIComponent(modelId)}&play=1&qs=1&brand=0&title=0&help=0&tourcta=0&dh=1&fp=0&f=0&measurements=0&measure=0&mt=0&hr=0&mls=2&logo=0&newtop=0&gt=0&vr=0&search=0&pin=0&sr=0&kb=0&lp=0`;
     if (isIOS) u += `&quality=low&no_panos=0`;
     if (startSweep) u += `&ss=${encodeURIComponent(startSweep)}`;
     if (key) u += `&applicationKey=${encodeURIComponent(key)}`;
@@ -3086,13 +3086,16 @@ function wfDbg(level, source, message, meta) {
     })();
     try {
       const Mode = sdk.Mode;
-      if (!Mode || !Mode.moveTo || !Mode.Mode) return fail();
-      const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-      const transition = isIOS
-        ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
-        : ((Mode.Transition && Mode.Transition.FLY) || undefined);
-      await Mode.moveTo(dh, { transition });
-    } catch (e) { console.warn("[MpBackground] dollhouse moveTo failed", e && e.name); return fail(); }
+      if (Mode && Mode.moveTo && Mode.Mode) {
+        const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+        const transition = isIOS
+          ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
+          : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+        await Mode.moveTo(dh, { transition });
+      }
+    } catch (e) {
+      console.warn("[MpBackground] dollhouse moveTo warning", e && (e.name || e.message));
+    }
     await frameWholeBuilding(sdk);
     if (!current()) return false;
     // Keep preparation and hidden controls through the visible fly-in. Only

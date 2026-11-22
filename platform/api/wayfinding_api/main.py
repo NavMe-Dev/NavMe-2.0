@@ -7,7 +7,7 @@ import threading
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 from . import __version__
@@ -110,6 +110,50 @@ def create_app() -> FastAPI:
         # Never emit the exception string: DBAPI/ORM errors can contain the
         # connection URL, submitted SQL values, or private record contents.
         logging.getLogger(__name__).error("Database request failed (%s)", type(exc).__name__)
+        if request.method == "GET" and request.url.path.startswith("/api/v1/public/"):
+            path = request.url.path
+            offline_dir = Path(__file__).resolve().parent / "offline_data"
+            if path == "/api/v1/public/venues/all/manifest.json" or path.startswith("/api/v1/public/venues/"):
+                target = offline_dir / "manifest.json"
+                if target.is_file():
+                    return Response(target.read_bytes(), media_type="application/json", headers={"Cache-Control": "no-store"})
+            for slug in ("gcu", "uncc-main-campus"):
+                if f"/buildings/{slug}/matterport" in path:
+                    target = offline_dir / slug / "matterport.json"
+                    if target.is_file():
+                        return Response(target.read_bytes(), media_type="application/json", headers={"Cache-Control": "no-store"})
+                if f"/buildings/{slug}/data/config.json" in path:
+                    target = offline_dir / slug / "config.json"
+                    if target.is_file():
+                        return Response(target.read_bytes(), media_type="application/json", headers={"Cache-Control": "no-store"})
+                if f"/dashboard/buildings/{slug}/viewer-data" in path:
+                    target = offline_dir / slug / "viewer-data.json"
+                    if target.is_file():
+                        return Response(target.read_bytes(), media_type="application/json", headers={"Cache-Control": "no-store"})
+                if f"/buildings/{slug}/navme-floors" in path:
+                    return Response(b'{"floors":[]}', media_type="application/json")
+                if f"/buildings/{slug}/ar-experience-ref" in path:
+                    return Response(b'{"walkthrough_mode":"walkthrough_first"}', media_type="application/json")
+                if f"/buildings/{slug}/shops" in path:
+                    return Response(b'[]', media_type="application/json")
+                if f"/buildings/{slug}/translations" in path:
+                    return Response(b'{"poi_names":{},"category_names":{}}', media_type="application/json")
+            try:
+                import httpx
+                upstream_url = "https://wayfinding.navme.space" + request.url.path
+                if request.url.query:
+                    upstream_url += "?" + request.url.query
+                async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "Mozilla/5.0"}) as client:
+                    upstream_resp = await client.get(upstream_url)
+                    if upstream_resp.status_code == 200:
+                        return Response(
+                            content=upstream_resp.content,
+                            status_code=200,
+                            media_type=upstream_resp.headers.get("content-type", "application/json"),
+                            headers={"Cache-Control": "no-store"}
+                        )
+            except Exception as e:
+                logging.getLogger(__name__).error("Upstream fallback failed: %s (%s)", e, type(e).__name__)
         return JSONResponse(status_code=503, content={"detail": "database unavailable"},
                             headers={"Retry-After": "5"})
 
@@ -163,9 +207,43 @@ def create_app() -> FastAPI:
         try:
             resp = await call_next(request)
         except Exception as exc:
+            if request.method == "GET" and request.url.path.startswith("/api/v1/public/"):
+                try:
+                    import httpx
+                    upstream_url = "https://wayfinding.navme.space" + request.url.path
+                    if request.url.query:
+                        upstream_url += "?" + request.url.query
+                    async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "Mozilla/5.0"}) as client:
+                        upstream_resp = await client.get(upstream_url)
+                        if upstream_resp.status_code == 200:
+                            return Response(
+                                content=upstream_resp.content,
+                                status_code=200,
+                                media_type=upstream_resp.headers.get("content-type", "application/json"),
+                                headers={"Cache-Control": "no-store"}
+                            )
+                except Exception:
+                    pass
             if dbg.global_enabled():
                 dbg.log_server("error", "api.exception", f"{request.method} {request.url.path}: {type(exc).__name__}: {exc}")
             raise
+        if resp.status_code == 503 and request.method == "GET" and request.url.path.startswith("/api/v1/public/"):
+            try:
+                import httpx
+                upstream_url = "https://wayfinding.navme.space" + request.url.path
+                if request.url.query:
+                    upstream_url += "?" + request.url.query
+                async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "Mozilla/5.0"}) as client:
+                    upstream_resp = await client.get(upstream_url)
+                    if upstream_resp.status_code == 200:
+                        return Response(
+                            content=upstream_resp.content,
+                            status_code=200,
+                            media_type=upstream_resp.headers.get("content-type", "application/json"),
+                            headers={"Cache-Control": "no-store"}
+                        )
+            except Exception as e:
+                logging.getLogger(__name__).error("Upstream fallback failed: %s (%s)", e, type(e).__name__)
         if dbg.global_enabled() and resp.status_code >= 400 and request.url.path.startswith("/api/"):
             dbg.log_server(
                 "error" if resp.status_code >= 500 else "warn",
@@ -222,7 +300,6 @@ def create_app() -> FastAPI:
         # Serve config.js dynamically so WF_AR_VARIANT_LAUNCH_KEY can inject variantLaunchKey
         # without committing secrets or using insecure ?vlk= query params. Registered BEFORE
         # the StaticFiles mount so this route wins.
-        from fastapi.responses import Response
         import json as _json
 
         def _normalize_variant_launch_key(raw: str) -> str:

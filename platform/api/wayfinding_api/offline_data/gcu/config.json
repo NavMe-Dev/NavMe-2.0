@@ -1,0 +1,151 @@
+{
+  "schema": "wayfinding.building/v1",
+  "slug": "gcu",
+  "name": "GCU ( OMR) with Library",
+  "address": "GARDEN CITY UNIVERSITY, Kithaganur Main Rd, TC Palya, Battarahalli, Bengaluru, Karnataka 560049",
+  "matterport_model_id": "jdjvM17BPEh",
+  "center": {
+    "lon": 77.70677519,
+    "lat": 13.02518364
+  },
+  "bounds": [
+    77.70574382,
+    13.02431969,
+    77.70780657,
+    13.02604758
+  ],
+  "floors": [
+    {
+      "id": "F1",
+      "label": "Floor 1",
+      "short": "1",
+      "ordinal": 0,
+      "elevation": -2.35,
+      "height": 5.78,
+      "overlay": "floor_F1.webp",
+      "glb": "model_F1.glb"
+    },
+    {
+      "id": "F2",
+      "label": "Floor 2",
+      "short": "2",
+      "ordinal": 1,
+      "elevation": 3.43,
+      "height": -0.39,
+      "overlay": "floor_F2.webp",
+      "glb": "model_F2.glb"
+    },
+    {
+      "id": "F3",
+      "label": "Floor 3",
+      "short": "3",
+      "ordinal": 2,
+      "elevation": 3.04,
+      "height": 3.45,
+      "overlay": "floor_F3.webp",
+      "glb": "model_F3.glb"
+    },
+    {
+      "id": "F4",
+      "label": "Floor 4",
+      "short": "4",
+      "ordinal": 3,
+      "elevation": 6.49,
+      "height": 3.94,
+      "overlay": "floor_F4.webp",
+      "glb": "model_F4.glb"
+    },
+    {
+      "id": "F5",
+      "label": "Floor 5",
+      "short": "5",
+      "ordinal": 4,
+      "elevation": 10.43,
+      "height": 3.1,
+      "overlay": "floor_F5.webp",
+      "glb": "model_full.glb"
+    }
+  ],
+  "default_floor": "F1",
+  "model_bbox": [
+    -105.91,
+    -36.94,
+    88.09,
+    114.85
+  ],
+  "grade_z": -3.63,
+  "grade_note": "model z of outdoor grade near model origin (3D terrain anchoring)",
+  "rotation_deg": -13.299340846826537,
+  "files": {
+    "georef": "georef.json",
+    "floors": "floors.json",
+    "nav_graph": "nav_graph.json",
+    "walkgrid": "walkgrid.json",
+    "navmesh": "navmesh.json",
+    "pois": "pois.json",
+    "mp_graph_raw": "mp_graph_raw.json",
+    "indoor": {
+      "F1": "indoor_F1.geojson",
+      "F2": "indoor_F2.geojson",
+      "F3": "indoor_F3.geojson",
+      "F4": "indoor_F4.geojson",
+      "F5": "indoor_F5.geojson"
+    },
+    "buildings_osm": "buildings_osm.geojson",
+    "site_shell": "site_shell.geojson",
+    "model_glb": "model_glb.json",
+    "thumbs": "thumbs/index.json",
+    "media_panels": "media_panels.json"
+  },
+  "stats": {
+    "pois": 131,
+    "nav_nodes": 1073,
+    "nav_edges": 3842,
+    "entrances": 41,
+    "step_free_entrance": false,
+    "media_panels": 0,
+    "has_glb": true
+  },
+  "branding": {
+    "enabled_languages": [
+      "en",
+      "es",
+      "fr",
+      "ar",
+      "hi",
+      "kn",
+      "zh",
+      "ja",
+      "pt",
+      "ta",
+      "ml",
+      "te",
+      "bn"
+    ]
+  },
+  "arrival_poi": null,
+  "venue": null,
+  "sdk_key_configured": true,
+  "vps_enabled": true,
+  "media_panels": [],
+  "tour_modes": {
+    "embed_showcase": true,
+    "mesh_tour": false,
+    "bundle_scene": false,
+    "bundle_camera": "dollhouse",
+    "bundle_configured": false,
+    "has_glb": true
+  },
+  "has_glb": true,
+  "access": {
+    "twin": "public",
+    "tour_public": true,
+    "routing": {
+      "mode": "all_public",
+      "excluded_edge_ids": []
+    },
+    "pin_required": false
+  },
+  "debug": false,
+  "debug_scope": "published_hint"
+}
