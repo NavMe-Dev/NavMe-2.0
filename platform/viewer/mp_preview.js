@@ -1960,20 +1960,20 @@ function wfDbg(level, source, message, meta) {
     return null;
   }
 
-  async function ensureDollhouse(sdk = mpSdk) {
-    if (!sdk || sdk !== mpSdk) return false;
+  async function ensureDollhouse(sdk = mpSdk, isCurrent = () => sdk === mpSdk) {
+    if (!sdk || !isCurrent()) return false;
     const Mode = sdk.Mode;
-    if (Mode && Mode.moveTo && Mode.Mode) {
-      const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
-      const isIOS = typeof isIOSClient === "function" ? isIOSClient() : false;
-      const transition = isIOS
-        ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
-        : ((Mode.Transition && Mode.Transition.FLY) || undefined);
-      await Mode.moveTo(dh, { transition });
-    }
-    if (sdk !== mpSdk) return false;
-    await frameWholeBuilding(sdk);
-    return sdk === mpSdk;
+    if (!Mode || !Mode.moveTo || !Mode.Mode) return false;
+    const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+    const isIOS = typeof isIOSClient === "function" ? isIOSClient() : false;
+    const tr = (sdk.Camera && sdk.Camera.TransitionType) || Mode.TransitionType || Mode.Transition;
+    const transition = isIOS
+      ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined)
+      : ((tr && tr.FLY) || undefined);
+    await Mode.moveTo(dh, { transition });
+    if (!isCurrent()) return false;
+    await frameWholeBuilding(sdk, isCurrent);
+    return isCurrent();
   }
 
   /**
@@ -1987,11 +1987,11 @@ function wfDbg(level, source, message, meta) {
    * available; Showcase itself still picks the final framing distance for that point.
    * Best-effort: swallows failures so a slow/missing sweep list never blocks entry.
    */
-  async function frameWholeBuilding(sdk) {
-    if (!sdk || !sdk.Camera) return;
+  async function frameWholeBuilding(sdk, isCurrent = () => sdk === mpSdk) {
+    if (!sdk || !sdk.Camera || !isCurrent()) return;
     try {
       const sweeps = await rtReadSweeps(sdk);
-      if (sdk !== mpSdk || !sweeps.length) return;
+      if (!isCurrent() || !sweeps.length) return;
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
       for (const s of sweeps) {
         const p = s.position;
@@ -2056,37 +2056,69 @@ function wfDbg(level, source, message, meta) {
   /** "Your location" has no GPS/map meaning in mp mode — repurposed as a home/reset button. */
   async function resetView() { return setFloor(null); }
 
-  // Toggle state for the repurposed "Locate me" button: first press remembers exactly
-  // where the camera was (its sweep) and flies out to the Dollhouse overview; second
-  // press flies straight back to that same sweep instead of leaving the user stranded
-  // in the overview with no way back to where they were.
-  let homeToggleSweep = null;
-  async function toggleHomeView() {
+  // An initial overview has no saved sweep to return to: enter Showcase's native
+  // Inside view instead of requesting the same Dollhouse view again. From Inside,
+  // remember the scan and viewing direction so the overview button can bring both back.
+  let homeTogglePose = null, homeToggleTask = null;
+  function toggleHomeView() {
     const sdk = mpSdk;
-    if (!sdk) return { active: false };
-    if (homeToggleSweep) {
-      const sid = homeToggleSweep;
-      homeToggleSweep = null;
-      try {
-        const isIOS = (() => { try { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); } catch (_) { return false; } })();
-        const tr = sdk.Sweep && sdk.Sweep.Transition;
-        const transition = isIOS ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined) : ((tr && tr.FLY) || undefined);
-        await sdk.Sweep.moveTo(sid, { transition });
-      } catch (e) { console.warn("[MpPreview] toggleHomeView restore failed", e); }
-      return { active: false };
+    if (!sdk) return Promise.resolve({ active: false, ok: false });
+    const epoch = viewerEpoch, session = backgroundSession;
+    const current = () => sdk === mpSdk && epoch === viewerEpoch && session === backgroundSession;
+    if (homeToggleTask && homeToggleTask.sdk === sdk && homeToggleTask.epoch === epoch && homeToggleTask.session === session) {
+      return homeToggleTask.promise;
     }
-    let sid = null;
-    try {
-      const pose = sdk.Camera && typeof sdk.Camera.getPose === "function" ? await sdk.Camera.getPose() : null;
-      sid = pose ? (pose.sweepId || pose.sweep || null) : null;
-    } catch (_) { /* ignore */ }
-    if (sdk !== mpSdk) return {active:false};
-    if (typeof document !== "undefined" && document.body) document.body.classList.remove("nav", "dir");
-    await setFloor(null);
-    if (sdk !== mpSdk) return {active:false};
-    if (sid) homeToggleSweep = sid;
-    if (categoryMarkers && typeof categoryMarkers.refresh === "function") categoryMarkers.refresh();
-    return { active: !!sid };
+    const entry = { sdk, epoch, session };
+    const stale = () => ({ active: false, ok: false, stale: true });
+    const run = async () => {
+      let inOverview = !!homeTogglePose;
+      try {
+        const pose = sdk.Camera && typeof sdk.Camera.getPose === "function" ? await sdk.Camera.getPose() : null;
+        if (!current()) return stale();
+        if (!pose) return { active: !!homeTogglePose, ok: false };
+        const Mode = sdk.Mode, modes = (Mode && Mode.Mode) || {};
+        const sid = pose.sweepId || pose.sweep;
+        const inside = pose.mode === (modes.INSIDE || "mode.inside") || pose.mode === "mode.inside" || pose.mode === "inside";
+        inOverview = !inside;
+        const isIOS = isIOSClient();
+        if (inOverview) {
+          if (homeTogglePose) {
+            if (!sdk.Sweep || typeof sdk.Sweep.moveTo !== "function") return { active: true, ok: false };
+            const tr = sdk.Sweep.Transition;
+            const transition = isIOS ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined) : ((tr && tr.FLY) || undefined);
+            const options = { transition };
+            if (homeTogglePose.rotation) options.rotation = { ...homeTogglePose.rotation };
+            await sdk.Sweep.moveTo(homeTogglePose.sweep, options);
+          } else {
+            if (!Mode || typeof Mode.moveTo !== "function") return { active: false, ok: false };
+            const tr = (sdk.Camera && sdk.Camera.TransitionType) || Mode.TransitionType || Mode.Transition;
+            const transition = isIOS ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined) : ((tr && tr.FLY) || undefined);
+            await Mode.moveTo(modes.INSIDE || "mode.inside", { transition });
+          }
+          if (!current()) return stale();
+          homeTogglePose = null;
+          return { active: false, ok: true };
+        }
+        if (typeof sid !== "string" || !sid) return { active: false, ok: false };
+        const saved = { sweep: sid };
+        if (pose.rotation && Number.isFinite(pose.rotation.x) && Number.isFinite(pose.rotation.y)) {
+          saved.rotation = { x: pose.rotation.x, y: pose.rotation.y };
+        }
+        if (!(await ensureDollhouse(sdk, current))) return current() ? { active: false, ok: false } : stale();
+        if (!current()) return stale();
+        homeTogglePose = saved;
+        if (typeof document !== "undefined" && document.body) document.body.classList.remove("nav", "dir");
+        try { if (categoryMarkers && typeof categoryMarkers.refresh === "function") categoryMarkers.refresh(); } catch (_) { /* Labels cannot fail a completed camera move. */ }
+        return { active: true, ok: true };
+      } catch (e) {
+        if (!current()) return stale();
+        console.warn("[MpPreview] toggleHomeView failed", e);
+        return { active: inOverview && !!homeTogglePose, ok: false };
+      }
+    };
+    homeToggleTask = entry;
+    entry.promise = run().finally(() => { if (homeToggleTask === entry) homeToggleTask = null; });
+    return entry.promise;
   }
 
   async function alignSweepIds(sdk) {
@@ -2948,7 +2980,8 @@ function wfDbg(level, source, message, meta) {
     const session = {identity, epoch:++viewerEpoch, previousModel:previous ? previous.model : null,
       restore:retry && previous ? previous.pose : null, chromeReady:!!(window.WFStartup && window.WFStartup.chromeReady)};
     backgroundSession = session;
-    homeToggleSweep = null;
+    homeTogglePose = null;
+    homeToggleTask = null;
     focusGen++;
     cancelPlayback(); cancelWalkTo();
     if (previous && previous.cleanup) previous.cleanup();

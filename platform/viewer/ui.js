@@ -2435,19 +2435,23 @@ function wfDbg(level, source, message, meta) {
       syncLab();
     }
     $("btnMe").onclick = () => {
-      // No GPS/map concept applies to the Matterport-only background view — repurposed
-      // as a home button, flying out to the Dollhouse overview. A second press flies
-      // straight back to the sweep the camera was at before the first press, so the
-      // user is never stranded in the overview; the icon swaps to show which state
-      // the button is in.
+      // Enter the walkthrough from the initial overview. From inside, show the
+      // overview and let the next press return to the same position and direction.
       if (isMpMode() && window.MpPreview) {
+        const btn = $("btnMe");
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
         if (typeof closeDirectionsIfOpen === "function") closeDirectionsIfOpen();
         document.body.classList.remove("nav", "dir");
         window.MpPreview.toggleHomeView().then(res => {
-          const btn = $("btnMe");
-          if (!btn) return;
+          if (!res || res.stale) return;
           btn.classList.toggle("on", !!(res && res.active));
           btn.querySelector(".ms").textContent = (res && res.active) ? "arrow_back" : "my_location";
+          if (res.ok === false) toast(t("viewer.mpViewFailed"));
+        }).catch(() => toast(t("viewer.mpViewFailed"))).finally(() => {
+          btn.disabled = false;
+          btn.removeAttribute("aria-busy");
         });
         return;
       }
