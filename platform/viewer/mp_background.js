@@ -77,6 +77,7 @@
       box-sizing:border-box; opacity:1; transition:opacity .2s ease;
     }
     body.mp-bg-mode #mpBgLoading[hidden] { display:none !important; }
+    body.mp-bg-mode.mp-startup-intro #mpBgLoading:not(.err) { opacity:0; }
     body.mp-bg-mode.mp-startup-complete #mpBgLoading { opacity:0; pointer-events:none; }
     body.mp-bg-mode #mpBgLoading.err { pointer-events:auto; background:rgba(0,0,0,.75); }
     body.mp-bg-mode #mpBgLoading.err .navme-bg-splash { display:flex !important; }
@@ -257,6 +258,7 @@
       el.setAttribute("aria-live", "polite");
       el.setAttribute("aria-busy", String(!failed && !complete));
       el.classList.toggle("err", failed);
+      if (failed) document.body.classList.remove("mp-startup-intro");
       const text = document.getElementById("mpBgLoadingText");
       if (text) text.textContent = failed
         ? "We couldn't load your navigation experience. Please try again."
@@ -274,20 +276,21 @@
         (shell || el).appendChild(retry);
       }
       if (modelReady && chromeReady && !failed && !complete) {
+        const introWasVisible = document.body.classList.contains("mp-startup-intro");
         complete = true;
         trace("loading", {phase:"complete", generation});
         clearTimeout(watchdog);
         const pctEl = el.querySelector(".navme-bg-splash-pct");
         if (pctEl) pctEl.textContent = "100%";
         document.body.classList.add("mp-startup-complete");
-        document.body.classList.remove("booting");
+        document.body.classList.remove("booting", "mp-startup-intro");
         const finish = () => {
           if (complete && !failed) el.hidden = true;
         };
         el.addEventListener("transitionend", finish, { once: true });
-        // In reduced-motion mode no transition event is emitted. The class still
-        // makes the loader transparent immediately if transition events are absent.
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) finish();
+        // The introduction has already faded the loader, so completion emits no
+        // second opacity event. Reduced motion also skips that event entirely.
+        if (introWasVisible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) finish();
       }
     }
     const state = {
@@ -303,7 +306,7 @@
         window.__mpBackgroundReady = false;
         lastStatus = "Loading digital twin…";
         document.body.classList.add("booting");
-        document.body.classList.remove("mp-frame-loaded", "mp-startup-complete");
+        document.body.classList.remove("mp-frame-loaded", "mp-startup-complete", "mp-startup-intro");
         const retry = document.getElementById("mpStartupRetry"); if (retry) retry.remove();
         clearTimeout(watchdog);
         // A deadline reports failure; it never pretends that the model is ready.

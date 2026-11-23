@@ -12,7 +12,10 @@ function handler(file, name, dependencies) {
   for (let end = source.indexOf('}', start); end >= 0; end = source.indexOf('}', end + 1)) {
     let script;
     try { script = new vm.Script('(' + source.slice(start, end + 1) + ')'); } catch { continue; }
-    return script.runInNewContext({trace() {}, ...dependencies});
+    const context = vm.createContext({trace() {}, ...dependencies});
+    const fn = script.runInContext(context);
+    fn.context = context;
+    return fn;
   }
   throw Error('Cannot parse ' + name);
 }
@@ -80,6 +83,13 @@ test('reduced-motion startup dismisses without waiting for a nonexistent transit
   const c = startup(true); c.state.begin(1); c.state.modelReady(1); c.state.uiReady(1);
   assert.equal(c.loader.hidden, true);
 });
+test('a transparent introduction hides its completed loader without waiting for a second opacity transition', () => {
+  const c = startup(); c.state.begin(1); c.body.classList.add('mp-startup-intro');
+  c.state.modelReady(1); c.state.uiReady(1);
+  assert.equal(c.loader.hidden, true);
+  assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+  assert.equal(c.body.classList.contains('booting'), false);
+});
 test('late readiness and duplicate begin cannot reopen a completed loader', () => {
   const c = startup(true); c.state.begin(1); c.state.modelReady(1); c.state.uiReady(1);
   assert.equal(c.loader.hidden, true);
@@ -124,6 +134,16 @@ test('stale callbacks cannot complete or fail a newer venue/model attempt', () =
   c.state.modelReady(2); c.state.uiReady(2);
   assert.equal(c.body.classList.contains('mp-startup-complete'), true);
 });
+test('new startup and failures remove the transparent intro state and keep errors visible', () => {
+  const c = startup();
+  c.body.classList.add('mp-startup-intro'); c.state.begin(1);
+  assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+  c.body.classList.add('mp-startup-intro'); c.state.fail(1);
+  assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+  assert.equal(c.loader.hidden, false);
+  assert.equal(c.loader.classList.contains('err'), true);
+  assert.equal(c.loader.attributes.role, 'alert');
+});
 function deferred() {
   let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve };
 }
@@ -133,10 +153,10 @@ function modelContext(overrides = {}) {
   const calls = [];
   const session = {epoch:1, identity:"test-model"};
   let onPhase = () => {};
-  const sdk = { App: { state: { subscribe(callback) { onPhase = callback; return { cancel() { calls.push('unsubscribe'); } }; } } }, Mode: { Mode: { DOLLHOUSE: 'dollhouse' }, moveTo: async target => { calls.push(target === 'dollhouse' ? 'mode' : target); await mode.promise; } } };
+  const sdk = { App: { state: { subscribe(callback) { onPhase = callback; return { cancel() { calls.push('unsubscribe'); } }; } } }, Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' }, moveTo: async target => { calls.push(target === 'dollhouse' ? 'mode' : target); await mode.promise; } } };
   const deps = {
     backgroundSession:session, viewerEpoch:1, viewerIdentity:()=>"test-model", viewerTrace() {}, monitorBackground() {}, modelId:"test-model",
-    categoryMarkers: null, openGen: 0, mpSdk: null, applicationKey: 'test', window: { WFStartup: c.state, WF: { ready: Promise.resolve() } },
+    categoryMarkers: null, openGen: 0, focusGen: 0, mpSdk: null, applicationKey: 'test', window: { WFStartup: c.state, WF: { ready: Promise.resolve() } },
     document: { body: c.body }, $: id => id === 'mpFrame' ? frame : overlay,
     ensureOverlay() {}, setStatus() {}, resolveConfig: async () => ({modelId:"test-model",applicationKey:"test"}),
     showcaseUrl: () => 'https://example.invalid/model', waitIframeLoad: () => load.promise,
@@ -144,6 +164,7 @@ function modelContext(overrides = {}) {
     phaseConsts: () => ({ STARTING: 'starting', PLAYING: 'playing' }),
     waitPlaying: () => playing.promise, frameWholeBuilding: async () => { calls.push('frame'); },
     requestAnimationFrame: fn => fn(), console: { warn() {} },
+    setTimeout: fn => { queueMicrotask(fn); return 1; },
     ...overrides,
   };
   return { ...c, load, playing, mode, frame, calls, deps, session, emitPhase: phase => onPhase({ phase }) };
@@ -384,7 +405,7 @@ for (const slug of ['uncc-main-campus', 'gcu']) {
     const c = modelContext();
     let urlOptions = null, markerMounts = 0;
     c.deps.window.WF = { ready: Promise.resolve(), cfg: { slug } };
-    c.deps.window.matchMedia = () => ({ matches: true });
+    c.deps.window.matchMedia = query => ({ matches: !query.includes('reduced-motion') });
     c.deps.window.WFCategoryMarkers = { mount() { markerMounts++; return { dispose() {} }; } };
     c.deps.showcaseUrl = (_key, _sweep, options) => { urlOptions = options; return 'https://example.invalid/native'; };
     const result = handler('mp_preview.js', 'initializeBackground', c.deps)(c.session);
@@ -392,7 +413,7 @@ for (const slug of ['uncc-main-campus', 'gcu']) {
     c.load.resolve(); c.playing.resolve(true);
     assert.equal(await result, true);
     assert.equal(!urlOptions || !urlOptions.nativeStartup, true);
-    assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame']);
+    assert.deepEqual(c.calls, slug === 'gcu' ? ['unsubscribe', 'mode', 'frame', 'inside'] : ['unsubscribe', 'mode', 'frame']);
     assert.equal(markerMounts, 1);
   });
 }
@@ -412,4 +433,205 @@ test('iOS devices restore dollhouse transition and mount category markers even w
   assert.equal(!urlOptions || !urlOptions.nativeStartup, true);
   assert.deepEqual(c.calls, ['unsubscribe', 'mode', 'frame']);
   assert.equal(markerMounts, 1);
+});
+
+function gcuEntryContext({ mobile = false, reduced = false, ios = false, buildingSlug = false, holdZoom = false } = {}) {
+  const c = modelContext(), intro = deferred(), inside = deferred(), zoom = deferred(), delays = [], moves = [], shown = [], cameraCalls = [];
+  if (!holdZoom) zoom.resolve();
+  c.deps.window.WF = { ready: Promise.resolve(), cfg: { slug: buildingSlug ? 'other-config' : 'gcu' },
+    ...(buildingSlug ? { building: { slug: 'gcu' } } : {}) };
+  c.deps.window.matchMedia = query => ({ matches: query.includes('reduced-motion') ? reduced : mobile });
+  if (ios) c.deps.navigator = { userAgent: 'iPhone', platform: 'iPhone', maxTouchPoints: 1 };
+  c.deps.setTimeout = (callback, delay) => { delays.push(delay); intro.promise.then(callback); return 1; };
+  c.deps.toast = text => shown.push(text);
+  const sdk = { Mode: { Mode: { DOLLHOUSE: 'dollhouse', INSIDE: 'inside' },
+    moveTo: async (mode, options) => {
+      c.calls.push(mode); moves.push({mode, options});
+      if (mode === 'inside') await inside.promise;
+    } }, Camera: { TransitionType: { FLY: 'fly', FADEOUT: 'fade', INSTANT: 'instant' },
+      zoomTo: async value => { cameraCalls.push({ type: 'zoom', value }); await zoom.promise; },
+      setRotation: async value => { cameraCalls.push({ type: 'rotation', value: JSON.parse(JSON.stringify(value)) }); }
+    } };
+  c.deps.connectSdk = async () => sdk;
+  c.deps.frameWholeBuilding = async (_sdk, current) => { assert.equal(current(), true); c.calls.push('frame'); };
+  let execution;
+  return { ...c, intro, inside, zoom, delays, moves, shown, sdk, cameraCalls,
+    get execution() { return execution; },
+    start() {
+      const initialize = handler('mp_preview.js', 'initializeBackground', c.deps);
+      execution = initialize.context;
+      const result = initialize(c.session);
+      c.load.resolve(); c.playing.resolve(true); return result;
+    } };
+}
+
+for (const buildingSlug of [false, true]) {
+  test(`GCU ${buildingSlug ? 'building' : 'config'} startup shows the overview and waits for automatic native entry`, async () => {
+    const c = gcuEntryContext({ buildingSlug }), result = c.start();
+    await tick();
+    assert.deepEqual(c.calls, ['dollhouse', 'frame']);
+    assert.deepEqual(c.delays, [900]);
+    assert.equal(c.body.classList.contains('mp-startup-intro'), true);
+    assert.equal(c.body.classList.contains('booting'), true);
+    assert.equal(c.session.ready, undefined);
+    c.state.uiReady(c.session.generation);
+    c.intro.resolve(); await tick();
+    assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+    assert.equal(c.body.classList.contains('booting'), true, 'Inside transition must finish before controls appear');
+    const options = c.moves.at(-1).options;
+    assert.equal(options.position, undefined);
+    assert.equal(options.rotation, undefined);
+    assert.equal(options.sweep, undefined);
+    c.inside.resolve(); assert.equal(await result, true);
+    assert.equal(c.session.ready, true);
+    assert.equal(c.body.classList.contains('booting'), false);
+    assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+    assert.equal(c.loader.hidden, true);
+  });
+}
+
+for (const [name, flags, delay, transition] of [
+  ['mobile', { mobile: true }, [600], 'fly'],
+  ['iOS', { ios: true }, [600], 'fade'],
+  ['reduced motion', { reduced: true }, [], 'fly'],
+]) {
+  test(`GCU ${name} uses its brief or skipped introduction and compatible transition`, async () => {
+    const c = gcuEntryContext(flags), result = c.start();
+    c.intro.resolve(); c.inside.resolve(); assert.equal(await result, true);
+    assert.deepEqual(c.delays, delay);
+    assert.deepEqual(c.moves.map(move => move.options.transition), [transition, transition]);
+  });
+}
+
+test('GCU destination links keep their existing immediate entry without adding a default-camera delay', async () => {
+  const c = gcuEntryContext(); c.deps.WFQuery = () => new URLSearchParams('to=room&from=entrance');
+  const result = c.start(); await tick();
+  assert.deepEqual(c.delays, []);
+  assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  c.inside.resolve(); assert.equal(await result, true);
+});
+
+test('the confirmed GCU model faces its courtyard sign without choosing a scan or position', async () => {
+  const c = gcuEntryContext();
+  c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+  const result = c.start(); c.intro.resolve(); c.inside.resolve();
+  assert.equal(await result, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(c.moves.at(-1).options)), { transition: 'fly', rotation: { x: 0, y: 95 } });
+  assert.deepEqual(c.cameraCalls, [{ type: 'zoom', value: 0.7 }, { type: 'rotation', value: { x: 0, y: 95 } }]);
+});
+
+test('desktop courtyard framing waits for native Inside and completes zoom before re-aiming', async () => {
+  const c = gcuEntryContext({ holdZoom: true });
+  c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+  const result = c.start(); c.intro.resolve(); await tick();
+  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  assert.deepEqual(c.cameraCalls, []);
+  c.inside.resolve(); await tick();
+  assert.deepEqual(c.cameraCalls, [{ type: 'zoom', value: 0.7 }]);
+  assert.equal(c.session.ready, undefined);
+  c.zoom.resolve(); assert.equal(await result, true);
+  assert.deepEqual(c.cameraCalls.at(-1), { type: 'rotation', value: { x: 0, y: 95 } });
+});
+
+for (const flags of [{ mobile: true }, { ios: true }]) {
+  test(`the GCU ${flags.ios ? 'iOS' : 'mobile'} entrance retains its direction without optional desktop zoom`, async () => {
+    const c = gcuEntryContext(flags);
+    c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+    const result = c.start(); c.intro.resolve(); c.inside.resolve();
+    assert.equal(await result, true);
+    assert.deepEqual(JSON.parse(JSON.stringify(c.moves.at(-1).options.rotation)), { x: 0, y: 105 });
+    assert.deepEqual(c.cameraCalls, []);
+  });
+}
+
+test('a superseded courtyard zoom cannot re-aim or announce the old session ready', async () => {
+  const c = gcuEntryContext({ holdZoom: true });
+  c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+  const result = c.start(); c.intro.resolve(); c.inside.resolve(); await tick();
+  assert.deepEqual(c.cameraCalls, [{ type: 'zoom', value: 0.7 }]);
+  c.state.begin(2); c.zoom.resolve();
+  assert.equal(await result, false);
+  assert.deepEqual(c.cameraCalls, [{ type: 'zoom', value: 0.7 }]);
+  assert.equal(c.session.ready, undefined);
+});
+
+test('a newer explicit focus during courtyard zoom retains its direction', async () => {
+  const c = gcuEntryContext({ holdZoom: true });
+  c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+  const result = c.start(); c.intro.resolve(); c.inside.resolve(); await tick();
+  c.execution.focusGen++; c.zoom.resolve();
+  assert.equal(await result, true);
+  assert.deepEqual(c.cameraCalls, [{ type: 'zoom', value: 0.7 }]);
+});
+
+for (const method of ['zoomTo', 'setRotation']) {
+  test(`optional courtyard ${method} failure keeps a usable Inside view without a startup error`, async () => {
+    const c = gcuEntryContext();
+    c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+    c.sdk.Camera[method] = async () => { throw Error('Unavailable'); };
+    const result = c.start(); c.intro.resolve(); c.inside.resolve();
+    assert.equal(await result, true);
+    assert.equal(c.session.ready, true);
+    assert.equal(c.loader.classList.contains('err'), false);
+    assert.deepEqual(c.shown, []);
+  });
+}
+
+test('GCU destination links do not inherit the courtyard startup direction', async () => {
+  const c = gcuEntryContext();
+  c.deps.resolveConfig = async () => ({ modelId: 'jdjvM17BPEh', applicationKey: 'test' });
+  c.deps.WFQuery = () => new URLSearchParams('to=room');
+  const result = c.start(); c.inside.resolve();
+  assert.equal(await result, true);
+  assert.equal(c.moves.at(-1).options.rotation, undefined);
+  assert.deepEqual(c.cameraCalls, []);
+});
+
+for (const deepLink of [false, true]) {
+  test(`GCU same-model recovery leaves its saved camera for restoration${deepLink ? ' with a destination link' : ''}`, async () => {
+    const c = gcuEntryContext();
+    c.session.restore = { sweep: 'saved-scan', rotation: { x: 10, y: 20 } };
+    c.session.previousModel = 'test-model';
+    if (deepLink) c.deps.WFQuery = () => new URLSearchParams('to=room');
+    let restored = null;
+    c.deps.monitorBackground = session => { restored = session.restore; };
+    assert.equal(await c.start(), true);
+    assert.deepEqual(c.calls, ['dollhouse', 'frame']);
+    assert.deepEqual(c.delays, []);
+    assert.deepEqual(c.cameraCalls, []);
+    assert.deepEqual(restored, { sweep: 'saved-scan', rotation: { x: 10, y: 20 } });
+  });
+}
+
+for (const failure of [false, true]) {
+  test(`a ${failure ? 'failed' : 'superseded'} GCU introduction cannot enter the old camera after its dwell`, async () => {
+    const c = gcuEntryContext(), result = c.start(); await tick();
+    assert.equal(c.body.classList.contains('mp-startup-intro'), true);
+    if (failure) c.state.fail(c.session.generation); else c.state.begin(2);
+    assert.equal(c.body.classList.contains('mp-startup-intro'), false);
+    c.intro.resolve(); assert.equal(await result, false);
+    assert.deepEqual(c.calls, ['dollhouse', 'frame']);
+    assert.equal(c.session.ready, undefined);
+    if (failure) { assert.equal(c.loader.hidden, false); assert.equal(c.loader.classList.contains('err'), true); }
+  });
+}
+
+test('a superseded Inside transition cannot announce startup readiness', async () => {
+  const c = gcuEntryContext({ reduced: true }), result = c.start(); await tick();
+  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  c.state.begin(2); c.inside.resolve();
+  assert.equal(await result, false);
+  assert.equal(c.session.ready, undefined);
+  assert.equal(c.body.classList.contains('booting'), true);
+});
+
+test('failed automatic GCU entry retains the usable overview and shows recovery guidance', async () => {
+  const c = gcuEntryContext();
+  c.sdk.Mode.moveTo = async mode => { c.calls.push(mode); if (mode === 'inside') throw Error('Unavailable'); };
+  const result = c.start(); c.intro.resolve(); assert.equal(await result, true);
+  assert.deepEqual(c.calls, ['dollhouse', 'frame', 'inside']);
+  assert.equal(c.session.ready, true);
+  assert.equal(c.loader.classList.contains('err'), false);
+  assert.deepEqual(c.shown, ["We couldn't open the walkthrough right now. You can still explore the 3D view."]);
 });

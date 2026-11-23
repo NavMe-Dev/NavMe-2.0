@@ -3121,15 +3121,17 @@ function wfDbg(level, source, message, meta) {
       const Mode = sdk.Mode;
       if (Mode && Mode.moveTo && Mode.Mode) {
         const dh = Mode.Mode.DOLLHOUSE || Mode.Mode.Dollhouse || "mode.dollhouse";
+        const tr = (sdk.Camera && sdk.Camera.TransitionType) || Mode.TransitionType || Mode.Transition;
         const transition = isIOS
-          ? ((Mode.Transition && (Mode.Transition.FADEOUT || Mode.Transition.INSTANT)) || undefined)
-          : ((Mode.Transition && Mode.Transition.FLY) || undefined);
+          ? ((tr && (tr.FADEOUT || tr.INSTANT)) || undefined)
+          : ((tr && tr.FLY) || undefined);
         await Mode.moveTo(dh, { transition });
       }
     } catch (e) {
       console.warn("[MpBackground] dollhouse moveTo warning", e && (e.name || e.message));
     }
-    await frameWholeBuilding(sdk);
+    if (!current()) return false;
+    await frameWholeBuilding(sdk, current);
     if (!current()) return false;
     // Keep preparation and hidden controls through the visible fly-in. Only
     // completed mode/camera setup and UI readiness can finish startup.
@@ -3144,14 +3146,55 @@ function wfDbg(level, source, message, meta) {
         return !!(q && (q.get("to") || q.get("sweep") || q.get("poi") || q.get("place") || q.get("from") || q.get("mode") === "dir"));
       } catch (_) { return false; }
     })();
-    if (hasDeepLink) {
+    const wf = window.WF || {}, cfg = wf.cfg || {}, building = wf.building || {};
+    const selectedSlug = String(building.slug || cfg.slug || "").toLowerCase();
+    const restoringPose = !!(session.restore && session.model === session.previousModel);
+    const autoEnter = selectedSlug === "gcu" && !hasDeepLink && !restoringPose;
+    let compactStartup = isIOS;
+    try { compactStartup = compactStartup || !!(window.matchMedia && window.matchMedia("(max-width: 900px), (pointer: coarse)").matches); }
+    catch (_) { /* Keep the existing device classification when media queries are unavailable. */ }
+    if (autoEnter) {
+      // Let visitors see the framed campus before moving into its native entrance.
+      // Controls remain in startup until that move finishes; deep-link cameras run
+      // afterward through the existing background promise.
+      document.body.classList.add("mp-startup-intro");
+      let introMs = 900;
+      try {
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) introMs = 0;
+        else if (compactStartup) introMs = 600;
+      } catch (_) { /* Keep the short desktop opening when media queries are unavailable. */ }
+      if (introMs) await new Promise(resolve => setTimeout(resolve, introMs));
+      if (!current()) return false;
+    }
+    if (!restoringPose && (hasDeepLink || autoEnter)) {
       try {
         const inside = sdk.Mode.Mode.INSIDE || "mode.inside";
-        const transition = sdk.Camera && sdk.Camera.TransitionType;
+        const transition = (sdk.Camera && sdk.Camera.TransitionType) || sdk.Mode.TransitionType || sdk.Mode.Transition;
         const insideTransition = isIOS
           ? ((transition && (transition.FADEOUT || transition.INSTANT)) || undefined)
           : ((transition && transition.FLY) || undefined);
-        await sdk.Mode.moveTo(inside, { transition: insideTransition });
+        const insideOptions = { transition: insideTransition };
+        const courtyardEntry = autoEnter && modelId === "jdjvM17BPEh";
+        const courtyardRotation = { x: 0, y: compactStartup ? 105 : 95 };
+        const entryFocusGen = focusGen;
+        if (courtyardEntry) insideOptions.rotation = courtyardRotation;
+        await sdk.Mode.moveTo(inside, insideOptions);
+        if (!current()) return false;
+        if (courtyardEntry && !compactStartup && entryFocusGen === focusGen && sdk.Camera && typeof sdk.Camera.zoomTo === "function") {
+          try {
+            await sdk.Camera.zoomTo(0.7);
+            if (!current()) return false;
+            // Zoom can shift the native camera's aim. Preserve a newer explicit
+            // focus instead of applying this opening direction over it.
+            if (entryFocusGen === focusGen && typeof sdk.Camera.setRotation === "function") {
+              await sdk.Camera.setRotation(courtyardRotation);
+              if (!current()) return false;
+            }
+          } catch (e) {
+            if (!current()) return false;
+            console.warn("[MpBackground] courtyard framing warning", e && e.name);
+          }
+        }
       } catch (e) {
         if (!current()) return false;
         console.warn("[MpBackground] enter inside failed", e && e.name);
